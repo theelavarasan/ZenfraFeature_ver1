@@ -61,28 +61,22 @@ public class FavouriteApiService_v2 {
 			JSONArray viewArr=new JSONArray();
 			 JSONParser parser = new JSONParser();
 			rows.forEach(row->{				
-					
-				
-				System.out.println("---"+row.get("siteAccessList"));
-				try {
-					if(row.get("userAccessList")!=null) {
-						System.out.println( row.get("userAccessList"));
-						row.put("userAccessList",  row.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
-						
-					}	
-					//JSONArray as=map.convertValue(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", ""), JSONArray.class);
-					row.put("filterProperty",(JSONArray)parser.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
-					row.put("categoryList",(JSONArray)parser.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
-					row.put("siteAccessList",(JSONArray)parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
-					row.put("siteAccessList",(JSONArray)parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
-					row.put("groupedColumns",(JSONArray)parser.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
-					
-					//row.put("filterProperty",new JSONArray(row.get("filterProperty").toString());
-					viewArr.add(map.convertValue(row, JSONObject.class));
-		
-				} catch (Exception e) {
-					e.printStackTrace();					
-				}
+					try {
+						if(row.get("userAccessList")!=null) {
+							System.out.println( row.get("userAccessList"));
+							row.put("userAccessList",  row.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
+							
+						}
+						row.put("filterProperty",(JSONArray)parser.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
+						row.put("categoryList",(JSONArray)parser.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
+						row.put("siteAccessList",(JSONArray)parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
+						row.put("siteAccessList",(JSONArray)parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
+						row.put("groupedColumns",(JSONArray)parser.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
+						viewArr.add(map.convertValue(row, JSONObject.class));
+			
+					} catch (Exception e) {
+						e.printStackTrace();					
+					}
 				});
 	        
 			
@@ -250,17 +244,21 @@ public class FavouriteApiService_v2 {
 		return count;
 	}
 
-	public int updateFavouriteView(FavouriteModel favouriteModel) {
+	
+
+	public int updateFavouriteView(String userId, FavouriteModel favouriteModel) {
 		int responce = 0;
 		try {
 			
 			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
 			
 			String query="UPDATE favourite_view\r\n" + 
-					"	SET updated_time='"+favouriteModel.getUpdatedTime()+"', updated_by='"+favouriteModel.getUpdatedBy()+"', report_name='"+favouriteModel.getReportName()+"', favourite_id='"+favouriteModel.getFavouriteId()+"', "
+					"	SET updated_time='"+favouriteModel.getUpdatedTime()+"', updated_by='"+favouriteModel.getUpdatedBy()+"', favourite_id='"+favouriteModel.getFavouriteId()+"', "
 					+ "is_active='"+favouriteModel.getIsActive()+"', group_by_period='"+favouriteModel.getGroupByPeriod()+"', site_key='"+favouriteModel.getSiteKey()+"', favourite_name='"+favouriteModel.getFavouriteName()+"', project_id='"+favouriteModel.getProjectId()+"', "
-					+ " site_access_list='"+favouriteModel.getSiteAccessList()+"', grouped_columns='"+favouriteModel.getGroupByPeriod()+"', category_list='"+favouriteModel.getCategoryList()+"', filter_property='"+favouriteModel.getFilterProperty()+"', user_access_list='"+ user+"'";
-			
+					+ " site_access_list='"+favouriteModel.getSiteAccessList()+"', grouped_columns='"+favouriteModel.getGroupByPeriod()+"', category_list='"+favouriteModel.getCategoryList()+"', filter_property='"+favouriteModel.getFilterProperty()+"', user_access_list='"+ user+"'"
+					+ "where  report_name='"+favouriteModel.getReportName()+"'  and site_key='"+favouriteModel.getSiteKey()+"' and created_by='"+userId+"'";
+					
+						
 			responce=daoFav.updateQuery(query);
 		} catch (Exception e) {
 			e.printStackTrace();

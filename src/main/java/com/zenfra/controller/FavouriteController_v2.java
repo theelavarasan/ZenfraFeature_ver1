@@ -128,7 +128,7 @@ public class FavouriteController_v2 {
             favouriteModel.setUpdatedTime(currentTime);         
        
             
-            if(service.updateFavouriteView(favouriteModel)==1) {
+            if(service.updateFavouriteView(userId,favouriteModel)==1) {
                 responseModel.setResponseDescription("FavouriteView Successfully updated");
             }else {
                 responseModel.setResponseDescription("Favourite Id not found ");
