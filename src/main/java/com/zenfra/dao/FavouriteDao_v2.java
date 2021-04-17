@@ -94,6 +94,8 @@ public List<FavouriteOrder_v2> getFavouriteOrder(String query){
 					System.out.println( row.get("userAccessList"));
 					row.put("userAccessList", row.get("userAccessList").toString().replace("{", "[").replace("}", "]"));
 				}				
+				
+				
 				arr.add(map.convertValue(row, JSONObject.class));
 			});
 	        

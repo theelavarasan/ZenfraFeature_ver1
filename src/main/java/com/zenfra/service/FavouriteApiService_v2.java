@@ -25,7 +25,7 @@ public class FavouriteApiService_v2 {
 		try {
 			JSONObject obj = new JSONObject();
 
-			String favourite_view_query = "select fa.updated_time as \"updatedTime\",fa.updated_by as \"updatedBy\",fa.report_name as \"reportName\",fa.favourite_id as \"favouriteId\",fa.filter_property as \"filterProperty\",fa.is_active as \"isActive\",fa.user_access_list as \"userAccessList\",fa.group_by_period as \"groupByPeriod\",fa.site_key as \"siteKey\",fa.grouped_columns as \"groupedColumns\",fa.created_by as \"createdBy\",fa.category_list as \"categoryList\",fa.created_time as \"createdTime\",fa.favourite_name as \"favouriteName\",fa.site_access_list as \"siteAccessList\",fa.project_id as \"projectId\",fa.is_default as \"isDefault\",fa.rid as \"rid\""
+			String favourite_view_query = "select fa.updated_time as \"updatedTime\",fa.updated_by as \"updatedBy\",fa.report_name as \"reportName\",fa.favourite_id as \"favouriteId\",fa.filter_property::json as \"filterProperty\",fa.is_active as \"isActive\",fa.user_access_list as \"userAccessList\",fa.group_by_period as \"groupByPeriod\",fa.site_key as \"siteKey\",fa.grouped_columns as \"groupedColumns\",fa.created_by as \"createdBy\",fa.category_list as \"categoryList\",fa.created_time as \"createdTime\",fa.favourite_name as \"favouriteName\",fa.site_access_list as \"siteAccessList\",fa.project_id as \"projectId\",fa.is_default as \"isDefault\",fa.rid as \"rid\""
 					+ ",CASE\r\n" + "when fa.created_by = 'user_id_value' then True\r\n"
 					+ "when usr.is_tenant_admin = 'true' then true\r\n" + "else false\r\n" + "END isWriteAccess\r\n"
 					+ "from favourite_view fa\r\n" + "left join user_temp usr on usr.user_id = fa.created_by\r\n"
