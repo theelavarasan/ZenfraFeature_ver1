@@ -117,9 +117,10 @@ public class FavouriteController_v2 {
     public ResponseEntity<?> updateFavouriteViewData(@RequestParam(name = "authUserId", required = false) String userId, @RequestBody FavouriteModel favouriteModel) throws IOException,
             URISyntaxException, org.json.simple.parser.ParseException, ParseException, SQLException {
 
-        ResponseModel responseModel = new ResponseModel();
+        ResponseModel_v2 responseModel = new ResponseModel_v2();
         try {
 
+        	 ObjectMapper mapper = new ObjectMapper();
         	favouriteModel.setUpdatedBy(userId);    
             favouriteModel.setIsActive(true);
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
