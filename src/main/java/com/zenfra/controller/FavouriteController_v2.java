@@ -134,6 +134,7 @@ public class FavouriteController_v2 {
                 responseModel.setResponseDescription("Favourite Id not found ");
             }
             
+            responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
             responseModel.setResponseMessage("Success!");
             responseModel.setResponseCode(HttpStatus.OK);
       
