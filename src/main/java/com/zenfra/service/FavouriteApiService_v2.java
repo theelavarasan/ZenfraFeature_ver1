@@ -75,6 +75,7 @@ public class FavouriteApiService_v2 {
 					row.put("categoryList",(JSONArray)parser.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
 					row.put("siteAccessList",(JSONArray)parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
 					row.put("siteAccessList",(JSONArray)parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
+					row.put("groupedColumns",(JSONArray)parser.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
 					
 					//row.put("filterProperty",new JSONArray(row.get("filterProperty").toString());
 					viewArr.add(map.convertValue(row, JSONObject.class));
