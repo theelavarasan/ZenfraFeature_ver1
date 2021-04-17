@@ -68,7 +68,7 @@ public List<FavouriteOrder_v2> getFavouriteOrder(String query){
 							rs.getString("updated_time"), rs.getString("site_key"), rs.getString("updated_by"),
 							rs.getString("report_name"), rs.getString("created_by"),rs.getString("order_id"),
 							rs.getString("created_time"), rs.getBoolean("is_active"), rs.getString("project_id"),
-							rs.getString("orders"))
+							rs.("orders"))
 					));
 			
 		} catch (Exception e) {
@@ -137,4 +137,19 @@ public List<FavouriteOrder_v2> getFavouriteOrder(String query){
 
 
 
+	public int queryWithParams(Map<String,Object> params,String query) {
+		
+		int responce=0;
+		try {
+			
+			
+			return namedJdbc.update(query, params);
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+		}
+		
+		return responce;
+	}
+	
 }

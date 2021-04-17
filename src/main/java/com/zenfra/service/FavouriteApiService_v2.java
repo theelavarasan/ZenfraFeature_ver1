@@ -129,7 +129,7 @@ public class FavouriteApiService_v2 {
 						+ favouriteModel.getFilterProperty() + "', '" + user + "')";
 		
 			
-			responce = daoFav.updateQuery(parameters, updateQuery);
+			responce = daoFav.updateQuery(updateQuery);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -178,21 +178,21 @@ public class FavouriteApiService_v2 {
 			
 			
 
-			Map<String, Object> params = new HashMap<>();
-			params.put("data_id", "gen_random_uuid()");
-			params.put("updated_time", favouriteModel.getUpdatedTime());
-			params.put("site_key", favouriteModel.getSiteKey());
-			params.put("updated_by", favouriteModel.getUpdatedBy());
-			params.put("report_name", favouriteModel.getReportName());
-			params.put("created_by", favouriteModel.getCreatedBy());
-			params.put("created_time", favouriteModel.getCreatedTime());
-			params.put("is_active", favouriteModel.getIsActive());
-			params.put("project_id", favouriteModel.getProjectId());
-			params.put("order_id", favouriteModel.getOrderId());
-			params.put("orders", favouriteModel.getOrders());
+			 SqlParameterSource parameters = new MapSqlParameterSource()
+			//Map<String, Object> params = new HashMap<>();
+			.addValue("updated_time", favouriteModel.getUpdatedTime())
+			.addValue("site_key", favouriteModel.getSiteKey())
+			.addValue("updated_by", favouriteModel.getUpdatedBy())
+			.addValue("report_name", favouriteModel.getReportName())
+			.addValue("created_by", favouriteModel.getCreatedBy())
+			.addValue("created_time", favouriteModel.getCreatedTime())
+			.addValue("is_active", favouriteModel.getIsActive())
+			.addValue("project_id", favouriteModel.getProjectId())
+			.addValue("order_id", favouriteModel.getOrderId())
+			.addValue("orders", Arrays.asList(favouriteModel.getOrders()));
 
-			//String query = "INSERT INTO favourite_order(data_id, updated_time, site_key, updated_by, report_name, created_by, order_id, created_time, is_active, project_id, orders)"
-			//		+ "  VALUES (:data_id,:updated_time,:site_key,:updated_by,:report_name,:created_by,:order_id,:created_time,:is_active,:project_id,:orders)";
+			//String query = "INSERT INTO favourite_order(data_id, site_key, report_name, created_by, order_id, created_time, is_active, project_id, orders)"
+			//		+ "  VALUES (gen_random_uuid(),:site_key,:report_name,:created_by,:order_id,:created_time,:is_active,:project_id,:orders)";
 
 			
 			String updateQuery="UPDATE favourite_order\r\n" + 
