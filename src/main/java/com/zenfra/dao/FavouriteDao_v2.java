@@ -80,31 +80,19 @@ public List<FavouriteOrder_v2> getFavouriteOrder(String query){
 	}
 	
 	
-	public JSONArray getJsonarray(String query) {
+	public List<Map<String, Object>> getJsonarray(String query) {
 		
-		JSONArray arr=new JSONArray();
+		List<Map<String, Object>> rows=new ArrayList<Map<String,Object>>();
 		try {
-			ObjectMapper map=new ObjectMapper();
+			
 			//map.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-			List<Map<String, Object>> rows = jdbc.queryForList(query);
-
-			
-			rows.forEach(row->{				
-				if(row.get("userAccessList")!=null) {
-					System.out.println( row.get("userAccessList"));
-					row.put("userAccessList", row.get("userAccessList").toString().replace("{", "[").replace("}", "]"));
-				}				
-				
-				
-				arr.add(map.convertValue(row, JSONObject.class));
-			});
-	        
-			
+			 rows = jdbc.queryForList(query);
+	
 		} catch (Exception e) {
 			e.printStackTrace();
 			
 		}
-		return arr;
+		return rows;
 	}
 	
 	public Integer updateQuery(SqlParameterSource parameter,String query) {
