@@ -47,6 +47,8 @@ public class FavouriteApiService_v2 {
 			favourite_order_query = favourite_order_query.replace("report_name_value", reportName)
 					.replace("site_key_value", siteKey).replace("user_id_value", userId);
 
+			System.out.println(favourite_view_query);
+			
 			arr.put("view", daoFav.getJsonarray(favourite_view_query));
 			arr.put("order", daoFav.getJsonarray(favourite_order_query).get(0));
 

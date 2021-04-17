@@ -89,10 +89,11 @@ public List<FavouriteOrder_v2> getFavouriteOrder(String query){
 			List<Map<String, Object>> rows = jdbc.queryForList(query);
 
 			
-			rows.forEach(row->{
-				if(row.get("user_access_list")!=null) {
-					row.put("user_access_list", row.get("user_access_list").toString().replace("{", "[").replace("}", "]"));
-				}
+			rows.forEach(row->{				
+				if(row.get("userAccessList")!=null) {
+					System.out.println( row.get("userAccessList"));
+					row.put("userAccessList", row.get("userAccessList").toString().replace("{", "[").replace("}", "]"));
+				}				
 				arr.add(map.convertValue(row, JSONObject.class));
 			});
 	        
