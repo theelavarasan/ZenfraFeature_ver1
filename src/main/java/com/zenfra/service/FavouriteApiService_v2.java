@@ -1,11 +1,14 @@
 package com.zenfra.service;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -56,13 +59,30 @@ public class FavouriteApiService_v2 {
 					
 			ObjectMapper map=new ObjectMapper();
 			JSONArray viewArr=new JSONArray();
+			 JSONParser parser = new JSONParser();
 			rows.forEach(row->{				
-				if(row.get("userAccessList")!=null) {
-					System.out.println( row.get("userAccessList"));
-					row.put("userAccessList", row.get("userAccessList").toString().replace("{", "[").replace("}", "]"));
-				}	
-				viewArr.add(map.convertValue(row, JSONObject.class));
-			});
+					
+				
+				System.out.println("---"+row.get("siteAccessList"));
+				try {
+					if(row.get("userAccessList")!=null) {
+						System.out.println( row.get("userAccessList"));
+						row.put("userAccessList",  row.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
+						
+					}	
+					//JSONArray as=map.convertValue(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", ""), JSONArray.class);
+					row.put("filterProperty",(JSONArray)parser.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
+					row.put("categoryList",(JSONArray)parser.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
+					row.put("siteAccessList",(JSONArray)parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
+					row.put("siteAccessList",(JSONArray)parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
+					
+					//row.put("filterProperty",new JSONArray(row.get("filterProperty").toString());
+					viewArr.add(map.convertValue(row, JSONObject.class));
+		
+				} catch (Exception e) {
+					e.printStackTrace();					
+				}
+				});
 	        
 			
 			arr.put("view", viewArr);
