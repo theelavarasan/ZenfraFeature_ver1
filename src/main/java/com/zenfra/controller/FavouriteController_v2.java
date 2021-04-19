@@ -6,8 +6,6 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.json.simple.JSONArray;
@@ -16,7 +14,6 @@ import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +29,7 @@ import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.ResponseModel;
 import com.zenfra.model.ResponseModel_v2;
+import com.zenfra.queries.FavouriteViewQueries;
 import com.zenfra.service.FavouriteApiService_v2;
 
 @CrossOrigin(origins = "*")
@@ -89,14 +87,16 @@ public class FavouriteController_v2 {
 			favouriteModel.setFavouriteId(randomUUIDString);
 
 			if (service.saveFavouriteView(favouriteModel) == 1) {
+				responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
 				responseModel.setResponseDescription("FavouriteView Successfully inserted");
+				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
-				responseModel.setResponseDescription("Favourite Id not found ");
+				responseModel.setResponseDescription("Favourite not inserted ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
-			responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
 			responseModel.setResponseMessage("Success!");
-			responseModel.setResponseCode(HttpStatus.OK);
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -248,27 +248,20 @@ public class FavouriteController_v2 {
 	}
 
 	@Autowired
-	NamedParameterJdbcTemplate j;
-
+	FavouriteViewQueries query;
+	
 	@GetMapping("/test")
-	public void run() {
+	public String run() {
 		try {
 
-			String query = "INSERT INTO category(\r\n" + "	data_id, name, value)\r\n"
-					+ "	VALUES (gen_random_uuid(), :name, :value);";
-
-			String name = "demo";
-			String value = "demo";
-
-			Map<String, String> params = new HashMap<>();
-
-			params.put("name", name);
-			params.put("value", value);
-
-			j.update(query, params);
+		//	System.out.println(query.getName());
+			//return query.getName();//repo.findAll();
 		} catch (Exception e) {
+			e.printStackTrace();
 			// TODO: handle exception
 		}
+		
+		return null;
 	}
 
 }
