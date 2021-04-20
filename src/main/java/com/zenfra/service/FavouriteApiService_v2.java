@@ -77,8 +77,15 @@ public class FavouriteApiService_v2 {
 				}
 			});
 
-			arr.put("view", viewArr);
-			arr.put("order", daoFav.getJsonarray(favourite_order_query).get(0));
+			
+			Map<String,Object> orderArr= daoFav.getJsonarray(favourite_order_query).get(0);
+			arr.put("view", viewArr);			
+			if(orderArr!=null) {
+				arr.put("order", viewArr);
+			}else {
+				arr.put("order","");
+			}
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
