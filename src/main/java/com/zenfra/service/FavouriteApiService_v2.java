@@ -47,14 +47,15 @@ public class FavouriteApiService_v2 {
 			JSONObject obj = new JSONObject();
 
 			String favourite_view_query = queriesView.getGetFavView();
-			favourite_view_query = favourite_view_query.replace("report_name_value", reportName)
-					.replace("site_key_value", siteKey).replace("user_id_value", userId);
+			favourite_view_query = favourite_view_query.replace(":report_name_value", reportName)
+					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
 
 			String favourite_order_query = orderQueries.getGetFavouriteOrder();
 			favourite_order_query = favourite_order_query.replace(":report_name_value", reportName)
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
 			List<Map<String, Object>> rows = daoFav.getJsonarray(favourite_view_query);
 
+			System.out.println(favourite_view_query);
 			ObjectMapper map = new ObjectMapper();
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
