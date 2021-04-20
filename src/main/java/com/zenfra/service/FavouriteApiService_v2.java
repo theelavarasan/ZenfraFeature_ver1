@@ -65,6 +65,8 @@ public class FavouriteApiService_v2 {
 						row.put("userAccessList",
 								row.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
 					}
+					
+					System.out.println("---row.get(\"siteAccessList\")"+row.get("siteAccessList"));
 					row.put("filterProperty", (JSONArray) parser.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
 					row.put("categoryList", (JSONArray) parser.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
 					row.put("siteAccessList", (JSONArray) parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
@@ -77,8 +79,16 @@ public class FavouriteApiService_v2 {
 				}
 			});
 
-			arr.put("view", viewArr);
-			arr.put("order", daoFav.getJsonarray(favourite_order_query).get(0));
+			System.out.println();
+			List<Map<String,Object>> orderArr= daoFav.getJsonarray(favourite_order_query);
+			arr.put("view", viewArr);			
+			if(orderArr!=null && !orderArr.isEmpty()) {
+				System.out.println(orderArr);
+				arr.put("order", orderArr.get(0));
+			}else {
+				arr.put("order",new JSONArray());
+			}
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -156,7 +166,7 @@ public class FavouriteApiService_v2 {
 
 	}
 
-	public int saveFavouriteOrder(String userId, FavouriteOrder favouriteModel) {
+	public int saveFavouriteOrder(FavouriteOrder favouriteModel) {
 		int responce = 0;
 		try {
 
@@ -232,21 +242,23 @@ public class FavouriteApiService_v2 {
 	public int updateFavouriteView(String userId, FavouriteModel favouriteModel) {
 		int responce = 0;
 		try {
-
+			ObjectMapper map = new ObjectMapper();
 			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
-
-			String query = "UPDATE favourite_view\r\n" + "	SET updated_time='" + favouriteModel.getUpdatedTime()
-					+ "', updated_by='" + favouriteModel.getUpdatedBy() + "', favourite_id='"
-					+ favouriteModel.getFavouriteId() + "', " + "is_active='" + favouriteModel.getIsActive()
-					+ "', group_by_period='" + favouriteModel.getGroupByPeriod() + "', site_key='"
+			String site_access_list=map.convertValue(favouriteModel.getSiteAccessList(), JSONArray.class).toJSONString();
+			String category_list=map.convertValue(favouriteModel.getCategoryList(), JSONArray.class).toJSONString();
+			String grouped_columns=map.convertValue(favouriteModel.getGroupedColumns(), JSONArray.class).toJSONString();
+			
+			System.out.println(site_access_list);
+			String query = "UPDATE favourite_view SET updated_time='" + favouriteModel.getUpdatedTime()
+					+ "', updated_by='" + favouriteModel.getUpdatedBy() + "'"
+					+ ", group_by_period='" + favouriteModel.getGroupByPeriod() + "', site_key='"
 					+ favouriteModel.getSiteKey() + "', favourite_name='" + favouriteModel.getFavouriteName()
 					+ "', project_id='" + favouriteModel.getProjectId() + "', " + " site_access_list='"
-					+ favouriteModel.getSiteAccessList() + "', grouped_columns='" + favouriteModel.getGroupByPeriod()
-					+ "', category_list='" + favouriteModel.getCategoryList() + "', filter_property='"
-					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "'" + "where  report_name='"
-					+ favouriteModel.getReportName() + "'  and site_key='" + favouriteModel.getSiteKey()
-					+ "' and created_by='" + userId + "'";
+					+ site_access_list + "', grouped_columns='" + grouped_columns
+					+ "', category_list='" + category_list + "', filter_property='"
+					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
 
+			System.out.println(query);
 			responce = daoFav.updateQuery(query);
 		} catch (Exception e) {
 			e.printStackTrace();
