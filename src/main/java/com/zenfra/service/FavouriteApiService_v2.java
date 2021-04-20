@@ -107,7 +107,7 @@ public class FavouriteApiService_v2 {
 			parameters.put(":grouped_columns", favouriteModel.getGroupedColumns());
 			parameters.put(":category_list", favouriteModel.getCategoryList());
 			parameters.put(":user_remove_list", null);
-			parameters.put(":favourite_id", "gen_random_uuid()");
+			parameters.put(":favourite_id", favouriteModel.getFavouriteId());
 			parameters.put(":filter_property", favouriteModel.getFilterProperty().toJSONString());
 
 			String updateQuery = queriesView.getSave();
