@@ -66,14 +66,13 @@ public class FavouriteController_v2 {
 	}
 
 	@PostMapping("/save-filter-view")
-	public ResponseEntity<?> saveFavouriteViewData(@RequestParam(name = "authUserId", required = false) String userId,
+	public ResponseEntity<?> saveFavouriteViewData(
 			@RequestBody FavouriteModel favouriteModel) throws IOException, URISyntaxException,
 			org.json.simple.parser.ParseException, ParseException, SQLException {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
-			System.out.println("----userId----"+userId);
 			ObjectMapper mapper = new ObjectMapper();
 
 			UUID uuid = UUID.randomUUID();
@@ -84,7 +83,6 @@ public class FavouriteController_v2 {
 			LocalDateTime now = LocalDateTime.now();
 			String currentTime = dtf.format(now);
 			favouriteModel.setCreatedTime(currentTime);
-			favouriteModel.setCreatedBy(userId);
 			favouriteModel.setFavouriteId(randomUUIDString);
 
 			if (service.saveFavouriteView(favouriteModel) == 1) {
