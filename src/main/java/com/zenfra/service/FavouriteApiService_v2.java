@@ -65,6 +65,8 @@ public class FavouriteApiService_v2 {
 						row.put("userAccessList",
 								row.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
 					}
+					
+					System.out.println("---row.get(\"siteAccessList\")"+row.get("siteAccessList"));
 					row.put("filterProperty", (JSONArray) parser.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
 					row.put("categoryList", (JSONArray) parser.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
 					row.put("siteAccessList", (JSONArray) parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
@@ -240,16 +242,20 @@ public class FavouriteApiService_v2 {
 	public int updateFavouriteView(String userId, FavouriteModel favouriteModel) {
 		int responce = 0;
 		try {
-
+			ObjectMapper map = new ObjectMapper();
 			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
-
+			String site_access_list=map.convertValue(favouriteModel.getSiteAccessList(), JSONArray.class).toJSONString();
+			String category_list=map.convertValue(favouriteModel.getCategoryList(), JSONArray.class).toJSONString();
+			String grouped_columns=map.convertValue(favouriteModel.getGroupedColumns(), JSONArray.class).toJSONString();
+			
+			System.out.println(site_access_list);
 			String query = "UPDATE favourite_view SET updated_time='" + favouriteModel.getUpdatedTime()
 					+ "', updated_by='" + favouriteModel.getUpdatedBy() + "'"
 					+ ", group_by_period='" + favouriteModel.getGroupByPeriod() + "', site_key='"
 					+ favouriteModel.getSiteKey() + "', favourite_name='" + favouriteModel.getFavouriteName()
 					+ "', project_id='" + favouriteModel.getProjectId() + "', " + " site_access_list='"
-					+ favouriteModel.getSiteAccessList() + "', grouped_columns='" + favouriteModel.getGroupByPeriod()
-					+ "', category_list='" + favouriteModel.getCategoryList() + "', filter_property='"
+					+ site_access_list + "', grouped_columns='" + grouped_columns
+					+ "', category_list='" + category_list + "', filter_property='"
 					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
 
 			System.out.println(query);
