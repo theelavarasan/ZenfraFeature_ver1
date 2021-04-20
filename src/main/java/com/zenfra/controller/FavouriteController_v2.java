@@ -110,7 +110,7 @@ public class FavouriteController_v2 {
 	}
 
 	@PutMapping("/update-filter-view")
-	public ResponseEntity<?> updateFavouriteViewData(@RequestParam(name = "authUserId", required = false) String userId,
+	public ResponseEntity<?> updateFavouriteViewData(
 			@RequestBody FavouriteModel favouriteModel) throws IOException, URISyntaxException,
 			org.json.simple.parser.ParseException, ParseException, SQLException {
 
@@ -118,22 +118,24 @@ public class FavouriteController_v2 {
 		try {
 
 			ObjectMapper mapper = new ObjectMapper();
-			favouriteModel.setUpdatedBy(userId);
+			favouriteModel.setUpdatedBy(favouriteModel.getAuthUserId());
 			favouriteModel.setIsActive(true);
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 			LocalDateTime now = LocalDateTime.now();
 			String currentTime = dtf.format(now);
 			favouriteModel.setUpdatedTime(currentTime);
 
-			if (service.updateFavouriteView(userId, favouriteModel) == 1) {
+			if (service.updateFavouriteView(favouriteModel.getAuthUserId(), favouriteModel) == 1) {
+				responseModel.setResponseCode(HttpStatus.OK);
+				responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
 				responseModel.setResponseDescription("FavouriteView Successfully updated");
 			} else {
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				responseModel.setResponseDescription("Favourite Id not found ");
 			}
 
-			responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
 			responseModel.setResponseMessage("Success!");
-			responseModel.setResponseCode(HttpStatus.OK);
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -158,11 +160,13 @@ public class FavouriteController_v2 {
 
 			if (service.deleteFavouriteViewData(userId, FavouriteId, createdBy, siteKey) == 1) {
 				responseModel.setResponseDescription("FavouriteView Successfully deleted");
+				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
 				responseModel.setResponseDescription("Favourite Id not found ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 			responseModel.setResponseMessage("Success!");
-			responseModel.setResponseCode(HttpStatus.OK);
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -196,12 +200,14 @@ public class FavouriteController_v2 {
 
 			if (service.saveFavouriteOrder(userId, favouriteModel) == 1) {
 				responseModel.setResponseDescription("FavouriteOrder Successfully inserted");
+				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
 				responseModel.setResponseDescription("Try again");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 			responseModel.setResponseMessage("Success!");
-			responseModel.setResponseCode(HttpStatus.OK);
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();

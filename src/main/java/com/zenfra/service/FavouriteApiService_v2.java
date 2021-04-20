@@ -235,18 +235,16 @@ public class FavouriteApiService_v2 {
 
 			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
 
-			String query = "UPDATE favourite_view\r\n" + "	SET updated_time='" + favouriteModel.getUpdatedTime()
-					+ "', updated_by='" + favouriteModel.getUpdatedBy() + "', favourite_id='"
-					+ favouriteModel.getFavouriteId() + "', " + "is_active='" + favouriteModel.getIsActive()
-					+ "', group_by_period='" + favouriteModel.getGroupByPeriod() + "', site_key='"
+			String query = "UPDATE favourite_view SET updated_time='" + favouriteModel.getUpdatedTime()
+					+ "', updated_by='" + favouriteModel.getUpdatedBy() + "'"
+					+ ", group_by_period='" + favouriteModel.getGroupByPeriod() + "', site_key='"
 					+ favouriteModel.getSiteKey() + "', favourite_name='" + favouriteModel.getFavouriteName()
 					+ "', project_id='" + favouriteModel.getProjectId() + "', " + " site_access_list='"
 					+ favouriteModel.getSiteAccessList() + "', grouped_columns='" + favouriteModel.getGroupByPeriod()
 					+ "', category_list='" + favouriteModel.getCategoryList() + "', filter_property='"
-					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "'" + "where  report_name='"
-					+ favouriteModel.getReportName() + "'  and site_key='" + favouriteModel.getSiteKey()
-					+ "' and created_by='" + userId + "'";
+					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
 
+			System.out.println(query);
 			responce = daoFav.updateQuery(query);
 		} catch (Exception e) {
 			e.printStackTrace();
