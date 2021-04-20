@@ -180,7 +180,7 @@ public class FavouriteController_v2 {
 	}
 
 	@PostMapping("/save-favourite-order")
-	public ResponseEntity<?> saveFavouriteOrder(@RequestParam(name = "authUserId", required = false) String userId,
+	public ResponseEntity<?> saveFavouriteOrder(
 			@RequestBody FavouriteOrder favouriteModel) throws IOException, URISyntaxException,
 			org.json.simple.parser.ParseException, ParseException, SQLException {
 		ResponseModel responseModel = new ResponseModel();
@@ -190,7 +190,7 @@ public class FavouriteController_v2 {
 			UUID uuid = UUID.randomUUID();
 			String randomUUIDString = uuid.toString();
 
-			favouriteModel.setCreatedBy(userId);
+			
 			favouriteModel.setIsActive(true);
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 			LocalDateTime now = LocalDateTime.now();
@@ -198,7 +198,7 @@ public class FavouriteController_v2 {
 			favouriteModel.setCreatedTime(currentTime);
 			favouriteModel.setOrderId(favouriteModel.getCreatedBy() + "_" + favouriteModel.getReportName());
 
-			if (service.saveFavouriteOrder(userId, favouriteModel) == 1) {
+			if (service.saveFavouriteOrder(favouriteModel) == 1) {
 				responseModel.setResponseDescription("FavouriteOrder Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {

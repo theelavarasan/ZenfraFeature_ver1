@@ -164,7 +164,7 @@ public class FavouriteApiService_v2 {
 
 	}
 
-	public int saveFavouriteOrder(String userId, FavouriteOrder favouriteModel) {
+	public int saveFavouriteOrder(FavouriteOrder favouriteModel) {
 		int responce = 0;
 		try {
 
