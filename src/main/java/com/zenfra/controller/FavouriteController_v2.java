@@ -73,6 +73,7 @@ public class FavouriteController_v2 {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
+			System.out.println("----userId----"+userId);
 			ObjectMapper mapper = new ObjectMapper();
 
 			UUID uuid = UUID.randomUUID();
