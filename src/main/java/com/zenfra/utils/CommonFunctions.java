@@ -36,6 +36,11 @@ public class CommonFunctions {
 			}else {
 				row.put("siteAccessList", new JSONArray());
 			}
+		if(row.get("groupedColumns")!=null) {
+			row.put("groupedColumns", (JSONArray) parser.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
+		}else {
+			row.put("groupedColumns", new JSONArray());
+		}
 		
 		} catch (Exception e) {
 			e.printStackTrace();
