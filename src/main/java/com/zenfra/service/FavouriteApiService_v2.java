@@ -21,9 +21,12 @@ import com.zenfra.queries.DashBoardChartsDetailsQueries;
 import com.zenfra.queries.DashBoardChartsQueries;
 import com.zenfra.queries.FavouriteOrderQueries;
 import com.zenfra.queries.FavouriteViewQueries;
+import com.zenfra.utils.CommonFunctions;
 
 @Service
 public class FavouriteApiService_v2 {
+
+	final 	ObjectMapper map=new ObjectMapper();
 
 	@Autowired
 	FavouriteDao_v2 daoFav;
@@ -40,6 +43,9 @@ public class FavouriteApiService_v2 {
 	@Autowired
 	DashBoardChartsDetailsQueries dashDetails;
 
+	@Autowired
+	CommonFunctions common;
+	
 	public JSONObject getFavView(String userId, String siteKey, String reportName, String projectId) {
 
 		JSONObject arr = new JSONObject();
@@ -62,17 +68,10 @@ public class FavouriteApiService_v2 {
 			rows.forEach(row -> {
 				try {
 					if (row.get("userAccessList") != null) {
-						System.out.println(row.get("userAccessList"));
 						row.put("userAccessList",
 								row.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
 					}
-					
-					System.out.println("---row.get(\"siteAccessList\")"+row.get("siteAccessList"));
-					row.put("filterProperty", (JSONArray) parser.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
-					row.put("categoryList", (JSONArray) parser.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
-					row.put("siteAccessList", (JSONArray) parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
-					row.put("siteAccessList", (JSONArray) parser.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
-					row.put("groupedColumns", (JSONArray) parser.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
+					row=common.getFavViewCheckNull(row);
 					viewArr.add(map.convertValue(row, JSONObject.class));
 
 				} catch (Exception e) {
@@ -80,12 +79,11 @@ public class FavouriteApiService_v2 {
 				}
 			});
 
-			System.out.println();
+			
 			List<Map<String,Object>> orderArr= daoFav.getJsonarray(favourite_order_query);
 			arr.put("view", viewArr);			
 			if(orderArr!=null && !orderArr.isEmpty()) {
-				System.out.println(orderArr);
-				arr.put("order", orderArr.get(0));
+				arr.put("order", (JSONArray) parser.parse(orderArr.get(0).get("orders").toString().replace("\\[", "").replace("\\]", "")));
 			}else {
 				arr.put("order",new JSONArray());
 			}
@@ -103,6 +101,7 @@ public class FavouriteApiService_v2 {
 		int responce = 0;
 		try {
 
+			
 			Map<String, Object> parameters = new HashMap<String, Object>();
 			parameters.put(":report_name", favouriteModel.getReportName());
 			parameters.put(":is_active", favouriteModel.getIsActive());
@@ -170,7 +169,7 @@ public class FavouriteApiService_v2 {
 	public int saveFavouriteOrder(FavouriteOrder favouriteModel) {
 		int responce = 0;
 		try {
-
+		
 			SqlParameterSource parameters = new MapSqlParameterSource()
 					// Map<String, Object> params = new HashMap<>();
 					.addValue("updated_time", favouriteModel.getUpdatedTime())
@@ -181,19 +180,16 @@ public class FavouriteApiService_v2 {
 					.addValue("created_time", favouriteModel.getCreatedTime())
 					.addValue("is_active", favouriteModel.getIsActive())
 					.addValue("project_id", favouriteModel.getProjectId())
-					.addValue("order_id", favouriteModel.getOrderId())
-					.addValue("orders", Arrays.asList(favouriteModel.getOrders()));
+					.addValue("order_id", favouriteModel.getOrderId());
+					
+			String orders=map.convertValue(favouriteModel.getOrders(), JSONArray.class).toJSONString();
 
-			// String query = "INSERT INTO favourite_order(data_id, site_key, report_name,
-			// created_by, order_id, created_time, is_active, project_id, orders)"
-			// + " VALUES
-			// (gen_random_uuid(),:site_key,:report_name,:created_by,:order_id,:created_time,:is_active,:project_id,:orders)";
-
+	
 			String updateQuery = "UPDATE favourite_order\r\n" + "	SET  updated_time='"
 					+ favouriteModel.getUpdatedTime() + "', updated_by='" + favouriteModel.getUpdatedBy() + "',orders='"
-					+ favouriteModel.getOrders() + "' WHERE created_by='" + favouriteModel.getCreatedBy()
+					+ orders + "' WHERE created_by='" + favouriteModel.getCreatedBy()
 					+ "' and site_key='" + favouriteModel.getSiteKey() + "' and report_name='"
-					+ favouriteModel.getReportName() + "';";
+					+ favouriteModel.getReportName() + "'";
 
 			if (daoFav.updateQuery(updateQuery) > 0) {
 				return 1;
@@ -205,7 +201,7 @@ public class FavouriteApiService_v2 {
 					+ favouriteModel.getReportName() + "'," + "'" + favouriteModel.getCreatedBy() + "','"
 					+ favouriteModel.getOrderId() + "','" + favouriteModel.getCreatedTime() + "','"
 					+ favouriteModel.getIsActive() + "','" + favouriteModel.getProjectId() + "','"
-					+ favouriteModel.getOrders() + "')";
+					+ orders+ "')";
 
 			responce = daoFav.updateQuery(query);
 
