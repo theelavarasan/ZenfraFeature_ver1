@@ -20,6 +20,8 @@ public class FavouriteViewQueries {
 	private String updateCreatedByEqualsUserId;
 	
 	private String updateCreatedByNotEqualsUserId;
+	
+	private String categorySave;
 
 	public String getGetFavView() {
 		return getFavView;
@@ -51,6 +53,14 @@ public class FavouriteViewQueries {
 
 	public void setUpdateCreatedByNotEqualsUserId(String updateCreatedByNotEqualsUserId) {
 		this.updateCreatedByNotEqualsUserId = updateCreatedByNotEqualsUserId;
+	}
+
+	public String getCategorySave() {
+		return categorySave;
+	}
+
+	public void setCategorySave(String categorySave) {
+		this.categorySave = categorySave;
 	}
 	
 	
