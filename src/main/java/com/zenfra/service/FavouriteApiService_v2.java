@@ -164,7 +164,7 @@ public class FavouriteApiService_v2 {
 				updateFavView =queriesView.getUpdateCreatedByEqualsUserId();
 			} else if(favView!=null && favView.getUser_access_list().contains("All")){
 				String user_remove_list=favView.getUser_remove_list();
-					if(user_remove_list!=null) {
+					if(user_remove_list!=null && !user_remove_list.isEmpty()) {
 						user_remove_list=user_remove_list.replace("]", (",\"" + userId+"\"]"));
 					}else {
 						user_remove_list="[\""+userId+"\"]";
@@ -250,7 +250,7 @@ public class FavouriteApiService_v2 {
 			params.put("report_name", reportName);
 
 			String query = "select count(*) from favourite_view where is_active =true and " + " site_key='" + siteKey
-					+ "' and report_name='" + reportName + "' " + " and lower(favourite_name)='" + favouriteName + "'";
+					+ "' and report_name='" + reportName + "' " + " and lower(favourite_name)='" + favouriteName + "' and create_by='"+userId+"'";
 
 			if (daoFav.getCount(query) > 0) {
 				count = true;
