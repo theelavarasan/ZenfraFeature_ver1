@@ -21,7 +21,7 @@ import com.zenfra.model.FavouriteView_v2;
 
 
 @Component
-public class FavouriteDao_v2 {
+public abstract class FavouriteDao_v2 {
 
 	
 	@Autowired
