@@ -1,6 +1,5 @@
 package com.zenfra.service;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
+import com.zenfra.model.FavouriteView_v2;
 import com.zenfra.queries.DashBoardChartsDetailsQueries;
 import com.zenfra.queries.DashBoardChartsQueries;
 import com.zenfra.queries.FavouriteOrderQueries;
@@ -45,6 +45,8 @@ public class FavouriteApiService_v2 {
 
 	@Autowired
 	CommonFunctions common;
+	
+	
 	
 	public JSONObject getFavView(String userId, String siteKey, String reportName, String projectId) {
 
@@ -147,20 +149,39 @@ public class FavouriteApiService_v2 {
 
 		int responce = 0;
 		try {
+			
+			FavouriteView_v2 favView=daoFav.getFavouriteViewByFavouriteId(queriesView.getSelectByFavouriteId().replace(":favourite_id", favouriteId));
 			Map<String,Object> params=new HashMap<String, Object>();
 				params.put("is_active", false);
 				params.put("favourite_id", favouriteId);
 				params.put("user_id", userId);
-				params.put("site_key", siteKey);				
+				params.put("site_key", siteKey);	
+				
+				
+				
 			String updateFavView = "";
 			if (createdBy.equalsIgnoreCase(userId)) {
 				updateFavView =queriesView.getUpdateCreatedByEqualsUserId();
-			} else {
-				updateFavView = queriesView.getUpdateCreatedByNotEqualsUserId();
+			} else if(favView!=null && favView.getUser_access_list().contains("All")){
+				String user_remove_list=favView.getUser_remove_list();
+					if(user_remove_list!=null) {
+						user_remove_list=user_remove_list.replace("]", (",\"" + userId+"\"]"));
+					}else {
+						user_remove_list="[\""+userId+"\"]";
+					}
+					params.put("user_remove_list", user_remove_list);
+					System.out.println(user_remove_list);
+					updateFavView = queriesView.getUpdateCreatedByNotEqualsUserIdUserRemoveUpdate();
+				
+			}else {				
+				updateFavView = queriesView.getUpdateCreatedByNotEqualsUserIdUserAccessUpdate();
 			}
 			String dynamicChartDeleteQuery = dashDetails.getUpdateDynamicChartDetailsActiveFalseQuery();
 			String dashBoardChartsDeleteQuery = dashQueries.getDelete();
+			
+			System.out.println(updateFavView);
 			responce = daoFav.updateQuery(params,updateFavView);
+			
 			daoFav.updateQuery(params,dynamicChartDeleteQuery);
 			daoFav.updateQuery(params,dashBoardChartsDeleteQuery);
 
