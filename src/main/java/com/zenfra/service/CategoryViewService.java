@@ -1,35 +1,32 @@
 package com.zenfra.service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.zenfra.dao.CommonEntityManager;
+import com.zenfra.dao.CategoryViewDao;
 import com.zenfra.model.CategoryView;
-import com.zenfra.repo.CategoryViewRepo;
 
 @Service
 public class CategoryViewService{
 	
 	
 	@Autowired
-	CategoryViewRepo categoryRepo;
+	CategoryViewDao dao;
 	
-	
-	
-	public CategoryView getCategoryView(String id) {
-		
-		try {			
-			return null;
+	public Object getCategoryView(String id) {	
+		Object obj=null;
+		try {
+			obj= dao.findEntityById(CategoryView.class, id);
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			e.printStackTrace();			
 		}
+		
+		return obj;
 	}
 	
-	public void saveCategoryView(CategoryView view) {
+	public boolean saveCategoryView(CategoryView view) {
 		
 		try {			
 			
@@ -37,6 +34,13 @@ public class CategoryViewService{
 			e.printStackTrace();
 			 
 		}
+		
+		return false;
+	}
+
+	public List<Object> getCategoryViewAll(String userId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

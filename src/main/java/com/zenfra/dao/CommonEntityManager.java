@@ -12,14 +12,13 @@ import com.zenfra.model.CategoryView;
 
 @Component
 @Transactional
-public abstract class CommonEntityManager{
+public abstract class CommonEntityManager {
 
 	@PersistenceContext
 	EntityManager entityManager;
 
-	public Object findById(Class c, String id) {
+	public Object findEntityById(Class c, String id) {
 		try {
-
 			return entityManager.find(c, id);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -27,14 +26,15 @@ public abstract class CommonEntityManager{
 		}
 	}
 
-	public void save(Class c, Object obj) {
+	public Boolean saveEntity(Class c, Object obj) {
 
 		try {
 
-			// entityManager.refresh(c);
-			 entityManager.persist(obj);
+			entityManager.persist(obj);
+			return true;
 		} catch (Exception e) {
-			e.printStackTrace();		
+			e.printStackTrace();
+			return false;
 		}
 	}
 }

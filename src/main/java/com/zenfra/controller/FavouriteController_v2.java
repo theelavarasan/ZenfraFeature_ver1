@@ -4,19 +4,13 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,13 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.ResponseModel;
 import com.zenfra.model.ResponseModel_v2;
-import com.zenfra.queries.FavouriteViewQueries;
 import com.zenfra.service.FavouriteApiService_v2;
+import com.zenfra.utils.CommonFunctions;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -39,6 +32,9 @@ public class FavouriteController_v2 {
 
 	@Autowired
 	FavouriteApiService_v2 service;
+	
+	@Autowired
+	CommonFunctions functions;
 
 	@PostMapping("/get-all-favourite-v2-temp")
 	public ResponseEntity<?> getFavouriteView(@RequestParam(name = "authUserId", required = false) String userId,
@@ -73,22 +69,14 @@ public class FavouriteController_v2 {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
-			ObjectMapper mapper = new ObjectMapper();
-
-			UUID uuid = UUID.randomUUID();
-			String randomUUIDString = uuid.toString();
-
 			favouriteModel.setIsActive(true);
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-			LocalDateTime now = LocalDateTime.now();
-			String currentTime = dtf.format(now);
-			favouriteModel.setCreatedTime(currentTime);
-			favouriteModel.setFavouriteId(randomUUIDString);
+			favouriteModel.setCreatedTime(functions.getCurrentDateWithTime());
+			favouriteModel.setFavouriteId(functions.generateRandomId());
 			favouriteModel.setUpdatedBy(favouriteModel.getCreatedBy());
-			favouriteModel.setUpdatedTime(currentTime);
+			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
 
 			if (service.saveFavouriteView(favouriteModel) == 1) {
-				responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
+				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
@@ -119,17 +107,13 @@ public class FavouriteController_v2 {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
-			ObjectMapper mapper = new ObjectMapper();
 			favouriteModel.setUpdatedBy(favouriteModel.getAuthUserId());
 			favouriteModel.setIsActive(true);
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-			LocalDateTime now = LocalDateTime.now();
-			String currentTime = dtf.format(now);
-			favouriteModel.setUpdatedTime(currentTime);
+			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
 
 			if (service.updateFavouriteView(favouriteModel.getAuthUserId(), favouriteModel) == 1) {
 				responseModel.setResponseCode(HttpStatus.OK);
-				responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
+				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully updated");
 			} else {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -189,15 +173,8 @@ public class FavouriteController_v2 {
 
 		try {
 
-			UUID uuid = UUID.randomUUID();
-			String randomUUIDString = uuid.toString();
-
-			
 			favouriteModel.setIsActive(true);
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-			LocalDateTime now = LocalDateTime.now();
-			String currentTime = dtf.format(now);
-			favouriteModel.setCreatedTime(currentTime);
+			favouriteModel.setCreatedTime(functions.getCurrentDateWithTime());
 			favouriteModel.setOrderId(favouriteModel.getCreatedBy() + "_" + favouriteModel.getReportName());
 
 			if (service.saveFavouriteOrder(favouriteModel) == 1) {
@@ -254,21 +231,6 @@ public class FavouriteController_v2 {
 		// return ResponseEntity.ok(body);
 	}
 
-	@Autowired
-	FavouriteViewQueries query;
-	
-	@GetMapping("/test")
-	public String run() {
-		try {
 
-		//	System.out.println(query.getName());
-			//return query.getName();//repo.findAll();
-		} catch (Exception e) {
-			e.printStackTrace();
-			// TODO: handle exception
-		}
-		
-		return null;
-	}
 
 }
