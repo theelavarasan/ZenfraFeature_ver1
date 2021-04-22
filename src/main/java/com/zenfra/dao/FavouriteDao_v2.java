@@ -56,7 +56,24 @@ public class FavouriteDao_v2 {
 	}
 	
 	
-	
+	public FavouriteView_v2 getFavouriteViewByFavouriteId(String query) {
+		
+		try {
+			return jdbc.queryForObject(query,(rs, rowNum) ->
+			new FavouriteView_v2(
+					rs.getString("updated_time"), rs.getString("updated_by"), rs.getString("report_name"),
+					rs.getString("favourite_id"), rs.getObject("filter_property"),rs.getBoolean("is_active"),
+					rs.getString("user_access_list"), rs.getString("group_by_period"), rs.getString("site_key"),
+					rs.getString("grouped_columns"), rs.getString("created_by"), rs.getString("category_list"), 
+					rs.getString("created_time"),rs.getString("favourite_name"), rs.getString("site_access_list"),
+					rs.getString("project_id"),rs.getString("user_remove_list")
+			  ));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+	}
 public List<FavouriteOrder_v2> getFavouriteOrder(String query){
 		
 		List<FavouriteOrder_v2> view =new ArrayList<FavouriteOrder_v2>();
