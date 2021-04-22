@@ -19,7 +19,10 @@ public class FavouriteViewQueries {
 	
 	private String updateCreatedByEqualsUserId;
 	
-	private String updateCreatedByNotEqualsUserId;
+	private String updateCreatedByNotEqualsUserIdUserAccessUpdate;
+	private String updateCreatedByNotEqualsUserIdUserRemoveUpdate;
+	
+	private String selectByFavouriteId;
 	
 	private String categorySave;
 
@@ -47,20 +50,37 @@ public class FavouriteViewQueries {
 		this.updateCreatedByEqualsUserId = updateCreatedByEqualsUserId;
 	}
 
-	public String getUpdateCreatedByNotEqualsUserId() {
-		return updateCreatedByNotEqualsUserId;
-	}
-
-	public void setUpdateCreatedByNotEqualsUserId(String updateCreatedByNotEqualsUserId) {
-		this.updateCreatedByNotEqualsUserId = updateCreatedByNotEqualsUserId;
-	}
-
+	
 	public String getCategorySave() {
 		return categorySave;
 	}
 
 	public void setCategorySave(String categorySave) {
 		this.categorySave = categorySave;
+	}
+
+	public String getUpdateCreatedByNotEqualsUserIdUserAccessUpdate() {
+		return updateCreatedByNotEqualsUserIdUserAccessUpdate;
+	}
+
+	public void setUpdateCreatedByNotEqualsUserIdUserAccessUpdate(String updateCreatedByNotEqualsUserIdUserAccessUpdate) {
+		this.updateCreatedByNotEqualsUserIdUserAccessUpdate = updateCreatedByNotEqualsUserIdUserAccessUpdate;
+	}
+
+	public String getUpdateCreatedByNotEqualsUserIdUserRemoveUpdate() {
+		return updateCreatedByNotEqualsUserIdUserRemoveUpdate;
+	}
+
+	public void setUpdateCreatedByNotEqualsUserIdUserRemoveUpdate(String updateCreatedByNotEqualsUserIdUserRemoveUpdate) {
+		this.updateCreatedByNotEqualsUserIdUserRemoveUpdate = updateCreatedByNotEqualsUserIdUserRemoveUpdate;
+	}
+
+	public String getSelectByFavouriteId() {
+		return selectByFavouriteId;
+	}
+
+	public void setSelectByFavouriteId(String selectByFavouriteId) {
+		this.selectByFavouriteId = selectByFavouriteId;
 	}
 	
 	

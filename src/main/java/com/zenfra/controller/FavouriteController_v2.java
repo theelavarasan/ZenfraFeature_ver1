@@ -84,6 +84,8 @@ public class FavouriteController_v2 {
 			String currentTime = dtf.format(now);
 			favouriteModel.setCreatedTime(currentTime);
 			favouriteModel.setFavouriteId(randomUUIDString);
+			favouriteModel.setUpdatedBy(favouriteModel.getCreatedBy());
+			favouriteModel.setUpdatedTime(currentTime);
 
 			if (service.saveFavouriteView(favouriteModel) == 1) {
 				responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
