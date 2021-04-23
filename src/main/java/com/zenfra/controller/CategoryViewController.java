@@ -35,7 +35,11 @@ public class CategoryViewController{
 		try {
 			
 				view.setCategoryId(functions.generateRandomId());
-				view.setCreatedTime(functions.getCurrentDateWithTime());
+				
+				if(view.getCategoryId()==null && view.getCategoryId().isEmpty()) {
+					view.setCreatedTime(functions.getCurrentDateWithTime());
+				}				
+			
 				view.setUpdatedBy(view.getUserId());
 				view.setUpdatedTime(functions.getCurrentDateWithTime());
 				

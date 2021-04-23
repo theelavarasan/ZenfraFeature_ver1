@@ -22,7 +22,9 @@ import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.ResponseModel;
 import com.zenfra.model.ResponseModel_v2;
+import com.zenfra.model.Users;
 import com.zenfra.service.FavouriteApiService_v2;
+import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 
 @CrossOrigin(origins = "*")
@@ -35,6 +37,9 @@ public class FavouriteController_v2 {
 	
 	@Autowired
 	CommonFunctions functions;
+	
+	@Autowired
+	UserService userService;
 
 	@PostMapping("/get-all-favourite-v2-temp")
 	public ResponseEntity<?> getFavouriteView(@RequestParam(name = "authUserId", required = false) String userId,
@@ -69,13 +74,22 @@ public class FavouriteController_v2 {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
+			Users user=userService.getUserByUserId(favouriteModel.getAuthUserId());
+			if(user==null) {
+				responseModel.setResponseDescription("User id is invalid");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+				return ResponseEntity.ok(responseModel);
+			}
+			
 			favouriteModel.setIsActive(true);
 			favouriteModel.setCreatedTime(functions.getCurrentDateWithTime());
 			favouriteModel.setFavouriteId(functions.generateRandomId());
 			favouriteModel.setUpdatedBy(favouriteModel.getCreatedBy());
 			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
+			
 
-			if (service.saveFavouriteView(favouriteModel) == 1) {
+			if (service.saveFavouriteView(favouriteModel) == 1) {	
+				favouriteModel.setCreatedBy((user.getFirst_name()+" "+user.getLast_name()));				
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
