@@ -93,4 +93,20 @@ public class CommonFunctions {
 		}
 		return randomUUIDString;
 	}
+	
+	public String ConvertQueryWithMap(Map<String,Object> params,String query ) {
+		
+		try {
+			
+			for(String param:params.keySet()) {
+				query=query.replace(param,params.get(param).toString());
+			}		
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return query;
+		
+	}
+	
 }

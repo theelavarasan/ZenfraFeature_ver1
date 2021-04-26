@@ -3,28 +3,47 @@ package com.zenfra.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.json.simple.JSONArray;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.json.simple.JSONObject;
 
-public class ChartModel {
+import com.vladmihalcea.hibernate.type.array.ListArrayType;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 
-	public ChartModel() {
+
+@Entity
+@Table(name="chart")
+@TypeDef(
+	    name = "list-array",
+	    typeClass = ListArrayType.class
+	)
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
+public class ChartModel_v2 {
+
+	public ChartModel_v2() {
 
 	}
 
-	public ChartModel(JSONObject chartConfiguration, String chartName, String chartType, String reportName,
-			String siteKey, String userId, String chartId, String createdTime, String chartDesc, boolean isVisible,
+	
+
+	public ChartModel_v2(String chartId, JSONObject chartConfiguration, String chartName, String chartType,
+			String reportName, String siteKey, String userId, String createdTime, String chartDesc, boolean isVisible,
 			boolean isDefault, String analyticsType, String analyticsFor, boolean dashboard, JSONObject filterProperty,
 			boolean isActive, String updateTime, List<String> userAccessList, List<String> siteAccessList,
-			List<String> categoryList) {
+			List<String> categoryList,JSONObject chartDetails) {
 		super();
+		this.chartId = chartId;
 		this.chartConfiguration = chartConfiguration;
 		this.chartName = chartName;
 		this.chartType = chartType;
 		this.reportName = reportName;
 		this.siteKey = siteKey;
 		this.userId = userId;
-		this.chartId = chartId;
 		this.createdTime = createdTime;
 		this.chartDesc = chartDesc;
 		this.isVisible = isVisible;
@@ -38,24 +57,87 @@ public class ChartModel {
 		this.userAccessList = userAccessList;
 		this.siteAccessList = siteAccessList;
 		this.categoryList = categoryList;
+		this.chartDetails=chartDetails;
 	}
 
-	private JSONObject chartConfiguration;
-	private String chartName;
-	private String chartType;
-	private String reportName;
-	private String siteKey;
-	private String userId = "";
+
+
+	@Id
+	@Column(name="chart_id")
 	private String chartId;
+	
+	@Type(type = "jsonb")
+	@Column(name="chart_configuration")
+	private JSONObject chartConfiguration;
+	
+	@Column(name="chart_name")
+	private String chartName;
+	
+	@Column(name="chart_type")
+	private String chartType;
+	
+	@Column(name="report_name")
+	private String reportName;
+	
+	@Column(name="site_key")
+	private String siteKey;
+	
+	@Column(name="user_id")
+	private String userId;
+	
+	@Column(name="created_time")
 	private String createdTime;
+	
+	@Column(name="chart_desc")
 	private String chartDesc;
+	
+	@Column(name="is_visible")
 	private boolean isVisible = true;
+	
+	@Column(name="is_default")
 	private boolean isDefault = false;
+	
+	
+	@Column(name="analytics_type")
 	private String analyticsType = "";
+	
+	@Column(name="analytics_for")
 	private String analyticsFor = "";
+	
+	@Column(name="is_dashboard")
 	private boolean dashboard = false;
+	
+	@Type(type = "jsonb")
+	@Column(name="filter_property")
 	private JSONObject filterProperty;
+	
+	@Column(name="is_active")
 	private boolean isActive;
+
+	
+	@Column(name="update_time")
+	private String updateTime;
+
+	@Type(type = "list-array")
+	@Column(name="user_access_list",columnDefinition = "text[]")
+	private List<String> userAccessList = new ArrayList<>();
+	
+	@Type(type = "list-array")
+	@Column(name="site_access_list",columnDefinition = "text[]")
+	private List<String> siteAccessList = new ArrayList<>();
+	
+	@Type(type = "list-array")
+	@Column(name="category_list",columnDefinition = "text[]")
+	private List<String> categoryList = new ArrayList<>();
+	
+	@Type(type = "jsonb")
+	@Column(name="chart_details")
+	private JSONObject chartDetails;
+	
+	
+	
+
+
 
 	public boolean isActive() {
 		return isActive;
@@ -97,11 +179,6 @@ public class ChartModel {
 		this.updateTime = updateTime;
 	}
 
-	private String updateTime;
-
-	private List<String> userAccessList = new ArrayList<>();
-	private List<String> siteAccessList = new ArrayList<>();
-	private List<String> categoryList = new ArrayList<>();
 
 	public List<String> getUserAccessList() {
 		return userAccessList;
@@ -237,7 +314,35 @@ public class ChartModel {
 		return filterProperty;
 	}
 
+	
+	
 	public void setFilterProperty(JSONObject filterProperty) {
 		this.filterProperty = filterProperty;
 	}
+
+	
+	public JSONObject getChartDetails() {
+		return chartDetails;
+	}
+
+
+
+	public void setChartDetails(JSONObject chartDetails) {
+		this.chartDetails = chartDetails;
+	}
+	
+	@Override
+	public String toString() {
+		return "ChartModel_v2 [chartId=" + chartId + ", chartConfiguration=" + chartConfiguration + ", chartName="
+				+ chartName + ", chartType=" + chartType + ", reportName=" + reportName + ", siteKey=" + siteKey
+				+ ", userId=" + userId + ", createdTime=" + createdTime + ", chartDesc=" + chartDesc + ", isVisible="
+				+ isVisible + ", isDefault=" + isDefault + ", analyticsType=" + analyticsType + ", analyticsFor="
+				+ analyticsFor + ", dashboard=" + dashboard + ", filterProperty=" + filterProperty + ", isActive="
+				+ isActive + ", updateTime=" + updateTime + ", userAccessList=" + userAccessList + ", siteAccessList="
+				+ siteAccessList + ", categoryList=" + categoryList + "]";
+	}
+	
+	
+	
+	
 }

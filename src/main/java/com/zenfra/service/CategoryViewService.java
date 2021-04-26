@@ -30,6 +30,8 @@ public class CategoryViewService{
 		
 		try {			
 			
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			 
@@ -39,7 +41,7 @@ public class CategoryViewService{
 	}
 
 	public List<Object> getCategoryViewAll(String userId) {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 	
