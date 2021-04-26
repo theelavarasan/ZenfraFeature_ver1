@@ -111,6 +111,9 @@ public class FavouriteApiService_v2 {
 
 			
 			Map<String, Object> parameters = new HashMap<String, Object>();
+			parameters.put(":updated_time", favouriteModel.getUpdatedTime());
+			parameters.put(":updated_by", favouriteModel.getUpdatedBy());
+			parameters.put(":report_name", favouriteModel.getReportName());
 			parameters.put(":report_name", favouriteModel.getReportName());
 			parameters.put(":is_active", favouriteModel.getIsActive());
 			parameters.put(":group_by_period", favouriteModel.getGroupByPeriod());

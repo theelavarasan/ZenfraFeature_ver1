@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import lombok.Data;
 
@@ -40,6 +41,18 @@ public class CategoryView {
 
 	@Column(name = "is_active")
 	private boolean isActive = true;
+
+	@Transient
+	private String authUserId;
+	
+	
+	public String getAuthUserId() {
+		return authUserId;
+	}
+
+	public void setAuthUserId(String authUserId) {
+		this.authUserId = authUserId;
+	}
 
 	public String getCategoryId() {
 		return categoryId;
