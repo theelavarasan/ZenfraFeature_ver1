@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.queries.ReportQueries;
+import com.zenfra.utils.CommonFunctions;
 
 @Component
 public class ReportDao {
@@ -24,6 +26,9 @@ public class ReportDao {
 
 	@Autowired
 	ReportQueries reportQueries;
+	
+	@Autowired
+	CommonFunctions commonFunctions;
 	
 	public JSONArray getReportHeader(String reportName, String deviceType, String reportBy) {
 		JSONArray reportHeaders = new JSONArray();
@@ -125,10 +130,11 @@ public class ReportDao {
 			params.put("site_key", siteKey);
 			params.put("report_name", reportName.toLowerCase());			
 			List<Map<String, Object>> rs = namedJdbc.queryForList(reportQueries.getReportUserCustomData(), params);			
-			if(rs != null && rs.size() > 0) {
-				result.put("groupedColumns", rs.get(0).get("grouped_columns"));
-				result.put("columnOrder", rs.get(0).get("columns_visible"));
-				result.put("chartLayout", rs.get(0).get("chart_layout"));
+			if(rs != null && rs.size() > 0) {	
+							
+				result.put("groupedColumns", commonFunctions.convertObjectToJsonArray(rs.get(0).get("grouped_columns")));
+				result.put("columnOrder", commonFunctions.convertObjectToJsonArray(rs.get(0).get("columns_visible")));
+				result.put("chartLayout", commonFunctions.convertObjectToJsonArray(rs.get(0).get("chart_layout")));
 				
 			}
 		} catch (Exception e) {

@@ -37,20 +37,12 @@ public class ReportService {
 		}
 		
 		 	String report_label = reportList + " " + deviceType + " by "+  reportBy;
-	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;
-
-	        JSONObject columnGroupInfo = new JSONObject();
-	        JSONArray columnOrder  = new JSONArray();
-	        JSONArray groupedColumns = new JSONArray();
+	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	       
 	        
 	        JSONObject resultObject = new JSONObject();
 	        resultObject.put("headerInfo", result);
 	        resultObject.put("report_label", report_label);
-	        resultObject.put("report_name", report_name);
-	        resultObject.put("columnGroupInfo", columnGroupInfo);
-	        resultObject.put("columnOrder", columnOrder);
-	        resultObject.put("groupedColumns", groupedColumns);	        
-	        
+	        resultObject.put("report_name", report_name);	        
 		return resultObject.toString();
 	}
 

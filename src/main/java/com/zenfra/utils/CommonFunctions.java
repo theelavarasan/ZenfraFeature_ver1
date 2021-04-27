@@ -171,4 +171,15 @@ public class CommonFunctions {
 		}
 		return arr;
 	}
+
+	public JSONArray convertObjectToJsonArray(Object object) {
+		JSONArray jsonArray = new JSONArray();
+		if(object != null) {
+			String str = object.toString();
+			if(str.startsWith("[") && str.endsWith("]")){
+				jsonArray.add(str.substring(1, str.length() - 1));
+			}
+		}
+		return jsonArray;
+	}
 }
