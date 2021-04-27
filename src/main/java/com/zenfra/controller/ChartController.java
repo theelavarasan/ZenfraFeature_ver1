@@ -39,10 +39,12 @@ public class ChartController {
 		try 
 		{
 			chartModel.setCreatedTime(functions.getCurrentDateWithTime());		
-			chartModel.setUpdateTime(functions.getCurrentDateWithTime());		
-			chartModel.setChartId(functions.generateRandomId());
+			chartModel.setUpdateTime(functions.getCurrentDateWithTime());
 			System.out.println(chartModel.getUserId());
-			
+				
+			if(chartModel.getChartId().trim().isEmpty()) {
+				chartModel.setChartId(functions.generateRandomId());
+			}
 			responseModel.setResponseMessage("Success");
 			if(chartService.saveChart(chartModel)) {
 				responseModel.setjData(functions.convertEntityToJsonObject(chartModel));
