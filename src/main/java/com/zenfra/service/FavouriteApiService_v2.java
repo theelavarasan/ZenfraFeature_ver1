@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.configuration.CommonQueriesData;
 import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
@@ -32,16 +33,7 @@ public class FavouriteApiService_v2 {
 	FavouriteDao_v2 daoFav;
 
 	@Autowired
-	FavouriteViewQueries queriesView;
-
-	@Autowired
-	FavouriteOrderQueries orderQueries;
-	
-	@Autowired
-	DashBoardChartsQueries dashQueries;
-	
-	@Autowired
-	DashBoardChartsDetailsQueries dashDetails;
+	CommonQueriesData queries;
 
 	@Autowired
 	CommonFunctions common;
@@ -59,11 +51,11 @@ public class FavouriteApiService_v2 {
 			}else {
 				reportName="'"+reportName+"'";
 			}
-			String favourite_view_query = queriesView.getGetFavView();
+			String favourite_view_query = queries.favouriteView().getGetFavView();
 			favourite_view_query = favourite_view_query.replace(":report_name_value", reportName)
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
 
-			String favourite_order_query = orderQueries.getGetFavouriteOrder();
+			String favourite_order_query = queries.favouriteOrder().getGetFavouriteOrder();
 			favourite_order_query = favourite_order_query.replace(":report_name_value", reportName)
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
 			List<Map<String, Object>> rows = daoFav.getJsonarray(favourite_view_query);
@@ -131,7 +123,7 @@ public class FavouriteApiService_v2 {
 			parameters.put(":favourite_id", favouriteModel.getFavouriteId());
 			parameters.put(":filter_property", favouriteModel.getFilterProperty().toJSONString());
 
-			String updateQuery = queriesView.getSave();
+			String updateQuery = queries.favouriteView().getSave();
 
 			for (String key : parameters.keySet()) {
 				updateQuery = (parameters.get(key) != null) ? updateQuery.replace(key, parameters.get(key).toString()) : updateQuery.replace(key, "");
@@ -153,7 +145,7 @@ public class FavouriteApiService_v2 {
 		int responce = 0;
 		try {
 			
-			FavouriteView_v2 favView=daoFav.getFavouriteViewByFavouriteId(queriesView.getSelectByFavouriteId().replace(":favourite_id", favouriteId));
+			FavouriteView_v2 favView=daoFav.getFavouriteViewByFavouriteId(queries.favouriteView().getSelectByFavouriteId().replace(":favourite_id", favouriteId));
 			Map<String,Object> params=new HashMap<String, Object>();
 				params.put("is_active", false);
 				params.put("favourite_id", favouriteId);
@@ -164,7 +156,7 @@ public class FavouriteApiService_v2 {
 				
 			String updateFavView = "";
 			if (createdBy.equalsIgnoreCase(userId)) {
-				updateFavView =queriesView.getUpdateCreatedByEqualsUserId();
+				updateFavView =queries.favouriteView().getUpdateCreatedByEqualsUserId();
 			} else if(favView!=null && favView.getUser_access_list().contains("All")){
 				String user_remove_list=favView.getUser_remove_list();
 					if(user_remove_list!=null && !user_remove_list.isEmpty()) {
@@ -174,13 +166,13 @@ public class FavouriteApiService_v2 {
 					}
 					params.put("user_remove_list", user_remove_list);
 					System.out.println(user_remove_list);
-					updateFavView = queriesView.getUpdateCreatedByNotEqualsUserIdUserRemoveUpdate();
+					updateFavView = queries.favouriteView().getUpdateCreatedByNotEqualsUserIdUserRemoveUpdate();
 				
 			}else {				
-				updateFavView = queriesView.getUpdateCreatedByNotEqualsUserIdUserAccessUpdate();
+				updateFavView = queries.favouriteView().getUpdateCreatedByNotEqualsUserIdUserAccessUpdate();
 			}
-			String dynamicChartDeleteQuery = dashDetails.getUpdateDynamicChartDetailsActiveFalseQuery();
-			String dashBoardChartsDeleteQuery = dashQueries.getDelete();
+			String dynamicChartDeleteQuery = queries.dashBoardChartDetails().getUpdateDynamicChartDetailsActiveFalseQuery();
+			String dashBoardChartsDeleteQuery = queries.dashBoardChart().getDelete();
 			
 			System.out.println(updateFavView);
 			responce = daoFav.updateQuery(params,updateFavView);
@@ -307,7 +299,7 @@ public class FavouriteApiService_v2 {
 			
 			if(category_list!=null && !category_list.isEmpty()) {
 				for(int i = 0; i < category_list.size(); i++){
-					String query=queriesView.getCategorySave().replace(":favourite_id",favouriteModel.getFavouriteId()).replace(":category_list", category_list.get(i).toString());
+					String query=queries.favouriteView().getCategorySave().replace(":favourite_id",favouriteModel.getFavouriteId()).replace(":category_list", category_list.get(i).toString());
 					responce=daoFav.updateQuery(query);
 				}
 			}

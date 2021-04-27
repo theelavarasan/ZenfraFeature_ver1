@@ -1,4 +1,4 @@
-package com.zenfra.dao;
+package com.zenfra.dao.common;
 
 import java.util.ArrayList;
 import java.util.List;

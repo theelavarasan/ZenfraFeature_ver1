@@ -2,10 +2,16 @@ package com.zenfra.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.ChartDAO;
 import com.zenfra.model.ChartModel_v2;
 import com.zenfra.utils.CommonFunctions;
@@ -85,5 +91,28 @@ public class ChartService {
 			e.printStackTrace();
 		}
 		return object;
+	}
+
+
+	public JSONArray getMigarationReport(String siteKey, String userId, String reportName) {
+		
+		JSONArray output=new JSONArray();
+		List<Map<String, Object>> object=new ArrayList<Map<String,Object>>();
+		try {
+			
+			
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+			object=chartDao.getMigarationReport(siteKey,userId,reportName);
+			for(Map<String,Object> s:object) {
+				output.add(functions.convertGetMigarationReport(s));
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+		}
+		return output;
 	}
 }

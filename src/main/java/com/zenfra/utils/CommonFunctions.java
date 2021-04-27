@@ -10,6 +10,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
@@ -93,20 +95,80 @@ public class CommonFunctions {
 		}
 		return randomUUIDString;
 	}
-	
-	public String ConvertQueryWithMap(Map<String,Object> params,String query ) {
-		
+
+	public String ConvertQueryWithMap(Map<String, Object> params, String query) {
+
 		try {
-			
-			for(String param:params.keySet()) {
-				query=query.replace(param,params.get(param).toString());
-			}		
-			
+
+			for (String param : params.keySet()) {
+				query = query.replace(param, params.get(param).toString());
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return query;
-		
+
 	}
-	
+
+	public JSONObject convertGetMigarationReport(Map<String, Object> map) {
+
+		JSONObject obj = new JSONObject();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+		try {
+
+			map.put("userAccessList",
+					(Object) map.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
+			map.put("siteaccesslist",
+					map.get("siteaccesslist").toString().replace("{", "").replace("}", "").split(","));
+
+			obj = mapper.convertValue(map, JSONObject.class);
+
+			JSONObject tempBreak = mapper.convertValue(map.get("breakdown"), JSONObject.class);
+			obj.put("breakdown", getValueFromString(tempBreak));
+			JSONObject column = mapper.convertValue(map.get("column"), JSONObject.class);
+			obj.put("column", getValueFromString(column));
+			JSONObject yaxis = mapper.convertValue(map.get("yaxis"), JSONObject.class);
+			obj.put("yaxis", getValueFromString(yaxis));
+			JSONObject xaxis = mapper.convertValue(map.get("xaxis"), JSONObject.class);
+			obj.put("xaxis", getValueFromString(xaxis));
+			JSONObject tablecolumns = mapper.convertValue(map.get("tablecolumns"), JSONObject.class);
+			obj.put("tablecolumns", getValueFromString(tablecolumns));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return obj;
+		}
+		System.out.println(obj);
+		return obj;
+	}
+
+	public JSONObject getValueFromString(JSONObject obj) {
+		try {
+
+			if (obj != null && obj.containsKey("value")) {
+				obj.put("value", convertStringToJsonArray(obj.get("value")));
+			}
+			System.out.println(obj);
+			return obj;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+
+	public JSONArray convertStringToJsonArray(Object value) {
+		JSONArray arr = new JSONArray();
+		JSONParser jsonParser = new JSONParser();
+		try {
+			if (value != null && !value.toString().isEmpty() && !value.toString().equals("[]")) {
+				arr = (JSONArray) jsonParser.parse(value.toString());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return arr;
+	}
 }

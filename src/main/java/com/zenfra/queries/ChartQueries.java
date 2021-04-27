@@ -1,21 +1,28 @@
 package com.zenfra.queries;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
-
 import lombok.Data;
 
 @Data
-@Component
-@ConfigurationProperties("chart.table")
-@PropertySource("classpath:quries.properties")
 public class ChartQueries {
-
+	
+	
+	
 	private String save;
 	
 	private String getChartsByUserId;
 	
+	private String migarationReport;
+	
+	
+	
+	public String getMigarationReport() {
+		return migarationReport;
+	}
+
+	public void setMigarationReport(String migarationReport) {
+		this.migarationReport = migarationReport;
+	}
+
 	public String getSave() {
 		return save;
 	}
