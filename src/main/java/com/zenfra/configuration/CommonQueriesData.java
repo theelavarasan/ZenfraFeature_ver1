@@ -11,6 +11,7 @@ import com.zenfra.queries.DashBoardChartsDetailsQueries;
 import com.zenfra.queries.DashBoardChartsQueries;
 import com.zenfra.queries.FavouriteOrderQueries;
 import com.zenfra.queries.FavouriteViewQueries;
+import com.zenfra.queries.ReportQueries;
 import com.zenfra.queries.UserTableQueries;
 
 @Component
@@ -52,6 +53,12 @@ public class CommonQueriesData {
 	 @ConfigurationProperties("user")
 	 public UserTableQueries userTable() {
 	      return new UserTableQueries();
+	 }
+	 
+	 @Bean
+	 @ConfigurationProperties("report.data")
+	 public ReportQueries reportQueries() {
+	      return new ReportQueries();
 	 }
 	 
 	
