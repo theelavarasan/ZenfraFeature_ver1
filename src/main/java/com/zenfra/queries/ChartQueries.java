@@ -14,13 +14,22 @@ public class ChartQueries {
 
 	private String save;
 	
-
+	private String getChartsByUserId;
+	
 	public String getSave() {
 		return save;
 	}
 
 	public void setSave(String save) {
 		this.save = save;
+	}
+
+	public String getGetChartsByUserId() {
+		return getChartsByUserId;
+	}
+
+	public void setGetChartsByUserId(String getChartsByUserId) {
+		this.getChartsByUserId = getChartsByUserId;
 	}
 
 	

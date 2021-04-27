@@ -1,5 +1,8 @@
 package com.zenfra.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,5 +71,19 @@ public class ChartService {
 		}
 		
 		return response;
+	}
+
+
+	public List<ChartModel_v2> getChartByUserId(String userId) {
+		
+		List<ChartModel_v2> object=new ArrayList<ChartModel_v2>();
+		try {
+			
+			object=(List<ChartModel_v2>) (Object) chartDao.getChartByUserId(userId);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return object;
 	}
 }

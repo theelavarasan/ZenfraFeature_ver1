@@ -1,5 +1,7 @@
 package com.zenfra.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -95,6 +97,35 @@ public class ChartController {
 	}
 	
 	
+	@GetMapping("/user/{userId}")
+	public ResponseEntity<?> getChartByUserId(@PathVariable String userId){
+		
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			
+			List<ChartModel_v2> chart=chartService.getChartByUserId(userId);
+			responseModel.setResponseMessage("Success");
+			if(chart!=null) {
+				responseModel.setjData(chart);
+				responseModel.setResponseDescription("Chart Successfully removed");
+				responseModel.setResponseCode(HttpStatus.OK);
+			}else {
+				responseModel.setResponseDescription("Chart not Retrieved ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		responseModel.setResponseMessage("Failed");
+		responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
+		responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+	}
+	
+	
 	@DeleteMapping("/{chartId}")
 	public ResponseEntity<?> delelteChartByChartId(@PathVariable String chartId){
 		
@@ -110,10 +141,10 @@ public class ChartController {
 			
 			if(chartService.deleteChartByObject(chart)) {
 				//responseModel.setjData(functions.convertEntityToJsonObject(chartService.getChartByChartId(chartId)));
-				responseModel.setResponseDescription("Chart Successfully Retrieved");
+				responseModel.setResponseDescription("Chart Successfully deleted");
 				responseModel.setResponseCode(HttpStatus.OK);
 			}else {
-				responseModel.setResponseDescription("Chart not Retrieved ");
+				responseModel.setResponseDescription("Chart not deleted ");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 			

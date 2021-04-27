@@ -1,15 +1,13 @@
 package com.zenfra.dao;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.apache.catalina.User;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.zenfra.model.CategoryView;
 
 @Component
 @Transactional
@@ -51,6 +49,18 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		return obj;
 	}
 
+	public List<Object> getEntityListByColumn(String query, Class c) {
+
+		 List<Object> obj = new ArrayList<Object>();
+		try {
+			obj = entityManager.createNativeQuery(query, c).getResultList();
+			System.out.println(obj);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return obj;
+	}
+	
 	public boolean deleteByEntity(Object obj) {
 
 		try {
