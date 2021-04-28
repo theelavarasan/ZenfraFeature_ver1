@@ -2,12 +2,17 @@ package com.zenfra.utils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -177,8 +182,37 @@ public class CommonFunctions {
 		if(object != null) {
 			String str = object.toString();
 			if(str.startsWith("[") && str.endsWith("]")){
-				jsonArray.add(str.substring(1, str.length() - 1));
+				str = str.substring(1, str.length() - 1);
+				List<String> array = Arrays.asList(str.split(","));
+				if(array != null && array.size() > 0) {
+					for(String data : array) {
+						if(data.startsWith("\"") && data.endsWith("\"")){
+							data = data.substring(1, data.length() - 1);
+						}
+						jsonArray.add(data.trim());
+					}
+					
+				}
+				
+				
 			}
+		}
+		return jsonArray;
+	}
+
+	public JSONArray formatJsonArrayr(Object object) {
+		JSONArray jsonArray = new JSONArray();
+		JSONParser jsonParser = new JSONParser();
+		if(object != null) {
+			String str = object.toString();
+			str = str.replaceAll("\\\\","");
+			try {
+				jsonArray  = (JSONArray) jsonParser.parse(str);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
 		}
 		return jsonArray;
 	}
