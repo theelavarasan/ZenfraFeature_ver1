@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
+import com.zenfra.queries.CategoryViewQueries;
 import com.zenfra.queries.ChartQueries;
 import com.zenfra.queries.DashBoardChartsDetailsQueries;
 import com.zenfra.queries.DashBoardChartsQueries;
@@ -59,6 +60,12 @@ public class CommonQueriesData {
 	 @ConfigurationProperties("report.data")
 	 public ReportQueries reportQueries() {
 	      return new ReportQueries();
+	 }
+	 
+	 @Bean
+	 @ConfigurationProperties("categoryView")
+	 public CategoryViewQueries categoryViewQueries() {
+	      return new CategoryViewQueries();
 	 }
 	 
 	
