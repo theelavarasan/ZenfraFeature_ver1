@@ -77,7 +77,7 @@ public class ReportDataController {
 		  try {	      		 
 	      		 if(data != null && !data.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
 	      			 String result = "";
-	      			 if(sourceType.equalsIgnoreCase("Soalris")) {
+	      			 if(sourceType.equalsIgnoreCase("Solaris")) {
 	      				dataframeService.recreateLocalDiscovery(siteKey, sourceType);
 	      			} else {
 	      				for(int i = 0; i <= data.size(); i++) {

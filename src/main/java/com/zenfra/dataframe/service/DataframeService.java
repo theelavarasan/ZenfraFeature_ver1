@@ -632,18 +632,20 @@ public class DataframeService{
 			 dataset = sparkSession.sql("select * from global_temp."+viewName);
 			 dataset.cache();
 			 isDiscoveryDataInView = true;
+			 System.out.println("-------orginal data count--------" + dataset.count());
 		} catch (Exception e) {
 			System.out.println("---------View Not exists--------");
 		} 
 		 
 		 try {	       
-	       
+			 isDiscoveryDataInView = false;
 	         if(!isDiscoveryDataInView) {
 	        	 String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
 	        	 dataset = sparkSession.read().json(filePath); 	 
 	        	 dataset.createOrReplaceTempView("tmpView");
 	        	 dataset =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
-		         dataset.createOrReplaceGlobalTempView(viewName); 
+	        	 System.out.println("-------new data count--------" + dataset.count());
+	        	 dataset.createOrReplaceGlobalTempView(viewName); 
 		         dataset.cache();
 	         }		        
 	         
