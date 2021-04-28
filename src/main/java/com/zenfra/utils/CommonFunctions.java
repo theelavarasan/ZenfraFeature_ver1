@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.TextFormat.ParseException;
 
 @Component
 public class CommonFunctions {
@@ -125,6 +126,8 @@ public class CommonFunctions {
 					(Object) map.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
 			map.put("siteaccesslist",
 					map.get("siteaccesslist").toString().replace("{", "").replace("}", "").split(","));
+			map.put("categorylist",
+					map.get("categorylist").toString().replace("{", "").replace("}", "").split(","));
 
 			obj = mapper.convertValue(map, JSONObject.class);
 
@@ -199,5 +202,7 @@ public class CommonFunctions {
 		}
 		return jsonArray;
 	}
+	
+	
 	
 }

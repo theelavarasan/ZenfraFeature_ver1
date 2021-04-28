@@ -29,7 +29,7 @@ import com.zenfra.service.ChartService;
 import com.zenfra.utils.CommonFunctions;
 
 @RestController
-@RequestMapping("/chart")
+@RequestMapping("/rest/chart")
 public class ChartController {
 
 	
@@ -48,13 +48,15 @@ public class ChartController {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try 
 		{
-			chartModel.setCreatedTime(functions.getCurrentDateWithTime());		
-			chartModel.setUpdateTime(functions.getCurrentDateWithTime());
 			System.out.println(chartModel.getUserId());
 				
 			
 			if(chartModel.getChartId()==null || chartModel.getChartId().trim().isEmpty()) {
+				chartModel.setCreatedTime(functions.getCurrentDateWithTime());		
 				chartModel.setChartId(functions.generateRandomId());
+				chartModel.setActive(true);
+			}else {
+				chartModel.setUpdateTime(functions.getCurrentDateWithTime());				
 			}
 			responseModel.setResponseMessage("Success");
 			if(chartService.saveChart(chartModel)) {				
