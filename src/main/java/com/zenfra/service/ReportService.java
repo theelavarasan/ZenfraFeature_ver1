@@ -51,9 +51,9 @@ public class ReportService {
 		return reportDao.getReportNumericalHeaders(reportName, source_type, reportBy, siteKey);
 	}
 
-	public List<String> getChartLayout(String userId, String siteKey, String reportName) {
-		// TODO Auto-generated method stub
-		return reportDao.getChartLayout(userId, siteKey, reportName);
+	public JSONArray getChartLayout(String userId, String siteKey, String reportName) {
+		JSONArray jSONArray = reportDao.getChartLayout(userId, siteKey, reportName);		
+		return jSONArray;
 	}
 
 	public JSONObject getReportUserCustomData(String userId, String siteKey, String reportName) {

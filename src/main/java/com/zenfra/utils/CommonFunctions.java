@@ -2,20 +2,22 @@ package com.zenfra.utils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.TextFormat.ParseException;
 
 @Component
 public class CommonFunctions {
@@ -202,7 +204,22 @@ public class CommonFunctions {
 		}
 		return jsonArray;
 	}
-	
-	
-	
+
+
+	public JSONArray formatJsonArrayr(Object object) {
+		JSONArray jsonArray = new JSONArray();
+		JSONParser jsonParser = new JSONParser();
+		if(object != null) {
+			String str = object.toString();
+			str = str.replaceAll("\\\\","");
+			try {
+				jsonArray  = (JSONArray) jsonParser.parse(str);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		}
+		return jsonArray;
+	}
 }
