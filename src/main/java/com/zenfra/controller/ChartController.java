@@ -51,11 +51,14 @@ public class ChartController {
 			System.out.println(chartModel.getUserId());
 				
 			
+			
 			if(chartModel.getChartId()==null || chartModel.getChartId().trim().isEmpty()) {
 				chartModel.setCreatedTime(functions.getCurrentDateWithTime());		
 				chartModel.setChartId(functions.generateRandomId());
 				chartModel.setActive(true);
 			}else {
+				
+				chartModel.setActive(true);
 				chartModel.setUpdateTime(functions.getCurrentDateWithTime());				
 			}
 			responseModel.setResponseMessage("Success");
