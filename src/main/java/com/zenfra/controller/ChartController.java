@@ -24,11 +24,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.model.ChartDetailsModel;
 import com.zenfra.model.ChartModel_v2;
 import com.zenfra.model.ResponseModel_v2;
+import com.zenfra.service.CategoryMappingService;
 import com.zenfra.service.ChartService;
 import com.zenfra.utils.CommonFunctions;
 
 @RestController
-@RequestMapping("/chart")
+@RequestMapping("/rest/chart")
 public class ChartController {
 
 	
@@ -38,6 +39,8 @@ public class ChartController {
 	@Autowired
 	ChartService chartService;
 	
+	@Autowired
+	CategoryMappingService mapService;
 	
 	@PostMapping
 	public ResponseEntity<?> createChartConfig(@RequestBody ChartModel_v2 chartModel) {
@@ -45,18 +48,22 @@ public class ChartController {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try 
 		{
-			chartModel.setCreatedTime(functions.getCurrentDateWithTime());		
-			chartModel.setUpdateTime(functions.getCurrentDateWithTime());
 			System.out.println(chartModel.getUserId());
 				
-			if(chartModel.getChartId().trim().isEmpty()) {
+			
+			if(chartModel.getChartId()==null || chartModel.getChartId().trim().isEmpty()) {
+				chartModel.setCreatedTime(functions.getCurrentDateWithTime());		
 				chartModel.setChartId(functions.generateRandomId());
+				chartModel.setActive(true);
+			}else {
+				chartModel.setUpdateTime(functions.getCurrentDateWithTime());				
 			}
 			responseModel.setResponseMessage("Success");
-			if(chartService.saveChart(chartModel)) {
+			if(chartService.saveChart(chartModel)) {				
 				responseModel.setjData(functions.convertEntityToJsonObject(chartModel));
 				responseModel.setResponseDescription("Chart Successfully saved");
 				responseModel.setResponseCode(HttpStatus.OK);
+				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
 			}else {
 				responseModel.setResponseDescription("Chart not saved");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
