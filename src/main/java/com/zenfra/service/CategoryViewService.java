@@ -1,5 +1,6 @@
 package com.zenfra.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +41,25 @@ public class CategoryViewService{
 		return false;
 	}
 
-	public List<Object> getCategoryViewAll(String userId) {
+	public List<Object> getCategoryViewAll(String siteKey) {
+		List<Object> list=new ArrayList<Object>();
+		try {
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
-		return null;
+		return list;
+	}
+
+	public boolean deleteCategoryView(CategoryView view) {
+		try {			
+			dao.deleteByEntity(view);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
 	}
 	
 }

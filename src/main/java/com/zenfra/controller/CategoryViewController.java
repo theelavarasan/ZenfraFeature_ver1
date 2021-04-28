@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,41 +21,45 @@ import com.zenfra.utils.CommonFunctions;
 
 @RestController
 @RequestMapping("/category-view")
-public class CategoryViewController{
+public class CategoryViewController {
 
-	
 	@Autowired
 	CategoryViewService categoryService;
-	
+
 	@Autowired
 	CommonFunctions functions;
-	
+
 	@PostMapping
-	public ResponseEntity<?> saveCategoryView(@RequestBody CategoryView view){
-		
+	public ResponseEntity<?> saveCategoryView(@RequestBody CategoryView view) {
+
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 			
+				view.setUpdatedBy(view.getAuthUserId());
+				view.setUpdatedTime(functions.getCurrentDateWithTime());			
+				view.setCreatedTime(functions.getCurrentDateWithTime());
+			if (view.getCategoryId().trim().isEmpty()) {
 				view.setCategoryId(functions.generateRandomId());
-				
-				if(view.getCategoryId()==null && view.getCategoryId().isEmpty()) {
-					view.setCreatedTime(functions.getCurrentDateWithTime());
-				}				
-			
-				view.setUpdatedBy(view.getUserId());
-				view.setUpdatedTime(functions.getCurrentDateWithTime());
-				
+			}
+
+			if (view.getCategoryId() == null && view.getCategoryId().isEmpty()) {
+				view.setCreatedTime(functions.getCurrentDateWithTime());
+			}
+
+			view.setUpdatedBy(view.getUserId());
+			view.setUpdatedTime(functions.getCurrentDateWithTime());
+
 			if (categoryService.saveCategoryView(view)) {
 				responseModel.setjData(functions.convertEntityToJsonObject(view));
-				responseModel.setResponseDescription("FavouriteView Successfully inserted");
+				responseModel.setResponseDescription("Category Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
-				responseModel.setResponseDescription("Favourite not inserted ");
+				responseModel.setResponseDescription("Category not inserted ");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 			responseModel.setResponseMessage("Success!");
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseMessage("Error");
@@ -63,64 +69,120 @@ public class CategoryViewController{
 		return ResponseEntity.ok(responseModel);
 	}
 	
-	
+	@PutMapping
+	public ResponseEntity<?> updateCategoryView(@RequestBody CategoryView view) {
+
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			
+				view.setUpdatedBy(view.getAuthUserId());
+				view.setUpdatedTime(functions.getCurrentDateWithTime());			
+			
+			if (view.getCategoryId() == null && view.getCategoryId().isEmpty()) {
+				view.setCreatedTime(functions.getCurrentDateWithTime());
+			}
+
+			view.setUpdatedBy(view.getUserId());
+			view.setUpdatedTime(functions.getCurrentDateWithTime());
+
+			if (categoryService.saveCategoryView(view)) {
+				responseModel.setjData(functions.convertEntityToJsonObject(view));
+				responseModel.setResponseDescription("Category Successfully inserted");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseDescription("Category not inserted ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			responseModel.setResponseMessage("Success!");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Error");
+			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
+			responseModel.setResponseDescription(e.getMessage());
+		}
+		return ResponseEntity.ok(responseModel);
+	}
+
 	@GetMapping
-	public  ResponseEntity<?> getCategoryView(@RequestParam String category_id){
+	public ResponseEntity<?> getCategoryView(@RequestParam String category_id) {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			
-			Object obj=categoryService.getCategoryView(category_id);
+
+			Object obj = categoryService.getCategoryView(category_id);
 			responseModel.setResponseMessage("Success");
-				if(obj!=null) {
-					responseModel.setResponseCode(HttpStatus.OK);					
-					responseModel.setjData(functions.convertEntityToJsonObject(obj));
-				}else {
-					responseModel.setResponseCode(HttpStatus.NOT_FOUND);	
-				}
-			
-		
+			if (obj != null) {
+				responseModel.setResponseCode(HttpStatus.OK);
+				responseModel.setjData(functions.convertEntityToJsonObject(obj));
+			} else {
+				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseMessage("Error");
 			responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			responseModel.setResponseDescription(e.getMessage());
-	
+
 		}
 		return ResponseEntity.ok(responseModel);
 	}
-	
-	
-	
-	@GetMapping("/all")
-	public  ResponseEntity<?> getCategoryViewAll(@RequestParam String userId){
+
+	@GetMapping("/site-key")
+	public ResponseEntity<?> getCategoryViewAll(@RequestParam String siteKey) {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			
-			List<Object> obj=categoryService.getCategoryViewAll(userId);
+
+			List<Object> obj = categoryService.getCategoryViewAll(siteKey);
 			responseModel.setResponseMessage("Success");
-				if(obj!=null) {
-					responseModel.setResponseCode(HttpStatus.OK);					
-					responseModel.setjData(functions.convertEntityToJsonObject(obj));
-				}else {
-					responseModel.setResponseCode(HttpStatus.NOT_FOUND);	
-				}
-			
-		
+			if (obj != null) {
+				responseModel.setResponseCode(HttpStatus.OK);
+				responseModel.setjData(functions.convertEntityToJsonObject(obj));
+			} else {
+				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseMessage("Error");
 			responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			responseModel.setResponseDescription(e.getMessage());
-	
+
 		}
 		return ResponseEntity.ok(responseModel);
 	}
-	
-	
-	
-	
-	
-	
-	
-	
+
+	@DeleteMapping
+	public ResponseEntity<?> deleteCategoryView(@RequestParam String categoryId) {
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+
+			responseModel.setResponseMessage("Success!");
+			CategoryView view=(CategoryView)categoryService.getCategoryView(categoryId);
+			
+			if(view==null) {
+				responseModel.setResponseDescription("Category not found ");
+				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
+				return ResponseEntity.ok(responseModel);
+			}
+			if (categoryService.deleteCategoryView(view)) {
+				responseModel.setResponseDescription("Category Successfully deleted");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseDescription("Category not deleted ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Error");
+			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
+			responseModel.setResponseDescription(e.getMessage());
+		}
+		return ResponseEntity.ok(responseModel);
+	}
+
 }
