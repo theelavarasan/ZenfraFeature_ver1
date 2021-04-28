@@ -134,15 +134,15 @@ public class CommonFunctions {
 			obj = mapper.convertValue(map, JSONObject.class);
 			
 			JSONObject tempBreak = mapper.convertValue(map.get("breakdown"), JSONObject.class);
-			obj.put("breakdown", getValueFromString(tempBreak));
+			obj.put("breakdown", getValueFromString(tempBreak).get("value"));
 			JSONObject column = mapper.convertValue(map.get("column"), JSONObject.class);
-			obj.put("column", getValueFromString(column));
+			obj.put("column", getValueFromString(column).get("value"));
 			JSONObject yaxis = mapper.convertValue(map.get("yaxis"), JSONObject.class);
-			obj.put("yaxis", getValueFromString(yaxis));
+			obj.put("yaxis", getValueFromString(yaxis).get("value"));
 			JSONObject xaxis = mapper.convertValue(map.get("xaxis"), JSONObject.class);
-			obj.put("xaxis", getValueFromString(xaxis));
+			obj.put("xaxis", getValueFromString(xaxis).get("value"));
 			JSONObject tablecolumns = mapper.convertValue(map.get("tablecolumns"), JSONObject.class);
-			obj.put("tablecolumns", getValueFromString(tablecolumns));
+			obj.put("tablecolumns", getValueFromString(tablecolumns).get("value"));
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -157,6 +157,8 @@ public class CommonFunctions {
 
 			if (obj != null && obj.containsKey("value")) {
 				obj.put("value", convertStringToJsonArray(obj.get("value")));
+			}else {
+				obj.put("value", new JSONArray());
 			}
 			System.out.println(obj);
 			return obj;
