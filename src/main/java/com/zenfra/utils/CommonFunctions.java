@@ -207,9 +207,11 @@ public class CommonFunctions {
 			String str = object.toString();
 			str = str.replaceAll("\\\\","");
 			try {
-				jsonArray  = (JSONArray) jsonParser.parse(str);
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
+				if(!str.isEmpty()) {
+					jsonArray  = (JSONArray) jsonParser.parse(str);
+				}
+				
+			} catch (ParseException e) {				
 				e.printStackTrace();
 			}
 		
