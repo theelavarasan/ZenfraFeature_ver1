@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
+import com.zenfra.queries.CategoryMappingQueries;
 import com.zenfra.queries.CategoryViewQueries;
 import com.zenfra.queries.ChartQueries;
 import com.zenfra.queries.DashBoardChartsDetailsQueries;
@@ -14,8 +15,6 @@ import com.zenfra.queries.FavouriteOrderQueries;
 import com.zenfra.queries.FavouriteViewQueries;
 import com.zenfra.queries.ReportQueries;
 import com.zenfra.queries.UserTableQueries;
-
-import category.CategoryMappingQueries;
 
 @Component
 @Configuration

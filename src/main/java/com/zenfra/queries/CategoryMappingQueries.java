@@ -1,4 +1,4 @@
-package category;
+package com.zenfra.queries;
 
 import lombok.Data;
 

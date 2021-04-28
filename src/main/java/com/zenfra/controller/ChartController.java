@@ -53,7 +53,7 @@ public class ChartController {
 			System.out.println(chartModel.getUserId());
 				
 			
-			if(chartModel.getChartId().trim().isEmpty()) {
+			if(chartModel.getChartId()==null || chartModel.getChartId().trim().isEmpty()) {
 				chartModel.setChartId(functions.generateRandomId());
 			}
 			responseModel.setResponseMessage("Success");
