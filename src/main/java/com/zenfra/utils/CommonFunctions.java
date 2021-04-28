@@ -2,6 +2,8 @@ package com.zenfra.utils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -10,8 +12,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
@@ -43,12 +45,13 @@ public class CommonFunctions {
 			} else {
 				row.put("siteAccessList", new JSONArray());
 			}
-			if (row.get("groupedColumns") != null) {
+			/*if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]") ) {
+				System.out.println(row.get("groupedColumns"));
 				row.put("groupedColumns", (JSONArray) parser
 						.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("groupedColumns", new JSONArray());
-			}
+			}*/
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -170,5 +173,28 @@ public class CommonFunctions {
 			e.printStackTrace();
 		}
 		return arr;
+	}
+	
+	public JSONArray convertObjectToJsonArray(Object object) {
+		JSONArray jsonArray = new JSONArray();
+		if(object != null) {
+			String str = object.toString();
+			if(str.startsWith("[") && str.endsWith("]")){
+				str = str.substring(1, str.length() - 1);
+				List<String> array = Arrays.asList(str.split(","));
+				if(array != null && array.size() > 0) {
+					for(String data : array) {
+						if(data.startsWith("\"") && data.endsWith("\"")){
+							data = data.substring(1, data.length() - 1);
+						}
+						jsonArray.add(data.trim());
+					}
+					
+				}
+				
+				
+			}
+		}
+		return jsonArray;
 	}
 }
