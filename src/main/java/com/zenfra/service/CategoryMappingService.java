@@ -23,7 +23,7 @@ public class CategoryMappingService{
 					CategoryMapping cate=new CategoryMapping();
 						cate.setCategory_list(map);
 						cate.setId(favId);						
-					catDao.saveCategoryMapping(cate);
+					catDao.saveCategoryMappingjdbc(cate);
 				}
 			
 			return false;

@@ -1,18 +1,20 @@
 package com.zenfra.model;
 
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
-@Entity
-@Table(name="category_mapping")
 public class CategoryMapping {
 
 	
-	@Column(name="id")
+	
+	
 	private String id;
 	
-	@Column(name="category_list")
 	private String category_list;
 
 	public String getId() {

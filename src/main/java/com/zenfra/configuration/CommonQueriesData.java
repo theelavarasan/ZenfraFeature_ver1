@@ -15,6 +15,8 @@ import com.zenfra.queries.FavouriteViewQueries;
 import com.zenfra.queries.ReportQueries;
 import com.zenfra.queries.UserTableQueries;
 
+import category.CategoryMappingQueries;
+
 @Component
 @Configuration
 @PropertySource("classpath:quries.properties")
@@ -63,9 +65,16 @@ public class CommonQueriesData {
 	 }
 	 
 	 @Bean
-	 @ConfigurationProperties("categoryView")
+	 @ConfigurationProperties("category.view")
 	 public CategoryViewQueries categoryViewQueries() {
 	      return new CategoryViewQueries();
+	 }
+	
+	 
+	 @Bean
+	 @ConfigurationProperties("category.mapping")
+	 public CategoryMappingQueries categoryMappingQueries() {
+	      return new CategoryMappingQueries();
 	 }
 	 
 	
