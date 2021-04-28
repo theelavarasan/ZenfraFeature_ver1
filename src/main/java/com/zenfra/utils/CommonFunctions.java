@@ -126,10 +126,10 @@ public class CommonFunctions {
 
 			map.put("userAccessList",
 					(Object) map.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
-			map.put("siteaccesslist",
-					map.get("siteaccesslist").toString().replace("{", "").replace("}", "").split(","));
-			map.put("categorylist",
-					map.get("categorylist").toString().replace("{", "").replace("}", "").split(","));
+			map.put("siteAccessList",
+					map.get("siteAccessList").toString().replace("{", "").replace("}", "").split(","));
+			map.put("categoryList",
+					map.get("categoryList").toString().replace("{", "").replace("}", "").split(","));
 
 			obj = mapper.convertValue(map, JSONObject.class);
 			
@@ -142,7 +142,7 @@ public class CommonFunctions {
 			JSONObject xaxis = mapper.convertValue(map.get("xaxis"), JSONObject.class);
 			obj.put("xaxis", getValueFromString(xaxis).get("value"));
 			JSONObject tablecolumns = mapper.convertValue(map.get("tablecolumns"), JSONObject.class);
-			obj.put("tablecolumns", getValueFromString(tablecolumns).get("value"));
+			obj.put("tableColumns", getValueFromString(tablecolumns).get("value"));
 
 		} catch (Exception e) {
 			e.printStackTrace();
