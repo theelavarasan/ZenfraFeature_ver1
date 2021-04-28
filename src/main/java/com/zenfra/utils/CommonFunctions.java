@@ -132,7 +132,7 @@ public class CommonFunctions {
 					map.get("categorylist").toString().replace("{", "").replace("}", "").split(","));
 
 			obj = mapper.convertValue(map, JSONObject.class);
-
+			
 			JSONObject tempBreak = mapper.convertValue(map.get("breakdown"), JSONObject.class);
 			obj.put("breakdown", getValueFromString(tempBreak));
 			JSONObject column = mapper.convertValue(map.get("column"), JSONObject.class);
