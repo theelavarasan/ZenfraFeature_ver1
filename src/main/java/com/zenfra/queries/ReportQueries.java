@@ -7,18 +7,16 @@ import org.springframework.stereotype.Component;
 import lombok.Data;
 
 @Data
-public class UserTableQueries {
+public class ReportQueries {
 
+	private String header;
 	
-	private String getUserByUserid;
-
-	public String getGetUserByUserid() {
-		return getUserByUserid;
-	}
-
-	public void setGetUserByUserid(String getUserByUserid) {
-		this.getUserByUserid = getUserByUserid;
-	}
+	private String numbericalHeader;
 	
+	private String headerFilter;
+	
+	private String chartLayout;
+	
+	private String reportUserCustomData;
 	
 }
