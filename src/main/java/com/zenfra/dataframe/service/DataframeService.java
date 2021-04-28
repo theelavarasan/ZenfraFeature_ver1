@@ -629,7 +629,7 @@ public class DataframeService{
 		 String viewName = siteKey+"_"+source_type.toLowerCase();
 		 viewName = viewName.replaceAll("-", "");
 		 try {
-			 dataset = sparkSession.sqlContext().sql("select * from global_temp."+viewName);
+			 dataset = sparkSession.sql("select * from global_temp."+viewName);
 			 dataset.cache();
 			 isDiscoveryDataInView = true;
 		} catch (Exception e) {
@@ -639,14 +639,14 @@ public class DataframeService{
 		 try {	       
 	       
 	         if(!isDiscoveryDataInView) {
-	        	 String filePath = commonPath + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
+	        	 String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
 	        	 dataset = sparkSession.read().json(filePath); 	 
 	        	 dataset.createOrReplaceTempView("tmpView");
-	        	 dataset =  dataset.sqlContext().sql("select * from (select *, rank() over (partition by  source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+	        	 dataset =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
 		         dataset.createOrReplaceGlobalTempView(viewName); 
 		         dataset.cache();
-	         }		    
-		         
+	         }		        
+	         
 	         actualColumnNames = Arrays.asList(dataset.columns());	
 	         Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
 	         renamedDataSet.createOrReplaceTempView(viewName+"renamedDataSet");
@@ -749,7 +749,7 @@ public class DataframeService{
 			String result = "";
 			try {
 				 sourceType = sourceType.toLowerCase();
-		         String filePath = commonPath + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;
+		         String filePath = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;
 		         File siteKeyAndSourceType = new File(filePath);
 		         
 		         JSONObject newJson = new JSONObject();
@@ -773,7 +773,7 @@ public class DataframeService{
 			        	 
 				         if(filesExists != null && filesExists.size()>0) { //append					        	
 				        	  
-				        	String tmpFile =  writeJosnFile(commonPath + siteKey +  File.separator + "site_key="+siteKey + File.separator+"tmp.json", newJson.toJSONString());
+				        	String tmpFile =  writeJosnFile(commonPath +  File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator+"tmp.json", newJson.toJSONString());
 				        					        	  
 				        	if(!tmpFile.isEmpty()) {
 				        		 File[] files =  new File[1];
@@ -791,11 +791,12 @@ public class DataframeService{
 				        			  
 				        			  Dataset<Row> mergedDataframe = sparkSession.read().json(filePath);	
 				        			  mergedDataframe.createOrReplaceTempView("tmpView");
-				        			  mergedDataframe.sqlContext().sql("select * from (select *, rank() over (partition by  source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+				        			  //mergedDataframe.sqlContext().sql("select * from (select *, rank() over (partition by  source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+				        			  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
 				        			  mergedDataframe.createOrReplaceGlobalTempView(viewName); 
 				        			  mergedDataframe.cache();
 				        			  
-				        			  sparkSession.sqlContext().sql("REFRESH TABLE global_temp."+viewName);				                 
+				        			  sparkSession.sql("REFRESH TABLE global_temp."+viewName);				                 
 				                 System.out.println("----------------Dataframe Append--------------------------------");				                 
 				                 result = ZenfraConstants.SUCCESS;				                
 				        	} catch(Exception e) {
@@ -808,12 +809,12 @@ public class DataframeService{
 		        	 
 		        	
 		        	 //check if source type exits
-		        	  String siteKeyPath = commonPath + siteKey +  File.separator + "site_key="+siteKey;
-		        	  String sourceTypePath = commonPath + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType.toLowerCase();
+		        	  String siteKeyPath = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey +  File.separator + "site_key="+siteKey;
+		        	  String sourceTypePath = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType.toLowerCase();
 		        	  File siteKeyFolder = new File(siteKeyPath);
 		        	  File sourceTypeFolder = new File(sourceTypePath);
 		        	  
-		        	  File newSiteKey = new File(commonPath + siteKey + File.separator);
+		        	  File newSiteKey = new File(commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey + File.separator);
 		        	  boolean siteKeyPresent = true;
 						if (!newSiteKey.exists()) {
 							newSiteKey.mkdir();
@@ -835,7 +836,7 @@ public class DataframeService{
 								.partitionBy("site_key", "source_type").format("org.apache.spark.sql.json")
 								.mode(SaveMode.Overwrite).save(newSiteKey.getAbsolutePath());
 							 newDataframe.createOrReplaceTempView("tmpView");
-							 newDataframe.sqlContext().sql("select * from (select *, rank() over (partition by  source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+							 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
 							 newDataframe.createOrReplaceGlobalTempView(viewName); 
 							 newDataframe.cache();
 							
@@ -854,13 +855,13 @@ public class DataframeService{
 							 Dataset<Row> newDataframe = sparkSession.read().json(tmpFile);
 							 newDataframe = newDataframe.drop("site_key").drop("source_type");
 							 
-							 String newFolderName = commonPath + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;   
+							 String newFolderName = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;   
 							 
 							 newDataframe.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
 								.format("org.apache.spark.sql.json")
 								.mode(SaveMode.Overwrite).save(newFolderName);
 							 newDataframe.createOrReplaceTempView("tmpView");
-							 newDataframe.sqlContext().sql("select * from (select *, rank() over (partition by  source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+							 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
 							 newDataframe.createOrReplaceGlobalTempView(viewName); 
 							 newDataframe.cache();
 							
@@ -963,15 +964,15 @@ public class DataframeService{
 			            if(filePath.endsWith(".json")) {			            	
 			            	String source_type = file.getParentFile().getName().replace("source_type=", "").trim();
 			            	String siteKey = file.getParentFile().getParentFile().getName().replace("site_key=", "").trim();
-			   	         String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
-			   	        String viewName = siteKey+"_"+source_type.toLowerCase();
-			   	        viewName = viewName.replaceAll("-", "");
+			   	         	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
+			   	         	String viewName = siteKey+"_"+source_type.toLowerCase();
+			   	         	viewName = viewName.replaceAll("-", "");
 			   	       
 			   	      try {
 			   	    	 System.out.println("--------dataframeFilePath-------- :: " + viewName + " : " + dataframeFilePath);
 			   	        	 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
 			   	        	 dataset.createOrReplaceTempView("tmpView");
-			   	        	 dataset.sqlContext().sql("select * from (select *, rank() over (partition by  source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+			   	        	 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
 			   		         dataset.createOrReplaceGlobalTempView(viewName); 
 			   		         dataset.cache();
 			   		 	 System.out.println("---------View created-------- :: " + viewName);
@@ -1051,7 +1052,7 @@ public class DataframeService{
 					try {
 						Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
 								"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
-						File f = new File(commonPath + siteKey);
+						File f = new File(commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey);
 						if (!f.exists()) {
 							f.mkdir();
 						}
@@ -1290,12 +1291,12 @@ public class DataframeService{
 			 viewName = viewName.replaceAll("-", "");
 			 Dataset<Row> dataset = sparkSession.emptyDataFrame();
 			 try {
-				 dataset = sparkSession.sqlContext().sql("select * from global_temp."+viewName);
+				 dataset = sparkSession.sql("select * from global_temp."+viewName);
 			} catch (Exception e) {
-				 String filePath = commonPath + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + deviceType + File.separator + "*.json";
+				 String filePath = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + deviceType + File.separator + "*.json";
 	        	 dataset = sparkSession.read().json(filePath); 	 
 	        	 dataset.createOrReplaceTempView("tmpView");
-	        	 dataset =  dataset.sqlContext().sql("select * from (select *, rank() over (partition by  source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+	        	 dataset =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
 		         dataset.createOrReplaceGlobalTempView(viewName); 
 			} 
 			 List<String> header = Arrays.asList(dataset.columns());

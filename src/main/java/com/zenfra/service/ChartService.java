@@ -46,7 +46,12 @@ public class ChartService {
 			
 				responce=chartDao.SaveChart(params);	*/
 			
-			response=chartDao.saveEntity(ChartModel_v2.class, chart);
+			if(chart.getChartId()!=null) {
+				response=chartDao.updateEntity(ChartModel_v2.class, chart);
+			}else {
+				response=chartDao.saveEntity(ChartModel_v2.class, chart);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();			
 		}

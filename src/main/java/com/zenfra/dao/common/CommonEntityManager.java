@@ -29,6 +29,7 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 	public Boolean saveEntity(Class c, Object obj) {
 
 		try {
+			
 			entityManager.persist(obj);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -37,6 +38,17 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		return true;
 	}
 
+	public Boolean updateEntity(Class c, Object obj) {
+
+		try {
+			
+			entityManager.merge(obj);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 	public Object getEntityByColumn(String query, Class c) {
 
 		Object obj = new Object();
