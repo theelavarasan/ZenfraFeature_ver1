@@ -76,15 +76,14 @@ public class ChartService {
 		boolean response=false;
 		try {
 			
-			response=chartDao.deleteByEntity(chart);
+			response=chartDao.updateEntity(ChartModel_v2.class,chart);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-		
+		}		
 		return response;
 	}
 
-
+	
 	public List<ChartModel_v2> getChartByUserId(String userId) {
 		
 		List<ChartModel_v2> object=new ArrayList<ChartModel_v2>();

@@ -158,6 +158,7 @@ public class ChartController {
 					return ResponseEntity.ok(responseModel);
 				}		
 			
+				chart.setActive(false);
 			if(chartService.deleteChartByObject(chart)) {
 				//responseModel.setjData(functions.convertEntityToJsonObject(chartService.getChartByChartId(chartId)));
 				responseModel.setResponseDescription("Chart Successfully deleted");
