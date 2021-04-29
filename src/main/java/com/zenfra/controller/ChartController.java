@@ -88,7 +88,7 @@ public class ChartController {
 		
 	}
 	
-	@PutMapping
+	@PutMapping("/put")
 	public ResponseEntity<?> updateChartConfig(@RequestBody ChartModel_v2 chartModel) {
 		
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
@@ -190,7 +190,7 @@ public class ChartController {
 	}
 	
 	
-	@DeleteMapping
+	@DeleteMapping("/delete")
 	public ResponseEntity<?> delelteChartByChartId(@RequestParam String chartId){
 		
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
