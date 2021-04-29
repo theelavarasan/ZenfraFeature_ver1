@@ -2,12 +2,17 @@ package com.zenfra.dataframe.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -253,6 +258,23 @@ public class DataframeUtil {
 			e.printStackTrace();
 		}
 		
+	}
+
+
+	public static boolean changeOwnerForFile(String path) {
+		try {
+			Path p = Paths.get(path);
+					String groupName = "GROUP_NAME";
+					UserPrincipalLookupService lookupService = FileSystems.getDefault()
+					            .getUserPrincipalLookupService();
+					GroupPrincipal group = lookupService.lookupPrincipalByGroupName(groupName);
+					Files.getFileAttributeView(p, PosixFileAttributeView.class,
+					            LinkOption.NOFOLLOW_LINKS).setGroup(group);
+					return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 	 
 	 

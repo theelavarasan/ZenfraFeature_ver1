@@ -77,7 +77,7 @@ public class ReportDataController {
 		  try {	      		 
 	      		 if(data != null && !data.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
 	      			 String result = "";
-	      			 if(sourceType.equalsIgnoreCase("Soalris")) {
+	      			 if(sourceType.equalsIgnoreCase("Solaris")) {
 	      				dataframeService.recreateLocalDiscovery(siteKey, sourceType);
 	      			} else {
 	      				for(int i = 0; i <= data.size(); i++) {
@@ -170,5 +170,19 @@ public class ReportDataController {
 	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
 	    }
 	  */
+	 
+	 @GetMapping("/getAllSublinkData")
+	    public ResponseEntity<?> getAllSublinkData() {	    	 
+	    	  JSONObject resultObject = new JSONObject();
+	    	try {    		
+	    		resultObject.put("subLinkDetails", reportService.getSubReportList("all", "project")); 
+	    		 
+	    	} catch (Exception e) {
+				e.printStackTrace();
+			}
+	        
+	          return ResponseEntity.ok(resultObject);
+	          
+	    }
 	 
 }
