@@ -19,6 +19,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.zenfra.model.ZKConstants;
@@ -38,6 +39,9 @@ public class ReportService {
 	
 	 @Autowired
 	 ChartService chartService;
+	 
+	 @Value("${zenfra.path}")
+	 private String commonPath;
 	 
 	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String reportList) {
 		JSONArray result = new JSONArray();
@@ -124,7 +128,7 @@ public class ReportService {
             Map<String, Properties> propMap = new TreeMap<String, Properties>();
             if (deviceType.equalsIgnoreCase("all")) {
                 for (int i = 0; i < devicesArray.size(); i++) {
-                    String path = "/opt/config/" + devicesArray.get(i).toString().toLowerCase().replace("-", "") + "ServerClickReport.properties";
+                    String path = commonPath +"/config/" + devicesArray.get(i).toString().toLowerCase().replace("-", "") + "ServerClickReport.properties";
                     System.out.println("!!!!! path: " + path);
                     InputStream inputFile = null;
 
@@ -147,7 +151,7 @@ public class ReportService {
 
                 }
             } else {
-                String path = "/opt/config/" + deviceType.toLowerCase().replace("-", "") + "ServerClickReport.properties";
+                String path = commonPath + "/config/" + deviceType.toLowerCase().replace("-", "") + "ServerClickReport.properties";
                 System.out.println("!!!!! path: " + path);
                 InputStream inputFile = null;
 
