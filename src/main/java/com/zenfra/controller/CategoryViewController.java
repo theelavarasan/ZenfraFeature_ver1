@@ -2,6 +2,8 @@ package com.zenfra.controller;
 
 import java.util.List;
 
+import org.json.simple.JSONArray;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +20,10 @@ import com.zenfra.model.CategoryView;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.service.CategoryViewService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @RestController
-@RequestMapping("/category-view")
+@RequestMapping("/rest/category-view")
 public class CategoryViewController {
 
 	@Autowired
@@ -35,16 +38,11 @@ public class CategoryViewController {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 			
-				view.setUpdatedBy(view.getAuthUserId());
-				view.setUpdatedTime(functions.getCurrentDateWithTime());			
-				view.setCreatedTime(functions.getCurrentDateWithTime());
-			if (view.getCategoryId().trim().isEmpty()) {
-				view.setCategoryId(functions.generateRandomId());
-			}
-
-			if (view.getCategoryId() == null && view.getCategoryId().isEmpty()) {
-				view.setCreatedTime(functions.getCurrentDateWithTime());
-			}
+			view.setUpdatedTime(functions.getCurrentDateWithTime());			
+			view.setCreatedTime(functions.getCurrentDateWithTime());
+			view.setCategoryId(functions.generateRandomId());
+			
+			
 
 			view.setUpdatedBy(view.getUserId());
 			view.setUpdatedTime(functions.getCurrentDateWithTime());
@@ -69,28 +67,31 @@ public class CategoryViewController {
 		return ResponseEntity.ok(responseModel);
 	}
 	
-	@PutMapping
+	@PutMapping("/update")
 	public ResponseEntity<?> updateCategoryView(@RequestBody CategoryView view) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 			
-				view.setUpdatedBy(view.getAuthUserId());
-				view.setUpdatedTime(functions.getCurrentDateWithTime());			
+			CategoryView viewExit=categoryService.getCategoryView(view.getCategoryId());
 			
-			if (view.getCategoryId() == null && view.getCategoryId().isEmpty()) {
-				view.setCreatedTime(functions.getCurrentDateWithTime());
+			if(viewExit==null) {
+				responseModel.setResponseDescription("Category not found");
+				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
+				return ResponseEntity.ok(responseModel);
 			}
-
-			view.setUpdatedBy(view.getUserId());
-			view.setUpdatedTime(functions.getCurrentDateWithTime());
-
-			if (categoryService.saveCategoryView(view)) {
-				responseModel.setjData(functions.convertEntityToJsonObject(view));
+			BeanUtils.copyProperties(view, viewExit, NullAwareBeanUtilsBean.getNullPropertyNames(view));	
+			viewExit.setActive(true);
+			view.setUpdatedBy(view.getAuthUserId());
+			view.setUpdatedTime(functions.getCurrentDateWithTime());			
+			
+		
+			if (categoryService.saveCategoryView(viewExit)) {
+				responseModel.setjData(functions.convertEntityToJsonObject(viewExit));
 				responseModel.setResponseDescription("Category Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
-				responseModel.setResponseDescription("Category not inserted ");
+				responseModel.setResponseDescription("Category not updated");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
@@ -134,11 +135,11 @@ public class CategoryViewController {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
-			List<Object> obj = categoryService.getCategoryViewAll(siteKey);
+			JSONArray arr = categoryService.getCategoryViewAll(siteKey);
 			responseModel.setResponseMessage("Success");
-			if (obj != null) {
+			if (arr != null) {
 				responseModel.setResponseCode(HttpStatus.OK);
-				responseModel.setjData(functions.convertEntityToJsonObject(obj));
+				responseModel.setjData(arr);
 			} else {
 				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
 			}
@@ -153,7 +154,7 @@ public class CategoryViewController {
 		return ResponseEntity.ok(responseModel);
 	}
 
-	@DeleteMapping
+	@DeleteMapping("/delete")
 	public ResponseEntity<?> deleteCategoryView(@RequestParam String categoryId) {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {

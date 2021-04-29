@@ -3,12 +3,14 @@ package com.zenfra.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.configuration.CommonQueriesData;
 import com.zenfra.dao.CategoryViewDao;
 import com.zenfra.model.CategoryView;
+import com.zenfra.utils.CommonFunctions;
 
 @Service
 public class CategoryViewService {
@@ -20,10 +22,13 @@ public class CategoryViewService {
 	CommonQueriesData queries;
 	
 	
-	public Object getCategoryView(String id) {
-		Object obj = null;
+	@Autowired
+	CommonFunctions functions;
+	
+	public CategoryView getCategoryView(String id) {
+		CategoryView obj = null;
 		try {
-			obj = dao.findEntityById(CategoryView.class, id);
+			obj = (CategoryView)dao.findEntityById(CategoryView.class, id);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -42,21 +47,26 @@ public class CategoryViewService {
 
 		}
 
-		return false;
+		return true;
 	}
 
-	public List<Object> getCategoryViewAll(String siteKey) {
-		List<Object> list = new ArrayList<Object>();
+	public JSONArray getCategoryViewAll(String siteKey) {
+		JSONArray arr=new JSONArray();
+		
 		try {
 			
 			String query=queries.categoryViewQueries().getGetCategoryViewBySiteKey().replace(":site_key",siteKey);
-
-			return dao.getEntityListByColumn(query, CategoryView.class);
+			
+			List<Object> list=dao.getEntityListByColumn(query, CategoryView.class);
+			
+			 for(Object obj:list) {
+				 arr.add(functions.convertEntityToJsonObject(obj));
+			 }
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return list;
+		return arr;
 	}
 
 	public boolean deleteCategoryView(CategoryView view) {

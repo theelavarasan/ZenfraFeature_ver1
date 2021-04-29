@@ -118,7 +118,7 @@ public class CategoryView {
 		this.reportBy = reportBy;
 	}
 
-	public boolean isActive() {
+	public boolean getActive() {
 		return isActive;
 	}
 
