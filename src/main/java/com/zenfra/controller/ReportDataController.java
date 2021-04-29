@@ -78,8 +78,7 @@ public class ReportDataController {
 		  System.out.println(sourceType);
 		  System.out.println(localDiscoveryData);
 		  System.out.println("--------------------------------------");
-		  
-		  
+		  		  
 		  try {	      		 
 	      		 if(localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
 	      			 String result = "";
