@@ -81,16 +81,14 @@ public class ReportDataController {
 		  		  
 		  try {	      		 
 	      		 if(localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
-	      			 String result = "";
-	      			 if(sourceType.equalsIgnoreCase("Solaris")) {
+	      			 String result = "Success";
+	      			dataframeService.createDataframeForLocalDiscovery("local_discovery");
+	      			
+	      			 /*if(sourceType.equalsIgnoreCase("Solaris")) {
 	      				dataframeService.recreateLocalDiscovery(siteKey, sourceType);
-	      			} else {
-	      				//for(int i = 0; i <= data.size(); i++) {
-	      					//JSONObject localDiscoveryData = (JSONObject) data.get(i);
-	      					result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);
-	      				//}
-	      				
-	      			}
+	      			} else {	      				
+	      					result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	      				
+	      			}*/
 	      			
 	      			return new ResponseEntity<>(result, HttpStatus.OK);
 	      		 } else {
