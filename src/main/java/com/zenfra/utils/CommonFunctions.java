@@ -124,13 +124,20 @@ public class CommonFunctions {
 		mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
 		try {
 
-			map.put("userAccessList",
-					(Object) map.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
-			map.put("siteAccessList",
-					map.get("siteAccessList").toString().replace("{", "").replace("}", "").split(","));
-			map.put("categoryList",
-					map.get("categoryList").toString().replace("{", "").replace("}", "").split(","));
+			if(map.containsKey("userAccessList")&&map.get("userAccessList")!=null) {
+				map.put("userAccessList",
+						(Object) map.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
+			}
+			if(map.containsKey("siteAccessList")&&map.get("siteAccessList")!=null) {
+				map.put("siteAccessList",
+						map.get("siteAccessList").toString().replace("{", "").replace("}", "").split(","));
+			}
+			if(map.containsKey("categoryList")&&map.get("categoryList")!=null) {
+				map.put("categoryList",
+						map.get("categoryList").toString().replace("{", "").replace("}", "").split(","));
 
+			}
+		
 			obj = mapper.convertValue(map, JSONObject.class);
 			
 			JSONObject tempBreak = mapper.convertValue(map.get("breakdown"), JSONObject.class);
@@ -152,6 +159,8 @@ public class CommonFunctions {
 		return obj;
 	}
 
+
+	
 	public JSONObject getValueFromString(JSONObject obj) {
 		try {
 

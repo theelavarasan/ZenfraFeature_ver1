@@ -92,20 +92,20 @@ public class ChartModel_v2 {
 	private String chartDesc;
 	
 	@Column(name="is_visible")
-	private boolean isVisible = true;
+	private boolean isVisible;
 	
 	@Column(name="is_default")
-	private boolean isDefault = false;
+	private boolean isDefault;
 	
 	
 	@Column(name="analytics_type")
-	private String analyticsType = "";
+	private String analyticsType;
 	
 	@Column(name="analytics_for")
-	private String analyticsFor = "";
+	private String analyticsFor;
 	
 	@Column(name="is_dashboard")
-	private boolean dashboard = false;
+	private boolean dashboard;
 	
 	@Type(type = "jsonb")
 	@Column(name="filter_property")
@@ -139,7 +139,7 @@ public class ChartModel_v2 {
 
 
 
-	public boolean isActive() {
+	public boolean getActive() {
 		return isActive;
 	}
 
@@ -147,7 +147,7 @@ public class ChartModel_v2 {
 		this.isActive = isActive;
 	}
 
-	public boolean isVisible() {
+	public boolean getVisible() {
 		return isVisible;
 	}
 
@@ -274,11 +274,11 @@ public class ChartModel_v2 {
 		this.chartId = chartId;
 	}
 
-	public boolean isDefault() {
+	public boolean getDefault() {
 		return isDefault;
 	}
 
-	public void setIsDefault(boolean isDefault) {
+	public void setDefault(boolean isDefault) {
 		this.isDefault = isDefault;
 	}
 
@@ -306,9 +306,7 @@ public class ChartModel_v2 {
 		this.dashboard = dashboard;
 	}
 
-	public void setDefault(boolean isDefault) {
-		this.isDefault = isDefault;
-	}
+	
 
 	public JSONObject getFilterProperty() {
 		return filterProperty;
@@ -341,7 +339,8 @@ public class ChartModel_v2 {
 				+ isActive + ", updateTime=" + updateTime + ", userAccessList=" + userAccessList + ", siteAccessList="
 				+ siteAccessList + ", categoryList=" + categoryList + "]";
 	}
-	
+
+
 	
 	
 	
