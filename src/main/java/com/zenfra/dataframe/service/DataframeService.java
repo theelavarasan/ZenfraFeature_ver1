@@ -103,6 +103,10 @@ public class DataframeService{
 	 @Value("${zenfra.path}")
 	 private String commonPath;
 	 
+	 @Value("${zenfra.permisssion}")
+	 private String fileOwnerGroupName;
+	 
+	 
 	 @Autowired
 	 private ReportDao reportDao;
 	
@@ -609,6 +613,8 @@ public class DataframeService{
 
 			createDataframeGlobalView();
 			
+			boolean fileOwnerChanged = DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
+			
 			return ZenfraConstants.SUCCESS;
 		} catch (Exception exp) {
 			logger.error("Not able to create dataframe {}",  exp.getMessage(), exp);
@@ -881,7 +887,7 @@ public class DataframeService{
 		         
 		         }
 		         
-		         
+		         boolean fileOwnerChanged = DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
 		        
 			} catch (Exception e) {
 				//logger.error("Exception occured when append dataframe {}", e.getMessage(), e);
