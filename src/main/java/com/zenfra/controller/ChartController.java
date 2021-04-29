@@ -33,6 +33,7 @@ import com.zenfra.utils.CommonFunctions;
 public class ChartController {
 
 	
+	
 	@Autowired
 	CommonFunctions functions;
 	
