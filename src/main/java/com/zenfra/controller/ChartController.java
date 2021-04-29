@@ -37,6 +37,7 @@ public class ChartController {
 	@Autowired
 	CommonFunctions functions;
 	
+	
 	@Autowired
 	ChartService chartService;
 	
