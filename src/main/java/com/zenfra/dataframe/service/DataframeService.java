@@ -898,7 +898,10 @@ public class DataframeService{
 		
 
 		public void recreateLocalDiscovery(String siteKey, String sourceType) {
-			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey + File.separator + sourceType;
+			
+			createDataframeForLocalDiscovery("local_discovery");
+			/*
+			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
 			
 			Map<String, String> options = new HashMap<String, String>();
 			options.put("url", dbUrl);
@@ -915,7 +918,7 @@ public class DataframeService{
 				Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
 						"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
 				
-				File f = new File(path + siteKey);
+				File f = new File(path + siteKey + File.separator);
 				if (!f.exists()) {
 					f.mkdir();
 				}
@@ -926,7 +929,7 @@ public class DataframeService{
 				dataframeBySiteKey.unpersist();
 			} catch (Exception e) {
 				logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(), e);
-			}
+			}*/
 			
 		}
 		
