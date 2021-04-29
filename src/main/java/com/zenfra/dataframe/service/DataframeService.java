@@ -613,7 +613,7 @@ public class DataframeService{
 
 			createDataframeGlobalView();
 			
-			boolean fileOwnerChanged = DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
+			//boolean fileOwnerChanged = DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
 			
 			return ZenfraConstants.SUCCESS;
 		} catch (Exception exp) {
@@ -887,7 +887,7 @@ public class DataframeService{
 		         
 		         }
 		         
-		         boolean fileOwnerChanged = DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
+		        // boolean fileOwnerChanged = DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
 		        
 			} catch (Exception e) {
 				//logger.error("Exception occured when append dataframe {}", e.getMessage(), e);
@@ -938,7 +938,7 @@ public class DataframeService{
                 file.write(data.toString());
                 file.close();
                 
-                DataframeUtil.setFilePermission(filePath);
+               // DataframeUtil.setFilePermission(filePath);
                 
                 File f = new File(filePath);
                 if(f.exists()) {
