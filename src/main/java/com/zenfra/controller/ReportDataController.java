@@ -171,4 +171,18 @@ public class ReportDataController {
 	    }
 	  */
 	 
+	 @GetMapping("/getAllSublinkData")
+	    public ResponseEntity<?> getAllSublinkData() {	    	 
+	    	  JSONObject resultObject = new JSONObject();
+	    	try {    		
+	    		resultObject.put("subLinkDetails", reportService.getSubReportList("all", "project")); 
+	    		 
+	    	} catch (Exception e) {
+				e.printStackTrace();
+			}
+	        
+	          return ResponseEntity.ok(resultObject);
+	          
+	    }
+	 
 }

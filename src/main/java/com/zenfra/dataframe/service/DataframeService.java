@@ -649,6 +649,8 @@ public class DataframeService{
 		         dataset.cache();
 	         }		        
 	         
+	        
+	         
 	         actualColumnNames = Arrays.asList(dataset.columns());	
 	         Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
 	         renamedDataSet.createOrReplaceTempView(viewName+"renamedDataSet");
@@ -675,7 +677,9 @@ public class DataframeService{
 	        Dataset<Row> results = orderBy(groupBy(filter(df, viewName+"renamedDataSet")));	
 	        
 	        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	        
-	        results.printSchema();	 	    
+	        //results.printSchema();	 	
+	        
+	        results = results.dropDuplicates();
 	        
 	       /* List<String> numericalHeaders = reportService.getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
 	        if(!numericalHeaders.isEmpty()) {
