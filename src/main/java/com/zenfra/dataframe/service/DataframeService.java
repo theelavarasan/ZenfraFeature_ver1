@@ -938,7 +938,7 @@ public class DataframeService{
                 file.write(data.toString());
                 file.close();
                 
-                DataframeUtil.setFilePermission(filePath);
+               // DataframeUtil.setFilePermission(filePath);
                 
                 File f = new File(filePath);
                 if(f.exists()) {

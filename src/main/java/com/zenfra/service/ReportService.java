@@ -128,7 +128,7 @@ public class ReportService {
             Map<String, Properties> propMap = new TreeMap<String, Properties>();
             if (deviceType.equalsIgnoreCase("all")) {
                 for (int i = 0; i < devicesArray.size(); i++) {
-                    String path = commonPath +"/config/" + devicesArray.get(i).toString().toLowerCase().replace("-", "") + "ServerClickReport.properties";
+                    String path = "/opt/config/" + devicesArray.get(i).toString().toLowerCase().replace("-", "") + "ServerClickReport.properties";
                     System.out.println("!!!!! path: " + path);
                     InputStream inputFile = null;
 
@@ -151,7 +151,7 @@ public class ReportService {
 
                 }
             } else {
-                String path = commonPath + "/config/" + deviceType.toLowerCase().replace("-", "") + "ServerClickReport.properties";
+                String path = "/opt/config/" + deviceType.toLowerCase().replace("-", "") + "ServerClickReport.properties";
                 System.out.println("!!!!! path: " + path);
                 InputStream inputFile = null;
 
