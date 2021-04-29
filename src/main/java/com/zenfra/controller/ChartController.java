@@ -109,7 +109,7 @@ public class ChartController {
 			
 			
 			if(chartService.saveChart(chartExit)) {				
-				responseModel.setjData(functions.convertEntityToJsonObject(chartModel));
+				responseModel.setjData(functions.convertEntityToJsonObject(chartExit));
 				responseModel.setResponseDescription("Chart Successfully saved");
 				responseModel.setResponseCode(HttpStatus.OK);
 				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
