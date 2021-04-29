@@ -692,11 +692,11 @@ public class DataframeService{
 	        	numericalHeaders.stream().forEach((c) -> System.out.println(c));
 	        } */
 	       
-	        List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
+	        /*List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
 	        List<String> actualHeadets = new ArrayList<>();
 	        actualHeadets.addAll(Arrays.asList(results.columns()));	      
 	        actualHeadets.removeAll(headers);	       
-	        results =  results.drop(actualHeadets.stream().toArray(String[]::new));
+	        results =  results.drop(actualHeadets.stream().toArray(String[]::new));*/
 	        return paginate(results, request);
 		} catch (Exception e) {
 			logger.error("Exception occured while fetching local discoverydata from DF{}", e.getMessage(), e);
@@ -794,7 +794,7 @@ public class DataframeService{
 				        		 
 				        		  try {		
 				        			  
-				        			  Dataset<Row> newDataframeToAppend =   sparkSession.read().json(tmpFile); 
+				        			  Dataset<Row> newDataframeToAppend =   sparkSession.read().json(tmpFile); 				        			  
 				        			  newDataframeToAppend = newDataframeToAppend.drop("site_key").drop("source_type");	
 				        			  newDataframeToAppend.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true).mode(SaveMode.Append).format("org.apache.spark.sql.json").save(filePath);
 				        			  newDataframeToAppend.unpersist();
@@ -843,7 +843,7 @@ public class DataframeService{
 			        		 files[0] = new File(tmpFile);
 			        		 DataframeUtil.formatJsonFile(files);	       
 			        		 
-							 Dataset<Row> newDataframe = sparkSession.read().json(tmpFile);
+							 Dataset<Row> newDataframe = sparkSession.read().json(tmpFile);							
 							 newDataframe.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
 								.partitionBy("site_key", "source_type").format("org.apache.spark.sql.json")
 								.mode(SaveMode.Overwrite).save(newSiteKey.getAbsolutePath());
@@ -864,7 +864,7 @@ public class DataframeService{
 			        		 files[0] = new File(tmpFile);
 			        		 DataframeUtil.formatJsonFile(files);	       
 			        		 
-							 Dataset<Row> newDataframe = sparkSession.read().json(tmpFile);
+							 Dataset<Row> newDataframe = sparkSession.read().json(tmpFile);							
 							 newDataframe = newDataframe.drop("site_key").drop("source_type");
 							 
 							 String newFolderName = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;   
@@ -934,6 +934,7 @@ public class DataframeService{
 		private String writeJosnFile(String filePath, String data) {
 			String result = "";
 			try {
+				data = data.replaceAll("server_name", "sever_name_col");
                 FileWriter file = new FileWriter(filePath);
                 file.write(data.toString());
                 file.close();
