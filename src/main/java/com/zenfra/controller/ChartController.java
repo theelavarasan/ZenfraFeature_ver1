@@ -104,8 +104,8 @@ public class ChartController {
 				return ResponseEntity.ok(responseModel);
 			}
 			BeanUtils.copyProperties(chartModel, chartExit, NullAwareBeanUtilsBean.getNullPropertyNames(chartModel));	
-			chartModel.setActive(true);
-			chartModel.setUpdateTime(functions.getCurrentDateWithTime());				
+			chartExit.setActive(true);
+			chartExit.setUpdateTime(functions.getCurrentDateWithTime());				
 			
 			
 			if(chartService.saveChart(chartExit)) {				
