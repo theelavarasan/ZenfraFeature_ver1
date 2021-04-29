@@ -1,10 +1,11 @@
 package com.zenfra.controller;
 
 import java.util.List;
-import java.util.Map;
 
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,21 +13,20 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.model.ChartDetailsModel;
 import com.zenfra.model.ChartModel_v2;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.service.CategoryMappingService;
 import com.zenfra.service.ChartService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @RestController
 @RequestMapping("/rest/chart")
@@ -88,6 +88,49 @@ public class ChartController {
 		
 	}
 	
+	@PutMapping
+	public ResponseEntity<?> updateChartConfig(@RequestBody ChartModel_v2 chartModel) {
+		
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try 
+		{
+			
+			responseModel.setResponseMessage("Success");
+			ChartModel_v2 chartExit=chartService.getChartByChartId(chartModel.getChartId());
+			
+			if(chartExit==null) {
+				responseModel.setResponseDescription("Chart not found");
+				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
+				return ResponseEntity.ok(responseModel);
+			}
+			BeanUtils.copyProperties(chartModel, chartExit, NullAwareBeanUtilsBean.getNullPropertyNames(chartModel));	
+			chartModel.setActive(true);
+			chartModel.setUpdateTime(functions.getCurrentDateWithTime());				
+			
+			
+			if(chartService.saveChart(chartExit)) {				
+				responseModel.setjData(functions.convertEntityToJsonObject(chartModel));
+				responseModel.setResponseDescription("Chart Successfully saved");
+				responseModel.setResponseCode(HttpStatus.OK);
+				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
+			}else {
+				responseModel.setResponseDescription("Chart not saved");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+		
+		
+		
+	}
 	
 	@GetMapping("/{chartId}")
 	public ResponseEntity<?> getChartByChartId(@PathVariable String chartId){
@@ -147,8 +190,8 @@ public class ChartController {
 	}
 	
 	
-	@DeleteMapping("/{chartId}")
-	public ResponseEntity<?> delelteChartByChartId(@PathVariable String chartId){
+	@DeleteMapping
+	public ResponseEntity<?> delelteChartByChartId(@RequestParam String chartId){
 		
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
