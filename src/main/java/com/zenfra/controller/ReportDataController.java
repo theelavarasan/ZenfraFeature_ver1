@@ -72,18 +72,23 @@ public class ReportDataController {
 	    }
 	 
 	 @PostMapping("saveLocalDiscoveryDF")
-	    public ResponseEntity<String> saveLocalDiscoveryDF(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestBody JSONArray data) { 	     
-		  
+	    public ResponseEntity<String> saveLocalDiscoveryDF(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestBody JSONObject localDiscoveryData) { 	     
+		  System.out.println("--------------------------------------");
+		  System.out.println(siteKey);
+		  System.out.println(sourceType);
+		  System.out.println(localDiscoveryData);
+		  System.out.println("--------------------------------------");
+		  		  
 		  try {	      		 
-	      		 if(data != null && !data.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
+	      		 if(localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
 	      			 String result = "";
 	      			 if(sourceType.equalsIgnoreCase("Solaris")) {
 	      				dataframeService.recreateLocalDiscovery(siteKey, sourceType);
 	      			} else {
-	      				for(int i = 0; i <= data.size(); i++) {
-	      					JSONObject localDiscoveryData = (JSONObject) data.get(i);
+	      				//for(int i = 0; i <= data.size(); i++) {
+	      					//JSONObject localDiscoveryData = (JSONObject) data.get(i);
 	      					result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);
-	      				}
+	      				//}
 	      				
 	      			}
 	      			
