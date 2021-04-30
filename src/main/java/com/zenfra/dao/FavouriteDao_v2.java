@@ -185,11 +185,13 @@ public Integer updateQuery(Map<String,Object> parameter,String query) {
 	
 	public Object getSingleColumnAsObject(String query) {
 		
-		try {
-			return jdbc.queryForObject(query, Object.class);
+		Object obj=new Object();
+		try {		
+			
+			obj= jdbc.queryForObject(query, Object.class);
 		} catch (Exception e) {
-			e.printStackTrace();
+			
 		}
-		return null;
+		return obj;
 	}
 }

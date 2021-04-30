@@ -82,7 +82,7 @@ public class FavouriteApiService_v2 {
 			
 			Object orderArr= daoFav.getSingleColumnAsObject(favourite_order_query);
 			
-			System.out.println(orderArr);
+		
 			arr.put("view", viewArr);			
 			if(orderArr!=null) {
 				arr.put("order",common.convertObjectToJsonArray(orderArr));
