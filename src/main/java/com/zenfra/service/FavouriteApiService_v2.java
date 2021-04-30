@@ -88,10 +88,12 @@ public class FavouriteApiService_v2 {
 
 			
 			
-			List<Map<String,Object>> orderArr= daoFav.getJsonarray(favourite_order_query);
+			Object orderArr= daoFav.getSingleColumnAsObject(favourite_order_query);
+			
+			
 			arr.put("view", viewArr);			
-			if(orderArr!=null && !orderArr.isEmpty()) {
-				arr.put("order", (JSONArray) parser.parse(orderArr.get(0).get("orders").toString().replace("\\[", "").replace("\\]", "")));
+			if(orderArr!=null) {
+				arr.put("order",common.convertObjectToJsonArray(orderArr));
 			}else {
 				arr.put("order",new JSONArray());
 			}
