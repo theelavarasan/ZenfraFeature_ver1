@@ -67,7 +67,7 @@ public class CategoryViewController {
 		return ResponseEntity.ok(responseModel);
 	}
 	
-	@PutMapping("/update")
+	@PostMapping("/update")
 	public ResponseEntity<?> updateCategoryView(@RequestBody CategoryView view) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
@@ -154,7 +154,7 @@ public class CategoryViewController {
 		return ResponseEntity.ok(responseModel);
 	}
 
-	@DeleteMapping("/delete")
+	@PostMapping("/delete")
 	public ResponseEntity<?> deleteCategoryView(@RequestParam String categoryId) {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
