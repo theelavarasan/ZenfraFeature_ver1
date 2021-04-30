@@ -88,7 +88,7 @@ public class CategoryViewController {
 		
 			if (categoryService.saveCategoryView(viewExit)) {
 				responseModel.setjData(functions.convertEntityToJsonObject(viewExit));
-				responseModel.setResponseDescription("Category Successfully inserted");
+				responseModel.setResponseDescription("Category Successfully updated");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
 				responseModel.setResponseDescription("Category not updated");
@@ -186,4 +186,33 @@ public class CategoryViewController {
 		return ResponseEntity.ok(responseModel);
 	}
 
+	
+	@GetMapping("/replace")
+	public ResponseEntity<?> replaceCategoryView(@RequestParam String oldCategoryId
+			,@RequestParam String newCategoryId) {
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+
+			
+			
+			if (categoryService.changeOldToNewCategoryView(oldCategoryId,newCategoryId)) {
+				responseModel.setResponseDescription("Category Successfully updated");
+				responseModel.setResponseCode(HttpStatus.OK);
+				responseModel.setResponseMessage("Success!");
+			} else {
+				responseModel.setResponseMessage("Error!");
+				responseModel.setResponseDescription("Category not updated ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Error");
+			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
+			responseModel.setResponseDescription(e.getMessage());
+		}
+		return ResponseEntity.ok(responseModel);
+	}
 }
