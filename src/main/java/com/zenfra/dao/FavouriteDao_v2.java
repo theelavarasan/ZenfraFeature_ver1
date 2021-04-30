@@ -182,4 +182,15 @@ public Integer updateQuery(Map<String,Object> parameter,String query) {
 		return responce;
 	}
 	
+public Object getSingleColumnAsObject(String query) {
+		
+		Object obj=new Object();
+		try {		
+			
+			obj= jdbc.queryForObject(query, Object.class);
+		} catch (Exception e) {
+			
+		}
+		return obj;
+	}
 }

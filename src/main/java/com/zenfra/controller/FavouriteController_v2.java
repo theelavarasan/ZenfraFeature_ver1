@@ -23,6 +23,7 @@ import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.ResponseModel;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
+import com.zenfra.service.CategoryMappingService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
@@ -40,6 +41,9 @@ public class FavouriteController_v2 {
 	
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	CategoryMappingService catService;
 
 	@PostMapping("/get-all-favourite-v2-temp")
 	public ResponseEntity<?> getFavouriteView(@RequestParam(name = "authUserId", required = false) String userId,
@@ -93,6 +97,7 @@ public class FavouriteController_v2 {
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
+				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
 			} else {
 				responseModel.setResponseDescription("Favourite not inserted ");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -129,6 +134,7 @@ public class FavouriteController_v2 {
 				responseModel.setResponseCode(HttpStatus.OK);
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully updated");
+				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
 			} else {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				responseModel.setResponseDescription("Favourite Id not found ");
