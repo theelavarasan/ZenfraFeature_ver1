@@ -47,13 +47,12 @@ public class CommonFunctions {
 			} else {
 				row.put("siteAccessList", new JSONArray());
 			}
-			/*if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]") ) {
-				System.out.println(row.get("groupedColumns"));
+			if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]") ) {
 				row.put("groupedColumns", (JSONArray) parser
 						.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("groupedColumns", new JSONArray());
-			}*/
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
