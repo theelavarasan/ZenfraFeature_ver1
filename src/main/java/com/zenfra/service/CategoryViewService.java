@@ -78,4 +78,21 @@ public class CategoryViewService {
 		return true;
 	}
 
+	public boolean changeOldToNewCategoryView(String oldCategoryId, String newCategoryId) {
+		
+		
+		try {
+			String query=queries.categoryMappingQueries().getUpdate()
+					.replace(":new_category_list", newCategoryId)
+					.replace(":old_category_list", oldCategoryId);
+			System.out.println(query);
+			dao.updateQuery(query);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
+		
+	}
+
 }
