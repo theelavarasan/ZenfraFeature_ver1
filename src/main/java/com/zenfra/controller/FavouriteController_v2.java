@@ -30,7 +30,7 @@ import com.zenfra.utils.CommonFunctions;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/rest/reports")
+@RequestMapping("/reports")
 public class FavouriteController_v2 {
 
 	@Autowired

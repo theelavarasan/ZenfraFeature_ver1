@@ -23,7 +23,7 @@ import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @RestController
-@RequestMapping("/rest/category-view")
+@RequestMapping("/category-view")
 public class CategoryViewController {
 
 	@Autowired

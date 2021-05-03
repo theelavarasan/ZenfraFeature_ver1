@@ -1,0 +1,113 @@
+package com.zenfra.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import com.vladmihalcea.hibernate.type.array.ListArrayType;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+
+@Entity
+@Table(name="dashboard_user_customization")
+public class DashboardUserCustomization {
+	
+	
+	
+	public DashboardUserCustomization() {
+		
+	}
+	
+	
+	public DashboardUserCustomization(String data_id, String siteKey, String reportName, String tenantId, String userId,
+			String layout) {
+		super();
+		this.data_id = data_id;
+		this.siteKey = siteKey;
+		this.reportName = reportName;
+		this.tenantId = tenantId;
+		this.userId = userId;
+		this.layout = layout;
+	}
+
+	@Id
+	@Column(name="data_id")
+	private String data_id;
+	
+	@Column(name="site_key")
+	private String siteKey;
+	
+	@Column(name="report_name")
+	private String reportName;
+	
+	@Column(name="tenant_id")
+	private String tenantId;
+	
+	@Column(name="user_id")
+	private String userId;
+	
+	
+	@Column(name="layout")
+	private String layout;
+
+	public String getData_id() {
+		return data_id;
+	}
+
+	public void setData_id(String data_id) {
+		this.data_id = data_id;
+	}
+
+	public String getSiteKey() {
+		return siteKey;
+	}
+
+	public void setSiteKey(String siteKey) {
+		this.siteKey = siteKey;
+	}
+
+	public String getReportName() {
+		return reportName;
+	}
+
+	public void setReportName(String reportName) {
+		this.reportName = reportName;
+	}
+
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+
+	public String getLayout() {
+		return layout;
+	}
+
+
+	public void setLayout(String layout) {
+		this.layout = layout;
+	}
+
+
+	
+	
+	
+
+}

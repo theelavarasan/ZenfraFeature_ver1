@@ -29,7 +29,7 @@ import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @RestController
-@RequestMapping("/rest/chart")
+@RequestMapping("/chart")
 public class ChartController {
 
 	

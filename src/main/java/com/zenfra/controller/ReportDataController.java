@@ -26,7 +26,7 @@ import com.zenfra.service.ReportService;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/rest/df/")
+@RequestMapping("/df/")
 public class ReportDataController {
 	
 	@Autowired
