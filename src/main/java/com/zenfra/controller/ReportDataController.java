@@ -73,26 +73,16 @@ public class ReportDataController {
 	 
 	 @PostMapping("saveLocalDiscoveryDF")
 	    public ResponseEntity<String> saveLocalDiscoveryDF(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestBody JSONObject localDiscoveryData) { 	     
-		  System.out.println("--------------------------------------");
-		  System.out.println(siteKey);
-		  System.out.println(sourceType);
-		  System.out.println(localDiscoveryData);
-		  System.out.println("--------------------------------------");
-		  		  
+		  System.out.println("---------------api entered to add dataframe-----------------------");
+		 
 		  try {	      		 
 	      		 if(localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
-	      			 String result = "Success";
-	      			dataframeService.createDataframeForLocalDiscovery("local_discovery");
-	      			
-	      			 /*if(sourceType.equalsIgnoreCase("Solaris")) {
-	      				dataframeService.recreateLocalDiscovery(siteKey, sourceType);
-	      			} else {	      				
-	      					result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	      				
-	      			}*/
-	      			
+	      			 String result = "Success";	      			 			
+	      			result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	      			
 	      			return new ResponseEntity<>(result, HttpStatus.OK);
 	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
+	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 
+	      			}
 	      		
 			} catch (Exception e) {
 				System.out.println("Not able to save local discovery in dataframe {}"+ e);
