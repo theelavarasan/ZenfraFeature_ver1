@@ -139,7 +139,6 @@ public class FavouriteApiService_v2 {
 				updateQuery = (parameters.get(key) != null) ? updateQuery.replace(key, parameters.get(key).toString()) : updateQuery.replace(key, "");
 			}
 			System.out.println(updateQuery);
-			saveFavouriteViewCategory(map.convertValue(favouriteModel.getCategoryList(), JSONArray.class), favouriteModel);
 			responce = daoFav.updateQuery(updateQuery);
 
 		} catch (Exception e) {
@@ -289,8 +288,6 @@ public class FavouriteApiService_v2 {
 					+ "', category_list='" + category_list.toJSONString() + "', filter_property='"
 					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
 
-			saveFavouriteViewCategory(category_list, favouriteModel);
-			
 			System.out.println(query);
 			responce = daoFav.updateQuery(query);
 		} catch (Exception e) {
