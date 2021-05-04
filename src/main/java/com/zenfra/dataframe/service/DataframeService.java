@@ -629,6 +629,10 @@ public class DataframeService{
 		
 		 String siteKey = request.getSiteKey();
          String source_type = request.getSourceType().toLowerCase();
+       
+ 		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
+ 			source_type = source_type + "-" + request.getReportBy();
+ 		} 		
          
 		 boolean isDiscoveryDataInView = false;
 		 Dataset<Row> dataset = null;
