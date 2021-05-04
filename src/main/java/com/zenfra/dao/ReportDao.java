@@ -132,20 +132,27 @@ public class ReportDao {
 			params.put("user_id", userId);
 			params.put("site_key", siteKey);
 			params.put("report_name", reportName.toLowerCase());			
-			List<Map<String, Object>> rs = namedJdbc.queryForList(reportQueries.getReportUserCustomData(), params);			
-			System.out.println("-------------------rs------------------" + rs);
+			List<Map<String, Object>> rs = namedJdbc.queryForList(reportQueries.getReportUserCustomData(), params);		
+		
 			if(rs != null && rs.size() > 0) {
 				result.put("groupedColumns", commonFunctions.convertObjectToJsonArray(rs.get(0).get("grouped_columns")));
 				result.put("columnOrder", commonFunctions.convertObjectToJsonArray(rs.get(0).get("columns_visible")));
 				result.put("chartLayout", commonFunctions.formatJsonArrayr(rs.get(0).get("chart_layout")));
+				ObjectMapper mapper = new ObjectMapper();			
 				
-				System.out.println("-------------------rsss------------------" +  rs.get(0).get("chart_layout"));
+				JSONObject health_check = mapper.readValue(rs.get(0).get("health_check").toString(), JSONObject.class);
+				
+				result.put("health_check", health_check);
+				
+				
 				
 			} else {
 				JSONArray empty = new JSONArray();
+				JSONObject jSONObject = new JSONObject();
 				result.put("groupedColumns", empty);
 				result.put("columnOrder", empty);
 				result.put("chartLayout", empty);
+				result.put("health_check", jSONObject);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

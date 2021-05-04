@@ -184,8 +184,8 @@ public class ServerSideGetRowsRequest implements Serializable {
 	}
 
 	public void setOstype(String ostype) {
-		this.ostype = ostype;
-		this.sourceType=ostype;
+		this.ostype = ostype;		
+		this.sourceType = ostype;
 	}
 
 	
