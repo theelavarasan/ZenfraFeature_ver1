@@ -20,7 +20,7 @@ import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.utils.CommonFunctions;
 
 @RestController
-@RequestMapping("/dashboard")
+@RequestMapping("/rest/dashboard")
 public class DashBoradController {
 
 	
