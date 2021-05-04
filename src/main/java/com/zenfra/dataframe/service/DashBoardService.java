@@ -156,6 +156,7 @@ public class DashBoardService {
 			String query=queries.dashboardQueries().getGetDashboardChartDetails()
 					.replace(":chart_id", dashboardInputModel.getChartId()).replace(":site_key",dashboardInputModel.getSiteKey());
 			
+			System.out.println(query);
 			Object temp=dashDao.getObjectFromQuery(query);
 			
 			if(temp!=null) {

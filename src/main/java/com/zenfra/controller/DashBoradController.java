@@ -197,7 +197,7 @@ public class DashBoradController {
 				if (responce != null) {
 					responseModel.setResponseDescription("Dashboard charts updated");
 					responseModel.setResponseCode(HttpStatus.OK);
-					responseModel.setjData(responce);
+					responseModel.setjData(functions.convertEntityToJsonObject(dash));
 				} else {
 					responseModel.setResponseCode(HttpStatus.NOT_FOUND);
 				}
@@ -231,7 +231,7 @@ public class DashBoradController {
 				if (responce != null) {
 					responseModel.setResponseDescription("Dashboard Chart updated");
 					responseModel.setResponseCode(HttpStatus.OK);
-					responseModel.setjData(responce);
+					responseModel.setjData(functions.convertEntityToJsonObject(dash));
 				} else {
 					responseModel.setResponseCode(HttpStatus.NOT_FOUND);
 				}
@@ -246,7 +246,7 @@ public class DashBoradController {
 		}
 	
 	
-	@GetMapping("/get-chart-details")
+	@PostMapping("/get-chart-details")
 	public ResponseEntity<?> getDashboardChartDetails(
 			@RequestBody DashboardInputModel dashboardInputModel
 			){
