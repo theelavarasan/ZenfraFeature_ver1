@@ -4,19 +4,13 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,13 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.ResponseModel;
 import com.zenfra.model.ResponseModel_v2;
-import com.zenfra.queries.FavouriteViewQueries;
+import com.zenfra.model.Users;
+import com.zenfra.service.CategoryMappingService;
 import com.zenfra.service.FavouriteApiService_v2;
+import com.zenfra.service.UserService;
+import com.zenfra.utils.CommonFunctions;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -39,6 +35,15 @@ public class FavouriteController_v2 {
 
 	@Autowired
 	FavouriteApiService_v2 service;
+	
+	@Autowired
+	CommonFunctions functions;
+	
+	@Autowired
+	UserService userService;
+	
+	@Autowired
+	CategoryMappingService catService;
 
 	@PostMapping("/get-all-favourite-v2-temp")
 	public ResponseEntity<?> getFavouriteView(@RequestParam(name = "authUserId", required = false) String userId,
@@ -73,22 +78,26 @@ public class FavouriteController_v2 {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
-			ObjectMapper mapper = new ObjectMapper();
-
-			UUID uuid = UUID.randomUUID();
-			String randomUUIDString = uuid.toString();
-
+			Users user=userService.getUserByUserId(favouriteModel.getAuthUserId());
+			if(user==null) {
+				responseModel.setResponseDescription("User id is invalid");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+				return ResponseEntity.ok(responseModel);
+			}
+			
 			favouriteModel.setIsActive(true);
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-			LocalDateTime now = LocalDateTime.now();
-			String currentTime = dtf.format(now);
-			favouriteModel.setCreatedTime(currentTime);
-			favouriteModel.setFavouriteId(randomUUIDString);
+			favouriteModel.setCreatedTime(functions.getCurrentDateWithTime());
+			favouriteModel.setFavouriteId(functions.generateRandomId());
+			favouriteModel.setUpdatedBy(favouriteModel.getCreatedBy());
+			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
+			
 
-			if (service.saveFavouriteView(favouriteModel) == 1) {
-				responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
+			if (service.saveFavouriteView(favouriteModel) == 1) {	
+				favouriteModel.setCreatedBy((user.getFirst_name()+" "+user.getLast_name()));				
+				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
+				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
 			} else {
 				responseModel.setResponseDescription("Favourite not inserted ");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -110,30 +119,29 @@ public class FavouriteController_v2 {
 	}
 
 	@PutMapping("/update-filter-view")
-	public ResponseEntity<?> updateFavouriteViewData(@RequestParam(name = "authUserId", required = false) String userId,
+	public ResponseEntity<?> updateFavouriteViewData(
 			@RequestBody FavouriteModel favouriteModel) throws IOException, URISyntaxException,
 			org.json.simple.parser.ParseException, ParseException, SQLException {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
-			ObjectMapper mapper = new ObjectMapper();
-			favouriteModel.setUpdatedBy(userId);
+			favouriteModel.setUpdatedBy(favouriteModel.getAuthUserId());
 			favouriteModel.setIsActive(true);
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-			LocalDateTime now = LocalDateTime.now();
-			String currentTime = dtf.format(now);
-			favouriteModel.setUpdatedTime(currentTime);
+			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
 
-			if (service.updateFavouriteView(userId, favouriteModel) == 1) {
+			if (service.updateFavouriteView(favouriteModel.getAuthUserId(), favouriteModel) == 1) {
+				responseModel.setResponseCode(HttpStatus.OK);
+				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully updated");
+				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
 			} else {
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				responseModel.setResponseDescription("Favourite Id not found ");
 			}
 
-			responseModel.setjData((JSONObject) new JSONParser().parse(mapper.writeValueAsString(favouriteModel)));
 			responseModel.setResponseMessage("Success!");
-			responseModel.setResponseCode(HttpStatus.OK);
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -158,11 +166,13 @@ public class FavouriteController_v2 {
 
 			if (service.deleteFavouriteViewData(userId, FavouriteId, createdBy, siteKey) == 1) {
 				responseModel.setResponseDescription("FavouriteView Successfully deleted");
+				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
 				responseModel.setResponseDescription("Favourite Id not found ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 			responseModel.setResponseMessage("Success!");
-			responseModel.setResponseCode(HttpStatus.OK);
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -176,32 +186,27 @@ public class FavouriteController_v2 {
 	}
 
 	@PostMapping("/save-favourite-order")
-	public ResponseEntity<?> saveFavouriteOrder(@RequestParam(name = "authUserId", required = false) String userId,
+	public ResponseEntity<?> saveFavouriteOrder(
 			@RequestBody FavouriteOrder favouriteModel) throws IOException, URISyntaxException,
 			org.json.simple.parser.ParseException, ParseException, SQLException {
 		ResponseModel responseModel = new ResponseModel();
 
 		try {
 
-			UUID uuid = UUID.randomUUID();
-			String randomUUIDString = uuid.toString();
-
-			favouriteModel.setCreatedBy(userId);
 			favouriteModel.setIsActive(true);
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-			LocalDateTime now = LocalDateTime.now();
-			String currentTime = dtf.format(now);
-			favouriteModel.setCreatedTime(currentTime);
+			favouriteModel.setCreatedTime(functions.getCurrentDateWithTime());
 			favouriteModel.setOrderId(favouriteModel.getCreatedBy() + "_" + favouriteModel.getReportName());
 
-			if (service.saveFavouriteOrder(userId, favouriteModel) == 1) {
+			if (service.saveFavouriteOrder(favouriteModel) == 1) {
 				responseModel.setResponseDescription("FavouriteOrder Successfully inserted");
+				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
 				responseModel.setResponseDescription("Try again");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 			responseModel.setResponseMessage("Success!");
-			responseModel.setResponseCode(HttpStatus.OK);
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -246,21 +251,6 @@ public class FavouriteController_v2 {
 		// return ResponseEntity.ok(body);
 	}
 
-	@Autowired
-	FavouriteViewQueries query;
-	
-	@GetMapping("/test")
-	public String run() {
-		try {
 
-		//	System.out.println(query.getName());
-			//return query.getName();//repo.findAll();
-		} catch (Exception e) {
-			e.printStackTrace();
-			// TODO: handle exception
-		}
-		
-		return null;
-	}
 
 }

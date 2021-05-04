@@ -30,7 +30,7 @@ public class FavouriteModel implements Serializable {
 	private List<String> siteAccessList = new ArrayList<>();
 	private String projectId;
 	private boolean isDefault;
-	
+	private String authUserId;
 	public String getProjectId() {
 		return projectId;
 	}
@@ -177,6 +177,22 @@ public class FavouriteModel implements Serializable {
 	}
 
 	public void setIsDefault(Boolean isDefault) {
+		this.isDefault = isDefault;
+	}
+
+	public String getAuthUserId() {
+		return authUserId;
+	}
+
+	public void setAuthUserId(String authUserId) {
+		this.authUserId = authUserId;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public void setDefault(boolean isDefault) {
 		this.isDefault = isDefault;
 	}
 

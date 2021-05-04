@@ -16,7 +16,7 @@ public class ResponseModel_v2 implements Serializable{
 	private HttpStatus responseCode;
 	private String responseDescription;
 	private JSONArray data;
-	private JSONObject jData;
+	private Object jData;
 	private boolean validation;
 	
 	public String getResponseMessage() {
@@ -51,12 +51,13 @@ public class ResponseModel_v2 implements Serializable{
 	public Boolean getValidation() {
 		return validation;
 	}
-	public JSONObject getjData() {
+	public Object getjData() {
 		return jData;
 	}
-	public void setjData(JSONObject jData) {
+	public void setjData(Object jData) {
 		this.jData = jData;
 	}
+	
 	
 	
 }
