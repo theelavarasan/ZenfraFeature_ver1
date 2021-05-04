@@ -17,6 +17,7 @@ import com.zenfra.configuration.CommonQueriesData;
 import com.zenfra.dao.DashBoardDao;
 import com.zenfra.model.ChartModel_v2;
 import com.zenfra.model.DashBoardCharts;
+import com.zenfra.model.DashboardChartDetails;
 import com.zenfra.model.DashboardDataResponseModel;
 import com.zenfra.model.DashboardInputModel;
 import com.zenfra.model.DashboardUserCustomization;
@@ -275,6 +276,17 @@ public class DashBoardService {
 	    
 	        return dashboardDataResponseModel;
 	    }
+
+	public Object saveDashboardChartDetails(DashboardChartDetails dash) {
+			try {
+				
+				
+				dashDao.saveEntity(DashboardChartDetails.class, dash);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return true;
+	}
 	 
 	
 }

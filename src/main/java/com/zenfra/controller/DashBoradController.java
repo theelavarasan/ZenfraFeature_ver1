@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.dataframe.service.DashBoardService;
 import com.zenfra.model.DashBoardCharts;
+import com.zenfra.model.DashboardChartDetails;
 import com.zenfra.model.DashboardInputModel;
 import com.zenfra.model.DashboardUserCustomization;
 import com.zenfra.model.ResponseModel_v2;
@@ -306,5 +307,43 @@ public class DashBoradController {
 			return ResponseEntity.ok(responseModel);
 	}
 	
+	
+	
+	@PostMapping("/save-dashboard-chart-details")
+	public ResponseEntity<?> saveDashboardChartDetails(
+			@RequestBody DashboardChartDetails  dash
+			){
+		
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+	
+			try {
+		
+				
+			
+				dash.setActive(true);
+				dash.setCreatedTime(functions.getCurrentDateWithTime());
+				dash.setUpdatedTime(functions.getCurrentDateWithTime());
+				dash.setChartDetails(dash.getChartDetailsObject().toString());
+				dash.setData_id(functions.generateRandomId());
+				
+				
+				responseModel.setResponseMessage("Success");
+				if (dashService.saveDashboardChartDetails(dash) != null) {
+					responseModel.setResponseDescription("Dashboard charts details saved");
+					responseModel.setResponseCode(HttpStatus.OK);
+					responseModel.setjData(functions.convertEntityToJsonObject(dash));
+				} else {
+					responseModel.setResponseCode(HttpStatus.NOT_FOUND);
+				}
+		
+			} catch (Exception e) {
+				e.printStackTrace();
+				responseModel.setResponseMessage("Error");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+				responseModel.setResponseDescription(e.getMessage());
+		
+			}
+			return ResponseEntity.ok(responseModel);
+		}
 	
 }

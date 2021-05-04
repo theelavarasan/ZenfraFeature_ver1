@@ -4,6 +4,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.json.simple.JSONObject;
 
 @Entity
 @Table(name="dashboard_chart_details")
@@ -43,6 +46,22 @@ public class DashboardChartDetails {
 	
 	@Column(name="created_time")
 	private String createdTime;
+
+	
+	@Transient
+	private JSONObject chartDetailsObject;
+	
+	
+	
+	
+
+	public JSONObject getChartDetailsObject() {
+		return chartDetailsObject;
+	}
+
+	public void setChartDetailsObject(JSONObject chartDetailsObject) {
+		this.chartDetailsObject = chartDetailsObject;
+	}
 
 	public String getData_id() {
 		return data_id;
