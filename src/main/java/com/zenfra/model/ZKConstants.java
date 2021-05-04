@@ -80,4 +80,9 @@ public class ZKConstants {
 	public static String APP_SERVER_IP = "appServerIP";
 	public static String APP_SERVER_PORT = "appServerPort";
 	public static String COMPATIBILITY_COlUMNS = "compatibility_columns";
+	
+	public static String POSTGRES_URL = "postgresurl";
+	public static String POSTGRES_USER = "postgres_user";
+	public static String POSTGRES_PWD = "postgres_pwd";
+	public static String ZENFR_FEATURES_CONTEXT_PATH = "zenfra-features";
 }

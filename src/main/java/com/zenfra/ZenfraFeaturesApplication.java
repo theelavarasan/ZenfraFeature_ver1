@@ -1,10 +1,13 @@
 package com.zenfra;
 
+import java.io.IOException;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
+import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,6 +15,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 
+import com.zenfra.utils.ZookeeperConnection;
+import com.zenfra.model.ZKModel;
 import com.zenfra.dataframe.service.DataframeService;
 
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -80,8 +85,23 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	                .getOrCreate();
 	    }
 	    
-	    @PostConstruct
+	   @PostConstruct
 	    public void createDataframeView() {
+		 /*  ZookeeperConnection zkConnection = new ZookeeperConnection();
+		   try {
+			ZKModel.zkData = zkConnection.getZKData();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
 	    	dataframeService.createDataframeGlobalView();
 	    }
+	   
+	   
 }
