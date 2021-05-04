@@ -72,6 +72,8 @@ import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.dataframe.util.ZenfraConstants;
+import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.service.ReportService;
 
 
@@ -96,7 +98,7 @@ public class DataframeService{
 
 	 @Autowired
 	 SparkSession sparkSession;
-	 
+	
 	 @Value("${db.url}")
 	 private String dbUrl;
 	 
@@ -109,7 +111,14 @@ public class DataframeService{
 	 
 	 @Autowired
 	 private ReportDao reportDao;
+	 
+
+	   private String url = ZKModel.getProperty(ZKConstants.POSTGRES_URL);
+	   private String userName =  ZKModel.getProperty(ZKConstants.POSTGRES_USER);
+	   private String password = ZKModel.getProperty(ZKConstants.POSTGRES_PWD);
 	
+	   private String dbUrl1 = url + userName + password;
+	   
 	 //---------------------SSRM Code-----------------------------------//
 
 
@@ -568,7 +577,8 @@ public class DataframeService{
 	
 	public String createDataframeForLocalDiscovery(String tableName) {   
 		
-		logger.info("create dataframe for local discovery table");		
+		System.out.println("------------------dbUrl1------------------ " + dbUrl1);
+		logger.info("create dataframe for local discovery table" );		
 		try {
 			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
 		
@@ -631,7 +641,7 @@ public class DataframeService{
          String source_type = request.getSourceType().toLowerCase();
        
  		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
- 			source_type = source_type + "-" + request.getReportBy();
+ 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
  		} 		
          
 		 boolean isDiscoveryDataInView = false;

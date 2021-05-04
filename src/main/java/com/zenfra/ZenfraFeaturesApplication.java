@@ -80,8 +80,10 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	                .getOrCreate();
 	    }
 	    
-	    @PostConstruct
+	   @PostConstruct
 	    public void createDataframeView() {
 	    	dataframeService.createDataframeGlobalView();
 	    }
+	   
+	   
 }
