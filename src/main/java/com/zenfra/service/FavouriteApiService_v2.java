@@ -124,6 +124,7 @@ public class FavouriteApiService_v2 {
 			parameters.put(":user_remove_list", null);
 			parameters.put(":favourite_id", favouriteModel.getFavouriteId());
 			parameters.put(":filter_property", favouriteModel.getFilterProperty().toJSONString());
+			parameters.put(":report_label", favouriteModel.getReportLabel());
 
 			String updateQuery = queries.favouriteView().getSave();
 
@@ -278,7 +279,7 @@ public class FavouriteApiService_v2 {
 					+ "', project_id='" + favouriteModel.getProjectId() + "', " + " site_access_list='"
 					+ site_access_list + "', grouped_columns='" + grouped_columns
 					+ "', category_list='" + category_list.toJSONString() + "', filter_property='"
-					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
+					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "',report_label='"+favouriteModel.getReportLabel()+"' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
 
 			
 			System.out.println(query);

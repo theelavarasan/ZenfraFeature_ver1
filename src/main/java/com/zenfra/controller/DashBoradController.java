@@ -1,7 +1,5 @@
 package com.zenfra.controller;
 
-import javax.ws.rs.GET;
-
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.dataframe.service.DashBoardService;
 import com.zenfra.model.DashBoardCharts;
+import com.zenfra.model.DashboardInputModel;
 import com.zenfra.model.DashboardUserCustomization;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.utils.CommonFunctions;
@@ -137,7 +136,7 @@ public class DashBoradController {
 			try {
 		
 				DashboardUserCustomization dashExit=dashService.getDashboardUserCustomizationById(dash.getData_id());
-						dashExit.setLayout(dash.getLayout());						
+						dashExit.setLayout(dash.getLayoutArray().toJSONString());						
 						dashExit.setActive(true);
 						dashExit.setUpdatedBy(dash.getUserId());
 						dashExit.setUpdatedTime(functions.getCurrentDateWithTime());
@@ -249,9 +248,7 @@ public class DashBoradController {
 	
 	@GetMapping("/get-chart-details")
 	public ResponseEntity<?> getDashboardChartDetails(
-			@RequestParam String chartId,
-			@RequestParam String siteKey
-			
+			@RequestBody DashboardInputModel dashboardInputModel
 			){
 		
 
@@ -260,7 +257,7 @@ public class DashBoradController {
 			try {
 		
 				
-				JSONObject responce=dashService.getDashboardChartDetails(chartId,siteKey);
+				JSONObject responce=dashService.getDashboardChartDetails(dashboardInputModel);
 				responseModel.setResponseMessage("Success");
 				if (responce != null) {
 					responseModel.setResponseDescription("Dashboard Chart retrieve");

@@ -18,6 +18,7 @@ import com.zenfra.dao.DashBoardDao;
 import com.zenfra.model.ChartModel_v2;
 import com.zenfra.model.DashBoardCharts;
 import com.zenfra.model.DashboardDataResponseModel;
+import com.zenfra.model.DashboardInputModel;
 import com.zenfra.model.DashboardUserCustomization;
 import com.zenfra.service.ChartService;
 import com.zenfra.utils.CommonFunctions;
@@ -148,11 +149,18 @@ public class DashBoardService {
 		return true;
 	}
 
-	public JSONObject getDashboardChartDetails(String chartId, String siteKey) {
+	public JSONObject getDashboardChartDetails(DashboardInputModel dashboardInputModel) {
 		
 		JSONObject obj=new JSONObject();
 		try {
+			String query=queries.dashboardQueries().getGetDashboardChartDetails()
+					.replace(":chart_id", dashboardInputModel.getChartId()).replace(":site_key",dashboardInputModel.getSiteKey());
 			
+			Object temp=dashDao.getObjectFromQuery(query);
+			
+			if(temp!=null) {
+				obj.put("chart_details", temp);
+			}
 			
 			
 		} catch (Exception e) {
@@ -191,7 +199,31 @@ public class DashBoardService {
 		return obj;
 	}
 
-	
+	 
+	 public DashboardUserCustomization getDashboardUserCustomizationById(String dataId) {
+		 DashboardUserCustomization dash=new DashboardUserCustomization();
+		 try {
+			
+			 dash=(DashboardUserCustomization) dashDao.findEntityById(DashboardUserCustomization.class, dataId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 
+		 return dash;
+	 }
+	 
+	 public boolean evitObj(Object obj) {
+		 try {
+			
+			 dashDao.eveitEntity(obj);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 
+		 return true;
+	 }
+	 
+
 	 private DashboardDataResponseModel getProjectSummaryDetails() throws org.json.simple.parser.ParseException, URISyntaxException, ClientProtocolException, IOException {
 
 	        DashboardDataResponseModel dashboardDataResponseModel = new DashboardDataResponseModel();
@@ -243,27 +275,5 @@ public class DashBoardService {
 	        return dashboardDataResponseModel;
 	    }
 	 
-	 
-	 public DashboardUserCustomization getDashboardUserCustomizationById(String dataId) {
-		 DashboardUserCustomization dash=new DashboardUserCustomization();
-		 try {
-			
-			 dash=(DashboardUserCustomization) dashDao.findEntityById(DashboardUserCustomization.class, dataId);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		 
-		 return dash;
-	 }
-	 
-	 public boolean evitObj(Object obj) {
-		 try {
-			
-			 dashDao.eveitEntity(obj);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		 
-		 return true;
-	 }
+	
 }

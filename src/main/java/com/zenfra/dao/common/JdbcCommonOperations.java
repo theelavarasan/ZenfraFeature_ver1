@@ -92,6 +92,19 @@ public abstract class JdbcCommonOperations {
 		try {
 
 			obj = jdbc.queryForList(query);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return obj;
+	}
+	
+	public List<Map<String, Object>> getObjectFromQuery(String query) {
+		List<Map<String, Object>> obj = new ArrayList<>();
+		try {
+
+			obj = jdbc.queryForList(query);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

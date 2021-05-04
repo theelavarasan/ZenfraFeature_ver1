@@ -11,6 +11,18 @@ public class DashboardQueries {
 	private String getDashboardLayoutChartLayout;
 	
 	private String getChatForFavMenu;
+	
+	private String getDashboardChartDetails;
+	
+	
+
+	public String getGetDashboardChartDetails() {
+		return getDashboardChartDetails;
+	}
+
+	public void setGetDashboardChartDetails(String getDashboardChartDetails) {
+		this.getDashboardChartDetails = getDashboardChartDetails;
+	}
 
 	public String getGetDashboardLayoutChart() {
 		return getDashboardLayoutChart;
