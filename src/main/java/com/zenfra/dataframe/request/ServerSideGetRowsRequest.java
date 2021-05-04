@@ -184,8 +184,11 @@ public class ServerSideGetRowsRequest implements Serializable {
 	}
 
 	public void setOstype(String ostype) {
-		this.ostype = ostype;
-		this.sourceType=ostype;
+		this.ostype = ostype;		
+		this.sourceType = ostype;
+		if(ostype != null && !ostype.trim().isEmpty() && ostype.toLowerCase().contains("hyper")) {
+			this.sourceType = ostype.toLowerCase() + "-" + getReportBy().toLowerCase();
+		}
 	}
 
 	
