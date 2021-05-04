@@ -87,7 +87,7 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	    
 	   @PostConstruct
 	    public void createDataframeView() {
-		   ZookeeperConnection zkConnection = new ZookeeperConnection();
+		 /*  ZookeeperConnection zkConnection = new ZookeeperConnection();
 		   try {
 			ZKModel.zkData = zkConnection.getZKData();
 		} catch (IOException e) {
@@ -99,7 +99,7 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	    	dataframeService.createDataframeGlobalView();
 	    }
 	   

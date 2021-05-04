@@ -113,11 +113,11 @@ public class DataframeService{
 	 private ReportDao reportDao;
 	 
 
-	   private String url = ZKModel.getProperty(ZKConstants.POSTGRES_URL);
+	  /* private String url = ZKModel.getProperty(ZKConstants.POSTGRES_URL);
 	   private String userName =  ZKModel.getProperty(ZKConstants.POSTGRES_USER);
 	   private String password = ZKModel.getProperty(ZKConstants.POSTGRES_PWD);
 	
-	   private String dbUrl1 = url + userName + password;
+	   private String dbUrl1 = url + userName + password; */
 	   
 	 //---------------------SSRM Code-----------------------------------//
 
@@ -575,15 +575,14 @@ public class DataframeService{
 
 	 //---------------------SSRM Code-----------------------------------//
 	
-	public String createDataframeForLocalDiscovery(String tableName) {   
-		
-		System.out.println("------------------dbUrl1------------------ " + dbUrl1);
+	public String createDataframeForLocalDiscovery(String tableName) {   		
+	
 		logger.info("create dataframe for local discovery table" );		
 		try {
 			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
 		
 			Map<String, String> options = new HashMap<String, String>();
-			options.put("url", dbUrl1);
+			options.put("url", dbUrl);
 			options.put("dbtable", tableName);
 			
 			@SuppressWarnings("deprecation")
