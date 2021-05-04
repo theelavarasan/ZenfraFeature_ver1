@@ -583,7 +583,7 @@ public class DataframeService{
 			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
 		
 			Map<String, String> options = new HashMap<String, String>();
-			options.put("url", dbUrl);
+			options.put("url", dbUrl1);
 			options.put("dbtable", tableName);
 			
 			@SuppressWarnings("deprecation")
