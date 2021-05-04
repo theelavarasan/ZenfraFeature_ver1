@@ -84,5 +84,17 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		}
 
 	}
+	
+	public Boolean eveitEntity(Object obj) {
+
+		try {
+			
+			entityManager.detach(obj);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 
 }

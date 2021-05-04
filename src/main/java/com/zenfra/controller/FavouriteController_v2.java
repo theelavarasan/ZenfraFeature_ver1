@@ -134,7 +134,9 @@ public class FavouriteController_v2 {
 				responseModel.setResponseCode(HttpStatus.OK);
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully updated");
+				catService.deleteCategoryMappingFavouriteIdOrChartId(favouriteModel.getFavouriteId());
 				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
+				
 			} else {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				responseModel.setResponseDescription("Favourite Id not found ");

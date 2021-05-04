@@ -32,4 +32,18 @@ public class CategoryMappingService{
 			return false;
 		}
 	}
+
+
+	public boolean deleteCategoryMappingFavouriteIdOrChartId(String id) {
+		boolean responce=false;
+		try {
+			
+			responce= catDao.deleteCategoryMapping(id);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
 }

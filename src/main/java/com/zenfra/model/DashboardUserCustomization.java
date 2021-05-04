@@ -55,6 +55,23 @@ public class DashboardUserCustomization {
 	@Column(name="layout")
 	private String layout;
 
+	
+
+	@Column(name="is_active")
+	private boolean isActive;
+	
+	@Column(name="updated_time")
+	private String updatedTime;
+	
+	@Column(name="updated_by")
+	private String updatedBy;
+	
+	@Column(name="created_by")
+	private String createdBy;
+	
+	@Column(name="created_time")
+	private String createdTime;
+	
 	public String getData_id() {
 		return data_id;
 	}
@@ -103,6 +120,56 @@ public class DashboardUserCustomization {
 
 	public void setLayout(String layout) {
 		this.layout = layout;
+	}
+
+
+	public boolean getActive() {
+		return isActive;
+	}
+
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+
+	public String getUpdatedTime() {
+		return updatedTime;
+	}
+
+
+	public void setUpdatedTime(String updatedTime) {
+		this.updatedTime = updatedTime;
+	}
+
+
+	public String getUpdatedBy() {
+		return updatedBy;
+	}
+
+
+	public void setUpdatedBy(String updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+
+	public String getCreatedTime() {
+		return createdTime;
+	}
+
+
+	public void setCreatedTime(String createdTime) {
+		this.createdTime = createdTime;
 	}
 
 
