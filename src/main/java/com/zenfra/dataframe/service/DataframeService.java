@@ -809,7 +809,8 @@ public class DataframeService{
 				        			  mergedDataframe.cache();
 				        			  
 				        			  sparkSession.sql("REFRESH TABLE global_temp."+viewName);				                 
-				                 System.out.println("----------------Dataframe Append--------------------------------");				                 
+				                 System.out.println("----------------Dataframe Append--------------------------------");	
+				                 DataframeUtil.deleteFile(tmpFile);
 				                 result = ZenfraConstants.SUCCESS;				                
 				        	} catch(Exception e) {
 				        		e.printStackTrace();
@@ -820,46 +821,22 @@ public class DataframeService{
 		        	 //create template
 		        	 
 		        	
-		        	 //check if source type exits
-		        	  String siteKeyPath = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey +  File.separator + "site_key="+siteKey;
+		        	 //check if source type exits		        	 
 		        	  String sourceTypePath = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType.toLowerCase();
-		        	  File siteKeyFolder = new File(siteKeyPath);
-		        	  File sourceTypeFolder = new File(sourceTypePath);
-		        	  
+		        	
 		        	  File newSiteKey = new File(commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey + File.separator);
 		        	  boolean siteKeyPresent = true;
-						if (!newSiteKey.exists()) {
-							newSiteKey.mkdir();
-							newSiteKey.setExecutable(true,false);
+						if (!newSiteKey.exists()) {							
 							siteKeyPresent = false;
-						}
+						} 
 						
-						 
-						if(!siteKeyPresent && !sourceTypeFolder.exists()) { //site not exits
-							
-							 System.out.println("------------create new dataframe for new site key---------------- ");							 
-							 String tmpFile =  writeJosnFile(newSiteKey.getAbsolutePath()  + "tmp.json", data.toString());	
-							 File[] files =  new File[1];
-			        		 files[0] = new File(tmpFile);
-			        		 DataframeUtil.formatJsonFile(files);	       
-			        		 
-							 Dataset<Row> newDataframe = sparkSession.read().json(tmpFile);							
-							 newDataframe.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
-								.partitionBy("site_key", "source_type").format("org.apache.spark.sql.json")
-								.mode(SaveMode.Overwrite).save(newSiteKey.getAbsolutePath());
-							 newDataframe.createOrReplaceTempView("tmpView");
-							 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
-							 newDataframe.createOrReplaceGlobalTempView(viewName); 
-							 newDataframe.cache();
-							
-							 DataframeUtil.deleteFile(tmpFile);
-							 System.out.println("---------new Dataframe created with new site key-------------- ");
-							 result = ZenfraConstants.SUCCESS;
-							 
-						} else if(siteKeyPresent && !sourceTypeFolder.exists()) { //site present but source type not present
+						File sourceTypeFolder = new File(sourceTypePath);
+						  
+						if(siteKeyPresent && !sourceTypeFolder.exists() || !siteKeyPresent) { 
+							sourceTypeFolder.mkdir();
 							
 							System.out.println("------------create new dataframe for new source type---------------- ");							 
-							 String tmpFile =  writeJosnFile(newSiteKey.getAbsolutePath()  + "tmp.json", data.toString());	
+							 String tmpFile =  writeJosnFile(newSiteKey.getAbsolutePath()  + "tmp.json", newJson.toString());	
 							 File[] files =  new File[1];
 			        		 files[0] = new File(tmpFile);
 			        		 DataframeUtil.formatJsonFile(files);	       
@@ -867,23 +844,25 @@ public class DataframeService{
 							 Dataset<Row> newDataframe = sparkSession.read().json(tmpFile);							
 							 newDataframe = newDataframe.drop("site_key").drop("source_type");
 							 
-							 String newFolderName = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;   
+							 //String newFolderName = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator +  siteKey +  File.separator + "site_key="+siteKey + File.separator;   
 							 
 							 newDataframe.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
 								.format("org.apache.spark.sql.json")
-								.mode(SaveMode.Overwrite).save(newFolderName);
-							 newDataframe.createOrReplaceTempView("tmpView");
-							 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-							 newDataframe.createOrReplaceGlobalTempView(viewName); 
-							 newDataframe.cache();
+								.mode(SaveMode.Overwrite).save(sourceTypePath);
+							 newDataframe.unpersist();
+							 
+							  Dataset<Row> mergedDataframe = sparkSession.read().json(filePath);	
+		        			  mergedDataframe.createOrReplaceTempView("tmpView");
+		        			  //mergedDataframe.sqlContext().sql("select * from (select *, rank() over (partition by  source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+		        			  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+		        			  mergedDataframe.createOrReplaceGlobalTempView(viewName); 
+		        			  mergedDataframe.cache();		        			  
+		        			  mergedDataframe.printSchema();
 							
 							 DataframeUtil.deleteFile(tmpFile);
 							 System.out.println("---------new Dataframe created with new source type-------------- ");
 							 result = ZenfraConstants.SUCCESS;
-						}
-						
-						
-		        	  
+						} 		        	  
 		         
 		         }
 		         
@@ -896,42 +875,6 @@ public class DataframeService{
 			return result;
 		}
 		
-
-		public void recreateLocalDiscovery(String siteKey, String sourceType) {
-			
-			createDataframeForLocalDiscovery("local_discovery");
-			/*
-			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
-			
-			Map<String, String> options = new HashMap<String, String>();
-			options.put("url", dbUrl);
-			options.put("dbtable", "local_discovery");
-			
-			@SuppressWarnings("deprecation")
-			Dataset<Row> localDiscoveryDF = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
-			
-			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
-			formattedDataframe.createOrReplaceTempView("local_discovery");
-
-			
-			try {
-				Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
-						"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
-				
-				File f = new File(path + siteKey + File.separator);
-				if (!f.exists()) {
-					f.mkdir();
-				}
-				
-				dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
-						.partitionBy("site_key", "source_type").format("org.apache.spark.sql.json")
-						.mode(SaveMode.Overwrite).save(f.getPath());
-				dataframeBySiteKey.unpersist();
-			} catch (Exception e) {
-				logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(), e);
-			}*/
-			
-		}
 		
 	    
 		private String writeJosnFile(String filePath, String data) {
