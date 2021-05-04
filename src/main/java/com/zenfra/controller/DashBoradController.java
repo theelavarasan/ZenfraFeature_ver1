@@ -33,7 +33,7 @@ public class DashBoradController {
 	
 	@GetMapping("/layout")
 	public ResponseEntity<?> getDashLayout(
-			@RequestParam String tenantId,@RequestParam String siteKey,
+			@RequestParam String siteKey,
 			@RequestParam String userId
 			){
 		
@@ -41,7 +41,7 @@ public class DashBoradController {
 	
 	try {
 
-		JSONObject responce=dashService.getDasboardLayout(tenantId,siteKey,userId);
+		JSONObject responce=dashService.getDasboardLayout(userId,siteKey);
 		responseModel.setResponseMessage("Success");
 		if (responce != null) {
 			responseModel.setResponseCode(HttpStatus.OK);
@@ -171,14 +171,29 @@ public class DashBoradController {
 	
 			try {
 		
-				dash.setData_id(functions.generateRandomId());
+				
+			
 				dash.setActive(true);
 				dash.setUpdatedBy(dash.getUserId());
 				dash.setCreatedBy(dash.getUserId());
 				dash.setCreatedTime(functions.getCurrentDateWithTime());
 				dash.setUpdatedTime(functions.getCurrentDateWithTime());
 				
-				Boolean responce=dashService.saveDashboardChart(dash);
+				Boolean responce=false;
+				if(dash.getChartList()!=null && !dash.getChartList().isEmpty()) {
+					for(String c:dash.getChartList()) {
+						dash.setData_id(functions.generateRandomId());
+						dash.setChartId(c);
+						dashService.saveDashboardChart(dash);
+						dashService.evitObj(dash);
+					}
+					responce=true;
+				}else {
+					responce=dashService.saveDashboardChart(dash);
+				}
+				
+				
+				
 				responseModel.setResponseMessage("Success");
 				if (responce != null) {
 					responseModel.setResponseDescription("Dashboard charts updated");

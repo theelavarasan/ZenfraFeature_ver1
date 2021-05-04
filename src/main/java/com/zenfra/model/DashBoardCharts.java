@@ -1,9 +1,13 @@
 package com.zenfra.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
 @Table(name = "dash_board_charts")
@@ -19,7 +23,7 @@ public class DashBoardCharts {
 
 	public DashBoardCharts(String data_id, String mappingId, String siteKey, String favoriteView, String analyticsType,
 			String category, String userId, String analyticsFor, String chartId, boolean isActive,
-			String updatedTime, String updatedBy, String createdBy, String createdTime) {
+			String updatedTime, String updatedBy, String createdBy, String createdTime,List<String> chartList) {
 		super();
 		this.data_id = data_id;
 		this.mappingId = mappingId;
@@ -35,6 +39,7 @@ public class DashBoardCharts {
 		this.updatedBy = updatedBy;
 		this.createdBy = createdBy;
 		this.createdTime = createdTime;
+		this.chartList=chartList;
 	}
 
 	@Id
@@ -82,6 +87,9 @@ public class DashBoardCharts {
 	@Column(name="created_time")
 	private String createdTime;
 	
+	
+	@Transient
+	private List<String> chartList=new ArrayList<String>();
 	
 	public String getData_id() {
 		return data_id;
@@ -197,4 +205,15 @@ public class DashBoardCharts {
 		this.createdTime = createdTime;
 	}
 
+	public List<String> getChartList() {
+		return chartList;
+	}
+
+	public void setChartList(List<String> chartList) {
+		this.chartList = chartList;
+	}
+
+	
+	
+	
 }

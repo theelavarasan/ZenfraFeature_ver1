@@ -37,7 +37,7 @@ public class DashBoardService {
 	@Autowired
 	ChartService chartService;
 
-	public JSONObject getDasboardLayout(String tenantId, String siteKey, String userId) {
+	public JSONObject getDasboardLayout(String userId, String siteKey) {
 		JSONObject obj = new JSONObject();
 		try {
 			
@@ -54,7 +54,8 @@ public class DashBoardService {
 			obj.put("chartLayout", tempChart);
 			String getDashboardLayoutChartLayout=queries.dashboardQueries().getGetDashboardLayoutChartLayout()
 					.replace(":user_id_value", userId).replace(":site_key_value", siteKey);
-
+			
+			System.out.println(getDashboardLayoutChartLayout);
 			List<Map<String,Object>> chartDetails=dashDao.getListMapObjectById(getDashboardLayoutChartLayout);
 				JSONArray chartObj=new JSONArray();
 				ObjectMapper mapper = new ObjectMapper();
@@ -253,5 +254,16 @@ public class DashBoardService {
 		}
 		 
 		 return dash;
+	 }
+	 
+	 public boolean evitObj(Object obj) {
+		 try {
+			
+			 dashDao.eveitEntity(obj);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 
+		 return true;
 	 }
 }
