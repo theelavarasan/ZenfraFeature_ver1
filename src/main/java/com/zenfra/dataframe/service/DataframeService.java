@@ -11,10 +11,8 @@ import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -22,14 +20,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -50,16 +45,12 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.zenfra.dao.ReportDao;
 import com.zenfra.dataframe.filter.ColumnFilter;
@@ -72,9 +63,7 @@ import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.dataframe.util.ZenfraConstants;
-import com.zenfra.model.ZKConstants;
-import com.zenfra.model.ZKModel;
-import com.zenfra.service.ReportService;
+import com.zenfra.utils.DBUtils;
 
 
 @Repository
@@ -99,8 +88,8 @@ public class DataframeService{
 	 @Autowired
 	 SparkSession sparkSession;
 	
-	 @Value("${db.url}")
-	 private String dbUrl;
+	 //@Value("${db.url}")
+	// private String dbUrl;
 	 
 	 @Value("${zenfra.path}")
 	 private String commonPath;
@@ -112,13 +101,9 @@ public class DataframeService{
 	 @Autowired
 	 private ReportDao reportDao;
 	 
-
-	  /* private String url = ZKModel.getProperty(ZKConstants.POSTGRES_URL);
-	   private String userName =  ZKModel.getProperty(ZKConstants.POSTGRES_USER);
-	   private String password = ZKModel.getProperty(ZKConstants.POSTGRES_PWD);
 	
-	   private String dbUrl1 = url + userName + password; */
-	   
+	 
+	 private String dbUrl = DBUtils.getPostgres().get("dbUrl");
 	 //---------------------SSRM Code-----------------------------------//
 
 

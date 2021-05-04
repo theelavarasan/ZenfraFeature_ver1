@@ -59,19 +59,19 @@ public class ZookeeperConnection {
 		   properties.load(input);
 		   String zookeeperServer = properties.getProperty(ZKConstants.SERVER);
 		   String defaultPath = properties.getProperty(ZKConstants.DEFAULT_PATH);
-		   String repoPath = properties.getProperty(ZKConstants.ZENFR_FEATURES_CONTEXT_PATH);
+		  // String repoPath = properties.getProperty(ZKConstants.ZENFR_FEATURES_CONTEXT_PATH);
 		   ZookeeperConnection conn = new ZookeeperConnection();
 		   ZooKeeper zk = conn.connect(zookeeperServer);
-		   String nodePath = (defaultPath + repoPath);
+		 //  String nodePath = (defaultPath + repoPath);
 		   String nodePath1 = defaultPath + "/common";
-		   List<String> children = zk.getChildren(nodePath, new Watcher(){
+		  /* List<String> children = zk.getChildren(nodePath, new Watcher(){
 
 				@Override
 				public void process(WatchedEvent event) {
 					if(event.getType()==Event.EventType.NodeChildrenChanged){
 						System.out.println("node children updated");
 					}
-				}});
+				}}); */
 		   
 		   List<String> children1 = zk.getChildren(nodePath1, new Watcher(){
 
@@ -83,10 +83,10 @@ public class ZookeeperConnection {
 				}});
 			
 			Map<String, String> zkData = new HashMap<String, String>();
-			for(int i = 0; i  < children.size(); i++) {
+			/*for(int i = 0; i  < children.size(); i++) {
 				byte[] b = zk.getData(nodePath + "/" + children.get(i), true, new Stat());
 				zkData.put(children.get(i), new String(b, ZKConstants.STRING_FORMAT));
-			}
+			} */
 			
 			for(int i = 0; i  < children1.size(); i++) {
 				byte[] b = zk.getData(nodePath1 + "/" + children1.get(i), true, new Stat());
