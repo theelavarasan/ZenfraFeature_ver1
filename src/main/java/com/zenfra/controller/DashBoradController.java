@@ -104,13 +104,13 @@ public class DashBoradController {
 				dash.setActive(true);
 				dash.setCreatedBy(dash.getUserId());
 				dash.setUpdatedTime(functions.getCurrentDateWithTime());
-				
+				dash.setLayout(dash.getLayoutArray().toJSONString());
 				Boolean responce=dashService.saveDashboardLayout(dash);
 				responseModel.setResponseMessage("Success");
 				if (responce != null) {
 					responseModel.setResponseDescription("Dashboard layout saved");
 					responseModel.setResponseCode(HttpStatus.OK);
-					responseModel.setjData(responce);
+					responseModel.setjData(functions.convertEntityToJsonObject(dash));
 				} else {
 					responseModel.setResponseCode(HttpStatus.NOT_FOUND);
 				}

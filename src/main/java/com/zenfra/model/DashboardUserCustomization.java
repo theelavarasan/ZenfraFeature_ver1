@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -54,6 +55,9 @@ public class DashboardUserCustomization {
 	
 	@Column(name="layout")
 	private String layout;
+	
+	@Transient
+	private JSONArray layoutArray;
 
 	
 
@@ -171,6 +175,17 @@ public class DashboardUserCustomization {
 	public void setCreatedTime(String createdTime) {
 		this.createdTime = createdTime;
 	}
+
+
+	public JSONArray getLayoutArray() {
+		return layoutArray;
+	}
+
+
+	public void setLayoutArray(JSONArray layoutArray) {
+		this.layoutArray = layoutArray;
+	}
+
 
 
 	
