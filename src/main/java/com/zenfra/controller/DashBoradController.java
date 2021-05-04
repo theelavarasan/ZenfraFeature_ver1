@@ -317,8 +317,6 @@ public class DashBoradController {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 	
 			try {
-		
-				
 			
 				dash.setActive(true);
 				dash.setCreatedTime(functions.getCurrentDateWithTime());

@@ -152,6 +152,7 @@ public class DashBoardService {
 
 	public JSONObject getDashboardChartDetails(DashboardInputModel dashboardInputModel) {
 		
+		ObjectMapper map=new ObjectMapper();
 		JSONObject obj=new JSONObject();
 		try {
 			String query=queries.dashboardQueries().getGetDashboardChartDetails()
@@ -160,8 +161,11 @@ public class DashBoardService {
 			System.out.println(query);
 			Object temp=dashDao.getObjectFromQuery(query);
 			
-			if(temp!=null) {
-				obj.put("chart_details", temp);
+			JSONArray arr=map.convertValue(temp, JSONArray.class);
+			System.out.println(arr.get(0));
+			if(arr!=null) {				
+				obj= map.convertValue(arr.get(0), JSONObject.class);
+				obj= map.readValue(obj.get("chartDetails").toString(), JSONObject.class);
 			}
 			
 			
