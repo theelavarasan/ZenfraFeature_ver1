@@ -241,4 +241,17 @@ public class DashBoardService {
 	    
 	        return dashboardDataResponseModel;
 	    }
+	 
+	 
+	 public DashboardUserCustomization getDashboardUserCustomizationById(String dataId) {
+		 DashboardUserCustomization dash=new DashboardUserCustomization();
+		 try {
+			
+			 dash=(DashboardUserCustomization) dashDao.findEntityById(DashboardUserCustomization.class, dataId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 
+		 return dash;
+	 }
 }

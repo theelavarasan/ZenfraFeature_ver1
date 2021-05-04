@@ -136,11 +136,13 @@ public class DashBoradController {
 	
 			try {
 		
-				dash.setActive(true);
-				dash.setUpdatedBy(dash.getUserId());
-				dash.setUpdatedTime(functions.getCurrentDateWithTime());
+				DashboardUserCustomization dashExit=dashService.getDashboardUserCustomizationById(dash.getData_id());
+						dashExit.setLayout(dash.getLayout());						
+						dashExit.setActive(true);
+						dashExit.setUpdatedBy(dash.getUserId());
+						dashExit.setUpdatedTime(functions.getCurrentDateWithTime());
 				
-				Boolean responce=dashService.updateDashboardLayout(dash);
+				Boolean responce=dashService.updateDashboardLayout(dashExit);
 				responseModel.setResponseMessage("Success");
 				if (responce != null) {
 					responseModel.setResponseDescription("Dashboard layout updated");
