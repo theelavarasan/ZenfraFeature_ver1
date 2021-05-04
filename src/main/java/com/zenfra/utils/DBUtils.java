@@ -21,7 +21,8 @@ public class DBUtils {
 			data.put("password", password);
 			String dbUrl = url +"?user="+ userName +"&password="+ password; 
 			data.put("dbUrl", dbUrl);
-
+			
+			System.out.println(data);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

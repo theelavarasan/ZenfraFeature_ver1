@@ -37,6 +37,7 @@ public class CommonFunctions {
 			}
 
 			if (row.get("categoryList") != null) {
+				System.out.println(row.get("categoryList"));
 				row.put("categoryList", (JSONArray) parser
 						.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
@@ -57,7 +58,7 @@ public class CommonFunctions {
 			}*/
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 
 		}
 		return row;
