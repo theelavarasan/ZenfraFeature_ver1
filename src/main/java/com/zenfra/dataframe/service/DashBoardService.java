@@ -83,31 +83,35 @@ public class DashBoardService {
 
 	public Boolean deleteDashboardChart(String chartId, String siteKey, String userId) {
 		try {
-			//need to get first chart entry
-			ChartModel_v2 chart=chartService.getChartByChartId(chartId);
 			
-			//need to check create by equals userId 
-				if(chart.getUserId().equals(userId)) {
-					//create by equals userId need to setactive false
-					chart.setActive(false);
-					chartService.saveChart(chart);
-					chartService.eveitEntity(chart);
-				}else if(chart.getUserAccessList().contains(userId)){
-					//user accesslist have request userId 
-					//need to delete userAccessList all values and add userId as create by also set active flag is false
-					chart.setUserAccessList(null);
+			System.out.println(queries.dashBoardChart().getGetByChartIdSiteKeyUserId());
+			String query=queries.dashBoardChart().getGetByChartIdSiteKeyUserId()
+					.replace(":user_id", userId)
+					.replace(":site_key", siteKey)
+					.replace(":chart_id", chartId);
+			DashBoardCharts charts=(DashBoardCharts) dashDao.getEntityByColumn(query, DashBoardCharts.class);
+			if(charts!=null) {
+				charts.setActive(false);
+				dashDao.updateEntity(DashBoardCharts.class, charts);
+				dashDao.eveitEntity(charts);
+				return true;
+			}else {
+				DashBoardCharts chart=new DashBoardCharts();
+					chart.setDataId(functions.generateRandomId());
 					chart.setUserId(userId);
-					chart.setChartId(functions.generateRandomId());
+					chart.setSiteKey(siteKey);
+					chart.setChartId(chartId);
 					chart.setActive(false);
-					chartService.saveChart(chart);
-					chartService.eveitEntity(chart);
-				}
+					dashDao.saveEntity(DashBoardCharts.class, chart);
+					dashDao.eveitEntity(chart);
+			}
 			
+			return false;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
-		return true;
+		
 	}
 
 	public Boolean saveDashboardLayout(DashboardUserCustomization dash) {

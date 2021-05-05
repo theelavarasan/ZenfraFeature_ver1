@@ -10,6 +10,17 @@ public class DashBoardChartsQueries {
 	
 	private String getSiteKeyUserIdChartId;
 	
+	private String getByChartIdSiteKeyUserId;
+	
+	
+
+	public String getGetByChartIdSiteKeyUserId() {
+		return getByChartIdSiteKeyUserId;
+	}
+
+	public void setGetByChartIdSiteKeyUserId(String getByChartIdSiteKeyUserId) {
+		this.getByChartIdSiteKeyUserId = getByChartIdSiteKeyUserId;
+	}
 
 	public String getGetSiteKeyUserIdChartId() {
 		return getSiteKeyUserIdChartId;
