@@ -62,7 +62,7 @@ public class DashBoradController {
 	return ResponseEntity.ok(responseModel);
 }
 	
-	@GetMapping("/delete-Chart")
+	@PostMapping("/delete-Chart")
 	public ResponseEntity<?> deleteDashboardChart(
 			@RequestParam String chartId,@RequestParam String siteKey,
 			@RequestParam String userId
