@@ -21,6 +21,7 @@ import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.dataframe.util.ZenfraConstants;
+import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
 
 
@@ -34,6 +35,9 @@ public class ReportDataController {
 	
 	@Autowired
 	ReportService reportService;
+	
+	@Autowired
+	FavouriteApiService_v2 favouriteApiService_v2;
 	
 
 	@GetMapping("createLocalDiscoveryDF")
@@ -78,11 +82,33 @@ public class ReportDataController {
 		  try {	      		 
 	      		 if(localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
 	      			 String result = "Success";	      			 			
-	      			result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	      			
+	      			result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
+	      			
+	      			//verify default fav is present or not
+	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
+	      			
 	      			return new ResponseEntity<>(result, HttpStatus.OK);
 	      		 } else {
 	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 
 	      			}
+	      		
+			} catch (Exception e) {
+				System.out.println("Not able to save local discovery in dataframe {}"+ e);
+			}   	
+	    	
+	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
+	    }
+	 
+	 @PostMapping("testfav")
+	    public ResponseEntity<String> testfav(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) { 	     
+		  System.out.println("---------------api entered to add dataframe-----------------------");
+		 
+		  try {	      		 
+	      		
+	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
+	      			
+	      			return new ResponseEntity<>("", HttpStatus.OK);
+	      		
 	      		
 			} catch (Exception e) {
 				System.out.println("Not able to save local discovery in dataframe {}"+ e);

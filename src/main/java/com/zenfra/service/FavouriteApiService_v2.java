@@ -1,8 +1,10 @@
 package com.zenfra.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -36,8 +38,7 @@ public class FavouriteApiService_v2 {
 	CommonQueriesData queries;
 
 	@Autowired
-	CommonFunctions common;
-	
+	CommonFunctions common;	
 	
 	
 	public JSONObject getFavView(String userId, String siteKey, String reportName, String projectId) {
@@ -291,6 +292,56 @@ public class FavouriteApiService_v2 {
 		return responce;
 	}
 
-	
-	
+	public void checkAndUpdateDefaultFavView(String siteKey, String favouriteName, String userId) {
+		
+		String query = "select count(*) from favourite_view where is_active=true and lower(report_name)='discovery' and lower(favourite_name)='" + favouriteName.toLowerCase()+"' and site_key='"+siteKey+"'";
+
+		System.out.println("------query daoFav----------" + daoFav.getCount(query));
+		if (daoFav.getCount(query) == 0) {
+			Properties properties = common.fetchDefaultFavViewProperties();
+			
+			
+			Map<String, String> map = new HashMap(properties);			
+			
+			for(Map.Entry<String, String> pro : map.entrySet()) {
+				
+				String key = pro.getKey().split("~")[1].replaceAll("_", " ").toLowerCase();
+				
+				System.out.println("----favouriteName------ " +favouriteName + " : " +  key);
+				
+				if(favouriteName.equalsIgnoreCase(key)) {
+					
+					System.out.println("----favouriteName--->>>--- " +favouriteName + " : " +  key);
+					
+					FavouriteModel favouriteModel = new FavouriteModel();								
+					favouriteModel.setCreatedTime(common.getCurrentDateWithTime());
+					favouriteModel.setUpdatedTime(common.getCurrentDateWithTime());
+					favouriteModel.setFavouriteId(common.generateRandomId());	
+					favouriteModel.setCreatedBy(userId);
+					favouriteModel.setUpdatedBy(userId);
+					favouriteModel.setFavouriteName(favouriteName);	
+					favouriteModel.setSiteKey(siteKey);
+					favouriteModel.setReportName("discovery");					
+					favouriteModel.setFilterProperty(common.convertStringToJsonArray(pro.getValue()));
+					List<String> userAccess = new ArrayList<>();
+					userAccess.add("all");
+					favouriteModel.setUserAccessList(userAccess);
+					favouriteModel.setIsDefault(true);
+					favouriteModel.setIsActive(true);
+					
+					System.out.println("----favouriteModel--------" + favouriteModel.getSiteKey() + " : " + favouriteModel.getFilterProperty() + " : " + favouriteModel.getFavouriteName());
+					
+					int result = saveFavouriteView(favouriteModel);
+					System.out.println("----favouri view result------ " +result );
+					break;
+				}
+				
+			}
+			
+		}
+		
+	}
+
+
 }
+
