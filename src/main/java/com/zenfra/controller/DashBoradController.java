@@ -175,11 +175,6 @@ public class DashBoradController {
 		
 				
 			
-				dash.setActive(true);
-				dash.setUpdatedBy(dash.getUserId());
-				dash.setCreatedBy(dash.getUserId());
-				dash.setCreatedTime(functions.getCurrentDateWithTime());
-				dash.setUpdatedTime(functions.getCurrentDateWithTime());
 				
 				Boolean responce=false;
 				if(dash.getChartList()!=null && !dash.getChartList().isEmpty()) {
@@ -194,6 +189,11 @@ public class DashBoradController {
 							dashService.updateDashboardChart(existObj);
 							dashService.evitObj(existObj);
 						}else {
+							dash.setActive(true);
+							dash.setUpdatedBy(dash.getUserId());
+							dash.setCreatedBy(dash.getUserId());
+							dash.setCreatedTime(functions.getCurrentDateWithTime());
+							dash.setUpdatedTime(functions.getCurrentDateWithTime());							
 							dash.setDataId(functions.generateRandomId());
 							dash.setChartId(c);
 							dashService.saveDashboardChart(dash);
