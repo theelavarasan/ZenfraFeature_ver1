@@ -43,6 +43,7 @@ public class CommonFunctions {
 			}
 
 			if (row.get("categoryList") != null) {
+				System.out.println(row.get("categoryList"));
 				row.put("categoryList", (JSONArray) parser
 						.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
@@ -54,16 +55,16 @@ public class CommonFunctions {
 			} else {
 				row.put("siteAccessList", new JSONArray());
 			}
-			/*if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]") ) {
+			if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]") ) {
 				System.out.println(row.get("groupedColumns"));
 				row.put("groupedColumns", (JSONArray) parser
 						.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("groupedColumns", new JSONArray());
-			}*/
+			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 
 		}
 		return row;
@@ -170,6 +171,7 @@ public class CommonFunctions {
 	public JSONObject getValueFromString(JSONObject obj) {
 		try {
 
+			
 			if (obj != null && obj.containsKey("value")) {
 				obj.put("value", convertStringToJsonArray(obj.get("value")));
 			}else {

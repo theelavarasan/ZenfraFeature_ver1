@@ -21,6 +21,8 @@
 	<dependencies>
 
 
+		
+
 		<!-- https://mvnrepository.com/artifact/com.vladmihalcea/hibernate-types-52 -->
 		<dependency>
 			<groupId>com.vladmihalcea</groupId>
@@ -79,9 +81,9 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<!-- Spark dataframe libraries -->
-	<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.11 -->		
+		<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.11 -->
 
 		<dependency>
 			<groupId>org.codehaus.janino</groupId>
@@ -99,7 +101,7 @@
 			<artifactId>guava</artifactId>
 			<version>24.0-jre</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>io.delta</groupId>
 			<artifactId>delta-core_2.12</artifactId>
@@ -110,7 +112,7 @@
 			<artifactId>scala-library</artifactId>
 			<version>2.12.12</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_2.12</artifactId>
@@ -122,7 +124,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.module</groupId>
 			<artifactId>jackson-module-scala_2.12</artifactId>
@@ -146,13 +148,13 @@
 			<artifactId>spark-avro_2.12</artifactId>
 			<version>2.4.0</version>
 		</dependency>
-	
-	<dependency>
+
+		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>24.0-jre</version>
 		</dependency>
-		
+
 	</dependencies>
 
 	<build>

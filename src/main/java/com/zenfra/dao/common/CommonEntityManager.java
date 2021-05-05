@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 
 import org.springframework.stereotype.Component;
@@ -51,12 +52,12 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 	}
 	public Object getEntityByColumn(String query, Class c) {
 
-		Object obj = new Object();
+		Object obj = null;
 		try {
 			obj = entityManager.createNativeQuery(query, c).getSingleResult();
-			System.out.println(obj);
-		} catch (Exception e) {
-			e.printStackTrace();
+			
+		} catch (NoResultException e) {
+			
 		}
 		return obj;
 	}
@@ -83,6 +84,18 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 			return false;
 		}
 
+	}
+	
+	public Boolean eveitEntity(Object obj) {
+
+		try {
+			
+			entityManager.detach(obj);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 
 }

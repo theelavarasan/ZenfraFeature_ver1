@@ -136,7 +136,8 @@ public class ChartModel_v2 {
 	
 	
 	
-
+	@Column(name="report_label")
+	private String reportLabel;
 
 
 	public boolean getActive() {
@@ -329,6 +330,20 @@ public class ChartModel_v2 {
 		this.chartDetails = chartDetails;
 	}
 	
+	
+	
+	public String getReportLabel() {
+		return reportLabel;
+	}
+
+
+
+	public void setReportLabel(String reportLabel) {
+		this.reportLabel = reportLabel;
+	}
+
+
+
 	@Override
 	public String toString() {
 		return "ChartModel_v2 [chartId=" + chartId + ", chartConfiguration=" + chartConfiguration + ", chartName="

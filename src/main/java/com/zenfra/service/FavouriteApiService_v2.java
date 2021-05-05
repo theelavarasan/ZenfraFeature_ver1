@@ -125,6 +125,7 @@ public class FavouriteApiService_v2 {
 			parameters.put(":user_remove_list", null);
 			parameters.put(":favourite_id", favouriteModel.getFavouriteId());
 			parameters.put(":filter_property", favouriteModel.getFilterProperty().toJSONString());
+			parameters.put(":report_label", favouriteModel.getReportLabel());
 
 			String updateQuery = queries.favouriteView().getSave();
 
@@ -132,7 +133,6 @@ public class FavouriteApiService_v2 {
 				updateQuery = (parameters.get(key) != null) ? updateQuery.replace(key, parameters.get(key).toString()) : updateQuery.replace(key, "");
 			}
 			System.out.println(updateQuery);
-			saveFavouriteViewCategory(map.convertValue(favouriteModel.getCategoryList(), JSONArray.class), favouriteModel);
 			responce = daoFav.updateQuery(updateQuery);
 
 		} catch (Exception e) {
@@ -280,9 +280,8 @@ public class FavouriteApiService_v2 {
 					+ "', project_id='" + favouriteModel.getProjectId() + "', " + " site_access_list='"
 					+ site_access_list + "', grouped_columns='" + grouped_columns
 					+ "', category_list='" + category_list.toJSONString() + "', filter_property='"
-					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
+					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "',report_label='"+favouriteModel.getReportLabel()+"' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
 
-			saveFavouriteViewCategory(category_list, favouriteModel);
 			
 			System.out.println(query);
 			responce = daoFav.updateQuery(query);
@@ -290,27 +289,6 @@ public class FavouriteApiService_v2 {
 			e.printStackTrace();
 
 		}
-		return responce;
-	}
-
-	
-	public Integer saveFavouriteViewCategory(JSONArray category_list, FavouriteModel favouriteModel ) {
-		
-		int responce=0;
-		
-		try {
-			
-			if(category_list!=null && !category_list.isEmpty()) {
-				for(int i = 0; i < category_list.size(); i++){
-					String query=queries.favouriteView().getCategorySave().replace(":favourite_id",favouriteModel.getFavouriteId()).replace(":category_list", category_list.get(i).toString());
-					responce=daoFav.updateQuery(query);
-				}
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();		
-		}
-		
 		return responce;
 	}
 
@@ -363,4 +341,7 @@ public class FavouriteApiService_v2 {
 		}
 		
 	}
+
+
 }
+

@@ -31,6 +31,19 @@ public class FavouriteModel implements Serializable {
 	private String projectId;
 	private boolean isDefault;
 	private String authUserId;
+	private String reportLabel;
+	
+	
+	
+	
+	public String getReportLabel() {
+		return reportLabel;
+	}
+
+	public void setReportLabel(String reportLabel) {
+		this.reportLabel = reportLabel;
+	}
+
 	public String getProjectId() {
 		return projectId;
 	}
