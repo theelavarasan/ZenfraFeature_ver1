@@ -1,11 +1,16 @@
 package com.zenfra.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 
@@ -14,6 +19,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -235,4 +241,19 @@ public class CommonFunctions {
 		}
 		return jsonArray;
 	}
+	
+	
+	 public Properties fetchDefaultFavViewProperties(){
+		 
+		 Properties properties = new Properties();
+	        try {
+	            File file = ResourceUtils.getFile("classpath:defaultFavView.properties");
+	            InputStream in = new FileInputStream(file);
+	            properties.load(in);
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	        return properties;
+		 
+	 }
 }
