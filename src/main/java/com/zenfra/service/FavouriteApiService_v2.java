@@ -111,6 +111,7 @@ public class FavouriteApiService_v2 {
 			parameters.put(":report_name", favouriteModel.getReportName());
 			parameters.put(":report_name", favouriteModel.getReportName());
 			parameters.put(":is_active", favouriteModel.getIsActive());
+			parameters.put(":is_default", favouriteModel.getIsDefault());
 			parameters.put(":group_by_period", favouriteModel.getGroupByPeriod());
 			parameters.put(":site_key", favouriteModel.getSiteKey());
 			parameters.put(":created_by", favouriteModel.getCreatedBy());
@@ -292,53 +293,42 @@ public class FavouriteApiService_v2 {
 		return responce;
 	}
 
-	public void checkAndUpdateDefaultFavView(String siteKey, String favouriteName, String userId) {
-		
-		String query = "select count(*) from favourite_view where is_active=true and lower(report_name)='discovery' and lower(favourite_name)='" + favouriteName.toLowerCase()+"' and site_key='"+siteKey+"'";
-
-		System.out.println("------query daoFav----------" + daoFav.getCount(query));
-		if (daoFav.getCount(query) == 0) {
-			Properties properties = common.fetchDefaultFavViewProperties();
+	public void checkAndUpdateDefaultFavView(String siteKey, String parsedLogType, String userId) {
+		try {
+			String query = "select log_type, favourite_name, filter_property from default_favourite_view where is_active=true and lower(report_type)='discovery' and lower(log_type)='"+parsedLogType.toLowerCase()+"'";
+			List<Map<String, Object>>  result = daoFav.getJsonarray(query);	
 			
-			
-			Map<String, String> map = new HashMap(properties);			
-			
-			for(Map.Entry<String, String> pro : map.entrySet()) {
+			if(result.size() == 1) {
+				String defaultFavName = result.get(0).get("favourite_name").toString();
+				String defaultFilterProperty = result.get(0).get("filter_property").toString();
+				defaultFilterProperty = common.convertStringToJsonArray(defaultFilterProperty).toString();		
 				
-				String key = pro.getKey().split("~")[1].replaceAll("_", " ").toLowerCase();
+				String checkFavViewquery ="select count(*) from favourite_view where is_active=true and is_default=true and lower(report_name)='discovery' and lower(favourite_name)= '" + defaultFavName.toLowerCase() +"' and site_key='"+siteKey+"' and filter_property = '" + defaultFilterProperty +"'"; //
 				
-				System.out.println("----favouriteName------ " +favouriteName + " : " +  key);
-				
-				if(favouriteName.equalsIgnoreCase(key)) {
-					
-					System.out.println("----favouriteName--->>>--- " +favouriteName + " : " +  key);
-					
+				if (daoFav.getCount(checkFavViewquery) == 0) {
 					FavouriteModel favouriteModel = new FavouriteModel();								
 					favouriteModel.setCreatedTime(common.getCurrentDateWithTime());
 					favouriteModel.setUpdatedTime(common.getCurrentDateWithTime());
 					favouriteModel.setFavouriteId(common.generateRandomId());	
 					favouriteModel.setCreatedBy(userId);
 					favouriteModel.setUpdatedBy(userId);
-					favouriteModel.setFavouriteName(favouriteName);	
+					favouriteModel.setFavouriteName(defaultFavName);	
 					favouriteModel.setSiteKey(siteKey);
 					favouriteModel.setReportName("discovery");					
-					favouriteModel.setFilterProperty(common.convertStringToJsonArray(pro.getValue()));
+					favouriteModel.setFilterProperty(common.convertStringToJsonArray(defaultFilterProperty));
 					List<String> userAccess = new ArrayList<>();
-					userAccess.add("all");
+					userAccess.add("All");
 					favouriteModel.setUserAccessList(userAccess);
 					favouriteModel.setIsDefault(true);
 					favouriteModel.setIsActive(true);
-					
-					System.out.println("----favouriteModel--------" + favouriteModel.getSiteKey() + " : " + favouriteModel.getFilterProperty() + " : " + favouriteModel.getFavouriteName());
-					
-					int result = saveFavouriteView(favouriteModel);
-					System.out.println("----favouri view result------ " +result );
-					break;
+					saveFavouriteView(favouriteModel);			
 				}
-				
 			}
-			
-		}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
+		
+		
 		
 	}
 

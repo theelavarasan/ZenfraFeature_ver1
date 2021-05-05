@@ -245,17 +245,5 @@ public class CommonFunctions {
 	}
 	
 	
-	 public Properties fetchDefaultFavViewProperties(){
-		 
-		 Properties properties = new Properties();
-	        try {
-	            File file = ResourceUtils.getFile("classpath:defaultFavView.properties");
-	            InputStream in = new FileInputStream(file);
-	            properties.load(in);
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
-	        return properties;
-		 
-	 }
+	 
 }
