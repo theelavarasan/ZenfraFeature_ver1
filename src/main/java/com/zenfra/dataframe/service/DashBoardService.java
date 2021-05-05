@@ -2,6 +2,8 @@ package com.zenfra.dataframe.service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,8 @@ import com.zenfra.model.DashboardInputModel;
 import com.zenfra.model.DashboardUserCustomization;
 import com.zenfra.service.ChartService;
 import com.zenfra.utils.CommonFunctions;
+
+import lombok.val;
 
 @Service
 public class DashBoardService {
@@ -51,7 +55,7 @@ public class DashBoardService {
 			JSONObject tempChart=new JSONObject();
 			if(layout!=null) {
 				tempChart.put("layout", functions.convertStringToJsonArray(layout.getLayout()));
-				tempChart.put("dataId", layout.getData_id());				
+				tempChart.put("dataId", layout.getDataId());				
 			}
 			obj.put("chartLayout", tempChart);
 			String getDashboardLayoutChartLayout=queries.dashboardQueries().getGetDashboardLayoutChartLayout()
@@ -290,6 +294,78 @@ public class DashBoardService {
 				e.printStackTrace();
 			}
 			return true;
+	}
+
+	public int saveOrUpdateDashboardChart(DashBoardCharts dash) {
+		int responce=0;
+		try {
+			
+			Map<String,Object> values=new HashMap<>();
+				values.put(":data_id", dash.getDataId());
+				values.put(":site_key",dash.getSiteKey());
+				values.put(":favorite_view", dash.getFavoriteView());
+				values.put(":analytics_type", dash.getAnalyticsType());
+				values.put(":category", dash.getCategory());
+				values.put(":user_id", dash.getUserId());
+				values.put(":analytics_for", dash.getAnalyticsFor());
+				values.put(":chart", dash.getChartList().toString());
+				values.put(":chart_id", dash.getChartId());
+				values.put(":is_active", dash.getActive());
+				values.put(":created_by", dash.getCreatedBy());
+				values.put(":created_time", dash.getCreatedTime());
+				values.put(":updated_by", dash.getUpdatedBy());
+				values.put(":updated_time", dash.getUpdatedTime());
+				
+			String query=queries.dashBoardChart().getSaveOrUpdateDashboardChart();
+			
+			for(String value:values.keySet()) {				
+				query=query.replace(value, values.get(value).toString());
+			}
+			System.out.println(query);
+			responce=dashDao.updateQuery(query);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return  responce;
+	}
+
+	public DashBoardCharts getDashChartsByUserIdSiteKey(String userId, String siteKey, String chartId) {
+		DashBoardCharts dash=null;
+		try {
+			System.out.println(userId);
+			System.out.println(siteKey);
+			System.out.println(chartId);
+			String query=queries.dashBoardChart().getGetSiteKeyUserIdChartId()
+					.replace(":user_id", userId).replace(":site_key", siteKey)
+					.replace(":chart_id", chartId);
+		System.out.println(query);
+			dash=(DashBoardCharts) dashDao.getEntityByColumn(query, DashBoardCharts.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return dash;
+	}
+
+	public DashboardChartDetails getDashboardChartDetailsById(String data_id) {
+		DashboardChartDetails dash=null;
+		try {
+			
+			dash=(DashboardChartDetails) dashDao.findEntityById(DashboardChartDetails.class,data_id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return dash;
+	}
+
+	public Object updateDashboardChartDetails(DashboardChartDetails exitObject) {
+
+		try {
+			dashDao.updateEntity(DashboardChartDetails.class, exitObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
 	}
 	 
 	

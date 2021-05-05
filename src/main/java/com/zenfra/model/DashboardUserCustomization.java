@@ -28,7 +28,7 @@ public class DashboardUserCustomization {
 	public DashboardUserCustomization(String data_id, String siteKey, String reportName, String tenantId, String userId,
 			String layout) {
 		super();
-		this.data_id = data_id;
+		this.dataId = data_id;
 		this.siteKey = siteKey;
 		this.reportName = reportName;
 		this.tenantId = tenantId;
@@ -38,7 +38,7 @@ public class DashboardUserCustomization {
 
 	@Id
 	@Column(name="data_id")
-	private String data_id;
+	private String dataId;
 	
 	@Column(name="site_key")
 	private String siteKey;
@@ -76,13 +76,17 @@ public class DashboardUserCustomization {
 	@Column(name="created_time")
 	private String createdTime;
 	
-	public String getData_id() {
-		return data_id;
+	
+
+	public String getDataId() {
+		return dataId;
 	}
 
-	public void setData_id(String data_id) {
-		this.data_id = data_id;
+
+	public void setDataId(String dataId) {
+		this.dataId = dataId;
 	}
+
 
 	public String getSiteKey() {
 		return siteKey;

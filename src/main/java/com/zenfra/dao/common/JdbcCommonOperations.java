@@ -99,6 +99,19 @@ public abstract class JdbcCommonOperations {
 		return obj;
 	}
 	
+	
+	public Object getObjectByQuery(String query,Class c) {
+	Object obj=null;
+		try {
+
+			obj = jdbc.queryForObject(query, c);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return obj;
+	}
+	
 	public List<Map<String, Object>> getObjectFromQuery(String query) {
 		List<Map<String, Object>> obj = new ArrayList<>();
 		try {

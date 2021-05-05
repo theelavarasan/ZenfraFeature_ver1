@@ -15,7 +15,6 @@ public class DashboardQueries {
 	private String getDashboardChartDetails;
 	
 	
-
 	public String getGetDashboardChartDetails() {
 		return getDashboardChartDetails;
 	}

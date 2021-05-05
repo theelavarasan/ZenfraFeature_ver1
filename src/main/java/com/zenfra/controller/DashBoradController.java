@@ -1,6 +1,7 @@
 package com.zenfra.controller;
 
 import org.json.simple.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import com.zenfra.model.DashboardInputModel;
 import com.zenfra.model.DashboardUserCustomization;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @RestController
 @RequestMapping("/rest/dashboard")
@@ -100,7 +102,7 @@ public class DashBoradController {
 	
 			try {
 		
-				dash.setData_id(functions.generateRandomId());
+				dash.setDataId(functions.generateRandomId());
 				dash.setActive(true);
 				dash.setCreatedBy(dash.getUserId());
 				dash.setUpdatedTime(functions.getCurrentDateWithTime());
@@ -136,7 +138,7 @@ public class DashBoradController {
 	
 			try {
 		
-				DashboardUserCustomization dashExit=dashService.getDashboardUserCustomizationById(dash.getData_id());
+				DashboardUserCustomization dashExit=dashService.getDashboardUserCustomizationById(dash.getDataId());
 						dashExit.setLayout(dash.getLayoutArray().toJSONString());						
 						dashExit.setActive(true);
 						dashExit.setUpdatedBy(dash.getUserId());
@@ -182,14 +184,23 @@ public class DashBoradController {
 				Boolean responce=false;
 				if(dash.getChartList()!=null && !dash.getChartList().isEmpty()) {
 					for(String c:dash.getChartList()) {
-						dash.setData_id(functions.generateRandomId());
-						dash.setChartId(c);
-						dashService.saveDashboardChart(dash);
-						dashService.evitObj(dash);
+						
+						DashBoardCharts existObj=dashService.getDashChartsByUserIdSiteKey(dash.getUserId(),dash.getSiteKey(),c);
+						if(existObj!=null) {
+							BeanUtils.copyProperties(dash, existObj, NullAwareBeanUtilsBean.getNullPropertyNames(dash));
+							existObj.setActive(true);
+							existObj.setUpdatedBy(dash.getUserId());
+							existObj.setUpdatedTime(functions.getCurrentDateWithTime());
+							dashService.updateDashboardChart(existObj);
+							dashService.evitObj(existObj);
+						}else {
+							dash.setDataId(functions.generateRandomId());
+							dash.setChartId(c);
+							dashService.saveDashboardChart(dash);
+							dashService.evitObj(dash);
+						}
 					}
 					responce=true;
-				}else {
-					responce=dashService.saveDashboardChart(dash);
 				}
 				
 				
@@ -331,7 +342,7 @@ public class DashBoradController {
 					responseModel.setResponseCode(HttpStatus.OK);
 					responseModel.setjData(functions.convertEntityToJsonObject(dash));
 				} else {
-					responseModel.setResponseCode(HttpStatus.NOT_FOUND);
+					responseModel.setResponseCode(HttpStatus.CONFLICT);
 				}
 		
 			} catch (Exception e) {
@@ -344,4 +355,41 @@ public class DashBoradController {
 			return ResponseEntity.ok(responseModel);
 		}
 	
+	@PostMapping("/update-dashboard-chart-details")
+	public ResponseEntity<?> updateDashboardChartDetails(
+			@RequestBody DashboardChartDetails  dash
+			){
+		
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+	
+			try {
+			
+				
+				DashboardChartDetails exitObject=dashService.getDashboardChartDetailsById(dash.getData_id());
+				BeanUtils.copyProperties(dash, exitObject, NullAwareBeanUtilsBean.getNullPropertyNames(dash));
+				
+				exitObject.setActive(true);
+				dash.setUpdatedTime(functions.getCurrentDateWithTime());
+				exitObject.setChartDetails(dash.getChartDetailsObject().toString());
+				
+				
+				if (dashService.updateDashboardChartDetails(exitObject) != null) {
+					responseModel.setResponseMessage("Success");
+					responseModel.setResponseDescription("Dashboard charts details updated");
+					responseModel.setResponseCode(HttpStatus.OK);
+					responseModel.setjData(functions.convertEntityToJsonObject(dash));
+				} else {
+					responseModel.setResponseMessage("Error");
+					responseModel.setResponseCode(HttpStatus.NOT_FOUND);
+				}
+		
+			} catch (Exception e) {
+				e.printStackTrace();
+				responseModel.setResponseMessage("Error");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+				responseModel.setResponseDescription(e.getMessage());
+		
+			}
+			return ResponseEntity.ok(responseModel);
+		}
 }

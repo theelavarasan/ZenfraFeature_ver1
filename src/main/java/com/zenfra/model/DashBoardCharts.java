@@ -25,7 +25,7 @@ public class DashBoardCharts {
 			String category, String userId, String analyticsFor, String chartId, boolean isActive,
 			String updatedTime, String updatedBy, String createdBy, String createdTime,List<String> chartList) {
 		super();
-		this.data_id = data_id;
+		this.dataId = data_id;
 		this.mappingId = mappingId;
 		this.siteKey = siteKey;
 		this.favoriteView = favoriteView;
@@ -43,7 +43,8 @@ public class DashBoardCharts {
 	}
 
 	@Id
-	private String data_id;
+	@Column(name="data_id")
+	private String dataId;
 
 	@Column(name = "mapping_id")
 	private String mappingId;
@@ -91,12 +92,14 @@ public class DashBoardCharts {
 	@Transient
 	private List<String> chartList=new ArrayList<String>();
 	
-	public String getData_id() {
-		return data_id;
+	
+
+	public String getDataId() {
+		return dataId;
 	}
 
-	public void setData_id(String data_id) {
-		this.data_id = data_id;
+	public void setDataId(String dataId) {
+		this.dataId = dataId;
 	}
 
 	public String getMappingId() {
