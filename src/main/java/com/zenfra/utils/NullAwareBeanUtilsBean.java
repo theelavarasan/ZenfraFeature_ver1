@@ -20,7 +20,6 @@ public class NullAwareBeanUtilsBean{
 		    for(java.beans.PropertyDescriptor pd : pds) {
 		        Object srcValue = src.getPropertyValue(pd.getName());
 		        if (srcValue == null) {
-		        	System.out.println(pd.getName());
 		        	emptyNames.add(pd.getName());
 		        }
 		    }

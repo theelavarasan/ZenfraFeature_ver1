@@ -285,7 +285,7 @@ public class DashBoardService {
 	        return dashboardDataResponseModel;
 	    }
 
-	public Object saveDashboardChartDetails(DashboardChartDetails dash) {
+	public Boolean saveDashboardChartDetails(DashboardChartDetails dash) {
 			try {
 				
 				
@@ -358,7 +358,7 @@ public class DashBoardService {
 		return dash;
 	}
 
-	public Object updateDashboardChartDetails(DashboardChartDetails exitObject) {
+	public boolean updateDashboardChartDetails(DashboardChartDetails exitObject) {
 
 		try {
 			dashDao.updateEntity(DashboardChartDetails.class, exitObject);
@@ -366,6 +366,21 @@ public class DashBoardService {
 			e.printStackTrace();
 		}
 		return true;
+	}
+
+	public DashboardChartDetails getDashboardChartDetailsBySiteKey(String siteKey, String chartId) {
+		DashboardChartDetails dash=null;
+		try {
+			
+			String query=queries.dashBoardChartDetails().getGetByChartIdSiteKey()
+					.replace(":site_key", siteKey)
+					.replace(":chart_id", chartId);
+					
+			dash=(DashboardChartDetails) dashDao.getEntityByColumn(query, DashboardChartDetails.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return dash;
 	}
 	 
 	

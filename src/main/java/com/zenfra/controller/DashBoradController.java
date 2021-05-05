@@ -329,15 +329,31 @@ public class DashBoradController {
 	
 			try {
 			
-				dash.setActive(true);
-				dash.setCreatedTime(functions.getCurrentDateWithTime());
-				dash.setUpdatedTime(functions.getCurrentDateWithTime());
-				dash.setChartDetails(dash.getChartDetailsObject().toString());
-				dash.setData_id(functions.generateRandomId());
+				
+				DashboardChartDetails exitObject=dashService.getDashboardChartDetailsBySiteKey(dash.getSiteKey(),dash.getChartId());
+			
+				boolean responce=false;
+				
+				if(exitObject!=null) {
+					BeanUtils.copyProperties(dash, exitObject, NullAwareBeanUtilsBean.getNullPropertyNames(dash));
+					exitObject.setActive(true);
+					dash.setUpdatedTime(functions.getCurrentDateWithTime());
+					exitObject.setChartDetails(dash.getChartDetailsObject().toString());
+					responce=dashService.updateDashboardChartDetails(exitObject);
+				}else {
+					dash.setActive(true);
+					dash.setCreatedTime(functions.getCurrentDateWithTime());
+					dash.setUpdatedTime(functions.getCurrentDateWithTime());
+					dash.setChartDetails(dash.getChartDetailsObject().toString());
+					dash.setData_id(functions.generateRandomId());
+					responce=dashService.saveDashboardChartDetails(dash);
+				}
+				
+				
 				
 				
 				responseModel.setResponseMessage("Success");
-				if (dashService.saveDashboardChartDetails(dash) != null) {
+				if (responce) {
 					responseModel.setResponseDescription("Dashboard charts details saved");
 					responseModel.setResponseCode(HttpStatus.OK);
 					responseModel.setjData(functions.convertEntityToJsonObject(dash));
@@ -373,7 +389,7 @@ public class DashBoradController {
 				exitObject.setChartDetails(dash.getChartDetailsObject().toString());
 				
 				
-				if (dashService.updateDashboardChartDetails(exitObject) != null) {
+				if (dashService.updateDashboardChartDetails(exitObject)) {
 					responseModel.setResponseMessage("Success");
 					responseModel.setResponseDescription("Dashboard charts details updated");
 					responseModel.setResponseCode(HttpStatus.OK);
