@@ -316,7 +316,7 @@ public class FavouriteApiService_v2 {
 
 	public void checkAndUpdateDefaultFavView(String siteKey, String favouriteName, String userId) {
 		
-		String query = "select count(*) from favourite_view where is_active=true and lower(report_name)='discovery' and lower(favourite_name)='" + favouriteName.toLowerCase()+"'";
+		String query = "select count(*) from favourite_view where is_active=true and lower(report_name)='discovery' and lower(favourite_name)='" + favouriteName.toLowerCase()+"' and site_key='"+siteKey+"'";
 
 		System.out.println("------query daoFav----------" + daoFav.getCount(query));
 		if (daoFav.getCount(query) == 0) {
@@ -329,7 +329,11 @@ public class FavouriteApiService_v2 {
 				
 				String key = pro.getKey().split("~")[1].replaceAll("_", " ").toLowerCase();
 				
+				System.out.println("----favouriteName------ " +favouriteName + " : " +  key);
+				
 				if(favouriteName.equalsIgnoreCase(key)) {
+					
+					System.out.println("----favouriteName--->>>--- " +favouriteName + " : " +  key);
 					
 					FavouriteModel favouriteModel = new FavouriteModel();								
 					favouriteModel.setCreatedTime(common.getCurrentDateWithTime());
@@ -347,7 +351,10 @@ public class FavouriteApiService_v2 {
 					favouriteModel.setIsDefault(true);
 					favouriteModel.setIsActive(true);
 					
-					saveFavouriteView(favouriteModel);
+					System.out.println("----favouriteModel--------" + favouriteModel.getSiteKey() + " : " + favouriteModel.getFilterProperty() + " : " + favouriteModel.getFavouriteName());
+					
+					int result = saveFavouriteView(favouriteModel);
+					System.out.println("----favouri view result------ " +result );
 					break;
 				}
 				
