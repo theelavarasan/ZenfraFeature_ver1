@@ -101,7 +101,7 @@ public class ReportDataController {
 	 
 	  @PostMapping("saveDefaultFavView")
 	    public ResponseEntity<String> testfav(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) { 	     
-		  System.out.println("---------------api to add default fav view-----------------------");
+		  System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : " + siteKey + " : "+userId);
 		 
 		  try {	      		 
 	      		
