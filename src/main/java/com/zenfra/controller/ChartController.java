@@ -51,7 +51,9 @@ public class ChartController {
 			if (chartModel.getChartId() == null || chartModel.getChartId().trim().isEmpty()) {
 				chartModel.setCreatedTime(functions.getCurrentDateWithTime());
 				chartModel.setChartId(functions.generateRandomId());
+				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
 				chartModel.setActive(true);
+			
 			} else {
 
 				chartModel.setActive(true);
