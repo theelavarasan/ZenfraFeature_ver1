@@ -99,9 +99,9 @@ public class ReportDataController {
 	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
 	    }
 	 
-	 @PostMapping("testfav")
+	  @PostMapping("saveDefaultFavView")
 	    public ResponseEntity<String> testfav(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) { 	     
-		  System.out.println("---------------api entered to add dataframe-----------------------");
+		  System.out.println("---------------api to add default fav view-----------------------");
 		 
 		  try {	      		 
 	      		
