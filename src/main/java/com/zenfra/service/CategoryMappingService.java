@@ -21,7 +21,7 @@ public class CategoryMappingService{
 		try {			
 				for(String map:maping) {
 					CategoryMapping cate=new CategoryMapping();
-						cate.setCategory_list(map);
+						cate.setCategory(map);
 						cate.setId(favId);						
 					catDao.saveCategoryMappingjdbc(cate);
 				}

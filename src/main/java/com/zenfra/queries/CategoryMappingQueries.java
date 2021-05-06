@@ -5,12 +5,21 @@ import lombok.Data;
 @Data
 public class CategoryMappingQueries {
 
-	
 	private String save;
-	
+
 	private String update;
-	
+
+	private String getById;
+
 	private String deleteCategoryMappingFavouriteIdOrChartId;
+
+	public String getGetById() {
+		return getById;
+	}
+
+	public void setGetById(String getById) {
+		this.getById = getById;
+	}
 
 	public String getSave() {
 		return save;
@@ -36,7 +45,4 @@ public class CategoryMappingQueries {
 		this.deleteCategoryMappingFavouriteIdOrChartId = deleteCategoryMappingFavouriteIdOrChartId;
 	}
 
-	
-	
 }
-

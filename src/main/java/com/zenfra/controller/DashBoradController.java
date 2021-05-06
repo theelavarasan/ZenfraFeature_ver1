@@ -141,12 +141,14 @@ public class DashBoradController {
 				DashboardUserCustomization dashExit=dashService.getDashboardUserCustomizationById(dash.getDataId());
 						dashExit.setLayout(dash.getLayoutArray().toJSONString());						
 						dashExit.setActive(true);
+						dashExit.setLayoutArray(dash.getLayoutArray());
 						dashExit.setUpdatedBy(dash.getUserId());
 						dashExit.setUpdatedTime(functions.getCurrentDateWithTime());
 				
 				Boolean responce=dashService.updateDashboardLayout(dashExit);
 				responseModel.setResponseMessage("Success");
 				if (responce != null) {
+					responseModel.setjData(functions.convertEntityToJsonObject(dashExit));
 					responseModel.setResponseDescription("Dashboard layout updated");
 					responseModel.setResponseCode(HttpStatus.OK);
 					responseModel.setjData(responce);

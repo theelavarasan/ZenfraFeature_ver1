@@ -52,6 +52,7 @@ public class DashBoardService {
 			DashboardUserCustomization layout = (DashboardUserCustomization) dashDao
 					.getEntityByColumn(getDashboardLayoutChart, DashboardUserCustomization.class);
 
+			System.out.println(getDashboardLayoutChart);
 			JSONObject tempChart=new JSONObject();
 			if(layout!=null) {
 				tempChart.put("layout", functions.convertStringToJsonArray(layout.getLayout()));
@@ -61,7 +62,7 @@ public class DashBoardService {
 			String getDashboardLayoutChartLayout=queries.dashboardQueries().getGetDashboardLayoutChartLayout()
 					.replace(":user_id_value", userId).replace(":site_key_value", siteKey);
 			
-			System.out.println(getDashboardLayoutChartLayout);
+			//System.out.println(getDashboardLayoutChartLayout);
 			List<Map<String,Object>> chartDetails=dashDao.getListMapObjectById(getDashboardLayoutChartLayout);
 				JSONArray chartObj=new JSONArray();
 				ObjectMapper mapper = new ObjectMapper();
