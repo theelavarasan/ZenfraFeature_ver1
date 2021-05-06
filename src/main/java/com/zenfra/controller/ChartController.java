@@ -53,6 +53,7 @@ public class ChartController {
 				chartModel.setChartId(functions.generateRandomId());
 				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
 				chartModel.setActive(true);
+			
 			} else {
 
 				chartModel.setActive(true);
