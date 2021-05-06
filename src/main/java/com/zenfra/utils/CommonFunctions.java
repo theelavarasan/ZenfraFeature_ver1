@@ -35,21 +35,20 @@ public class CommonFunctions {
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
 
-			if (row.get("filterProperty") != null) {
+			if (row.get("filterProperty") != null &&  !row.get("filterProperty").equals("[]")) {
 				row.put("filterProperty", (JSONArray) parser
 						.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("filterProperty", new JSONArray());
 			}
 
-			if (row.get("categoryList") != null) {
-				System.out.println(row.get("categoryList"));
+			if (row.get("categoryList") != null &&  !row.get("categoryList").equals("[]")) {
 				row.put("categoryList", (JSONArray) parser
 						.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("categoryList", new JSONArray());
 			}
-			if (row.get("siteAccessList") != null) {
+			if (row.get("siteAccessList") != null && !row.get("siteAccessList").equals("[]")) {
 				row.put("siteAccessList", (JSONArray) parser
 						.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
 			} else {

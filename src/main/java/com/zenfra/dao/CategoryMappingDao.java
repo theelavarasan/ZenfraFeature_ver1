@@ -30,7 +30,7 @@ public class CategoryMappingDao extends CommonEntityManager{
 	try {
 		
 		String query=data.categoryMappingQueries().getSave()
-				.replace(":id", cate.getId()).replace(":category_list", cate.getCategory_list());
+				.replace(":id", cate.getId()).replace(":category_list", cate.getCategory());
 		
 		updateQuery(query);
 		

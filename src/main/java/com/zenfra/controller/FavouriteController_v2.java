@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.JsonArray;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.ResponseModel;
@@ -93,6 +94,8 @@ public class FavouriteController_v2 {
 			
 
 			if (service.saveFavouriteView(favouriteModel) == 1) {	
+				//Object categoryArr=service.getViewCategoryMapping(favouriteModel.getFavouriteId());
+				//favouriteModel.setCategoryColumns(categoryArr);
 				favouriteModel.setCreatedBy((user.getFirst_name()+" "+user.getLast_name()));				
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully inserted");
@@ -131,6 +134,9 @@ public class FavouriteController_v2 {
 			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
 
 			if (service.updateFavouriteView(favouriteModel.getAuthUserId(), favouriteModel) == 1) {
+				//Object categoryArr=service.getViewCategoryMapping(favouriteModel.getFavouriteId());
+				//favouriteModel.setCategoryColumns(categoryArr);
+				
 				responseModel.setResponseCode(HttpStatus.OK);
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully updated");

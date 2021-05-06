@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonArray;
 import com.zenfra.configuration.CommonQueriesData;
 import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.model.FavouriteModel;
@@ -330,6 +331,21 @@ public class FavouriteApiService_v2 {
 		
 		
 		
+	}
+
+	public Object getViewCategoryMapping(String favouriteId) {
+		JSONArray responce=new JSONArray();
+		try {
+			ObjectMapper map=new ObjectMapper();
+			String query=queries.categoryMappingQueries().getGetById()
+					.replace(":id", favouriteId);
+			System.out.println(query);
+			Object obj=daoFav.getSingleColumnAsObject(query);
+			System.out.println(obj.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return responce;
 	}
 
 
