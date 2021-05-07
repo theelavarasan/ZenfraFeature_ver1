@@ -301,13 +301,14 @@ public class FavouriteApiService_v2 {
 
 	public void checkAndUpdateDefaultFavView(String siteKey, String parsedLogType, String userId) {
 		try {
-			String query = "select log_type, favourite_name, filter_property from default_favourite_view where is_active=true and lower(report_type)='discovery' and lower(log_type)='"+parsedLogType.toLowerCase()+"'";
+			String query = "select log_type, favourite_name, filter_property, report_label from default_favourite_view where is_active=true and lower(report_type)='discovery' and lower(log_type)='"+parsedLogType.toLowerCase()+"'";
 			List<Map<String, Object>>  result = daoFav.getJsonarray(query);	
 			userId = daoFav.getTenantId();
 			
 			if(result.size() == 1) {
 				String defaultFavName = result.get(0).get("favourite_name").toString();
 				String defaultFilterProperty = result.get(0).get("filter_property").toString();
+				String report_label = result.get(0).get("report_label").toString();
 				defaultFilterProperty = common.convertStringToJsonArray(defaultFilterProperty).toString();		
 				
 				String checkFavViewquery ="select count(*) from favourite_view where is_active=true and is_default=true and lower(report_name)='discovery' and lower(favourite_name)= '" + defaultFavName.toLowerCase() +"' and site_key='"+siteKey+"' and filter_property = '" + defaultFilterProperty +"'"; //
@@ -328,6 +329,7 @@ public class FavouriteApiService_v2 {
 					favouriteModel.setUserAccessList(userAccess);
 					favouriteModel.setIsDefault(true);
 					favouriteModel.setIsActive(true);
+					favouriteModel.setReportLabel(report_label);
 					saveFavouriteView(favouriteModel);			
 				}
 			}
