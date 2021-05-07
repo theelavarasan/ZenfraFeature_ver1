@@ -165,7 +165,10 @@ public class FavouriteApiService_v2 {
 			} else if(favView!=null && favView.getUser_access_list().contains("All")){
 				String user_remove_list=favView.getUser_remove_list();
 					if(user_remove_list!=null && !user_remove_list.isEmpty()) {
-						user_remove_list=user_remove_list.replace("]", (",\"" + userId+"\"]"));
+							if(!user_remove_list.contains(userId)) {
+								user_remove_list=user_remove_list.replace("]", (",\"" + userId+"\"]"));
+							}
+						
 					}else {
 						user_remove_list="[\""+userId+"\"]";
 					}
