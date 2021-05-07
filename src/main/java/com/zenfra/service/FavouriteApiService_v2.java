@@ -303,6 +303,7 @@ public class FavouriteApiService_v2 {
 		try {
 			String query = "select log_type, favourite_name, filter_property from default_favourite_view where is_active=true and lower(report_type)='discovery' and lower(log_type)='"+parsedLogType.toLowerCase()+"'";
 			List<Map<String, Object>>  result = daoFav.getJsonarray(query);	
+			userId = daoFav.getTenantId();
 			
 			if(result.size() == 1) {
 				String defaultFavName = result.get(0).get("favourite_name").toString();
