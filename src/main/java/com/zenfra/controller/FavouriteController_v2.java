@@ -46,7 +46,7 @@ public class FavouriteController_v2 {
 	@Autowired
 	CategoryMappingService catService;
 
-	@PostMapping("/get-all-favourite-v2-temp")
+	@PostMapping("/get-all-favourite")
 	public ResponseEntity<?> getFavouriteView(@RequestParam(name = "authUserId", required = false) String userId,
 			@RequestParam(name = "siteKey") String siteKey,
 			@RequestParam(name = "reportName", required = false) String reportName,
