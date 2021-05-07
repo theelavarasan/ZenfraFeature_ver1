@@ -242,9 +242,7 @@ public class FavouriteController_v2 {
 			responseModel.setValidation(service.checkfavouriteName(userId, siteKey, favouriteName, reportName));
 			responseModel.setResponseMessage("Success");
 			responseModel.setResponseCode(HttpStatus.OK);
-			responseModel
-					.setResponseDescription("FavouriteView " + favouriteName + " already available for the " + siteKey);
-
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseMessage("Failed");
