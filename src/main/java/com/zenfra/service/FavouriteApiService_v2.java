@@ -250,9 +250,11 @@ public class FavouriteApiService_v2 {
 			params.put("report_name", reportName);
 
 			String query = "select count(*) from favourite_view where is_active =true and " + " site_key='" + siteKey
-					+ "' and report_name='" + reportName + "' " + " and lower(favourite_name)='" + favouriteName + "' and create_by='"+userId+"'";
+					+ "' and report_name='" + reportName + "' " + " and lower(favourite_name)='" + favouriteName + "';";
 
-			if (daoFav.getCount(query) > 0) {
+			System.out.println(query);
+			int s=daoFav.getCount(query);
+			if ( s > 0) {
 				count = true;
 			}
 
