@@ -228,7 +228,7 @@ public class ReportDataController {
 				     .format("org.apache.spark.orientdb.documents")
 				     .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
 				     .option("user", "root")
-				     .option("password", "")
+				     .option("password", "27CH9610PUub25Y")
 				     .option("class", "eoleosData")
 				     .option("query", "select * from $eoleosData")
 				     .load();
@@ -245,7 +245,7 @@ public class ReportDataController {
 			     .format("org.apache.spark.orientdb.documents")
 			     .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
 			     .option("user", "root")
-			     .option("password", "")
+			     .option("password", "27CH9610PUub25Y")
 			     .option("class", "user")
 			     .option("query", "select * from $user")
 			     .load();
