@@ -230,7 +230,7 @@ public class ReportDataController {
 	    public void checkodb() {
 		 
 		 try {
-		
+			 System.out.println("--------1111111111111--------- ");
          ODatabaseSession db = getDBSession();
          System.out.println("---------db----------- "+ db.getName());
          JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
