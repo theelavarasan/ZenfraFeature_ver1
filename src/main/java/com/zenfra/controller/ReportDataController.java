@@ -227,34 +227,12 @@ public class ReportDataController {
 	    }
 	 
 	 @GetMapping("/checkodb")
-	    public void checkodb() {	 
-		 
-		/*
-		 * try { System.out.println("---------1------- "); Dataset<Row> eolos =
-		 * sparkSession.read() .format("org.apache.spark.orientdb.documents")
-		 * .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
-		 * .option("user", "root") .option("password", "27CH9610PUub25Y")
-		 * .option("class", "eoleosData") .option("query", "select * from $eoleosData")
-		 * .load();
-		 * 
-		 * System.out.println("---------eolos----------- "+ eolos); } catch (Exception
-		 * e) { e.printStackTrace(); }
-		 * 
-		 * 
-		 * try { System.out.println("---------2------ "); Dataset<Row> user =
-		 * sparkSession.read() .format("org.apache.spark.orientdb.documents")
-		 * .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
-		 * .option("user", "root") .option("password", "27CH9610PUub25Y")
-		 * .option("class", "user") .option("query", "select * from $user") .load();
-		 * 
-		 * System.out.println("---------user----------- "+ user.count()); } catch
-		 * (Exception e) { e.printStackTrace(); }
-		 */
-		 
+	    public void checkodb() {
 		 
 		 try {
 		
          ODatabaseSession db = getDBSession();
+         System.out.println("---------db----------- "+ db.getName());
          JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
       
          OResultSet rs = db.query("select * from eoleosData");
@@ -263,6 +241,7 @@ public class ReportDataController {
          System.out.println("Json  created");
          JavaRDD<String> javaRdd = jsc.parallelize(ls);
          Dataset<org.apache.spark.sql.Row> DataSet = sparkSession.read().json(javaRdd);
+         DataSet.printSchema();
          long count = DataSet.count();
          if (count > 0) {
         	 System.out.println("---------eoleosDataSet----------- "+ DataSet.count());
