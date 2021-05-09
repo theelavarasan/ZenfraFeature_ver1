@@ -41,15 +41,17 @@ public class EolService {
           
            // String eolQuery = "select ostype,osname,osversion,endoflifecycle,endofextendedsupport,sourceurl from eoleosData";
             
-           /* Dataset<Row> eoleosDataSet =  sparkSession.sqlContext().read()
+          /*  Dataset<Row> eoleosDataSet =  sparkSession.sqlContext().read()
             .format("org.apache.spark.orientdb.documents")
             .option("dburl", "uatdb.zenfra.co")
             .option("user", "root")
             .option("password", "TraBratRA2ozOJe")
             .option("class", "eoleosData")
             .option("query", "select ostype,osname,osversion,endoflifecycle,endofextendedsupport,sourceurl from eoleosData")
-            .load();  */
+            .load();  
+            */
             
+        	////////////////////////////////////////////////////////
         	Map<String, String> options = new HashMap<String, String>();
 			options.put("url", oDbUrl);
 			options.put("dbtable", "eoleosData");
@@ -59,7 +61,7 @@ public class EolService {
 			
 			System.out.println("----------eoleosDataSet---------------------------");
 			eoleosDataSet.show();
-            
+            //////////////////////////////////////////////////////////////////
            /* Map<String, String> orientDBProps = new HashMap<>(); 
             orientDBProps.put("url","jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb");
             orientDBProps.put("user", "root");
@@ -67,12 +69,19 @@ public class EolService {
             orientDBProps.put("spark", "true");
             orientDBProps.put("dbtable", "eoleosData");
             Dataset<Row> eoleosDataSet = sparkSession.sqlContext().read().format("jdbc").options(orientDBProps).load();
-            eoleosDataSet.show(); */
-
+            eoleosDataSet.show(); 
+*/
            // Dataset<Row> eoleosDataSet = queryToDataSetSparkSession(eolQuery, db, sparkSession);
+        	/* Dataset<Row> eoleosDataSet = sparkSession.read().format("csv")
+                     .option("header", "true").option("inferschema", false)
+                     .load("E:\\opt\\eol.csv");
+        	 */
             count = eoleosDataSet.count();
             if (count > 0) {
+            	eoleosDataSet.createOrReplaceTempView("eolDataDFTmp");
+            	eoleosDataSet = sparkSession.sql("select ostype, osversion, endoflifecycle, endofextendedsupport from eolDataDFTmp");
                 eoleosDataSet.createOrReplaceGlobalTempView("eolDataDF");
+               // eoleosDataSet.show();
             }
         } catch (Exception ex) {
             logger.error("Exception in generating dataframe for EOL/EOS OS data", ex);
@@ -87,7 +96,7 @@ public class EolService {
         try {           
             String eolQuery = "select vendor,model,endoflifecycle,endofextendedsupport,sourcelink from eoleosDataHardWare";
 
-            Dataset<Row> eoleosDataSet =  sparkSession.sqlContext().read()
+            /*Dataset<Row> eoleosDataSet =  sparkSession.sqlContext().read()
                     .format("org.apache.spark.orientdb.documents")
                     .option("dburl", "uatdb.zenfra.co")
                     .option("user", "root")
@@ -96,13 +105,24 @@ public class EolService {
                     .option("query", eolQuery)
                     .load();
             count = eoleosDataSet.count();
+            */
             
-        	System.out.println("----------eoleosDataSet-------->>>-------------------");
-			eoleosDataSet.show();
+            Map<String, String> options = new HashMap<String, String>();
+			options.put("url", oDbUrl);
+			options.put("dbtable", "eoleosDataHardWare");
 			
-            if (count > 0) {
-                eoleosDataSet.createOrReplaceGlobalTempView("eolHWDataDF");
-            }
+			@SuppressWarnings("deprecation")
+			Dataset<Row> eoleosDataSet = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
+			
+			System.out.println("----------eoleosDataSet---------------------------");
+			eoleosDataSet.show();        	
+			  count = eoleosDataSet.count();
+			  if (count > 0) {
+	            	eoleosDataSet.createOrReplaceTempView("eolHWDataDFTmp");
+	            	eoleosDataSet = sparkSession.sql("select vendor, model, endoflifecycle, endofextendedsupport, sourcelink from eolHWDataDFTmp");
+	                eoleosDataSet.createOrReplaceGlobalTempView("eolHWDataDF");
+	               // eoleosDataSet.show();
+	            }           
         } catch (Exception ex) {
             logger.error("Exception in generating dataframe for EOL/EOS HW data", ex);
         }

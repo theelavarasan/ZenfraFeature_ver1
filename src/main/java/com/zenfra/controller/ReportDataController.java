@@ -22,11 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.parse.controller.ChartController;
-import com.parse.model.ReportResultModel;
-import com.parse.serviceImpl.QueryExecutor;
-import com.parse.util.Utilities;
-import com.parse.util.ZenfraJSONObject;
+
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -218,7 +214,7 @@ public class ReportDataController {
 	 
 	 
 
-	    @RequestMapping(value = "/getReportData/optimization", method = RequestMethod.POST)
+	  /*  @RequestMapping(value = "/getReportData/optimization", method = RequestMethod.POST)
 	    public ResponseEntity<?> getReport(@RequestAttribute(name = "authUserId", required = false) String userId,
 	                                       @RequestParam(name = "deviceType") String deviceType,
 	                                       @RequestParam(name = "groupBy", required = false) String groupBy,
@@ -319,6 +315,6 @@ public class ReportDataController {
 	            reportResultModel.setResponseDescription(ex.toString());
 	        }
 	        return ResponseEntity.ok(reportResultModel);
-	    }
+	    }*/
 	 
 }
