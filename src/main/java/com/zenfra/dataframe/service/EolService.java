@@ -114,7 +114,7 @@ public class EolService {
 			@SuppressWarnings("deprecation")
 			Dataset<Row> eoleosDataSet = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
 			
-			System.out.println("----------eoleosDataSet---------------------------");
+			System.out.println("----------eoleosDataSet hw---------------------------");
 			eoleosDataSet.show();        	
 			  count = eoleosDataSet.count();
 			  if (count > 0) {
