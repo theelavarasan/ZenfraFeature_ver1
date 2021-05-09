@@ -154,7 +154,11 @@
 			<version>${orientdb.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.orientechnologies/orientdb-client -->
-
+<dependency>
+    <groupId>com.orientechnologies</groupId>
+    <artifactId>orientdb-client</artifactId>
+    <version>${orientdb.version}</version>
+</dependency>
 		
 		
 		
