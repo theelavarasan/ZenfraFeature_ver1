@@ -278,8 +278,8 @@ public class ReportDataController {
 	        ODatabaseSession db = null;
 	        try {	        	
 	        	
-	            OrientDB orient = new OrientDB(com.zenfra.model.ZKModel.getProperty(com.zenfra.model.ZKConstants.ORIENTDBIP), OrientDBConfig.defaultConfig());
-	            db = orient.open(com.zenfra.model.ZKModel.getProperty(com.zenfra.model.ZKConstants.ORIENTDBNAME), com.zenfra.model.ZKModel.getProperty(com.zenfra.model.ZKConstants.ORIENTDBUSER), com.zenfra.model.ZKModel.getProperty(com.zenfra.model.ZKConstants.ORIENTDBPWD));
+	            OrientDB orient = new OrientDB("remote:uatdb.zenfra.co", OrientDBConfig.defaultConfig());
+	            db = orient.open("dellemcdb", "root", "27CH9610PUub25Y");
 	            System.out.println("Connection open");
 	        } catch (Exception e) {
 	            System.out.println("Connection Failure");
