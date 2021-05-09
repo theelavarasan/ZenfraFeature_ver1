@@ -222,38 +222,27 @@ public class ReportDataController {
 	 @GetMapping("/checkodb")
 	    public void checkodb() {	 
 		 
-		 try {
-			 System.out.println("---------1------- ");
-			 Dataset<Row> eolos =  sparkSession.read()
-				     .format("org.apache.spark.orientdb.documents")
-				     .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
-				     .option("user", "root")
-				     .option("password", "27CH9610PUub25Y")
-				     .option("class", "eoleosData")
-				     .option("query", "select * from $eoleosData")
-				     .load();
-					 
-					 System.out.println("---------eolos----------- "+ eolos);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		 
-		 
-		 try {
-			 System.out.println("---------2------ ");
-		 Dataset<Row> user =  sparkSession.read()
-			     .format("org.apache.spark.orientdb.documents")
-			     .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
-			     .option("user", "root")
-			     .option("password", "27CH9610PUub25Y")
-			     .option("class", "user")
-			     .option("query", "select * from $user")
-			     .load();
-		 
-		 System.out.println("---------user----------- "+ user.count());
-		 } catch (Exception e) {
-				e.printStackTrace();
-			}
+		/*
+		 * try { System.out.println("---------1------- "); Dataset<Row> eolos =
+		 * sparkSession.read() .format("org.apache.spark.orientdb.documents")
+		 * .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
+		 * .option("user", "root") .option("password", "27CH9610PUub25Y")
+		 * .option("class", "eoleosData") .option("query", "select * from $eoleosData")
+		 * .load();
+		 * 
+		 * System.out.println("---------eolos----------- "+ eolos); } catch (Exception
+		 * e) { e.printStackTrace(); }
+		 * 
+		 * 
+		 * try { System.out.println("---------2------ "); Dataset<Row> user =
+		 * sparkSession.read() .format("org.apache.spark.orientdb.documents")
+		 * .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
+		 * .option("user", "root") .option("password", "27CH9610PUub25Y")
+		 * .option("class", "user") .option("query", "select * from $user") .load();
+		 * 
+		 * System.out.println("---------user----------- "+ user.count()); } catch
+		 * (Exception e) { e.printStackTrace(); }
+		 */
 		 
 		 try {
 			 System.out.println("---------3------ ");
@@ -265,6 +254,7 @@ public class ReportDataController {
          orientDBProps.put("dbtable", "eoleosData");
          Dataset<Row> eoleosDataSet = sparkSession.sqlContext().read().format("jdbc").options(orientDBProps).load();
          eoleosDataSet.show();
+         System.out.println("---------eoleosDataSet----------- "+ eoleosDataSet.count());
 	 } catch (Exception e) {
 			e.printStackTrace();
 		}
