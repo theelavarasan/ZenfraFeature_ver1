@@ -1,9 +1,12 @@
 package com.zenfra.controller;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.JavaRDD;
@@ -35,6 +38,7 @@ import com.orientechnologies.orient.core.db.OrientDB;
 import com.orientechnologies.orient.core.db.OrientDBConfig;
 import com.orientechnologies.orient.core.sql.executor.OResult;
 import com.orientechnologies.orient.core.sql.executor.OResultSet;
+import com.orientechnologies.orient.jdbc.OrientJdbcConnection;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -229,6 +233,26 @@ public class ReportDataController {
 	 @GetMapping("/checkodb")
 	    public void checkodb() {
 		 
+		 
+		 Properties info = new Properties();
+	        String user = "root";
+	        String password = "27CH9610PUub25Y";
+	        info.put("user", user);
+	        info.put("password", password);
+
+	        try
+	        {
+	        	System.out.println("--------connection--------" + info);
+	        	
+	              Class.forName("com.orientechnologies.orient.jdbc.OrientJdbcDriver");
+	              Connection connection = (OrientJdbcConnection) DriverManager.getConnection("jdbc:orient:remote:uatdb.zenfra.co/dellemcdb", info);
+	              System.out.println("--------connection--------" + connection);
+	        } catch (Exception e) {
+	        	e.printStackTrace();
+	        }
+	        
+	        
+	        
 		 try {
 			 System.out.println("--------1111111111111--------- ");
          ODatabaseSession db = getDBSession();
