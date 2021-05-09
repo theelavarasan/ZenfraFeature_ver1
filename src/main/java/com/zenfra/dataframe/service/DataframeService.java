@@ -97,6 +97,9 @@ public class DataframeService{
 	 @Value("${zenfra.permisssion}")
 	 private String fileOwnerGroupName;
 	 
+	 @Autowired
+	 EolService eolService;
+	 
 	 
 	 @Autowired
 	 private ReportDao reportDao;
@@ -104,6 +107,7 @@ public class DataframeService{
 	
 	 
 	 private String dbUrl = DBUtils.getPostgres().get("dbUrl");
+	
 	 //---------------------SSRM Code-----------------------------------//
 
 
@@ -622,25 +626,24 @@ public class DataframeService{
 	 public DataResult getReportData(ServerSideGetRowsRequest request) {	    	
 		
 		 String siteKey = request.getSiteKey();
-         String source_type = request.getSourceType().toLowerCase();
+         String source_type = request.getSourceType().toLowerCase();        
+         
        
  		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
  			source_type = source_type + "-" + request.getReportBy().toLowerCase();
  		} 		
          
-		 boolean isDiscoveryDataInView = false;
-		 Dataset<Row> dataset = null;
+		 boolean isDiscoveryDataInView = false;		
 		 String viewName = siteKey+"_"+source_type.toLowerCase();
 		 viewName = viewName.replaceAll("-", "");
 		 try {
-			 dataset = sparkSession.sql("select * from global_temp."+viewName);
-			 dataset.cache();
-			 isDiscoveryDataInView = true;
-			 System.out.println("-------orginal data count--------" + dataset.count());
+			 sparkSession.sql("select * from global_temp."+viewName);			
+			 isDiscoveryDataInView = true;			
 		} catch (Exception e) {
+			e.printStackTrace();
 			System.out.println("---------View Not exists--------");
 		} 
-		 
+		 Dataset<Row> dataset =  null;
 		 try {	       
 			 isDiscoveryDataInView = false;
 	         if(!isDiscoveryDataInView) {
@@ -648,11 +651,67 @@ public class DataframeService{
 	        	 dataset = sparkSession.read().json(filePath); 	 
 	        	 dataset.createOrReplaceTempView("tmpView");
 	        	 dataset =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
-	        	 System.out.println("-------new data count--------" + dataset.count());
 	        	 dataset.createOrReplaceGlobalTempView(viewName); 
 		         dataset.cache();
 	         }		        
 	         
+
+	        // int eoleosCount = eolService.getEOLEOSCount(siteKey, viewName);
+	        // int eolhwdata = eolService.getEOLEHWCount(siteKey, viewName);
+	         eolService.getEOLEOSData();
+	         eolService.getEOLEOSHW();
+	         
+	         String hwJoin = "";
+	         String hwdata = "";
+	         String osJoin = "";
+	         String osdata = "";        
+
+	         boolean eoleosCount = false;
+	         boolean eolhwdata = false;
+	         
+	         try{
+	        	 Dataset<Row> eolos = sparkSession.sql("select * from global_temp.eolDataDF");
+	        	 eoleosCount = true;
+	        	 eolos.show();
+	         } catch (Exception e) {
+	        	 e.printStackTrace();
+	         }
+	         
+	         try{
+	        	 Dataset<Row> eolhw = sparkSession.sql("select * from global_temp.eolHWDataDF");
+	        	 eolhwdata = true;
+	        	 eolhw.show();
+	         } catch (Exception e) {
+	        	 e.printStackTrace();
+	         }
+			
+	         
+	         System.out.println("--------eoleosCount eolhwdata------- " + eolhwdata + " : " + eoleosCount);
+	         
+	         if (eoleosCount) {
+	             osJoin = " left join global_temp.eoleosDataDF eol on eol.`Server Name`=ldView.`Server Name`";
+	             osdata = ",eol.`End Of Life - OS`,eol.`End Of Extended Support - OS`";
+	         }
+	         
+	      
+			if (eolhwdata) {
+	             hwJoin = " left join global_temp.eolHWData eolHw on eolHw.`Server Name` = ldView.`Server Name`";
+	             hwdata = ",eolHw.`End Of Life - HW`,eolHw.`End Of Extended Support - HW`";
+	         }
+	       
+	       // String sql = "Select * from ( Select ldView.* , eol.`End Of Life - OS` , eol.`End Of Extended Support - OS` ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`logDate` desc) as my_rank from global_temp."+viewName+" ldView left join global_temp.eoleosDataDF eol on eol.`Server Name`=ldView.`Server Name` ) ld where ld.my_rank = 1";
+	         
+	         String sql = "select * from (" +
+                     " select ldView.*" + osdata + hwdata+
+                     " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.log_date desc) as my_rank" +
+                     " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
+                     " where lcase(ldView.actual_os_type) = '" + request.getSourceType().toLowerCase() + "') ld where ld.my_rank = 1";
+
+             System.out.println("Discovery Query with EOL : " + sql);
+
+             dataset = sparkSession.sql(sql).toDF();
+             
+             dataset.printSchema();
 	        
 	         
 	         actualColumnNames = Arrays.asList(dataset.columns());	

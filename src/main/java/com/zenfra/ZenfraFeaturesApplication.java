@@ -13,6 +13,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean;
 
 import com.zenfra.dataframe.service.DataframeService;
+import com.zenfra.dataframe.service.EolService;
 
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
@@ -26,6 +27,9 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	
 	@Autowired
 	DataframeService dataframeService;
+	
+	@Autowired
+	EolService eolService;
 	
 	public static void main(String[] args) {
 		SpringApplication.run(ZenfraFeaturesApplication.class, args);
@@ -80,9 +84,13 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	                .getOrCreate();
 	    }
 	    
+	   
+	    
 	   @PostConstruct
 	    public void createDataframeView() {		
 	    	dataframeService.createDataframeGlobalView();
+	    	eolService.getEOLEOSData();
+	    	eolService.getEOLEOSHW();
 	    }
 	   
 	   
