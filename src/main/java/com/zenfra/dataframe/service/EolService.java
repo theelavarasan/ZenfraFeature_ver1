@@ -56,6 +56,8 @@ public class EolService {
 			
 			@SuppressWarnings("deprecation")
 			Dataset<Row> eoleosDataSet = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
+			
+			System.out.println("----------eoleosDataSet---------------------------");
 			eoleosDataSet.show();
             
            /* Map<String, String> orientDBProps = new HashMap<>(); 
@@ -94,6 +96,10 @@ public class EolService {
                     .option("query", eolQuery)
                     .load();
             count = eoleosDataSet.count();
+            
+        	System.out.println("----------eoleosDataSet-------->>>-------------------");
+			eoleosDataSet.show();
+			
             if (count > 0) {
                 eoleosDataSet.createOrReplaceGlobalTempView("eolHWDataDF");
             }
@@ -103,6 +109,57 @@ public class EolService {
         logger.info("Construct EOL/EOS - HW Dataframe Ends");
         return Integer.parseInt(String.valueOf(count));
     }
+    
+    public void getAWSPricing() {
+        try {
+            Dataset<Row> awsPriceDataSet = sparkSession.read().format("csv")
+                    .option("header", "true").option("inferschema", false)
+                    .load("/opt/ZENfra/Dataframe/data/AWS EC2 Pricing - US East Ohio.csv");
+            awsPriceDataSet.createOrReplaceGlobalTempView("awsPricingDF");
+        } catch (Exception e) {
+            logger.error("Exception in getAzurePricing", e);
+        }
+    }
+
+    public void getAzurePricing() {
+        try {
+            Dataset<Row> azurePriceDataSet = sparkSession.read().format("csv")
+                    .option("header", "true").option("inferschema", false)
+                    .load("/opt/ZENfra/Dataframe/data/Azure_Pricing_Data.csv");
+
+            azurePriceDataSet.createOrReplaceTempView("azurePricing");
+
+            Dataset<Row> dataCheck = sparkSession.sql("Select concat_ws(',', concat('Operating System: ',az.OperatingSystem),concat('vCPU: ',az.vCPUs)" +
+                    " ,concat('Memory: ',az.Memory)) as `Azure Specs`,az.InstanceType" +
+                    ",az.OperatingSystem,az.vCPUs,az.Memory" +
+                    ",(Min(az.PricePerHour)*730)+min(ifnull(az.softwarecost,0)) as demandPrice" +
+                    ",(Min(b.PricePerHour)*730)+min(ifnull(b.softwarecost,0)) as 3YrPrice " +
+                    ",(Min(c.PricePerHour)*730)+min(ifnull(c.softwarecost,0)) as 1YrPrice " +
+                    "from AzurePricing az " +
+                    "join AzurePricing b on b.InstanceType=az.InstanceType and b.Type='3yr' and b.OperatingSystem = az.OperatingSystem " +
+                    "join AzurePricing c on c.InstanceType=az.InstanceType and c.Type='1yr' and c.OperatingSystem = az.OperatingSystem " +
+                    "where az.Region = 'US East' and az.Type = 'OnDemand' and az.OperatingSystem is not null and az.InstanceType is not NULL " +
+                    "group by az.OperatingSystem,az.InstanceType,az.vCPUs,az.Memory");
+            dataCheck.createOrReplaceGlobalTempView("azurePricingDF");
+        } catch (Exception e) {
+            logger.error("Exception in getAzurePricing:", e);
+        }
+    }
+    
+    public void getGooglePricing() {
+        logger.info("Construct Google Pricing Dataframe Begins");
+        try {
+            Dataset<Row> googlePriceDataSet = sparkSession.read().format("csv")
+                    .option("header", "true").option("inferschema", false)
+                    .load("/opt/ZENfra/Dataframe/data/Google_Pricing_Data.csv");
+
+            googlePriceDataSet.createOrReplaceGlobalTempView("googlePricingDF");
+        } catch (Exception ex) {
+            logger.error("Exception in generating dataframe for Google Pricing ", ex);
+        }
+        logger.info("Construct Google Pricing Dataframe Begins");
+    }
+
 
  
 }

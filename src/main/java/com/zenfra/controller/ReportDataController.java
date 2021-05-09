@@ -1,7 +1,9 @@
 package com.zenfra.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +12,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.parse.controller.ChartController;
+import com.parse.model.ReportResultModel;
+import com.parse.serviceImpl.QueryExecutor;
+import com.parse.util.Utilities;
+import com.parse.util.ZenfraJSONObject;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -202,6 +213,112 @@ public class ReportDataController {
 	        
 	          return ResponseEntity.ok(resultObject);
 	          
+	    }
+	 
+	 
+	 
+
+	    @RequestMapping(value = "/getReportData/optimization", method = RequestMethod.POST)
+	    public ResponseEntity<?> getReport(@RequestAttribute(name = "authUserId", required = false) String userId,
+	                                       @RequestParam(name = "deviceType") String deviceType,
+	                                       @RequestParam(name = "groupBy", required = false) String groupBy,
+	                                       @RequestParam(name = "filterBy", required = false) String filterBy,
+	                                       @RequestParam(name = "filterValue", required = false) String filterValue,
+	                                       @RequestParam(name = "siteKey", required = false) String siteKey) {
+	       
+	        System.out.println("**** Generating the Optimization Report");
+	        ObjectMapper mapping = new ObjectMapper();
+	        com.zenfra.model.ReportResultModel reportResultModel = new com.zenfra.model.ReportResultModel();
+	        try {
+	            mapping.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+	            mapping.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+	            //mapping.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+	        	           
+	            JSONArray  reportArr = new JSONArray();
+	                String deviceTypeCondition;
+	                if (deviceType.equalsIgnoreCase("All")) {
+	                    deviceTypeCondition = " (lcase(aws.actualOSType) in ('windows','linux', 'vmware'))";
+	                } else {
+	                    deviceTypeCondition = "(lcase(aws.actualOSType)='" + deviceType.toLowerCase() + "')";
+	                }
+	                List<String> serverNameLst = new ArrayList<>();
+	                if(!StringUtils.isBlank(filterValue)) {
+	                    String serverNameQuery = "select set(serverName.toLowerCase()).asString() as serverName from taskList where projectId = '"+filterValue+"'";
+	                    JSONArray serverNameArr = QueryExecutor.orientDBQueryExecution(serverNameQuery);
+	                    if(!serverNameArr.isEmpty()) {
+	                        com.zenfra.model.ZenfraJSONObject serverNameObj = (com.zenfra.model.ZenfraJSONObject) serverNameArr.get(0);
+	                        String serverName = serverNameObj.get("serverName").toString();
+	                        String[] sq = serverName.split(",");
+	                        for(int i=0;i<sq.length;i++) {
+	                            serverNameLst.add(sq[i].trim());
+	                        }
+	                    }
+	                }
+	                reportArr = sparkUtilities.getReport(siteKey, deviceTypeCondition, serverNameLst);
+
+	                reportResultModel.setData(reportArr);
+	              
+	           
+
+	            String reportName = "optimization" + "_" + deviceType;
+
+	            reportResultModel.setHeaderInfo(getHeaderInfo(reportArr, "optimization", ""));
+	            if(StringUtils.isBlank(filterValue)) {
+	                ChartController chartController = new ChartController();
+	                reportResultModel.setReport_label("Cloud Cost Comparison Report");
+	                reportResultModel.setReport_name(reportName);
+	                reportResultModel.setColumnGroupInfo(null);
+	                reportResultModel.setDetailsColumnOrder(new JSONArray());
+	                reportResultModel.setDetailsData(new JSONArray());
+	                reportResultModel.setDetailsHeaderInfo(new JSONArray());
+
+	                String columnOrderQuery = "select columnName from reportColumns where reportName ='Optimization' and deviceType='All' order by seq,columnName";
+	                JSONArray columnOrderArray = QueryExecutor.orientDBQueryExecution(columnOrderQuery);
+	                JSONArray columnArray = new JSONArray();
+	                if (!columnOrderArray.isEmpty()) {
+	                    for (int i = 0; i < columnOrderArray.size(); i++) {
+	                        ZenfraJSONObject columnOrderObject = (ZenfraJSONObject) columnOrderArray.get(i);
+	                        if (!columnOrderObject.get("columnName").toString().equalsIgnoreCase("Server Name"))
+	                            columnArray.add(columnOrderObject.get("columnName"));
+	                    }
+	                }
+
+	                reportResultModel.setUnit_conv_details(null);
+	                reportResultModel.setChartOnly_enabled(0);
+	                reportResultModel.setChart(chartController.getChart(siteKey, userId, "optimization_" + deviceType));
+	                String chartLayoutQuery = "select from reportUserCustomization where siteKey = '" + siteKey
+	                        + "' and userId = '" + userId + "' and reportName = 'optimization_" + deviceType + "'";
+
+	                JSONArray chartLayoutData = QueryExecutor.orientDBQueryExecution(chartLayoutQuery);
+	                JSONArray chartLayoutArray = new JSONArray();
+	                if (!chartLayoutData.isEmpty()) {
+	                    for (int i = 0; i < chartLayoutData.size(); i++) {
+	                        ZenfraJSONObject jsonObject = (ZenfraJSONObject) chartLayoutData.get(i);
+	                        List<Object> chartLayoutList = (List<Object>) jsonObject.get("chartLayout");
+	                        chartLayoutArray.addAll(chartLayoutList);
+	                        List<String> columnsVisibleArray = (List<String>) jsonObject.get("columnsVisible");
+	                        if (!columnsVisibleArray.isEmpty()) {
+	                            columnArray = new JSONArray();
+	                            columnArray.addAll(columnsVisibleArray);
+	                        }
+	                    }
+	                }
+	                reportResultModel.setColumnOrder(columnArray);
+	                reportResultModel.setChartLayout(chartLayoutArray);
+	            }
+	            reportResultModel.setResponseCode(200);
+	            reportResultModel.setResponseMessage("success");
+	            reportResultModel.setResponseDescription("successfully loaded with "+reportArr.size());
+	        } catch (Exception ex) {
+	            logger.error("Exception in Generating the Report: " + ex);
+	            ex.printStackTrace();
+	            reportResultModel.setReport_label("Cloud Cost Comparison Report");
+	            reportResultModel.setResponseCode(400);
+	            reportResultModel.setResponseMessage("Failure");
+	            reportResultModel.setResponseDescription(ex.toString());
+	        }
+	        return ResponseEntity.ok(reportResultModel);
 	    }
 	 
 }
