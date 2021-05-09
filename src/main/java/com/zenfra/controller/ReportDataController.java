@@ -6,11 +6,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
+import com.orientechnologies.orient.core.db.ODatabaseSession;
+import com.orientechnologies.orient.core.db.OrientDB;
+import com.orientechnologies.orient.core.db.OrientDBConfig;
+import com.orientechnologies.orient.core.sql.executor.OResult;
+import com.orientechnologies.orient.core.sql.executor.OResultSet;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -244,24 +251,63 @@ public class ReportDataController {
 		 * (Exception e) { e.printStackTrace(); }
 		 */
 		 
+		 
 		 try {
-			 System.out.println("---------3------ ");
-		 Map<String, String> orientDBProps = new HashMap<>(); 
-         orientDBProps.put("url","jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb");
-         orientDBProps.put("user", "root");
-         orientDBProps.put("password", "27CH9610PUub25Y");
-         orientDBProps.put("spark", "true");
-         orientDBProps.put("dbtable", "eoleosData");
-         Dataset<Row> eoleosDataSet = sparkSession.sqlContext().read().format("jdbc").options(orientDBProps).load();
-         eoleosDataSet.show();
-         System.out.println("---------eoleosDataSet----------- "+ eoleosDataSet.count());
+		
+         ODatabaseSession db = getDBSession();
+         JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
+      
+         OResultSet rs = db.query("select * from eoleosData");
+         System.out.println("Query Executed");
+         List<String> ls = resultSetToJson(rs);
+         System.out.println("Json  created");
+         JavaRDD<String> javaRdd = jsc.parallelize(ls);
+         Dataset<org.apache.spark.sql.Row> DataSet = sparkSession.read().json(javaRdd);
+         long count = DataSet.count();
+         if (count > 0) {
+        	 System.out.println("---------eoleosDataSet----------- "+ DataSet.count());
+         }
+         
+        
 	 } catch (Exception e) {
 			e.printStackTrace();
 		}
          
 	 }
 	 
+	 public List<String> resultSetToJson(OResultSet rs) {
+	        List<String> ls = new ArrayList<String>();
+	        JSONParser parse = new JSONParser();
+	        try {
+	            while (rs.hasNext()) {
+	                OResult item = rs.next();
+	                try {
+	                    JSONObject result = (JSONObject) parse.parse(item.toJSON());
+	                    String s = result.toString();
+	                    ls.add(s);
+	                } catch (Exception e) {
+	                    e.printStackTrace();
+	                }
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	        return ls;
+	    }
 	 
+	 public ODatabaseSession getDBSession() {
+	        ODatabaseSession db = null;
+	        try {	        	
+	        	
+	            OrientDB orient = new OrientDB(com.zenfra.model.ZKModel.getProperty(com.zenfra.model.ZKConstants.ORIENTDBIP), OrientDBConfig.defaultConfig());
+	            db = orient.open(com.zenfra.model.ZKModel.getProperty(com.zenfra.model.ZKConstants.ORIENTDBNAME), com.zenfra.model.ZKModel.getProperty(com.zenfra.model.ZKConstants.ORIENTDBUSER), com.zenfra.model.ZKModel.getProperty(com.zenfra.model.ZKConstants.ORIENTDBPWD));
+	            System.out.println("Connection open");
+	        } catch (Exception e) {
+	            System.out.println("Connection Failure");
+	            e.printStackTrace();
+	        }
+	        return db;
+	    }
 	 
 
 	  /*  @RequestMapping(value = "/getReportData/optimization", method = RequestMethod.POST)

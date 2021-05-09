@@ -114,11 +114,54 @@
 			<version>2.12.12</version>
 		</dependency>
 		
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-orientdb-2.2.1_2.11</artifactId>
 			<version>1.4</version>
+		</dependency> -->
+		
+		<dependency>
+			<groupId>com.orientechnologies</groupId>
+			<artifactId>orientdb-core</artifactId>
+			<version>${orientdb.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.orientechnologies</groupId>
+			<artifactId>orientdb-jdbc</artifactId>
+			<version>${orientdb.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.orientechnologies</groupId>
+			<artifactId>orientdb-server</artifactId>
+			<version>${orientdb.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.orientechnologies</groupId>
+			<artifactId>orientdb-tools</artifactId>
+			<version>${orientdb.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.orientechnologies</groupId>
+			<artifactId>orientdb-graphdb</artifactId>
+			<version>${orientdb.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.orientechnologies</groupId>
+			<artifactId>orientdb-object</artifactId>
+			<version>${orientdb.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.orientechnologies/orientdb-client -->
+<dependency>
+    <groupId>com.orientechnologies</groupId>
+    <artifactId>orientdb-client</artifactId>
+    <version>3.1.10</version>
+</dependency>
+		
+		
+		
 
 		<dependency>
 			<groupId>org.apache.spark</groupId>
@@ -170,15 +213,15 @@
 </dependency> 
 
 	</dependencies>
-<repositories>	
+<!-- <repositories>	
 <repository>
    <id>bintray</id>
    <name>bintray</name>
-  <!--  <url>https://dl.bintray.com/sbcd90/org.apache.spark/</url> -->
- <!--  <url>E:/opt/config/spark-orientdb-2.2.1_2.11/1.4</url> -->  
+   <url>https://dl.bintray.com/sbcd90/org.apache.spark/</url>
+  <url>E:/opt/config/spark-orientdb-2.2.1_2.11/1.4</url> 
   <url>file:/opt/config/spark-orientdb-2.2.1_2.11/1.4/</url>  
 </repository>
-	</repositories>
+	</repositories> -->
 
 	<build>
 
