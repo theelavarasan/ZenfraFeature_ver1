@@ -175,8 +175,8 @@
    <id>bintray</id>
    <name>bintray</name>
   <!--  <url>https://dl.bintray.com/sbcd90/org.apache.spark/</url> -->
- <!--  <url>E:/opt/config/spark-orientdb-2.2.1_2.11/1.4</url> -->
-  <url>file://E://opt//config//spark-orientdb-2.2.1_2.11//1.4</url>   
+ <!--  <url>E:/opt/config/spark-orientdb-2.2.1_2.11/1.4</url> -->  
+  <url>file:/opt/config/spark-orientdb-2.2.1_2.11/1.4/</url>  
 </repository>
 	</repositories>
 

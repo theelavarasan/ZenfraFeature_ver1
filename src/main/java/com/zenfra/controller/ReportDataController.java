@@ -1,9 +1,14 @@
 package com.zenfra.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +50,9 @@ public class ReportDataController {
 	
 	@Autowired
 	FavouriteApiService_v2 favouriteApiService_v2;
+	
+	@Autowired
+	SparkSession sparkSession;
 	
 
 	@GetMapping("createLocalDiscoveryDF")
@@ -210,6 +218,58 @@ public class ReportDataController {
 	          return ResponseEntity.ok(resultObject);
 	          
 	    }
+	 
+	 @GetMapping("/checkodb")
+	    public void checkodb() {	 
+		 
+		 try {
+			 System.out.println("---------1------- ");
+			 Dataset<Row> eolos =  sparkSession.read()
+				     .format("org.apache.spark.orientdb.documents")
+				     .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
+				     .option("user", "root")
+				     .option("password", "")
+				     .option("class", "eoleosData")
+				     .option("query", "select * from $eoleosData")
+				     .load();
+					 
+					 System.out.println("---------eolos----------- "+ eolos);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 
+		 
+		 try {
+			 System.out.println("---------2------ ");
+		 Dataset<Row> user =  sparkSession.read()
+			     .format("org.apache.spark.orientdb.documents")
+			     .option("dburl", "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb")
+			     .option("user", "root")
+			     .option("password", "")
+			     .option("class", "user")
+			     .option("query", "select * from $user")
+			     .load();
+		 
+		 System.out.println("---------user----------- "+ user.count());
+		 } catch (Exception e) {
+				e.printStackTrace();
+			}
+		 
+		 try {
+			 System.out.println("---------3------ ");
+		 Map<String, String> orientDBProps = new HashMap<>(); 
+         orientDBProps.put("url","jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb");
+         orientDBProps.put("user", "root");
+         orientDBProps.put("password", "27CH9610PUub25Y");
+         orientDBProps.put("spark", "true");
+         orientDBProps.put("dbtable", "eoleosData");
+         Dataset<Row> eoleosDataSet = sparkSession.sqlContext().read().format("jdbc").options(orientDBProps).load();
+         eoleosDataSet.show();
+	 } catch (Exception e) {
+			e.printStackTrace();
+		}
+         
+	 }
 	 
 	 
 	 
