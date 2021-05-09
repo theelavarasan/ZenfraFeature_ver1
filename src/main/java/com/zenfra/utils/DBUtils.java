@@ -30,4 +30,29 @@ public class DBUtils {
 		return data;
 
 	}
+	
+	
+	public static Map<String, String> getOrientDb() {
+		Map<String, String> data = new HashMap<>();
+		ZookeeperConnection zkConnection = new ZookeeperConnection();
+		try {
+			ZKModel.zkData = zkConnection.getZKData();
+			//String url = ZKModel.getProperty(ZKConstants.POSTGRES_URL);
+			String userName = ZKModel.getProperty(ZKConstants.ORIENTDBUSER);
+			String password = ZKModel.getProperty(ZKConstants.ORIENTDBPWD);
+			String url = "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb";
+			data.put("url", url);
+			data.put("userName", userName);
+			data.put("password", password);
+			String dbUrl = url +"?user="+ userName +"&password="+ password; 
+			data.put("dbUrl", dbUrl);
+			
+			System.out.println(data);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return data;
+
+	}
 }
