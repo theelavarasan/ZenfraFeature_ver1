@@ -42,7 +42,12 @@ public class CategoryViewController {
 			view.setCreatedTime(functions.getCurrentDateWithTime());
 			view.setCategoryId(functions.generateRandomId());
 			
-			
+			if(view.getSiteKey()==null) {
+				responseModel.setResponseMessage("Validation Error!");
+				responseModel.setResponseDescription("Category not inserted:: Please sent valid site key");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+				return ResponseEntity.ok(responseModel);
+			}
 
 			view.setUpdatedBy(view.getUserId());
 			view.setUpdatedTime(functions.getCurrentDateWithTime());
