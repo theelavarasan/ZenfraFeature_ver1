@@ -279,7 +279,7 @@ public class FavouriteApiService_v2 {
 			
 			String grouped_columns=map.convertValue(favouriteModel.getGroupedColumns(), JSONArray.class).toJSONString();
 			
-			System.out.println(category_list);
+			
 			String query = "UPDATE favourite_view SET updated_time='" + favouriteModel.getUpdatedTime()
 					+ "', updated_by='" + favouriteModel.getUpdatedBy() + "'"
 					+ ", group_by_period='" + favouriteModel.getGroupByPeriod() + "', site_key='"
@@ -287,7 +287,7 @@ public class FavouriteApiService_v2 {
 					+ "', project_id='" + favouriteModel.getProjectId() + "', " + " site_access_list='"
 					+ site_access_list + "', grouped_columns='" + grouped_columns
 					+ "', category_list='" + category_list.toJSONString() + "', filter_property='"
-					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "',report_label='"+favouriteModel.getReportLabel()+"' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
+					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
 
 			
 			System.out.println(query);
