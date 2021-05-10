@@ -89,7 +89,7 @@ public class ReportDataController {
 	    public ResponseEntity<String> getRows(@RequestBody ServerSideGetRowsRequest request) { 		
 		  
 		  try {
-	      		 DataResult data = dataframeService.getReportData(request);
+	      		 DataResult data = dataframeService.getReportData(request, "discovery");
 	      		 if(data != null) {
 	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 	      		 }
@@ -100,6 +100,41 @@ public class ReportDataController {
 	    	JSONArray emptyArray = new JSONArray();
 	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
 	    }
+	 
+	 
+	 @PostMapping("geteoleosData")
+	    public ResponseEntity<String> geteoleosData(@RequestBody ServerSideGetRowsRequest request) { 		
+		  
+		  try {
+	      		 DataResult data = dataframeService.getReportData(request, "eoleos");
+	      		 if(data != null) {
+	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+	      		 }
+	 	        
+			} catch (Exception e) {
+				System.out.println("Not able to fecth report {}"+ e);
+			}   	
+	    	JSONArray emptyArray = new JSONArray();
+	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
+	    }
+	 
+	 
+	 @PostMapping("getOptimizationReportData")
+	    public ResponseEntity<String> getOptimizationReportData(@RequestBody ServerSideGetRowsRequest request) { 		
+		  
+		  try {
+	      		 DataResult data = dataframeService.getOptimizationReportData(request);
+	      		 if(data != null) {
+	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+	      		 }
+	 	        
+			} catch (Exception e) {
+				System.out.println("Not able to fecth report {}"+ e);
+			}   	
+	    	JSONArray emptyArray = new JSONArray();
+	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
+	    }
+	 
 	 
 	 @PostMapping("saveLocalDiscoveryDF")
 	    public ResponseEntity<String> saveLocalDiscoveryDF(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestBody JSONObject localDiscoveryData) { 	     

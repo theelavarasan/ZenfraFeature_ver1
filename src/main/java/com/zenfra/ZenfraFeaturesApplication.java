@@ -88,12 +88,16 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	    
 	  
 	    
-	  // @PostConstruct
+	   @PostConstruct
 	    public void createDataframeView() {		
 	    	dataframeService.createDataframeGlobalView();
 	        
 	    	//eolService.getEOLEOSData();
 	    	//eolService.getEOLEOSHW();
+	    	//eolService.getGooglePricing();
+	    	//eolService.getAzurePricing();
+	    	//eolService.getAWSPricing();
+	    	
 	    }
 	   
 	   
