@@ -73,7 +73,7 @@ public class ReportDataController {
 	    public ResponseEntity<String> getRows(@RequestBody ServerSideGetRowsRequest request) { 		
 		  
 		  try {
-	      		 DataResult data = dataframeService.getReportData(request, "discovery");
+	      		 DataResult data = dataframeService.getReportData(request);
 	      		 if(data != null) {
 	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 	      		 }
@@ -86,22 +86,18 @@ public class ReportDataController {
 	    }
 	 
 	 
-	 @PostMapping("geteoleosData")
-	    public ResponseEntity<String> geteoleosData(@RequestBody ServerSideGetRowsRequest request) { 		
-		  
-		  try {
-	      		 DataResult data = dataframeService.getReportData(request, "eoleos");
-	      		 if(data != null) {
-	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
-	      		 }
-	 	        
-			} catch (Exception e) {
-				System.out.println("Not able to fecth report {}"+ e);
-			}   	
-	    	JSONArray emptyArray = new JSONArray();
-	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
-	    }
-	 
+	/*
+	 * @PostMapping("geteoleosData") public ResponseEntity<String>
+	 * geteoleosData(@RequestBody ServerSideGetRowsRequest request) {
+	 * 
+	 * try { DataResult data = dataframeService.getReportData(request, "eoleos");
+	 * if(data != null) { return new
+	 * ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK); }
+	 * 
+	 * } catch (Exception e) { System.out.println("Not able to fecth report {}"+ e);
+	 * } JSONArray emptyArray = new JSONArray(); return new
+	 * ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK); }
+	 */
 	 
 	 @PostMapping("getOptimizationReportData")
 	    public ResponseEntity<String> getOptimizationReportData(@RequestBody ServerSideGetRowsRequest request) { 		
