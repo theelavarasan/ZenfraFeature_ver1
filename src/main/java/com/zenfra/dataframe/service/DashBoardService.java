@@ -62,7 +62,7 @@ public class DashBoardService {
 			String getDashboardLayoutChartLayout=queries.dashboardQueries().getGetDashboardLayoutChartLayout()
 					.replace(":user_id_value", userId).replace(":site_key_value", siteKey);
 			
-			System.out.println(getDashboardLayoutChartLayout);
+			System.out.println("chart::"+getDashboardLayoutChartLayout);
 			List<Map<String,Object>> chartDetails=dashDao.getListMapObjectById(getDashboardLayoutChartLayout);
 				JSONArray chartObj=new JSONArray();
 				ObjectMapper mapper = new ObjectMapper();

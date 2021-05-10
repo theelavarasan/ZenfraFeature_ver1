@@ -26,6 +26,8 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		}
 		return obj;
 	}
+	
+	
 
 	public Boolean saveEntity(Class c, Object obj) {
 
