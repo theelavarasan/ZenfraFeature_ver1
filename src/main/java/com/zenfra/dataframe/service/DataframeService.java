@@ -672,9 +672,11 @@ public class DataframeService{
 			        	/* dataset.toJavaRDD().foreach(x->
 			        	   {
 			        		  String osVersion =  x.getAs("OS Version");
+			        		  String osName =  x.getAs("Server Type");
 			        		  eolos.toJavaRDD().foreach(y->
 				        	   {
-				        		   Dataset<Row> res =  sparkSession.sql("select end_of_life_cycle as `End Of Life - OS`, end_of_extended_support as `End Of Extended Support - OS` from global_temp.eolDataDF where lower(os_type)='"+source_type+"' and os_version='"+osVersion+"'");
+				        		   Dataset<Row> res =  sparkSession.sql("select end_of_life_cycle as `End Of Life - OS`, end_of_extended_support as `End Of Extended Support - OS` from global_temp.eolDataDF where lower(os_type)='"+osName+"' and os_version='"+osVersion+"'");
+				        		   dataset = dataset.join(eolos);
 				        	   });
 			        	   } 
 			        	);*/
