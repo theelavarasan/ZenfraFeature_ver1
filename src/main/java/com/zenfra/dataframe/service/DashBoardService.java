@@ -3,6 +3,7 @@ package com.zenfra.dataframe.service;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.Map;
 import org.apache.http.client.ClientProtocolException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.jsoup.Connection.Response;
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +34,7 @@ import lombok.val;
 @Service
 public class DashBoardService {
 
+	
 	@Autowired
 	DashBoardDao dashDao;
 
@@ -163,7 +167,11 @@ public class DashBoardService {
 		
 		ObjectMapper map=new ObjectMapper();
 		JSONObject obj=new JSONObject();
+		
 		try {
+			
+			
+			
 			String query=queries.dashboardQueries().getGetDashboardChartDetails()
 					.replace(":chart_id", dashboardInputModel.getChartId()).replace(":site_key",dashboardInputModel.getSiteKey());
 			
@@ -387,6 +395,83 @@ public class DashBoardService {
 		}
 		return dash;
 	}
+
+	public Object getProjectSummary(DashboardInputModel dashboardInputModel,String token) {
+		Object obj=new Object();
+		
+			try {
+				
+				 Response  execute = Jsoup.connect("http://uat.zenfra.co:8080/zenfra-features/rest/dashboard/layout?siteKey=67483b74-b221-4057-be91-c06c4011fa66&tenantId=a0fe5fb8-f660-46fb-9c3d-eae1d3847238&userId=223247ff-9f05-4612-87b1-27e47d427003")
+		                    .header("Content-Type", "application/json")
+		                    .header("Accept", "application/json")
+		                    //.header("Authorization", token)
+		                    .followRedirects(true)
+		                    .ignoreHttpErrors(true)
+		                    .ignoreContentType(true)
+		                    .userAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML," +
+		                            " like Gecko) Chrome/45.0.2454.4 Safari/537.36")
+		                    .method(org.jsoup.Connection.Method.GET)
+		                    //.requestBody(dashboardInputModel.toString())
+		                    .maxBodySize(1_000_000 * 30) // 30 mb ~
+		                    .timeout(0) // infinite timeout
+		                    .execute();
+				/*Response  execute = Jsoup.connect("http://uat.zenfra.co:8080/ZenfraV2/rest/reports/dashboard/data")
+	                    .header("Content-Type", "application/json")
+	                    .header("Accept", "application/json")
+	                    .header("Authorization", token)
+	                    .followRedirects(true)
+	                    .ignoreHttpErrors(true)
+	                    .ignoreContentType(true)
+	                    .userAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML," +
+	                            " like Gecko) Chrome/45.0.2454.4 Safari/537.36")
+	                    .method(org.jsoup.Connection.Method.POST)
+	                    .requestBody(dashboardInputModel.toString())
+	                    .maxBodySize(1_000_000 * 30) // 30 mb ~
+	                    .timeout(0) // infinite timeout
+	                    .execute();*/
+				
+				  String jsonString = execute.body();
+				  System.out.println(jsonString);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		return obj;
+	}
+
+	public JSONArray getChartFavMenuByAnalyticsType(String siteKey,
+			String favouriteId) {
+		JSONArray jsonArray=new JSONArray();
+		try {			
+			String dashBoardQuery = "select fc.favourite_name as \"favouriteName\",dcd.chart_id  as \"chartId\" from dashboard_chart_details dcd\r\n" + 
+					"left join favourite_view fc on fc.favourite_id = dcd.favourite_Id\r\n" + 
+					"where dcd.site_Key = '"+siteKey+"'" + 
+					"and dcd.favourite_Id = '"+favouriteId+"'";
+				List<Map<String,Object>> map=dashDao.getListMapObjectById(dashBoardQuery);
+		
+				for(Map<String,Object> s:map) {					
+					if (s.get("favouriteName")!=null && s.get("chartId")!=null && s.get("chartId").toString().contains("~")) {
+						JSONObject chartObject = new JSONObject();
+						String[] chartIdArray = s.get("chartId").toString().split("~");
+						if (chartIdArray[2].equalsIgnoreCase("groupedBarChart")) {
+							chartObject.put("label", "PROJECT-SUMMARY-" + s.get("favouriteName") + "-" + "PROJECT SUMMARY");
+						} else {
+							chartObject.put("label", "PROJECT-SUMMARY-" + s.get("favouriteName") + "-" + "OVERALL SUMMARY");
+						}
+						chartObject.put("value", s.get("chartId").toString());
+						chartObject.put("type", chartIdArray[2]);
+						 	
+							jsonArray.add(chartObject);
+						}
+				}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return jsonArray;
+	}
 	 
+	
+	
+	/*******************project summary********************/
 	
 }

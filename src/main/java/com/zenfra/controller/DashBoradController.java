@@ -1,5 +1,7 @@
 package com.zenfra.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.json.simple.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +15,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.dataframe.service.DashBoardService;
+import com.zenfra.model.ChartModel_v2;
 import com.zenfra.model.DashBoardCharts;
 import com.zenfra.model.DashboardChartDetails;
 import com.zenfra.model.DashboardInputModel;
 import com.zenfra.model.DashboardUserCustomization;
 import com.zenfra.model.ResponseModel_v2;
+import com.zenfra.service.ChartService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
@@ -31,6 +35,10 @@ public class DashBoradController {
 	
 	@Autowired
 	CommonFunctions functions;
+	
+	
+	@Autowired
+	ChartService chartService;
 	
 	
 	@GetMapping("/layout")
@@ -262,14 +270,20 @@ public class DashBoradController {
 	
 	@PostMapping("/get-chart-details")
 	public ResponseEntity<?> getDashboardChartDetails(
-			@RequestBody DashboardInputModel dashboardInputModel
+			@RequestBody DashboardInputModel dashboardInputModel,
+			HttpServletRequest request
 			){
 		
-
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 	
 			try {
 		
+				/*JSONObject responce=null;
+				if(dashboardInputModel.getReportName().equalsIgnoreCase("project-summary")) {					
+					dashService.getProjectSummary(dashboardInputModel,token);
+				}else {
+					 responce=dashService.getDashboardChartDetails(dashboardInputModel);
+				}*/
 				
 				JSONObject responce=dashService.getDashboardChartDetails(dashboardInputModel);
 				responseModel.setResponseMessage("Success");
@@ -293,15 +307,22 @@ public class DashBoradController {
 	
 	@GetMapping("/get-chart-fav-menu")
 	public ResponseEntity<?> getChatForFavMenu(@RequestParam String favouriteId,
-			@RequestParam String userId,@RequestParam String siteKey){
+			@RequestParam String userId,@RequestParam String siteKey,
+			@RequestParam String analyticsType){
 		
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 	
 			try {
 		
+				Object responce=null;
+				if(analyticsType.equalsIgnoreCase("project-summary")) {
+					responce=dashService.getChartFavMenuByAnalyticsType(siteKey, favouriteId);
+				}else {
+					responce=dashService.getChatForFavMenu(favouriteId,userId,siteKey);
+				}
 				
-				JSONObject responce=dashService.getChatForFavMenu(favouriteId,userId,siteKey);
+				
 				responseModel.setResponseMessage("Success");
 				if (responce != null) {
 					responseModel.setResponseDescription("Dashboard Chart retrieve");
@@ -332,8 +353,16 @@ public class DashBoradController {
 			try {
 			
 				
+				/*ChartModel_v2 chart=chartService.getChartByChartId(dash.getChartId());
+					if(chart==null) {
+						ChartModel_v2 chartTemp=new ChartModel_v2();
+						chartTemp.setChartId(dash.getChartDetails());
+						chartTemp.setActive(true);
+						//chartTemp.set
+					}*/
+				
 				DashboardChartDetails exitObject=dashService.getDashboardChartDetailsBySiteKey(dash.getSiteKey(),dash.getChartId());
-			
+					
 				boolean responce=false;
 				
 				if(exitObject!=null) {
