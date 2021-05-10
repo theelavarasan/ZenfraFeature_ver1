@@ -1,18 +1,42 @@
 package com.zenfra.queries;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
-
 import lombok.Data;
 
 @Data
-@Component
-@ConfigurationProperties("dashboard.charts")
-@PropertySource("classpath:quries.properties")
 public class DashBoardChartsQueries {
 
 	private String delete;
+	private String saveOrUpdateDashboardChart;
+	
+	private String getSiteKeyUserIdChartId;
+	
+	private String getByChartIdSiteKeyUserId;
+	
+	
+
+	public String getGetByChartIdSiteKeyUserId() {
+		return getByChartIdSiteKeyUserId;
+	}
+
+	public void setGetByChartIdSiteKeyUserId(String getByChartIdSiteKeyUserId) {
+		this.getByChartIdSiteKeyUserId = getByChartIdSiteKeyUserId;
+	}
+
+	public String getGetSiteKeyUserIdChartId() {
+		return getSiteKeyUserIdChartId;
+	}
+
+	public void setGetSiteKeyUserIdChartId(String getSiteKeyUserIdChartId) {
+		this.getSiteKeyUserIdChartId = getSiteKeyUserIdChartId;
+	}
+
+	public String getSaveOrUpdateDashboardChart() {
+		return saveOrUpdateDashboardChart;
+	}
+
+	public void setSaveOrUpdateDashboardChart(String saveOrUpdateDashboardChart) {
+		this.saveOrUpdateDashboardChart = saveOrUpdateDashboardChart;
+	}
 
 	public String getDelete() {
 		return delete;

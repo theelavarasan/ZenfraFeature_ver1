@@ -1,5 +1,7 @@
 package com.zenfra.model;
 
+import javax.persistence.Column;
+
 import org.json.simple.JSONArray;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -61,6 +63,9 @@ public class FavouriteView_v2 {
 	private String project_id;
 	private String user_remove_list;
 
+	
+	private String reportLabel;
+	
 	public ObjectMapper getMap() {
 		return map;
 	}

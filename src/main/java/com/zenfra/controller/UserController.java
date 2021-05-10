@@ -13,7 +13,7 @@ import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/rest/user")
 public class UserController {
 
 	@Autowired

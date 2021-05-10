@@ -1,8 +1,17 @@
 package com.zenfra.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.ChartDAO;
 import com.zenfra.model.ChartModel_v2;
 import com.zenfra.utils.CommonFunctions;
@@ -37,7 +46,13 @@ public class ChartService {
 			
 				responce=chartDao.SaveChart(params);	*/
 			
-			response=chartDao.saveEntity(ChartModel_v2.class, chart);
+			if(chart.getChartId()!=null) {
+				response=chartDao.updateEntity(ChartModel_v2.class, chart);
+			}else {
+				response=chartDao.saveEntity(ChartModel_v2.class, chart);
+			}
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();			
 		}
@@ -62,11 +77,60 @@ public class ChartService {
 		boolean response=false;
 		try {
 			
-			response=chartDao.deleteByEntity(chart);
+			response=chartDao.updateEntity(ChartModel_v2.class,chart);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
+		return response;
+	}
+
+	
+	public List<ChartModel_v2> getChartByUserId(String userId) {
+		
+		List<ChartModel_v2> object=new ArrayList<ChartModel_v2>();
+		try {
+			
+			object=(List<ChartModel_v2>) (Object) chartDao.getChartByUserId(userId);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return object;
+	}
+
+
+	public JSONArray getMigarationReport(String siteKey, String userId, String reportName) {
 		
-		return response;
+		JSONArray output=new JSONArray();
+		List<Map<String, Object>> object=new ArrayList<Map<String,Object>>();
+		try {
+			
+			
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+			object=chartDao.getMigarationReport(siteKey,userId,reportName);
+			for(Map<String,Object> s:object) {
+				output.add(functions.convertGetMigarationReport(s));
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+		}
+		return output;
+	}
+	
+	
+	public Boolean eveitEntity(ChartModel_v2 chart) {
+		try {
+			
+			chartDao.eveitEntity(chart);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+		}
+		return true;
 	}
 }

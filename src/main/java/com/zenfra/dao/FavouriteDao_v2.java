@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,14 +13,14 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.model.FavouriteOrder_v2;
 import com.zenfra.model.FavouriteView_v2;
 
 
 
 @Component
-public  class FavouriteDao_v2 {
+public  class FavouriteDao_v2 extends CommonEntityManager{
 
 	
 	@Autowired
@@ -182,7 +181,9 @@ public Integer updateQuery(Map<String,Object> parameter,String query) {
 		return responce;
 	}
 	
-public Object getSingleColumnAsObject(String query) {
+
+	
+	public Object getSingleColumnAsObject(String query) {
 		
 		Object obj=new Object();
 		try {		
@@ -193,4 +194,31 @@ public Object getSingleColumnAsObject(String query) {
 		}
 		return obj;
 	}
+
+
+	public String getSingleColumnAsJSONARRAY(String query) {
+	
+		
+		String obj=new String();
+		try {		
+			
+			obj= jdbc.queryForObject(query, String.class);
+		} catch (Exception e) {
+			
+		}
+		return obj;
+	}
+
+
+	public String getTenantId() {
+
+		String tenantId = new String();
+		try {		
+			String query = "select user_id from user_temp where is_tenant_admin = true and email = 'EdwCrgrhF+nka9kvgjptup2hh6mOZbId'";
+			tenantId = jdbc.queryForObject(query, String.class);
+		} catch (Exception e) {
+			
+		}
+		return tenantId;
+}
 }

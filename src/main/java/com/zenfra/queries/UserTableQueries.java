@@ -7,9 +7,6 @@ import org.springframework.stereotype.Component;
 import lombok.Data;
 
 @Data
-@Component
-@ConfigurationProperties("user")
-@PropertySource("classpath:quries.properties")
 public class UserTableQueries {
 
 	

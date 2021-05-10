@@ -1,20 +1,32 @@
 package com.zenfra.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
+
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
-import com.fasterxml.jackson.annotation.PropertyAccessor;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
@@ -28,26 +40,27 @@ public class CommonFunctions {
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
 
-			if (row.get("filterProperty") != null) {
+			if (row.get("filterProperty") != null &&  !row.get("filterProperty").equals("[]")) {
 				row.put("filterProperty", (JSONArray) parser
 						.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("filterProperty", new JSONArray());
 			}
 
-			if (row.get("categoryList") != null) {
+			if (row.get("categoryList") != null &&  !row.get("categoryList").equals("[]")) {
 				row.put("categoryList", (JSONArray) parser
 						.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("categoryList", new JSONArray());
 			}
-			if (row.get("siteAccessList") != null) {
+			if (row.get("siteAccessList") != null && !row.get("siteAccessList").equals("[]")) {
 				row.put("siteAccessList", (JSONArray) parser
 						.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("siteAccessList", new JSONArray());
 			}
 			if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]") ) {
+
 				row.put("groupedColumns", (JSONArray) parser
 						.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
@@ -55,7 +68,7 @@ public class CommonFunctions {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 
 		}
 		return row;
@@ -113,6 +126,7 @@ public class CommonFunctions {
 		}
 		return query;
 
+
 	}
 
 	public JSONObject convertGetMigarationReport(Map<String, Object> map) {
@@ -159,6 +173,35 @@ public class CommonFunctions {
 
 
 	
+	
+
+	
+
+	
+	
+	
+
+
+	public JSONArray formatJsonArrayr(Object object) {
+		JSONArray jsonArray = new JSONArray();
+		JSONParser jsonParser = new JSONParser();
+		if(object != null) {
+			String str = object.toString();
+			str = str.replaceAll("\\\\","");
+			try {
+				if(!str.isEmpty()) {
+					jsonArray  = (JSONArray) jsonParser.parse(str);
+				}
+				
+			} catch (ParseException e) {				
+				e.printStackTrace();
+			}
+		
+		}
+		return jsonArray;
+	}
+	
+
 	public JSONObject getValueFromString(JSONObject obj) {
 		try {
 
@@ -175,6 +218,7 @@ public class CommonFunctions {
 		}
 
 	}
+	
 
 	public JSONArray convertStringToJsonArray(Object value) {
 		JSONArray arr = new JSONArray();
@@ -188,7 +232,6 @@ public class CommonFunctions {
 		}
 		return arr;
 	}
-
 	
 	
 	public JSONArray convertObjectToJsonArray(Object object) {
@@ -215,23 +258,5 @@ public class CommonFunctions {
 	}
 
 
-	public JSONArray formatJsonArrayr(Object object) {
-		JSONArray jsonArray = new JSONArray();
-		JSONParser jsonParser = new JSONParser();
-		if(object != null) {
-			String str = object.toString();
-			str = str.replaceAll("\\\\","");
-			try {
-				if(!str.isEmpty()) {
-					jsonArray  = (JSONArray) jsonParser.parse(str);
-				}
-				
-			} catch (ParseException e) {				
-				e.printStackTrace();
-			}
-		
-		}
-		return jsonArray;
-	}
 
 }

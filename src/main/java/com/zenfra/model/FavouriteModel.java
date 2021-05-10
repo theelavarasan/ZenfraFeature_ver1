@@ -6,12 +6,9 @@ import java.util.List;
 
 import org.json.simple.JSONArray;
 
-public class FavouriteModel implements Serializable {
+public class FavouriteModel {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	
 	private String favouriteName;
 	private String siteKey;
 	private String createdTime;
@@ -24,6 +21,7 @@ public class FavouriteModel implements Serializable {
 	private String favouriteId;
 	private String groupByPeriod;
 	private JSONArray groupedColumns;
+	private Object categoryColumns;
 	private List<String> categoryList = new ArrayList<>();
 
 	private List<String> userAccessList = new ArrayList<>();
@@ -31,6 +29,28 @@ public class FavouriteModel implements Serializable {
 	private String projectId;
 	private boolean isDefault;
 	private String authUserId;
+	private String reportLabel;
+	
+	
+	
+
+
+	public Object getCategoryColumns() {
+		return categoryColumns;
+	}
+
+	public void setCategoryColumns(Object categoryColumns) {
+		this.categoryColumns = categoryColumns;
+	}
+
+	public String getReportLabel() {
+		return reportLabel;
+	}
+
+	public void setReportLabel(String reportLabel) {
+		this.reportLabel = reportLabel;
+	}
+
 	public String getProjectId() {
 		return projectId;
 	}

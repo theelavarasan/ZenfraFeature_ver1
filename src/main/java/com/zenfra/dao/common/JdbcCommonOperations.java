@@ -1,9 +1,10 @@
-package com.zenfra.dao;
+package com.zenfra.dao.common;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -91,6 +92,32 @@ public abstract class JdbcCommonOperations {
 		try {
 
 			obj = jdbc.queryForList(query);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return obj;
+	}
+	
+	
+	public Object getObjectByQuery(String query,Class c) {
+	Object obj=null;
+		try {
+
+			obj = jdbc.queryForObject(query, c);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return obj;
+	}
+	
+	public List<Map<String, Object>> getObjectFromQuery(String query) {
+		List<Map<String, Object>> obj = new ArrayList<>();
+		try {
+
+			obj = jdbc.queryForList(query);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

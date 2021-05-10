@@ -15,27 +15,7 @@ import com.zenfra.model.ResponseModel_v2;
 public class ReportsController {
 
 	
-	@GetMapping("/chart-migrationreport")
-	public ResponseEntity<?> getMigarationReport(@RequestParam String siteKey,
-			String userId,String reportName){
-		
-		ResponseModel_v2 responseModel = new ResponseModel_v2();
-		try {
-			responseModel.setResponseMessage("Success");
-			
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			responseModel.setResponseMessage("Failed");
-			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
-			responseModel.setResponseDescription(e.getMessage());
-
-		} finally {
-			return ResponseEntity.ok(responseModel);
-		}
-		
-	}
+	
 	
 	
 	

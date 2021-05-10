@@ -3,8 +3,9 @@ package com.zenfra.dao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.zenfra.configuration.CommonQueriesData;
+import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.model.CategoryMapping;
-import com.zenfra.queries.CategoryMappingQueries;
 
 @Component
 public class CategoryMappingDao extends CommonEntityManager{
@@ -12,7 +13,7 @@ public class CategoryMappingDao extends CommonEntityManager{
 	
 	
 	@Autowired
-	CategoryMappingQueries data;
+	CommonQueriesData data;
 	
 	public boolean saveCategoryMapping(CategoryMapping maping) {
 		try {
@@ -28,14 +29,26 @@ public class CategoryMappingDao extends CommonEntityManager{
 	public void saveCategoryMappingjdbc(CategoryMapping cate) {
 	try {
 		
-		String query=data.getSave()
-				.replace(":id", cate.getId()).replace(":category_list", cate.getCategory_list());
+		String query=data.categoryMappingQueries().getSave()
+				.replace(":id", cate.getId()).replace(":category_list", cate.getCategory());
 		
 		updateQuery(query);
 		
 	} catch (Exception e) {
 		e.printStackTrace();
 	}
+	}
+
+	public boolean deleteCategoryMapping(String id) {
+		try {
+			
+			String query=data.categoryMappingQueries()
+					.getDeleteCategoryMappingFavouriteIdOrChartId().replace(":id", id);
+			updateQuery(query);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
 	}
 
 }
