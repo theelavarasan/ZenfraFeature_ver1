@@ -79,12 +79,9 @@ public class FavouriteApiService_v2 {
 					e.printStackTrace();
 				}
 			});
-
 			
 			
 			Object orderArr= daoFav.getSingleColumnAsObject(favourite_order_query);
-			
-		
 			arr.put("view", viewArr);			
 			if(orderArr!=null) {
 				arr.put("order",common.convertObjectToJsonArray(orderArr));
@@ -289,7 +286,6 @@ public class FavouriteApiService_v2 {
 					+ "', category_list='" + category_list.toJSONString() + "', filter_property='"
 					+ favouriteModel.getFilterProperty() + "', user_access_list='" + user + "' where favourite_id='"+favouriteModel.getFavouriteId()+"'";
 
-			
 			System.out.println(query);
 			responce = daoFav.updateQuery(query);
 		} catch (Exception e) {
