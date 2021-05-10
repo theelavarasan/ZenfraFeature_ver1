@@ -14,36 +14,40 @@ public class CategoryMappingService{
 	
 	@Autowired
 	CategoryMappingDao catDao;
-	
-	
+
+
 	public boolean saveMap(List<String> maping,String favId) {
-		
-		try {			
-				for(String map:maping) {
-					CategoryMapping cate=new CategoryMapping();
-						cate.setCategory(map);
-						cate.setId(favId);						
-					catDao.saveCategoryMappingjdbc(cate);
-				}
-			
-			return false;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
+
+	try {
+	for(String map:maping) {
+	CategoryMapping cate=new CategoryMapping();
+	cate.setCategory(map);
+	cate.setId(favId);
+	catDao.saveCategoryMappingjdbc(cate);
 	}
+
+	return false;
+	} catch (Exception e) {
+	e.printStackTrace();
+	return false;
+	}
+	}
+
+
 
 
 	public boolean deleteCategoryMappingFavouriteIdOrChartId(String id) {
-		boolean responce=false;
-		try {
-			
-			responce= catDao.deleteCategoryMapping(id);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return false;
+	boolean responce=false;
+	try {
+
+	responce= catDao.deleteCategoryMapping(id);
+
+	} catch (Exception e) {
+	e.printStackTrace();
 	}
+
+	return false;
+	}
+
+
 }
