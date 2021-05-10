@@ -438,8 +438,9 @@ public class DashBoardService {
 		return obj;
 	}
 
-	public JSONArray getChartFavMenuByAnalyticsType(String siteKey,
+	public JSONObject getChartFavMenuByAnalyticsType(String siteKey,
 			String favouriteId) {
+		JSONObject finalValue=new JSONObject();
 		JSONArray jsonArray=new JSONArray();
 		try {			
 			String dashBoardQuery = "select fc.favourite_name as \"favouriteName\",dcd.chart_id  as \"chartId\" from dashboard_chart_details dcd\r\n" + 
@@ -457,17 +458,19 @@ public class DashBoardService {
 						} else {
 							chartObject.put("label", "PROJECT-SUMMARY-" + s.get("favouriteName") + "-" + "OVERALL SUMMARY");
 						}
-						chartObject.put("value", s.get("chartId").toString());
+						chartObject.put("chartId", s.get("chartId").toString());
 						chartObject.put("type", chartIdArray[2]);
 						 	
 							jsonArray.add(chartObject);
 						}
 				}
+				
+				finalValue.put("chartDetails", jsonArray);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		return jsonArray;
+		return finalValue;
 	}
 	 
 	
