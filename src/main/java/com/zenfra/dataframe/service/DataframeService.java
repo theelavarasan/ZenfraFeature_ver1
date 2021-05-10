@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,6 +46,7 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +86,7 @@ public class DataframeService{
 
 	private static DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	
+	JSONParser parser = new JSONParser();
 
 	 @Autowired
 	 SparkSession sparkSession;
@@ -623,27 +626,29 @@ public class DataframeService{
 		
 	
 	
-	 public DataResult getReportData(ServerSideGetRowsRequest request) {	    	
-		
+	 public DataResult getReportData(ServerSideGetRowsRequest request, String reportType) {	    
+		 
+		 
 		 String siteKey = request.getSiteKey();
-         String source_type = request.getSourceType().toLowerCase();        
-         
+         String source_type = request.getSourceType().toLowerCase();
+        
        
  		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
  			source_type = source_type + "-" + request.getReportBy().toLowerCase();
  		} 		
          
-		 boolean isDiscoveryDataInView = false;		
+		 boolean isDiscoveryDataInView = false;
+		 Dataset<Row> dataset = null;
 		 String viewName = siteKey+"_"+source_type.toLowerCase();
 		 viewName = viewName.replaceAll("-", "");
 		 try {
-			 sparkSession.sql("select * from global_temp."+viewName);			
+			 dataset = sparkSession.sql("select * from global_temp."+viewName);
+			 dataset.cache();
 			 isDiscoveryDataInView = true;			
 		} catch (Exception e) {
-			e.printStackTrace();
 			System.out.println("---------View Not exists--------");
 		} 
-		 Dataset<Row> dataset =  null;
+		 
 		 try {	       
 			 isDiscoveryDataInView = false;
 	         if(!isDiscoveryDataInView) {
@@ -655,64 +660,29 @@ public class DataframeService{
 		         dataset.cache();
 	         }		        
 	         
-
-	        // int eoleosCount = eolService.getEOLEOSCount(siteKey, viewName);
-	        // int eolhwdata = eolService.getEOLEHWCount(siteKey, viewName);
-	         eolService.getEOLEOSData();
-	         eolService.getEOLEOSHW();
-	         
-	         String hwJoin = "";
-	         String hwdata = "";
-	         String osJoin = "";
-	         String osdata = "";        
-
-	         boolean eoleosCount = false;
-	         boolean eolhwdata = false;
-	         
-	         try{
-	        	 Dataset<Row> eolos = sparkSession.sql("select * from global_temp.eolDataDF");
-	        	 eoleosCount = true;
-	        	 eolos.show();
-	         } catch (Exception e) {
-	        	 e.printStackTrace();
+	         //---------------------EOL EOS---------------------------//	     
+	         if(dataset.count() > 0 && reportType.equalsIgnoreCase("eoleos")) {
+	        	 int osCount = eolService.getEOLEOSData();
+	        	 int hwCount = eolService.getEOLEOSHW();
+	        	String hwModel =  dataset.first().getAs("Server Model");
+	        	if(osCount > 0) {
+	        		 Dataset<Row> eolos = sparkSession.sql("select endoflifecycle as `End Of Life - OS`, endofextendedsupport as `End Of Extended Support - OS` from global_temp.eolDataDF where lower(ostype)='"+source_type+"'");  // where lower(`Server Name`)="+source_type
+		        	 if(eolos.count() > 0) {		        	
+			        	 dataset = dataset.join(eolos);
+			         }
+	        	}
+	        	
+	        	 if(hwCount > 0) {
+	        		 Dataset<Row> eolhw = sparkSession.sql("select endoflifecycle as `End Of Life - HW`, endofextendedsupport as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
+		        	 if(eolhw.count() > 0) {		        	
+			        	 dataset = dataset.join(eolhw);
+			         } 
+	        	 }
+	        	
 	         }
+	         dataset.printSchema();
 	         
-	         try{
-	        	 Dataset<Row> eolhw = sparkSession.sql("select * from global_temp.eolHWDataDF");
-	        	 eolhwdata = true;
-	        	 eolhw.show();
-	         } catch (Exception e) {
-	        	 e.printStackTrace();
-	         }
-			
-	         
-	         System.out.println("--------eoleosCount eolhwdata------- " + eolhwdata + " : " + eoleosCount);
-	         
-	         if (eoleosCount) {
-	             osJoin = " left join global_temp.eoleosDataDF eol on eol.`Server Name`=ldView.`Server Name`";
-	             osdata = ",eol.`End Of Life - OS`,eol.`End Of Extended Support - OS`";
-	         }
-	         
-	      
-			if (eolhwdata) {
-	             hwJoin = " left join global_temp.eolHWData eolHw on eolHw.`Server Name` = ldView.`Server Name`";
-	             hwdata = ",eolHw.`End Of Life - HW`,eolHw.`End Of Extended Support - HW`";
-	         }
-	       
-	       // String sql = "Select * from ( Select ldView.* , eol.`End Of Life - OS` , eol.`End Of Extended Support - OS` ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`logDate` desc) as my_rank from global_temp."+viewName+" ldView left join global_temp.eoleosDataDF eol on eol.`Server Name`=ldView.`Server Name` ) ld where ld.my_rank = 1";
-	         
-	         String sql = "select * from (" +
-                     " select ldView.*" + osdata + hwdata+
-                     " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.log_date desc) as my_rank" +
-                     " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
-                     " where lcase(ldView.actual_os_type) = '" + request.getSourceType().toLowerCase() + "') ld where ld.my_rank = 1";
-
-             System.out.println("Discovery Query with EOL : " + sql);
-
-             dataset = sparkSession.sql(sql).toDF();
-             
-             dataset.printSchema();
-	        
+	         //------------------------------------------------------//
 	         
 	         actualColumnNames = Arrays.asList(dataset.columns());	
 	         Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
@@ -763,6 +733,128 @@ public class DataframeService{
 		 return null;
 	    } 	   
 	 
+	 
+	 
+public DataResult getOptimizationReportData(ServerSideGetRowsRequest request) {	    
+		 
+		 
+		 String siteKey = request.getSiteKey();
+         String source_type = request.getSourceType().toLowerCase();
+         String sourceTypeFinal = request.getSourceType().toLowerCase();
+       
+ 		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
+ 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+ 		} 	
+         
+		 boolean isDiscoveryDataInView = false;
+		 Dataset<Row> dataset = null;
+		 String viewName = siteKey+"_"+source_type.toLowerCase();
+		 viewName = viewName.replaceAll("-", "");
+		 try {
+		    eolService.getAWSReport(viewName);
+	 		eolService.getAzureReport(viewName);
+	 		eolService.getGoogleReport(viewName);
+	 		
+		
+	         String sql = "select * from (" +
+	                    " select " +
+	                    " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`logDate` desc) as my_rank," +
+	                    " aws.`Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
+	                    " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
+	                    " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
+	                    " aws.`HBA Speed`,aws.`Number of Ports`," +
+	                    " round((round(aws.`AWS On Demand Price`,2) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS On Demand Price`," +
+	                    " round((round(aws.`AWS 3 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 3 Year Price`," +
+	                    " round((round(aws.`AWS 1 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 1 Year Price`," +
+	                    " aws.`AWS Instance Type`,aws.`AWS Region`,aws.`AWS Specs`," +
+	                    " round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`," +
+	                    " round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`," +
+	                    " round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`," +
+	                    " azure.`Azure Instance Type`,azure.`Azure Specs`," +
+	                    " google.`Google Instance Type`, " +
+	                    " google.`Google On Demand Price`," +
+	                    " google.`Google 1 Year Price`," +
+	                    " google.`Google 3 Year Price`," +
+	                    " aws.`OS Version` " +	                  
+	                    " from global_temp.awsReport aws " +	                   
+	                    " left join global_temp.azureReport azure on azure.`Server Name` = aws.`Server Name`" +
+	                    " left join global_temp.googleReport google on google.`Server Name` = aws.`Server Name` " +	                 
+	                    " where aws.siteKey='" + siteKey + "' and " + source_type + " order by aws.`Server Name` asc)ld where ld.my_rank = 1";
+	         
+	         dataset = sparkSession.sql(sql).toDF();
+	           
+	         //---------------------EOL EOS---------------------------//	     
+	         if(dataset.count() > 0) {
+	        	 int osCount = eolService.getEOLEOSData();
+	        	 int hwCount = eolService.getEOLEOSHW();
+	        	String hwModel =  dataset.first().getAs("Server Model");
+	        	if(osCount > 0) {
+	        		 Dataset<Row> eolos = sparkSession.sql("select endoflifecycle as `End Of Life - OS`, endofextendedsupport as `End Of Extended Support - OS` from global_temp.eolDataDF where lower(ostype)='"+source_type+"'");  // where lower(`Server Name`)="+source_type
+		        	 if(eolos.count() > 0) {		        	
+			        	 dataset = dataset.join(eolos);
+			         }
+	        	}
+	        	
+	        	 if(hwCount > 0) {
+	        		 Dataset<Row> eolhw = sparkSession.sql("select endoflifecycle as `End Of Life - HW`, endofextendedsupport as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
+		        	 if(eolhw.count() > 0) {		        	
+			        	 dataset = dataset.join(eolhw);
+			         } 
+	        	 }
+	        	
+	         }
+	         dataset.printSchema();
+	         
+	         //------------------------------------------------------//
+	         
+	         actualColumnNames = Arrays.asList(dataset.columns());	
+	         Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
+	         renamedDataSet.createOrReplaceTempView(viewName+"renamedDataSet");
+	        if(request.getEndRow() == 0) { // temp code
+	        	request.setEndRow((int) dataset.count());
+	        } 
+	    	 
+	        rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+	        groupKeys = request.getGroupKeys();
+	        valueColumns = request.getValueCols();
+	        pivotColumns = request.getPivotCols();
+	        filterModel = request.getFilterModel();
+	        sortModel = request.getSortModel();
+	        isPivotMode = request.isPivotMode();
+	        isGrouping = rowGroups.size() > groupKeys.size();	        
+	       
+	        rowGroups =  formatInputColumnNames(rowGroups);
+	        groupKeys =  formatInputColumnNames(groupKeys);
+	        sortModel =  formatSortModel(sortModel);
+
+	        Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from "+viewName+"renamedDataSet"); 	        	
+	        renamedColumnNames = Arrays.asList(df.columns());		       
+	        	
+	        Dataset<Row> results = orderBy(groupBy(filter(df, viewName+"renamedDataSet")));	
+	        
+	        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	        
+	        //results.printSchema();	 	
+	        
+	        results = results.dropDuplicates();
+	        
+	       /* List<String> numericalHeaders = reportService.getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
+	        if(!numericalHeaders.isEmpty()) {
+	        	numericalHeaders.stream().forEach((c) -> System.out.println(c));
+	        } */
+	       
+	        /*List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
+	        List<String> actualHeadets = new ArrayList<>();
+	        actualHeadets.addAll(Arrays.asList(results.columns()));	      
+	        actualHeadets.removeAll(headers);	       
+	        results =  results.drop(actualHeadets.stream().toArray(String[]::new));*/
+	        return paginate(results, request);
+		} catch (Exception e) {
+			logger.error("Exception occured while fetching local discoverydata from DF{}", e.getMessage(), e);
+		}
+	         
+		
+		 return null;
+	    } 
 	 
 	 private List<SortModel> formatSortModel(List<SortModel> sortModels) {
 		 List<SortModel> sortModel = new ArrayList<>();

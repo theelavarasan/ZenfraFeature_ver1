@@ -40,7 +40,7 @@ public class DBUtils {
 			//String url = ZKModel.getProperty(ZKConstants.POSTGRES_URL);
 			String userName = ZKModel.getProperty(ZKConstants.ORIENTDBUSER);
 			String password = ZKModel.getProperty(ZKConstants.ORIENTDBPWD);
-			String url = "jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb";
+			String url = "jdbc:orient:remote:uatdb.zenfra.co/dellemcdb";
 			data.put("url", url);
 			data.put("userName", userName);
 			data.put("password", password);
