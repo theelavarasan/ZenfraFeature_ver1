@@ -664,37 +664,57 @@ public class DataframeService{
 	        
 	        	 int osCount = eolService.getEOLEOSData();
 	        	 int hwCount = eolService.getEOLEOSHW();
+	        	 
+	        	
+	        	 
+
+	                String hwJoin = "";
+	                String hwdata = "";
+	                String osJoin = "";
+	                String osdata = "";
 	        	
 	        	if(osCount > 0) {
-	        		 Dataset<Row> eolos = sparkSession.sql("select end_of_life_cycle as `End Of Life - OS`, end_of_extended_support as `End Of Extended Support - OS` from global_temp.eolDataDF where lower(os_type)='"+source_type+"'");  // where lower(`Server Name`)="+source_type
-		        	 if(eolos.count() > 0) {		        	
-			        	 dataset = dataset.join(eolos);
-			        	/* dataset.toJavaRDD().foreach(x->
-			        	   {
-			        		  String osVersion =  x.getAs("OS Version");
-			        		  String osName =  x.getAs("Server Type");
-			        		  eolos.toJavaRDD().foreach(y->
-				        	   {
-				        		   Dataset<Row> res =  sparkSession.sql("select end_of_life_cycle as `End Of Life - OS`, end_of_extended_support as `End Of Extended Support - OS` from global_temp.eolDataDF where lower(os_type)='"+osName+"' and os_version='"+osVersion+"'");
-				        		   dataset = dataset.join(eolos);
-				        	   });
-			        	   } 
-			        	);*/
+	        		 Dataset<Row> eolos = sparkSession.sql("select * from global_temp.eolDataDF where lower(os_type)='"+source_type+"'");  // where lower(`Server Name`)="+source_type
+	        		 eolos.createOrReplaceTempView("eolos");
+	        		 if(eolos.count() > 0) { 
+	        			 
+	        			 osJoin = " left join eolos eol on lcase(eol.os_type)=lcase(ldView.actual_os_type) where lcase(eol.os_version)=lcase(ldView.`OS Version`)";
+	                     osdata = ",eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`";
+		        		 
+	 	        		/*String eosQuery = "Select * from ( Select ldView.* ,eol.end_of_life_cycle as `End Of Life - OS` ,eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp."+viewName+" ldView left join eolos eol on lcase(eol.os_type)=lcase(ldView.actual_os_type) where lcase(eol.os_version)=lcase(ldView.`OS Version`) )";
+	 	        		Dataset<Row> datasetTmp =  sparkSession.sql(eosQuery);
+	 	        		 System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>--------------" + datasetTmp.count());
+	 	        		datasetTmp.show(); */
+			        	
 			         }
 	        	}
 	        	
 	        	 if(hwCount > 0) {
 	        		 if(dataset.first().fieldIndex("Server Model") != -1) {
-	     	        	String hwModel =  dataset.first().getAs("Server Model");
+	        			 
+	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on (concat(eolHw.vendor,' ',eolHw.model))= ldView.`Server Model`";
+	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";
+	                     
+	     	        	/*String hwModel =  dataset.first().getAs("Server Model");
 	        		 Dataset<Row> eolhw = sparkSession.sql("select end_of_life_cycle as `End Of Life - HW`, end_of_extended_support as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
 		        	 if(eolhw.count() > 0) {		        	
 			        	 dataset = dataset.join(eolhw);
-			         } 
+			         } */
 	        	 }
 	        	 }
 	        	
+	        	//sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+	        	 
+	        	 String sql = "select * from (" +
+	                        " select ldView.*" +osdata + hwdata+
+	                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
+	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
+	                        " ) ld where ld.my_rank = 1";
+	        	 
+	        	 dataset = sparkSession.sql(sql).toDF(); 
+	        	 
 	        
-	         dataset.printSchema();
+	        // dataset.printSchema();
 	         
 	         //------------------------------------------------------//
 	         
@@ -733,11 +753,11 @@ public class DataframeService{
 	        	numericalHeaders.stream().forEach((c) -> System.out.println(c));
 	        } */
 	       
-	        /*List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
+	       /* List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
 	        List<String> actualHeadets = new ArrayList<>();
 	        actualHeadets.addAll(Arrays.asList(results.columns()));	      
 	        actualHeadets.removeAll(headers);	       
-	        results =  results.drop(actualHeadets.stream().toArray(String[]::new));*/
+	        results =  results.drop(actualHeadets.stream().toArray(String[]::new)); */
 	        return paginate(results, request);
 		} catch (Exception e) {
 			logger.error("Exception occured while fetching local discoverydata from DF{}", e.getMessage(), e);
