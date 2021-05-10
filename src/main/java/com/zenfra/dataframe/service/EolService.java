@@ -54,7 +54,7 @@ public class EolService {
             */
             
         	////////////////////////////////////////////////////////
-        	/*Map<String, String> options = new HashMap<String, String>();
+        	Map<String, String> options = new HashMap<String, String>();
 			options.put("url", oDbUrl);
 			options.put("dbtable", "eoleosData");
 			
@@ -62,7 +62,7 @@ public class EolService {
 			Dataset<Row> eoleosDataSet = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
 			
 			System.out.println("----------eoleosDataSet---------------------------");
-			eoleosDataSet.show();*/
+			eoleosDataSet.show();
             //////////////////////////////////////////////////////////////////
            /* Map<String, String> orientDBProps = new HashMap<>(); 
             orientDBProps.put("url","jdbc:orient:REMOTE:uatdb.zenfra.co/dellemcdb");
@@ -74,9 +74,11 @@ public class EolService {
             eoleosDataSet.show(); 
 */
            // Dataset<Row> eoleosDataSet = queryToDataSetSparkSession(eolQuery, db, sparkSession);
-        Dataset<Row> eoleosDataSet = sparkSession.read().format("csv")
-                     .option("header", "true").option("inferschema", false)
-                     .load("E:\\opt\\eol.csv");
+			/*
+			 * Dataset<Row> eoleosDataSet = sparkSession.read().format("csv")
+			 * .option("header", "true").option("inferschema", false)
+			 * .load("E:\\opt\\eol.csv");
+			 */
       
             count = eoleosDataSet.count();
             if (count > 0) {
