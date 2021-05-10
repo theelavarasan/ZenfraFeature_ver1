@@ -77,7 +77,7 @@ public class Users {
 	
 	
 	@Column(name="pin_status")
-	private boolean pin_status;
+	private boolean pin_status=false;
 	
 	
 	@Column(name="last_visted_sitekey")
