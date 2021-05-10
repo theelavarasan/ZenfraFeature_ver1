@@ -626,7 +626,7 @@ public class DataframeService{
 		
 	
 	
-	 public DataResult getReportData(ServerSideGetRowsRequest request, String reportType) {	    
+	 public DataResult getReportData(ServerSideGetRowsRequest request) {	    
 		 
 		 
 		 String siteKey = request.getSiteKey();
@@ -661,25 +661,39 @@ public class DataframeService{
 	         }		        
 	         
 	         //---------------------EOL EOS---------------------------//	     
-	         if(dataset.count() > 0 && reportType.equalsIgnoreCase("eoleos")) {
+	        
 	        	 int osCount = eolService.getEOLEOSData();
 	        	 int hwCount = eolService.getEOLEOSHW();
-	        	String hwModel =  dataset.first().getAs("Server Model");
+	        	
 	        	if(osCount > 0) {
-	        		 Dataset<Row> eolos = sparkSession.sql("select endoflifecycle as `End Of Life - OS`, endofextendedsupport as `End Of Extended Support - OS` from global_temp.eolDataDF where lower(ostype)='"+source_type+"'");  // where lower(`Server Name`)="+source_type
+	        		 Dataset<Row> eolos = sparkSession.sql("select end_of_life_cycle as `End Of Life - OS`, end_of_extended_support as `End Of Extended Support - OS` from global_temp.eolDataDF where lower(os_type)='"+source_type+"'");  // where lower(`Server Name`)="+source_type
 		        	 if(eolos.count() > 0) {		        	
 			        	 dataset = dataset.join(eolos);
+			        	/* dataset.toJavaRDD().foreach(x->
+			        	   {
+			        		  String osVersion =  x.getAs("OS Version");
+			        		  String osName =  x.getAs("Server Type");
+			        		  eolos.toJavaRDD().foreach(y->
+				        	   {
+				        		   Dataset<Row> res =  sparkSession.sql("select end_of_life_cycle as `End Of Life - OS`, end_of_extended_support as `End Of Extended Support - OS` from global_temp.eolDataDF where lower(os_type)='"+osName+"' and os_version='"+osVersion+"'");
+				        		   dataset = dataset.join(eolos);
+				        	   });
+			        	   } 
+			        	);*/
 			         }
 	        	}
 	        	
 	        	 if(hwCount > 0) {
-	        		 Dataset<Row> eolhw = sparkSession.sql("select endoflifecycle as `End Of Life - HW`, endofextendedsupport as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
+	        		 if(dataset.first().fieldIndex("Server Model") != -1) {
+	     	        	String hwModel =  dataset.first().getAs("Server Model");
+	        		 Dataset<Row> eolhw = sparkSession.sql("select end_of_life_cycle as `End Of Life - HW`, end_of_extended_support as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
 		        	 if(eolhw.count() > 0) {		        	
 			        	 dataset = dataset.join(eolhw);
 			         } 
 	        	 }
+	        	 }
 	        	
-	         }
+	        
 	         dataset.printSchema();
 	         
 	         //------------------------------------------------------//
