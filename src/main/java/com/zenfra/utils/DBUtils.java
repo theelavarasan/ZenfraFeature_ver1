@@ -37,15 +37,20 @@ public class DBUtils {
 		ZookeeperConnection zkConnection = new ZookeeperConnection();
 		try {
 			ZKModel.zkData = zkConnection.getZKData();
-			//String url = ZKModel.getProperty(ZKConstants.POSTGRES_URL);
+			String url = ZKModel.getProperty(ZKConstants.ORIENTDBIP);
 			String userName = ZKModel.getProperty(ZKConstants.ORIENTDBUSER);
 			String password = ZKModel.getProperty(ZKConstants.ORIENTDBPWD);
-			String url = "jdbc:orient:remote:uatdb.zenfra.co/dellemcdb";
+			String databse = ZKModel.getProperty(ZKConstants.ORIENTDBNAME);
+			System.out.println("--------------url--------- " + url + " : " + databse);
+			System.out.println("--------------userName--------- " + userName);
+			System.out.println("--------------password--------- " + password);
 			data.put("url", url);
 			data.put("userName", userName);
 			data.put("password", password);
-			String dbUrl = url +"?user="+ userName +"&password="+ password; 
+			String dbUrl = url+databse+"?user="+ userName +"&password="+ password; 
 			data.put("dbUrl", dbUrl);
+			
+			System.out.println("--------------dbUrl--------- " + dbUrl);
 			
 			System.out.println(data);
 		} catch (Exception e) {
