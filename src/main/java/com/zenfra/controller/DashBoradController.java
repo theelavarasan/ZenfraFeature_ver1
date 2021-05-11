@@ -393,7 +393,6 @@ public class DashBoradController {
 				}
 		
 			} catch (Exception e) {
-				e.printStackTrace();
 				responseModel.setResponseMessage("Error");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				responseModel.setResponseDescription(e.getMessage());
