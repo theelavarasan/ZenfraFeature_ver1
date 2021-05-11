@@ -633,7 +633,7 @@ public class DataframeService{
          String source_type = request.getSourceType().toLowerCase();
         
        
- 		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
+ 		if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("hyper") || source_type.contains("nutanix"))) {
  			source_type = source_type + "-" + request.getReportBy().toLowerCase();
  		} 		
          
