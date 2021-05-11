@@ -214,7 +214,7 @@ public Integer updateQuery(Map<String,Object> parameter,String query) {
 
 		String tenantId = new String();
 		try {		
-			String query = "select user_id from user_temp where is_tenant_admin = true and email = 'EdwCrgrhF+nka9kvgjptup2hh6mOZbId'";
+			String query = "select user_id from user_temp where is_tenant_admin = true";
 			tenantId = jdbc.queryForObject(query, String.class);
 		} catch (Exception e) {
 			
