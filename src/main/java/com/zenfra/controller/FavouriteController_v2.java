@@ -86,7 +86,7 @@ public class FavouriteController_v2 {
 				return ResponseEntity.ok(responseModel);
 			}
 			favouriteModel.setFavouriteId(functions.generateRandomId());
-			if(favouriteModel.getReportName().equalsIgnoreCase("project-sumamry")) {
+			if(favouriteModel.getReportName().equalsIgnoreCase("project-summary")) {
 				favouriteModel.setReportLabel(favouriteModel.getFavouriteId());
 			}
 			favouriteModel.setIsActive(true);
