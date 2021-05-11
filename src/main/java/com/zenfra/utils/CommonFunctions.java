@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
 import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -21,12 +23,15 @@ import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class CommonFunctions {
+
 
 	public Map<String, Object> getFavViewCheckNull(Map<String, Object> row) {
 
@@ -55,7 +60,7 @@ public class CommonFunctions {
 				row.put("siteAccessList", new JSONArray());
 			}
 			if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]") ) {
-				System.out.println(row.get("groupedColumns"));
+
 				row.put("groupedColumns", (JSONArray) parser
 						.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
@@ -121,6 +126,7 @@ public class CommonFunctions {
 		}
 		return query;
 
+
 	}
 
 	public JSONObject convertGetMigarationReport(Map<String, Object> map) {
@@ -167,10 +173,38 @@ public class CommonFunctions {
 
 
 	
+	
+
+	
+
+	
+	
+	
+
+
+	public JSONArray formatJsonArrayr(Object object) {
+		JSONArray jsonArray = new JSONArray();
+		JSONParser jsonParser = new JSONParser();
+		if(object != null) {
+			String str = object.toString();
+			str = str.replaceAll("\\\\","");
+			try {
+				if(!str.isEmpty()) {
+					jsonArray  = (JSONArray) jsonParser.parse(str);
+				}
+				
+			} catch (ParseException e) {				
+				e.printStackTrace();
+			}
+		
+		}
+		return jsonArray;
+	}
+	
+
 	public JSONObject getValueFromString(JSONObject obj) {
 		try {
 
-			
 			if (obj != null && obj.containsKey("value")) {
 				obj.put("value", convertStringToJsonArray(obj.get("value")));
 			}else {
@@ -184,6 +218,7 @@ public class CommonFunctions {
 		}
 
 	}
+	
 
 	public JSONArray convertStringToJsonArray(Object value) {
 		JSONArray arr = new JSONArray();
@@ -197,7 +232,6 @@ public class CommonFunctions {
 		}
 		return arr;
 	}
-
 	
 	
 	public JSONArray convertObjectToJsonArray(Object object) {
@@ -224,25 +258,5 @@ public class CommonFunctions {
 	}
 
 
-	public JSONArray formatJsonArrayr(Object object) {
-		JSONArray jsonArray = new JSONArray();
-		JSONParser jsonParser = new JSONParser();
-		if(object != null) {
-			String str = object.toString();
-			str = str.replaceAll("\\\\","");
-			try {
-				if(!str.isEmpty()) {
-					jsonArray  = (JSONArray) jsonParser.parse(str);
-				}
-				
-			} catch (ParseException e) {				
-				e.printStackTrace();
-			}
-		
-		}
-		return jsonArray;
-	}
-	
-	
-	 
+
 }

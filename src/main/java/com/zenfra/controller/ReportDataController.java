@@ -1,14 +1,8 @@
 package com.zenfra.controller;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
@@ -23,22 +17,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.orientechnologies.orient.core.db.ODatabaseSession;
-import com.orientechnologies.orient.core.db.OrientDB;
-import com.orientechnologies.orient.core.db.OrientDBConfig;
-import com.orientechnologies.orient.core.sql.executor.OResult;
-import com.orientechnologies.orient.core.sql.executor.OResultSet;
-import com.orientechnologies.orient.jdbc.OrientJdbcConnection;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -46,6 +29,7 @@ import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.dataframe.util.ZenfraConstants;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
+import com.zenfra.utils.DBUtils;
 
 
 @CrossOrigin(origins = "*")
@@ -89,7 +73,7 @@ public class ReportDataController {
 	    public ResponseEntity<String> getRows(@RequestBody ServerSideGetRowsRequest request) { 		
 		  
 		  try {
-	      		 DataResult data = dataframeService.getReportData(request, "discovery");
+	      		 DataResult data = dataframeService.getReportData(request);
 	      		 if(data != null) {
 	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 	      		 }
@@ -102,22 +86,18 @@ public class ReportDataController {
 	    }
 	 
 	 
-	 @PostMapping("geteoleosData")
-	    public ResponseEntity<String> geteoleosData(@RequestBody ServerSideGetRowsRequest request) { 		
-		  
-		  try {
-	      		 DataResult data = dataframeService.getReportData(request, "eoleos");
-	      		 if(data != null) {
-	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
-	      		 }
-	 	        
-			} catch (Exception e) {
-				System.out.println("Not able to fecth report {}"+ e);
-			}   	
-	    	JSONArray emptyArray = new JSONArray();
-	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
-	    }
-	 
+	/*
+	 * @PostMapping("geteoleosData") public ResponseEntity<String>
+	 * geteoleosData(@RequestBody ServerSideGetRowsRequest request) {
+	 * 
+	 * try { DataResult data = dataframeService.getReportData(request, "eoleos");
+	 * if(data != null) { return new
+	 * ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK); }
+	 * 
+	 * } catch (Exception e) { System.out.println("Not able to fecth report {}"+ e);
+	 * } JSONArray emptyArray = new JSONArray(); return new
+	 * ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK); }
+	 */
 	 
 	 @PostMapping("getOptimizationReportData")
 	    public ResponseEntity<String> getOptimizationReportData(@RequestBody ServerSideGetRowsRequest request) { 		
@@ -264,90 +244,6 @@ public class ReportDataController {
 	          return ResponseEntity.ok(resultObject);
 	          
 	    }
-	 
-	 @GetMapping("/checkodb")
-	    public void checkodb() {
-		 
-		 
-		 Properties info = new Properties();
-	        String user = "root";
-	        String password = "27CH9610PUub25Y";
-	        info.put("user", user);
-	        info.put("password", password);
-
-	        try
-	        {
-	        	System.out.println("--------connection--------" + info);
-	        	
-	              Class.forName("com.orientechnologies.orient.jdbc.OrientJdbcDriver");
-	              Connection connection = (OrientJdbcConnection) DriverManager.getConnection("jdbc:orient:remote:uatdb.zenfra.co/dellemcdb", info);
-	              System.out.println("--------connection--------" + connection);
-	        } catch (Exception e) {
-	        	e.printStackTrace();
-	        }
-	        
-	        
-	        
-		 try {
-			 System.out.println("--------1111111111111--------- ");
-         ODatabaseSession db = getDBSession();
-         System.out.println("---------db----------- "+ db.getName());
-         JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
-      
-         OResultSet rs = db.query("select * from eoleosData");
-         System.out.println("Query Executed");
-         List<String> ls = resultSetToJson(rs);
-         System.out.println("Json  created");
-         JavaRDD<String> javaRdd = jsc.parallelize(ls);
-         Dataset<org.apache.spark.sql.Row> DataSet = sparkSession.read().json(javaRdd);
-         DataSet.printSchema();
-         long count = DataSet.count();
-         if (count > 0) {
-        	 System.out.println("---------eoleosDataSet----------- "+ DataSet.count());
-         }
-         
-        
-	 } catch (Exception e) {
-			e.printStackTrace();
-		}
-         
-	 }
-	 
-	 public List<String> resultSetToJson(OResultSet rs) {
-	        List<String> ls = new ArrayList<String>();
-	        JSONParser parse = new JSONParser();
-	        try {
-	            while (rs.hasNext()) {
-	                OResult item = rs.next();
-	                try {
-	                    JSONObject result = (JSONObject) parse.parse(item.toJSON());
-	                    String s = result.toString();
-	                    ls.add(s);
-	                } catch (Exception e) {
-	                    e.printStackTrace();
-	                }
-	            }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	        return ls;
-	    }
-	 
-	 public ODatabaseSession getDBSession() {
-	        ODatabaseSession db = null;
-	        try {	        	
-	        	
-	            OrientDB orient = new OrientDB("remote:uatdb.zenfra.co", OrientDBConfig.defaultConfig());
-	            db = orient.open("dellemcdb", "root", "27CH9610PUub25Y");
-	            System.out.println("Connection open");
-	        } catch (Exception e) {
-	            System.out.println("Connection Failure");
-	            e.printStackTrace();
-	        }
-	        return db;
-	    }
-	 
-
 	  /*  @RequestMapping(value = "/getReportData/optimization", method = RequestMethod.POST)
 	    public ResponseEntity<?> getReport(@RequestAttribute(name = "authUserId", required = false) String userId,
 	                                       @RequestParam(name = "deviceType") String deviceType,

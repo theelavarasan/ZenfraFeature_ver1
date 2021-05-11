@@ -181,6 +181,7 @@ public Integer updateQuery(Map<String,Object> parameter,String query) {
 		return responce;
 	}
 	
+
 	
 	public Object getSingleColumnAsObject(String query) {
 		
@@ -219,5 +220,5 @@ public Integer updateQuery(Map<String,Object> parameter,String query) {
 			
 		}
 		return tenantId;
-	}
+}
 }
