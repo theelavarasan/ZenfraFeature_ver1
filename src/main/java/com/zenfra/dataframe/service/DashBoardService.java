@@ -71,12 +71,20 @@ public class DashBoardService {
 				JSONArray chartObj=new JSONArray();
 				ObjectMapper mapper = new ObjectMapper();
 				for(Map<String,Object> list:chartDetails) {	
-					JSONObject tempBreak = mapper.convertValue(list.get("filterProperty"), JSONObject.class);
+					System.out.println(list.get("filterProperty"));
 					JSONObject obtemp=mapper.convertValue(list, JSONObject.class);
-					if(tempBreak!=null && tempBreak.containsKey("value") && tempBreak.get("value")!=null) {
-						JSONObject tempFilter=mapper.readValue(tempBreak.get("value").toString(), JSONObject.class);
-						obtemp.put("filterProperty", tempFilter);						
+					
+					if(list.get("filterProperty")!=null && list.get("filterProperty").toString().startsWith("[")) {
+						
+					}else {
+						JSONObject tempBreak = mapper.convertValue(list.get("filterProperty"), JSONObject.class);
+						if(tempBreak!=null && tempBreak.containsKey("value") && tempBreak.get("value")!=null) {
+							JSONObject tempFilter=mapper.readValue(tempBreak.get("value").toString(), JSONObject.class);
+							obtemp.put("filterProperty", tempFilter);						
+						}
 					}
+					
+					
 					chartObj.add(obtemp);		
 				}
 			obj.put("chartDetails", chartObj);
@@ -89,7 +97,6 @@ public class DashBoardService {
 	public Boolean deleteDashboardChart(String chartId, String siteKey, String userId) {
 		try {
 			
-			System.out.println(queries.dashBoardChart().getGetByChartIdSiteKeyUserId());
 			String query=queries.dashBoardChart().getGetByChartIdSiteKeyUserId()
 					.replace(":user_id", userId)
 					.replace(":site_key", siteKey)
@@ -97,8 +104,7 @@ public class DashBoardService {
 			DashBoardCharts charts=(DashBoardCharts) dashDao.getEntityByColumn(query, DashBoardCharts.class);
 			if(charts!=null) {
 				charts.setActive(false);
-				dashDao.updateEntity(DashBoardCharts.class, charts);
-				dashDao.eveitEntity(charts);
+				dashDao.updateEntity(DashBoardCharts.class, charts);				
 				return true;
 			}else {
 				DashBoardCharts chart=new DashBoardCharts();
@@ -107,8 +113,7 @@ public class DashBoardService {
 					chart.setSiteKey(siteKey);
 					chart.setChartId(chartId);
 					chart.setActive(false);
-					dashDao.saveEntity(DashBoardCharts.class, chart);
-					dashDao.eveitEntity(chart);
+					dashDao.saveEntity(DashBoardCharts.class, chart);				
 			}
 			
 			return false;

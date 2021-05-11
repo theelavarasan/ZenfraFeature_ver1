@@ -55,8 +55,8 @@ public class ChartDAO extends CommonEntityManager{
 	public List<Map<String, Object>> getMigarationReport(String siteKey, String userId, String reportName) {
 		List<Map<String, Object>> list=new ArrayList<Map<String,Object>>();
 		try{			
-			String query=quereis.chart().getMigarationReport().replace(":site_key_value", siteKey)
-					.replace(":user_id_value", userId).replace(":report_name_value", reportName);
+			String query=quereis.chart().getMigarationReport().replace(":site_key", siteKey)
+					.replace(":user_id", userId).replace(":report_name", reportName);
 			System.out.println("query::"+query);
 			list=getListMapObjectById(query);
 		} catch (Exception e) {
