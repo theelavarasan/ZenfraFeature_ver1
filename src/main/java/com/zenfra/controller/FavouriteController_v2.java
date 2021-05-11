@@ -85,10 +85,12 @@ public class FavouriteController_v2 {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				return ResponseEntity.ok(responseModel);
 			}
-			
-			favouriteModel.setIsActive(true);
-			favouriteModel.setCreatedTime(functions.getCurrentDateWithTime());
 			favouriteModel.setFavouriteId(functions.generateRandomId());
+			if(favouriteModel.getReportName().equalsIgnoreCase("project-summary")) {
+				favouriteModel.setReportLabel(favouriteModel.getFavouriteId());
+			}
+			favouriteModel.setIsActive(true);
+			favouriteModel.setCreatedTime(functions.getCurrentDateWithTime());			
 			favouriteModel.setUpdatedBy(favouriteModel.getCreatedBy());
 			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
 			

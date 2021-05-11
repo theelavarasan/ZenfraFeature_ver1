@@ -391,7 +391,7 @@ public class DashBoardService {
 					
 			dash=(DashboardChartDetails) dashDao.getEntityByColumn(query, DashboardChartDetails.class);
 		} catch (Exception e) {
-			e.printStackTrace();
+			
 		}
 		return dash;
 	}
