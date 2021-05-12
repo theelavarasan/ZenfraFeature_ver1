@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.model.FavouriteModel;
 
 @Component
 public class CommonFunctions {
@@ -255,6 +256,53 @@ public class CommonFunctions {
 			}
 		}
 		return jsonArray;
+	}
+
+	public String getUpdateFavQuery(FavouriteModel favouriteModel) {
+		String query="";
+		try {
+			ObjectMapper map = new ObjectMapper();
+			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
+			String site_access_list=map.convertValue(favouriteModel.getSiteAccessList(), JSONArray.class).toJSONString();
+			JSONArray category_list=map.convertValue(favouriteModel.getCategoryList(), JSONArray.class);
+			
+			
+			
+			if(favouriteModel.getCategoryColumns()!=null) {
+				query=query+", category_list='"+category_list.toJSONString()+"'";
+			}
+			if(favouriteModel.getUserAccessList()!=null && !favouriteModel.getUserAccessList().isEmpty()) {
+				query=query+", user_access_list='" + user + "'";
+			}
+			if(favouriteModel.getFavouriteName()!=null) {
+				query=query+", favourite_name='" + favouriteModel.getFavouriteName()+"'";
+			}
+			
+			if(favouriteModel.getSiteAccessList()!=null && !favouriteModel.getSiteAccessList().isEmpty()) {
+				query=query+", site_access_list='"+ site_access_list + "'";
+			}
+			
+			if(favouriteModel.getReportName()!=null) {
+				query=query+", report_name='"+ favouriteModel.getReportName() + "'";
+			}
+			if(favouriteModel.getReportLabel()!=null) {
+				query=query+", report_label='"+ favouriteModel.getReportLabel() + "'";
+			}
+			if(favouriteModel.getGroupedColumns()!=null && !favouriteModel.getGroupedColumns().isEmpty()) {
+				query=query+", grouped_columns='"+ favouriteModel.getGroupedColumns().toJSONString() + "'";
+			}
+			if(favouriteModel.getFilterProperty()!=null && !favouriteModel.getFilterProperty().isEmpty()) {
+				query=query+", filter_property='"+ favouriteModel.getFilterProperty().toJSONString() + "'";
+			}
+			if(favouriteModel.getGroupByPeriod()!=null && !favouriteModel.getGroupByPeriod().isEmpty()) {
+				query=query+", group_by_period='"+ favouriteModel.getGroupByPeriod() + "'";
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return query;
 	}
 
 
