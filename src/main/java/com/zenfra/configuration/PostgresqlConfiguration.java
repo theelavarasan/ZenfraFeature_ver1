@@ -51,6 +51,7 @@ public class PostgresqlConfiguration {
     @Value("${db.driver}")
     private String driver;   
     */
+    
     @Bean
     DataSource loadDataSource() throws SQLException {   
     	System.out.println(this.url);
