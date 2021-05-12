@@ -110,6 +110,7 @@ public class ChartService {
 			mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
 			object=chartDao.getMigarationReport(siteKey,userId,reportName);
 			for(Map<String,Object> s:object) {
+				
 				output.add(functions.convertGetMigarationReport(s));
 			}
 			

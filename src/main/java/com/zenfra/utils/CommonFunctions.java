@@ -134,6 +134,7 @@ public class CommonFunctions {
 
 		JSONObject obj = new JSONObject();
 		ObjectMapper mapper = new ObjectMapper();
+		JSONParser parser = new JSONParser();
 		mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
 		try {
 
@@ -145,10 +146,11 @@ public class CommonFunctions {
 				map.put("siteAccessList",
 						map.get("siteAccessList").toString().replace("{", "").replace("}", "").split(","));
 			}
-			if(map.containsKey("categoryList")&&map.get("categoryList")!=null) {
-				map.put("categoryList",
-						map.get("categoryList").toString().replace("{", "").replace("}", "").split(","));
-
+			if (map.get("categoryList") != null &&  !map.get("categoryList").equals("[]")) {
+				map.put("categoryList", (JSONArray) parser
+						.parse(map.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
+			} else {
+				map.put("categoryList", new JSONArray());
 			}
 		
 			obj = mapper.convertValue(map, JSONObject.class);
