@@ -662,10 +662,11 @@ public class DataframeService{
 	         
 	         //---------------------EOL EOS---------------------------//	     
 	        
-	        	 int osCount = eolService.getEOLEOSData();
-	        	 int hwCount = eolService.getEOLEOSHW();
+	        	// int osCount = eolService.getEOLEOSData();
+	        	// int hwCount = eolService.getEOLEOSHW();
 	        	 
-	       	        	 
+	         int osCount = 0;	
+	         int hwCount = 0;
 
 	                String hwJoin = "";
 	                String hwdata = "";
@@ -704,14 +705,14 @@ public class DataframeService{
 	        	
 	        	//sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
 	        	 
-	        	 String sql = "select * from (" +
+	        	/* String sql = "select * from (" +
 	                        " select ldView.*" +osdata + hwdata+
 	                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
 	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
 	                        " ) ld where ld.my_rank = 1";
 	        	 
 	        	 dataset = sparkSession.sql(sql).toDF(); 
-	        	 
+	        	 */
 	        
 	        // dataset.printSchema();
 	         
