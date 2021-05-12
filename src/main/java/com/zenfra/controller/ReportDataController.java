@@ -126,7 +126,7 @@ public class ReportDataController {
 	      			result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
 	      			
 	      			//verify default fav is present or not
-	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
+	      			//favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
 	      			
 	      			return new ResponseEntity<>(result, HttpStatus.OK);
 	      		 } else {
