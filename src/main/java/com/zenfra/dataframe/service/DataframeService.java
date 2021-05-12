@@ -665,9 +665,8 @@ public class DataframeService{
 	        	// int osCount = eolService.getEOLEOSData();
 	        	// int hwCount = eolService.getEOLEOSHW();
 	        	 
+	         int osCount = 0;	
 	         int hwCount = 0;
-	         int osCount = 0;
-	        	 
 
 	                String hwJoin = "";
 	                String hwdata = "";
@@ -712,8 +711,8 @@ public class DataframeService{
 	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
 	                        " ) ld where ld.my_rank = 1";
 	        	 
-	        	 dataset = sparkSession.sql(sql).toDF(); */
-	        	 
+	        	 dataset = sparkSession.sql(sql).toDF(); 
+	        	 */
 	        
 	        // dataset.printSchema();
 	         
