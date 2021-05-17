@@ -477,7 +477,22 @@ public class DashBoardService {
 		
 		return finalValue;
 	}
+
+	public DashboardUserCustomization getDashUserCusBySiteKeyAndUserId(String siteKey, String userId) {
+		DashboardUserCustomization dash=null;
+		try {
+			String query="select * from dashboard_user_customization where site_key='"+siteKey+"' and user_id='"+userId+"'";
+			
+			dash=(DashboardUserCustomization) dashDao.getEntityByColumn(query, DashboardUserCustomization.class);
+					
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return dash;
+	}
 	 
+	
+	
 	
 	
 	/*******************project summary********************/
