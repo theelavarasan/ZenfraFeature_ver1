@@ -112,12 +112,24 @@ public class DashBoradController {
 	
 			try {
 		
+			DashboardUserCustomization dashExit=dashService.getDashUserCusBySiteKeyAndUserId(dash.getSiteKey(),dash.getUserId());
+			Boolean responce=false;
+			if(dashExit!=null) {
+				dash.setActive(true);
+				dash.setCreatedBy(dash.getUserId());
+				dash.setUpdatedTime(functions.getCurrentDateWithTime());
+				dash.setLayout(dash.getLayoutArray().toJSONString());			
+				responce=dashService.updateDashboardLayout(dashExit);
+			}else {
 				dash.setDataId(functions.generateRandomId());
 				dash.setActive(true);
 				dash.setCreatedBy(dash.getUserId());
 				dash.setUpdatedTime(functions.getCurrentDateWithTime());
 				dash.setLayout(dash.getLayoutArray().toJSONString());
-				Boolean responce=dashService.saveDashboardLayout(dash);
+				responce=dashService.saveDashboardLayout(dash);
+			}
+			
+					
 				responseModel.setResponseMessage("Success");
 				if (responce != null) {
 					responseModel.setResponseDescription("Dashboard layout saved");
@@ -148,14 +160,22 @@ public class DashBoradController {
 	
 			try {
 		
-				DashboardUserCustomization dashExit=dashService.getDashboardUserCustomizationById(dash.getDataId());
-						dashExit.setLayout(dash.getLayoutArray().toJSONString());						
-						dashExit.setActive(true);
-						dashExit.setLayoutArray(dash.getLayoutArray());
-						dashExit.setUpdatedBy(dash.getUserId());
-						dashExit.setUpdatedTime(functions.getCurrentDateWithTime());
-				
-				Boolean responce=dashService.updateDashboardLayout(dashExit);
+				DashboardUserCustomization dashExit=dashService.getDashUserCusBySiteKeyAndUserId(dash.getSiteKey(),dash.getUserId());
+				Boolean responce=false;
+				if(dashExit!=null) {
+					dash.setActive(true);
+					dash.setCreatedBy(dash.getUserId());
+					dash.setUpdatedTime(functions.getCurrentDateWithTime());
+					dash.setLayout(dash.getLayoutArray().toJSONString());			
+					responce=dashService.updateDashboardLayout(dashExit);
+				}else {
+					dash.setDataId(functions.generateRandomId());
+					dash.setActive(true);
+					dash.setCreatedBy(dash.getUserId());
+					dash.setUpdatedTime(functions.getCurrentDateWithTime());
+					dash.setLayout(dash.getLayoutArray().toJSONString());
+					responce=dashService.saveDashboardLayout(dash);
+				}	
 				responseModel.setResponseMessage("Success");
 				if (responce != null) {
 					responseModel.setjData(functions.convertEntityToJsonObject(dashExit));
