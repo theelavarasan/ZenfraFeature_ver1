@@ -635,7 +635,11 @@ public class DataframeService{
        
  		if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("hyper") || source_type.contains("nutanix"))) {
  			source_type = source_type + "-" + request.getReportBy().toLowerCase();
- 		} 		
+ 		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("vmware") && request.getReportBy().toLowerCase().contains("host"))) {
+ 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+ 		} 	
+ 		
+ 		
          
 		 boolean isDiscoveryDataInView = false;
 		 Dataset<Row> dataset = null;
@@ -652,6 +656,10 @@ public class DataframeService{
 		 try {	       
 			 isDiscoveryDataInView = false;
 	         if(!isDiscoveryDataInView) {
+	        	 File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type);
+	        	 if(!verifyDataframePath.exists()) {
+	        		 createDataframeOnTheFly(siteKey, source_type);
+	        	 }
 	        	 String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
 	        	 dataset = sparkSession.read().json(filePath); 	 
 	        	 dataset.createOrReplaceTempView("tmpView");
@@ -662,11 +670,11 @@ public class DataframeService{
 	         
 	         //---------------------EOL EOS---------------------------//	     
 	        
-	        	// int osCount = eolService.getEOLEOSData();
-	        	// int hwCount = eolService.getEOLEOSHW();
+	        	 int osCount = eolService.getEOLEOSData();
+	        	 int hwCount = eolService.getEOLEOSHW();
 	        	 
-	         int osCount = 0;	
-	         int hwCount = 0;
+	        // int osCount = 0;	
+	        /// int hwCount = 0;
 
 	                String hwJoin = "";
 	                String hwdata = "";
@@ -690,7 +698,7 @@ public class DataframeService{
 	        	}
 	        	
 	        	 if(hwCount > 0) {
-	        		 if(dataset.first().fieldIndex("Server Model") != -1) {
+	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Model"::equals) && dataset.first().fieldIndex("Server Model") != -1) {
 	        			 
 	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on (concat(eolHw.vendor,' ',eolHw.model))= ldView.`Server Model`";
 	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";
@@ -705,14 +713,14 @@ public class DataframeService{
 	        	
 	        	//sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
 	        	 
-	        	/* String sql = "select * from (" +
+	        	 String sql = "select * from (" +
 	                        " select ldView.*" +osdata + hwdata+
 	                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
 	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
 	                        " ) ld where ld.my_rank = 1";
 	        	 
 	        	 dataset = sparkSession.sql(sql).toDF(); 
-	        	 */
+	        	 
 	        
 	        // dataset.printSchema();
 	         
@@ -769,6 +777,56 @@ public class DataframeService{
 	 
 	 
 	 
+private void createDataframeOnTheFly(String siteKey, String source_type) {
+	try {
+		source_type = source_type.toLowerCase();
+		String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+		
+		Map<String, String> options = new HashMap<String, String>();
+		options.put("url", dbUrl);
+		options.put("dbtable", "(select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and lower(source_type)='"+source_type+"') as foo");
+		
+		@SuppressWarnings("deprecation")
+		Dataset<Row> localDiscoveryDF = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
+		localDiscoveryDF.show();
+		Dataset<Row> dataframeBySiteKey = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
+		
+		
+		File f = new File(path + siteKey);
+		if (!f.exists()) {
+			f.mkdir();
+		}
+		
+		dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
+				.partitionBy("site_key", "source_type").format("org.apache.spark.sql.json")
+				.mode(SaveMode.Overwrite).save(f.getPath());
+		
+		 String viewName = siteKey+"_"+source_type.toLowerCase();
+		 viewName = viewName.replaceAll("-", "");
+		 
+		// remove double quotes from json file
+					File[] files = new File(path).listFiles();
+					if (files != null) {
+						DataframeUtil.formatJsonFile(files);
+					}
+		 
+		 String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
+		 dataframeBySiteKey = sparkSession.read().json(filePath); 	 
+		 dataframeBySiteKey.createOrReplaceTempView("tmpView");
+		 dataframeBySiteKey =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+		 dataframeBySiteKey.createOrReplaceGlobalTempView(viewName); 
+		 dataframeBySiteKey.cache();
+		 System.out.println("------------dataframeBySiteKey-------------------" + dataframeBySiteKey.count());
+         
+	} catch (Exception e) {
+		e.printStackTrace();
+		logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(), e);
+	}
+		
+	}
+
+
+
 public DataResult getOptimizationReportData(ServerSideGetRowsRequest request) {	    
 		 
 		 
