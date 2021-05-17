@@ -635,7 +635,11 @@ public class DataframeService{
        
  		if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("hyper") || source_type.contains("nutanix"))) {
  			source_type = source_type + "-" + request.getReportBy().toLowerCase();
- 		} 		
+ 		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("vmware") && request.getReportBy().toLowerCase().contains("host"))) {
+ 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+ 		} 	
+ 		
+ 		
          
 		 boolean isDiscoveryDataInView = false;
 		 Dataset<Row> dataset = null;
@@ -694,7 +698,7 @@ public class DataframeService{
 	        	}
 	        	
 	        	 if(hwCount > 0) {
-	        		 if(dataset.first().fieldIndex("Server Model") != -1) {
+	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Model"::equals) && dataset.first().fieldIndex("Server Model") != -1) {
 	        			 
 	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on (concat(eolHw.vendor,' ',eolHw.model))= ldView.`Server Model`";
 	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";
