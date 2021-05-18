@@ -265,8 +265,9 @@ public class FavouriteApiService_v2 {
 			params.put("report_name", reportName);
 
 			String query = "select count(*) from favourite_view where is_active =true and " + " site_key='" + siteKey
-					+ "' and report_name='" + reportName + "' " + " and lower(favourite_name)='" + favouriteName + "';";
-
+					+ "' and report_name='" + reportName + "' " + " and lower(favourite_name)=lower('" + favouriteName + "')"
+							+ "  and user_remove_list not like '%"+userId+"%';";
+			
 			System.out.println(query);
 			int s=daoFav.getCount(query);
 			if ( s > 0) {
