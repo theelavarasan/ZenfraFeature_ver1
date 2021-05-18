@@ -75,7 +75,7 @@ public class DashBoardService {
 					JSONObject obtemp=mapper.convertValue(list, JSONObject.class);
 					
 					if(list.get("filterProperty")!=null && list.get("filterProperty").toString().startsWith("[")) {
-						
+						obtemp.put("filterProperty", new JSONObject());
 					}else {
 						JSONObject tempBreak = mapper.convertValue(list.get("filterProperty"), JSONObject.class);
 						if(tempBreak!=null && tempBreak.containsKey("value") && tempBreak.get("value")!=null) {
