@@ -63,11 +63,7 @@ public class ReportService {
 		return resultObject.toString();
 	}
 
-	public List<String> getReportNumericalHeaders(String reportName, String source_type, String reportBy, String siteKey) {
-		// TODO Auto-generated method stub
-		return reportDao.getReportNumericalHeaders(reportName, source_type, reportBy, siteKey);
-	}
-
+	
 	public JSONArray getChartLayout(String userId, String siteKey, String reportName) {
 		JSONArray jSONArray = reportDao.getChartLayout(userId, siteKey, reportName);		
 		return jSONArray;
