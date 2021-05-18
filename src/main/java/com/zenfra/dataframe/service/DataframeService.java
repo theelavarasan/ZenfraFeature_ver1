@@ -65,6 +65,7 @@ import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.dataframe.util.ZenfraConstants;
+import com.zenfra.service.ReportService;
 import com.zenfra.utils.DBUtils;
 
 
@@ -106,6 +107,8 @@ public class DataframeService{
 	 
 	 @Autowired
 	 private ReportDao reportDao;
+	 
+	
 	 
 	
 	 
@@ -756,10 +759,13 @@ public class DataframeService{
 	        
 	        results = results.dropDuplicates();
 	        
-	       /* List<String> numericalHeaders = reportService.getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
-	        if(!numericalHeaders.isEmpty()) {
-	        	numericalHeaders.stream().forEach((c) -> System.out.println(c));
-	        } */
+	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
+
+            for(String column : numericalHeaders) {
+            	results.withColumn(column, results.col(column).cast("integer"));
+            }
+	        
+	        
 	       
 	       /* List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
 	        List<String> actualHeadets = new ArrayList<>();
@@ -775,7 +781,11 @@ public class DataframeService{
 		 return null;
 	    } 	   
 	 
-	 
+	 public List<String> getReportNumericalHeaders(String reportName, String source_type, String reportBy, String siteKey) {
+			// TODO Auto-generated method stub
+			return reportDao.getReportNumericalHeaders(reportName, source_type, reportBy, siteKey);
+		}
+
 	 
 private void createDataframeOnTheFly(String siteKey, String source_type) {
 	try {
