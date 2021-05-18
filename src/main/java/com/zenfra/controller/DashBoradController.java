@@ -163,10 +163,10 @@ public class DashBoradController {
 				DashboardUserCustomization dashExit=dashService.getDashUserCusBySiteKeyAndUserId(dash.getSiteKey(),dash.getUserId());
 				Boolean responce=false;
 				if(dashExit!=null) {
-					dash.setActive(true);
-					dash.setCreatedBy(dash.getUserId());
-					dash.setUpdatedTime(functions.getCurrentDateWithTime());
-					dash.setLayout(dash.getLayoutArray().toJSONString());			
+					dashExit.setActive(true);
+					dashExit.setCreatedBy(dash.getUserId());
+					dashExit.setUpdatedTime(functions.getCurrentDateWithTime());
+					dashExit.setLayout(dash.getLayoutArray().toJSONString());			
 					responce=dashService.updateDashboardLayout(dashExit);
 				}else {
 					dash.setDataId(functions.generateRandomId());
