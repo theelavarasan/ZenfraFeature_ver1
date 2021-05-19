@@ -77,268 +77,85 @@ public class ReportService {
 		return reportDataObj;
 	}
 	
-	
-	
-	@SuppressWarnings("unchecked")
-	public JSONObject getSubReportList(String deviceType, String reportName) throws IOException, org.json.simple.parser.ParseException {
-		System.out.println("!!!!! deviceType: " + deviceType);
-		if(deviceType.equalsIgnoreCase("HP-UX")) {
-			deviceType = "hpux";
-		}
-		JSONParser parser = new JSONParser();
-		
-		Map<String, JSONArray> columnsMap = new LinkedHashMap<String, JSONArray>(); 
-		JSONObject result = new JSONObject();
-
-		String linkDevices = ZKModel.getProperty(ZKConstants.CRDevice);
-		JSONArray devicesArray = (JSONArray) parser.parse(linkDevices);
-		//System.out.println("!!!!! devicesArray: " + devicesArray);
-		if(reportName.trim().equalsIgnoreCase("discovery")) {
-			String linkColumns = ZKModel.getProperty(ZKConstants.CRCOLUMNNAMES);
-			JSONArray columnsArray = (JSONArray) parser.parse(linkColumns);
-			
-			for(int a = 0; a < devicesArray.size(); a++) {
-				JSONArray columnsNameArray = new JSONArray();
-				for(int i = 0; i < columnsArray.size(); i++) {
-					JSONObject jsonObject = (JSONObject) columnsArray.get(i);
-					if(jsonObject.containsKey(devicesArray.get(a).toString().toLowerCase())) {
-						columnsNameArray = (JSONArray) parser.parse(jsonObject.get(devicesArray.get(a).toString().toLowerCase()).toString());
-						columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
-					}
-				}
-			}
-			
-		} else if(reportName.trim().equalsIgnoreCase("compatibility")) {
-			JSONArray columnsNameArray = new JSONArray();
-			columnsNameArray.add("Host Name");
-			for(int a = 0; a < devicesArray.size(); a++) {
-				columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
-			}
-			
-		}
-		
-		//System.out.println("!!!!! columnsMap: " + columnsMap);
-		if(!columnsMap.isEmpty()) {
-			Map<String, Properties> propMap = new TreeMap<String, Properties>();
-			if(deviceType.equalsIgnoreCase("all")) {
-				for(int i = 0; i < devicesArray.size(); i++) {
-					String deviceValue = "";
-					if(devicesArray.get(i).toString().equalsIgnoreCase("HP-UX")) {
-						deviceValue = "hpux";
-					}
-					String path = "/opt/config/" + deviceValue.toLowerCase() + "ServerClickReport.properties";
-					System.out.println("!!!!! path: " + path);
-					InputStream inputFile = null;
-					
-					try {
-						//ClassLoader classLoader = getClass().getClassLoader();
-						//URL resources = classLoader.getResource(path);
-						File file = new File(path);
-						if(file.exists()) {
-							//System.out.println("!!!!! resources.getFile(): " + resources.getFile());
-							inputFile = new FileInputStream(file);
-							Properties prop = new Properties();
-							prop.load(inputFile);
-							//String deviceValue = "";
-							if(devicesArray.get(i).toString().equalsIgnoreCase("HP-UX")) {
-								deviceValue = "hpux";
-							}
-							propMap.put(deviceValue.toLowerCase(), prop);
-						}
-						
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					
-					
-					
-				}
-			} else {
-				String path = "/opt/config/" + deviceType.toLowerCase() + "ServerClickReport.properties";
-				System.out.println("!!!!! path: " + path);
-				InputStream inputFile = null;
-				
-				try {
-					//ClassLoader classLoader = getClass().getClassLoader();
-					//URL resources = classLoader.getResource(path);
-					File file = new File(path);
-					if(file.exists()) {
-						//System.out.println("!!!!! resources.getFile(): " + resources.getFile());
-						inputFile = new FileInputStream(file);
-						Properties prop = new Properties();
-						prop.load(inputFile);
-						propMap.put(deviceType.toLowerCase(), prop);
-					}
-					
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				
-			}
-			//System.out.println("!!!!! propMap: " + propMap);
-			List<String> propKeys = new ArrayList<String>(propMap.keySet());
-			System.out.println("!!!!! propKeys: " + propKeys);
-			
-			//JSONArray jsonArray = new JSONArray();
-			ZenfraJSONObject resultObject = new ZenfraJSONObject();
-			
-			JSONArray postDataColumnArray = new JSONArray();
-			List<String> columnsKey = new ArrayList<String>(columnsMap.keySet());
-			//System.out.println("!!!!! columnsKey: " + columnsKey);
-			//System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
-			
-			for(int i = 0; i < columnsKey.size(); i++) {
-				JSONArray columnsNameArray = columnsMap.get(columnsKey.get(i));
-				JSONObject tabInfoObject = new JSONObject();
-				for(int j = 0; j < columnsNameArray.size(); j++) {
-					if(!columnsNameArray.get(j).toString().equalsIgnoreCase("vCenter")) {
-					ZenfraJSONObject tabArrayObject = new ZenfraJSONObject();
-					for(int k = 0; k < propKeys.size(); k++) {
-						Properties prop = propMap.get(propKeys.get(k));
-						List<Object> tabKeys = new ArrayList<Object>(prop.keySet());
-						JSONArray tabInnerArray = new JSONArray();
-						
-						for(int l = 0; l < tabKeys.size(); l++) {
-							ZenfraJSONObject tabValueObject = new ZenfraJSONObject();
-							String key = tabKeys.get(l).toString();
-							String keyId = tabKeys.get(l).toString();
-							//System.out.println("!!!!! key: " + key);
-							String value = "";
-							String keyName = "";
-							String keyLabel = "";
-							String keyView = "";
-							String keyOrdered = "";
-							if(key.contains("$")) {
-								String[] keyArray = key.split("\\$");
-								//System.out.println("!!!!! keyArray size: " + keyArray.length);
-								//System.out.println("!!!!! keyArray[0]: " + keyArray[0]);
-								//System.out.println("!!!!! keyArray[1]: " + keyArray[1]);
-								//System.out.println("!!!!! keyArray[2]: " + keyArray[2]);
-								value = keyArray[0];
-								keyName = keyArray[0].replace("~", "");
-								keyLabel = value.replace("~", " ");
-								keyView = keyArray[1];
-								keyOrdered = keyArray[2];
-							} else {
-								keyName = key.replace("~", "");
-								keyLabel = key.replace("~", " ");
-								keyView = "H";
-								keyOrdered = "0";
-							}
-							
-							/*System.out.println("!!!!! keyId: " + keyId);
-							System.out.println("!!!!! keyName: " + keyName);
-							System.out.println("!!!!! keyLabel: " + keyLabel);
-							System.out.println("!!!!! keyView: " + keyView);*/
-							tabValueObject.put("value", keyId);
-							tabValueObject.put("name", keyName);
-							tabValueObject.put("label", keyLabel);
-							tabValueObject.put("view", keyView);
-							tabValueObject.put("ordered", Integer.parseInt(keyOrdered));
-							tabInnerArray.add(tabValueObject);
-						}
-						if(!tabInnerArray.isEmpty()) {
-							tabArrayObject.put(propKeys.get(k), tabInnerArray);
-						}
-						
-					}
-					if(!tabArrayObject.isEmpty()) {
-						tabInfoObject.put("tabInfo", tabArrayObject);
-						tabInfoObject.put("tabInfo", tabArrayObject);
-						tabInfoObject.put("skipValues", new JSONArray());
-						tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
-						if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
-							if(deviceType.equalsIgnoreCase("vmware")) {
-								postDataColumnArray.add("VM");
-								postDataColumnArray.add("vCenter");
-							} else if(deviceType.equalsIgnoreCase("vmware-host")) {
-								postDataColumnArray.add("Server Name");
-								postDataColumnArray.add("vCenter");
-							} else {
-								postDataColumnArray.add(columnsNameArray.get(j));
-							}
-							
-						}
-						resultObject.put(columnsNameArray.get(j), tabInfoObject);
-						//resultObject.put("skipValues", new JSONArray());
-						result.put("subLinkColumns", resultObject);
-					}
-				}
-				}
-				
-			}
-			
-			
-			
-			result.put("postDataColumns", postDataColumnArray);
-			result.put("deviceType", deviceType.toLowerCase().trim());
-			JSONArray refferedDeviceType = new JSONArray();
-			if(reportName.equalsIgnoreCase("compatibility")) {
-				refferedDeviceType.add("OS Type");
-			} else if(reportName.equalsIgnoreCase("taskList")) {
-				refferedDeviceType.add("Source Type");
-			}
-			result.put("deviceTypeRefColumn", refferedDeviceType);
-			
-			
-			
-		}
-		
-		//System.out.println("!!!!! result: " + result);
-		return result;
-	}
-	
-	
-	
 
 	@SuppressWarnings("unchecked")
-    public JSONObject getSubReportList_old(String deviceType, String reportName) throws IOException, ParseException, org.json.simple.parser.ParseException {
+    public JSONObject getSubReportList(String deviceType, String reportName) throws IOException, ParseException, org.json.simple.parser.ParseException {
         System.out.println("!!!!! deviceType: " + deviceType);
+        
         JSONParser parser = new JSONParser();
-
+       
         Map<String, JSONArray> columnsMap = new LinkedHashMap<String, JSONArray>();
         JSONObject result = new JSONObject();
+        
+        
+        try {
+        	String linkDevices = ZKModel.getProperty(ZKConstants.CRDevice);          
+            JSONArray devicesArray = (JSONArray) parser.parse(linkDevices);
+            //System.out.println("!!!!! devicesArray: " + devicesArray);
+            if (reportName.trim().equalsIgnoreCase("discovery")) {
+                String linkColumns = ZKModel.getProperty(ZKConstants.CRCOLUMNNAMES);               
+              
+                
+                JSONArray columnsArray = (JSONArray) parser.parse(linkColumns);
 
-        String linkDevices = ZKModel.getProperty(ZKConstants.CRDevice);
-        JSONArray devicesArray = (JSONArray) parser.parse(linkDevices);
-        //System.out.println("!!!!! devicesArray: " + devicesArray);
-        if (reportName.trim().equalsIgnoreCase("discovery")) {
-            String linkColumns = ZKModel.getProperty(ZKConstants.CRCOLUMNNAMES);
-            JSONArray columnsArray = (JSONArray) parser.parse(linkColumns);
-
-            for (int a = 0; a < devicesArray.size(); a++) {
-                JSONArray columnsNameArray = new JSONArray();
-                for (int i = 0; i < columnsArray.size(); i++) {
-                    JSONObject jsonObject = (JSONObject) columnsArray.get(i);
-                    if (jsonObject.containsKey(devicesArray.get(a).toString().toLowerCase())) {
-                        columnsNameArray = (JSONArray) parser.parse(jsonObject.get(devicesArray.get(a).toString().toLowerCase()).toString());
-                        columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
+                for (int a = 0; a < devicesArray.size(); a++) {
+                    JSONArray columnsNameArray = new JSONArray();
+                    for (int i = 0; i < columnsArray.size(); i++) {
+                        JSONObject jsonObject = (JSONObject) columnsArray.get(i);
+                        if (jsonObject.containsKey(devicesArray.get(a).toString().toLowerCase())) {
+                            columnsNameArray = (JSONArray) parser.parse(jsonObject.get(devicesArray.get(a).toString().toLowerCase()).toString());
+                            columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
+                        }
                     }
                 }
+
+            } else if (reportName.trim().equalsIgnoreCase("compatibility")) {
+                JSONArray columnsNameArray = new JSONArray();
+                columnsNameArray.add("Host Name");
+                for (int a = 0; a < devicesArray.size(); a++) {
+                    columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
+                }
+
+            } else if (reportName.trim().equalsIgnoreCase("project")) {
+                JSONArray columnsNameArray = new JSONArray();
+                columnsNameArray.add("Server Name");
+                columnsNameArray.add("vCenter");
+                columnsNameArray.add("VM");
+                for (int a = 0; a < devicesArray.size(); a++) {
+                    columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
+                }
+
             }
+          
+            
+            //System.out.println("!!!!! columnsMap: " + columnsMap);
+            if (!columnsMap.isEmpty()) {
+                Map<String, Properties> propMap = new TreeMap<String, Properties>();
+                if (deviceType.equalsIgnoreCase("all")) {
+                    for (int i = 0; i < devicesArray.size(); i++) {
+                        String path = "/opt/config/" + devicesArray.get(i).toString().toLowerCase().replace("-", "") + "ServerClickReport.properties";
+                        System.out.println("!!!!! path: " + path);
+                        InputStream inputFile = null;
 
-        } else if (reportName.trim().equalsIgnoreCase("compatibility")) {
-            JSONArray columnsNameArray = new JSONArray();
-            columnsNameArray.add("Host Name");
-            for (int a = 0; a < devicesArray.size(); a++) {
-                columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
-            }
+                        try {
+                            //ClassLoader classLoader = getClass().getClassLoader();
+                            //URL resources = classLoader.getResource(path);
+                            File file = new File(path);
+                            if (file != null) {
+                                //System.out.println("!!!!! resources.getFile(): " + resources.getFile());
+                                inputFile = new FileInputStream(file);
+                                Properties prop = new Properties();
+                                prop.load(inputFile);
+                                propMap.put(devicesArray.get(i).toString().toLowerCase().replace("-", ""), prop);
+                            }
 
-        } else if (reportName.trim().equalsIgnoreCase("project")) {
-            JSONArray columnsNameArray = new JSONArray();
-            columnsNameArray.add("Server Name");
-            for (int a = 0; a < devicesArray.size(); a++) {
-                columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
-            }
-
-        }
-
-        //System.out.println("!!!!! columnsMap: " + columnsMap);
-        if (!columnsMap.isEmpty()) {
-            Map<String, Properties> propMap = new TreeMap<String, Properties>();
-            if (deviceType.equalsIgnoreCase("all")) {
-                for (int i = 0; i < devicesArray.size(); i++) {
-                    String path = "/opt/config/" + devicesArray.get(i).toString().toLowerCase().replace("-", "") + "ServerClickReport.properties";
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                       
+                    }
+                } else {
+                    String path = "/opt/config/" + deviceType.toLowerCase().replace("-", "") + "ServerClickReport.properties";
                     System.out.println("!!!!! path: " + path);
                     InputStream inputFile = null;
 
@@ -351,138 +168,131 @@ public class ReportService {
                             inputFile = new FileInputStream(file);
                             Properties prop = new Properties();
                             prop.load(inputFile);
-                            propMap.put(devicesArray.get(i).toString().toLowerCase().replace("-", ""), prop);
+                            propMap.put(deviceType.toLowerCase().replace("-", ""), prop);
                         }
 
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
-
                 }
-            } else {
-                String path = "/opt/config/" + deviceType.toLowerCase().replace("-", "") + "ServerClickReport.properties";
-                System.out.println("!!!!! path: " + path);
-                InputStream inputFile = null;
+                //System.out.println("!!!!! propMap: " + propMap);
+                List<String> propKeys = new ArrayList<String>(propMap.keySet());
+                //System.out.println("!!!!! propKeys: " + propKeys);
 
-                try {
-                    //ClassLoader classLoader = getClass().getClassLoader();
-                    //URL resources = classLoader.getResource(path);
-                    File file = new File(path);
-                    if (file != null) {
-                        //System.out.println("!!!!! resources.getFile(): " + resources.getFile());
-                        inputFile = new FileInputStream(file);
-                        Properties prop = new Properties();
-                        prop.load(inputFile);
-                        propMap.put(deviceType.toLowerCase().replace("-", ""), prop);
-                    }
+                //JSONArray jsonArray = new JSONArray();
+                ZenfraJSONObject resultObject = new ZenfraJSONObject();
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                JSONArray postDataColumnArray = new JSONArray();
+                List<String> columnsKey = new ArrayList<String>(columnsMap.keySet());
+                //System.out.println("!!!!! columnsKey: " + columnsKey);
+                //System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
 
-            }
-            //System.out.println("!!!!! propMap: " + propMap);
-            List<String> propKeys = new ArrayList<String>(propMap.keySet());
-            //System.out.println("!!!!! propKeys: " + propKeys);
+                for (int i = 0; i < columnsKey.size(); i++) {
+                    JSONArray columnsNameArray = columnsMap.get(columnsKey.get(i));
+                    JSONObject tabInfoObject = new JSONObject();
+                    for (int j = 0; j < columnsNameArray.size(); j++) {
+                        ZenfraJSONObject tabArrayObject = new ZenfraJSONObject();
+                        for (int k = 0; k < propKeys.size(); k++) {
+                            Properties prop = propMap.get(propKeys.get(k));
+                            List<Object> tabKeys = new ArrayList<Object>(prop.keySet());
+                            JSONArray tabInnerArray = new JSONArray();
 
-            //JSONArray jsonArray = new JSONArray();
-            ZenfraJSONObject resultObject = new ZenfraJSONObject();
+                            for (int l = 0; l < tabKeys.size(); l++) {
+                                ZenfraJSONObject tabValueObject = new ZenfraJSONObject();
+                                String key = tabKeys.get(l).toString();
+                                String keyId = tabKeys.get(l).toString();
+                                //System.out.println("!!!!! key: " + key);
+                                String value = "";
+                                String keyName = "";
+                                String keyLabel = "";
+                                String keyView = "";
+                                String keyOrdered = "";
+                                if (key.contains("$")) {
+                                    String[] keyArray = key.split("\\$");
+                                    //System.out.println("!!!!! keyArray size: " + keyArray.length);
+                                    //System.out.println("!!!!! keyArray[0]: " + keyArray[0]);
+                                    //System.out.println("!!!!! keyArray[1]: " + keyArray[1]);
+                                    //System.out.println("!!!!! keyArray[2]: " + keyArray[2]);
+                                    value = keyArray[0];
+                                    keyName = keyArray[0].replace("~", "");
+                                    keyLabel = value.replace("~", " ");
+                                    keyView = keyArray[1];
+                                    keyOrdered = keyArray[2];
+                                } else {
+                                    keyName = key.replace("~", "");
+                                    keyLabel = key.replace("~", " ");
+                                    keyView = "H";
+                                    keyOrdered = "0";
+                                }
 
-            JSONArray postDataColumnArray = new JSONArray();
-            List<String> columnsKey = new ArrayList<String>(columnsMap.keySet());
-            //System.out.println("!!!!! columnsKey: " + columnsKey);
-            //System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
-
-            for (int i = 0; i < columnsKey.size(); i++) {
-                JSONArray columnsNameArray = columnsMap.get(columnsKey.get(i));
-                JSONObject tabInfoObject = new JSONObject();
-                for (int j = 0; j < columnsNameArray.size(); j++) {
-                    ZenfraJSONObject tabArrayObject = new ZenfraJSONObject();
-                    for (int k = 0; k < propKeys.size(); k++) {
-                        Properties prop = propMap.get(propKeys.get(k));
-                        List<Object> tabKeys = new ArrayList<Object>(prop.keySet());
-                        JSONArray tabInnerArray = new JSONArray();
-
-                        for (int l = 0; l < tabKeys.size(); l++) {
-                            ZenfraJSONObject tabValueObject = new ZenfraJSONObject();
-                            String key = tabKeys.get(l).toString();
-                            String keyId = tabKeys.get(l).toString();
-                            //System.out.println("!!!!! key: " + key);
-                            String value = "";
-                            String keyName = "";
-                            String keyLabel = "";
-                            String keyView = "";
-                            String keyOrdered = "";
-                            if (key.contains("$")) {
-                                String[] keyArray = key.split("\\$");
-                                //System.out.println("!!!!! keyArray size: " + keyArray.length);
-                                //System.out.println("!!!!! keyArray[0]: " + keyArray[0]);
-                                //System.out.println("!!!!! keyArray[1]: " + keyArray[1]);
-                                //System.out.println("!!!!! keyArray[2]: " + keyArray[2]);
-                                value = keyArray[0];
-                                keyName = keyArray[0].replace("~", "");
-                                keyLabel = value.replace("~", " ");
-                                keyView = keyArray[1];
-                                keyOrdered = keyArray[2];
-                            } else {
-                                keyName = key.replace("~", "");
-                                keyLabel = key.replace("~", " ");
-                                keyView = "H";
-                                keyOrdered = "0";
+    							/*System.out.println("!!!!! keyId: " + keyId);
+    							System.out.println("!!!!! keyName: " + keyName);
+    							System.out.println("!!!!! keyLabel: " + keyLabel);
+    							System.out.println("!!!!! keyView: " + keyView);*/
+                                tabValueObject.put("value", keyId);
+                                tabValueObject.put("name", keyName);
+                                tabValueObject.put("label", keyLabel);
+                                tabValueObject.put("view", keyView);
+                                tabValueObject.put("ordered", keyOrdered);
+                                tabInnerArray.add(tabValueObject);
+                            }
+                            if (!tabInnerArray.isEmpty()) {
+                                tabArrayObject.put(propKeys.get(k), tabInnerArray);
                             }
 
-							/*System.out.println("!!!!! keyId: " + keyId);
-							System.out.println("!!!!! keyName: " + keyName);
-							System.out.println("!!!!! keyLabel: " + keyLabel);
-							System.out.println("!!!!! keyView: " + keyView);*/
-                            tabValueObject.put("value", keyId);
-                            tabValueObject.put("name", keyName);
-                            tabValueObject.put("label", keyLabel);
-                            tabValueObject.put("view", keyView);
-                            tabValueObject.put("ordered", keyOrdered);
-                            tabInnerArray.add(tabValueObject);
                         }
-                        if (!tabInnerArray.isEmpty()) {
-                            tabArrayObject.put(propKeys.get(k), tabInnerArray);
+                        if (!tabArrayObject.isEmpty()) {
+                            tabInfoObject.put("tabInfo", tabArrayObject);
+                            tabInfoObject.put("tabInfo", tabArrayObject);
+                            if (reportName.equalsIgnoreCase("project")) {
+                                JSONArray skipValueArray = new JSONArray();
+                                skipValueArray.add("Not Discovered");
+                                tabInfoObject.put("skipValues", skipValueArray);
+                            } else {
+                                tabInfoObject.put("skipValues", new JSONArray());
+                            }
+                            tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
+                            
+                            if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
+    							if(deviceType.equalsIgnoreCase("vmware")) {
+    								postDataColumnArray.add("VM");
+    								postDataColumnArray.add("vCenter");
+    							} else if(deviceType.equalsIgnoreCase("vmwarehost")) {
+    								postDataColumnArray.add("Server Name");
+    								postDataColumnArray.add("vCenter");
+    							} else {
+    								postDataColumnArray.add(columnsNameArray.get(j));
+    							}
+    							
+    						}
+                            
+                            resultObject.put(columnsNameArray.get(j), tabInfoObject);
+                            //resultObject.put("skipValues", new JSONArray());
+                            result.put("subLinkColumns", resultObject);
                         }
+                    }
 
-                    }
-                    if (!tabArrayObject.isEmpty()) {
-                        tabInfoObject.put("tabInfo", tabArrayObject);
-                        tabInfoObject.put("tabInfo", tabArrayObject);
-                        if (reportName.equalsIgnoreCase("project")) {
-                            JSONArray skipValueArray = new JSONArray();
-                            skipValueArray.add("Not Discovered");
-                            tabInfoObject.put("skipValues", skipValueArray);
-                        } else {
-                            tabInfoObject.put("skipValues", new JSONArray());
-                        }
-                        tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
-                        if (!postDataColumnArray.contains(columnsNameArray.get(j))) {
-                            postDataColumnArray.add(columnsNameArray.get(j));
-                        }
-                        resultObject.put(columnsNameArray.get(j), tabInfoObject);
-                        //resultObject.put("skipValues", new JSONArray());
-                        result.put("subLinkColumns", resultObject);
-                    }
+                }               
+                
+                result.put("postDataColumns", postDataColumnArray);
+                result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));
+                JSONArray refferedDeviceType = new JSONArray();
+                if (reportName.equalsIgnoreCase("compatibility")) {
+                    refferedDeviceType.add("OS Type");
+                } else if (reportName.equalsIgnoreCase("project")) {
+                    refferedDeviceType.add("Server Type");
                 }
+                result.put("deviceTypeRefColumn", refferedDeviceType);
+
 
             }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 
-            result.put("postDataColumns", postDataColumnArray);
-            result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));
-            JSONArray refferedDeviceType = new JSONArray();
-            if (reportName.equalsIgnoreCase("compatibility")) {
-                refferedDeviceType.add("OS Type");
-            } else if (reportName.equalsIgnoreCase("project")) {
-                refferedDeviceType.add("Server Type");
-            }
-            result.put("deviceTypeRefColumn", refferedDeviceType);
-
-
-        }
+        
 
         //System.out.println("!!!!! result: " + result);
         return result;
