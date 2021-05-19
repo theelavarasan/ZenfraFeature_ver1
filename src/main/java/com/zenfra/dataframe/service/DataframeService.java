@@ -771,8 +771,8 @@ public class DataframeService{
             	
             }
 	        
-            if(columns.contains("Server Type") && columns.contains("actual_os_type")) { 
-            	results = results.withColumn("Server Type", results.col("actual_os_type"));
+            if(source_type.equalsIgnoreCase("vmware-host")) { 
+            	results = results.withColumn("Server Type", lit("vmware-host"));
             }
             
 	       
