@@ -757,20 +757,23 @@ public class DataframeService{
 	        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	        
 	        //results.printSchema();	 	
 	        
-	        results = results.dropDuplicates();
-	        
-	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
+	        results = results.dropDuplicates();	        
 
-            List<String> columns = Arrays.asList(results.columns());
-            
-            for(String column : numericalHeaders) {                            
-                if(columns.contains(column)) {                    
-                    //results = results.withColumn(column, lit(results.col(column).toString().replaceAll("\"", "")));
-                    results = results.withColumn(column, results.col(column).cast("float"));
-                }
-                
-            }       
+	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);	    	
+	    	
+	    	List<String> columns = Arrays.asList(results.columns());
+	    	
+            for(String column : numericalHeaders) {                        	
+            	if(columns.contains(column)) { 
+            		results = results.withColumn(column, results.col(column).cast("float"));
+            	}
+            	
+            }
 	        
+            if(source_type.equalsIgnoreCase("vmware-host")) { 
+            	results = results.withColumn("Server Type", lit("vmware-host"));
+            }
+
 	       
 	       /* List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
 	        List<String> actualHeadets = new ArrayList<>();
