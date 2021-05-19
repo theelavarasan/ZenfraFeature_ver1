@@ -32,6 +32,19 @@ public class AwsInventory {
 	private String created_date;
 	
 	private String updated_date;
+	
+	private String lastFourKey;
+	
+	
+	
+
+	public String getLastFourKey() {
+		return lastFourKey;
+	}
+
+	public void setLastFourKey(String lastFourKey) {
+		this.lastFourKey = lastFourKey;
+	}
 
 	public String getData_id() {
 		return data_id;
