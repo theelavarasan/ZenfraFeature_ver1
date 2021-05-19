@@ -768,7 +768,7 @@ public class DataframeService{
             for(String column : numericalHeaders) {                        	
             	if(columns.contains(column)) {            		
             		//results = results.withColumn(column, lit(results.col(column).toString().replaceAll("\"", "")));
-            		results = results.withColumn(column, results.col(column).cast("int"));
+            		results = results.withColumn(column, results.col(column).cast("float"));
             	}
             	
             }
