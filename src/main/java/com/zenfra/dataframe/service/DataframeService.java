@@ -757,8 +757,8 @@ public class DataframeService{
 	        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	        
 	        //results.printSchema();	 	
 	        
-	        results = results.dropDuplicates();
-	        
+	        results = results.dropDuplicates();	        
+
 	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);	    	
 	    	
 	    	List<String> columns = Arrays.asList(results.columns());
@@ -773,7 +773,7 @@ public class DataframeService{
             if(source_type.equalsIgnoreCase("vmware-host")) { 
             	results = results.withColumn("Server Type", lit("vmware-host"));
             }
-            
+
 	       
 	       /* List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
 	        List<String> actualHeadets = new ArrayList<>();
