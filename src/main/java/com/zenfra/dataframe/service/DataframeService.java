@@ -761,9 +761,14 @@ public class DataframeService{
 	        
 	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
 
-            for(String column : numericalHeaders) {
-            	if(results.columns().toString().contains(column)) {
-            		results = results.withColumn(column, results.col(column).cast("integer"));
+	    	
+	    	
+	    	List<String> columns = Arrays.asList(results.columns());
+	    	
+            for(String column : numericalHeaders) {                        	
+            	if(columns.contains(column)) {            		
+            		//results = results.withColumn(column, lit(results.col(column).toString().replaceAll("\"", "")));
+            		results = results.withColumn(column, results.col(column).cast("int"));
             	}
             	
             }
