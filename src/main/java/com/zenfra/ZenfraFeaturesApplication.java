@@ -90,8 +90,7 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	    
 	   @PostConstruct
 	    public void createDataframeView() {		
-		   dataframeService.createDataframeForLocalDiscovery("local_discovery");
-	        
+		   dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
 	    	//eolService.getEOLEOSData();
 	    	//eolService.getEOLEOSHW();
 	    	//eolService.getGooglePricing();

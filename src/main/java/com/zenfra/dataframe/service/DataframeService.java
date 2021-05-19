@@ -762,7 +762,10 @@ public class DataframeService{
 	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
 
             for(String column : numericalHeaders) {
-            	results.withColumn(column, results.col(column).cast("integer"));
+            	if(results.columns().toString().contains(column)) {
+            		results = results.withColumn(column, results.col(column).cast("integer"));
+            	}
+            	
             }
 	        
 	        
