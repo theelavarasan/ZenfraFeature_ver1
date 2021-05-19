@@ -263,7 +263,7 @@ public class ReportService {
     							if(deviceType.equalsIgnoreCase("vmware")) {
     								postDataColumnArray.add("VM");
     								postDataColumnArray.add("vCenter");
-    							} else if(deviceType.equalsIgnoreCase("vmware-host")) {
+    							} else if(deviceType.equalsIgnoreCase("vmwarehost")) {
     								postDataColumnArray.add("Server Name");
     								postDataColumnArray.add("vCenter");
     							} else {
