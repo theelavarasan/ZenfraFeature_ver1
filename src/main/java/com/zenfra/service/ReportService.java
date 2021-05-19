@@ -124,6 +124,8 @@ public class ReportService {
             } else if (reportName.trim().equalsIgnoreCase("project")) {
                 JSONArray columnsNameArray = new JSONArray();
                 columnsNameArray.add("Server Name");
+                columnsNameArray.add("vCenter");
+                columnsNameArray.add("VM");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                 }
