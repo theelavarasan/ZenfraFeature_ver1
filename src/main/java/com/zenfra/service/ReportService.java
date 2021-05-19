@@ -89,19 +89,14 @@ public class ReportService {
         
         
         try {
-        	String linkDevices = ZKModel.getProperty(ZKConstants.CRDevice);
-            System.out.println("-----------linkDevices---------- " + linkDevices);
+        	String linkDevices = ZKModel.getProperty(ZKConstants.CRDevice);          
             JSONArray devicesArray = (JSONArray) parser.parse(linkDevices);
             //System.out.println("!!!!! devicesArray: " + devicesArray);
             if (reportName.trim().equalsIgnoreCase("discovery")) {
-                String linkColumns = ZKModel.getProperty(ZKConstants.CRCOLUMNNAMES);
-                
-                System.out.println("-----------linkColumns---------- " + linkColumns);
+                String linkColumns = ZKModel.getProperty(ZKConstants.CRCOLUMNNAMES);               
+              
                 
                 JSONArray columnsArray = (JSONArray) parser.parse(linkColumns);
-                
-                System.out.println("-----------columnsArray---------- " + columnsArray);
-                
 
                 for (int a = 0; a < devicesArray.size(); a++) {
                     JSONArray columnsNameArray = new JSONArray();
@@ -131,8 +126,7 @@ public class ReportService {
                 }
 
             }
-
-            System.out.println("-----------columnsMap---------- " + columnsMap);
+          
             
             //System.out.println("!!!!! columnsMap: " + columnsMap);
             if (!columnsMap.isEmpty()) {
@@ -158,8 +152,7 @@ public class ReportService {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-
-                        System.out.println("-----------propMap---------- " + propMap);
+                       
                     }
                 } else {
                     String path = "/opt/config/" + deviceType.toLowerCase().replace("-", "") + "ServerClickReport.properties";
@@ -280,9 +273,7 @@ public class ReportService {
                         }
                     }
 
-                }
-
-                System.out.println("-----------postDataColumnArray---------- " + postDataColumnArray);
+                }               
                 
                 result.put("postDataColumns", postDataColumnArray);
                 result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));

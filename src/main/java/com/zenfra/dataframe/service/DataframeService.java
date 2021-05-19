@@ -759,9 +759,7 @@ public class DataframeService{
 	        
 	        results = results.dropDuplicates();
 	        
-	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
-
-	    	
+	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);	    	
 	    	
 	    	List<String> columns = Arrays.asList(results.columns());
 	    	
@@ -773,7 +771,10 @@ public class DataframeService{
             	
             }
 	        
-	        
+            if(columns.contains("Server Type") && columns.contains("actual_os_type")) { 
+            	results = results.withColumn("Server Type", results.col("actual_os_type"));
+            }
+            
 	       
 	       /* List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
 	        List<String> actualHeadets = new ArrayList<>();
