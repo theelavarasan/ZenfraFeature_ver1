@@ -12,6 +12,8 @@ public class CategoryMappingQueries {
 	private String getById;
 
 	private String deleteCategoryMappingFavouriteIdOrChartId;
+	
+	private String getCategoryLabelById;
 
 	public String getGetById() {
 		return getById;
@@ -43,6 +45,14 @@ public class CategoryMappingQueries {
 
 	public void setDeleteCategoryMappingFavouriteIdOrChartId(String deleteCategoryMappingFavouriteIdOrChartId) {
 		this.deleteCategoryMappingFavouriteIdOrChartId = deleteCategoryMappingFavouriteIdOrChartId;
+	}
+
+	public String getGetCategoryLabelById() {
+		return getCategoryLabelById;
+	}
+
+	public void setGetCategoryLabelById(String getCategoryLabelById) {
+		this.getCategoryLabelById = getCategoryLabelById;
 	}
 
 }
