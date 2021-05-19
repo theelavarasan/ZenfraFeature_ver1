@@ -96,13 +96,12 @@ public class FavouriteController_v2 {
 			
 
 			if (service.saveFavouriteView(favouriteModel) == 1) {	
-				//Object categoryArr=service.getViewCategoryMapping(favouriteModel.getFavouriteId());
-				//favouriteModel.setCategoryColumns(categoryArr);
+				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
+				favouriteModel.setCategoryColumns(catService.getCategoryLabelById(favouriteModel.getFavouriteId()));
 				favouriteModel.setCreatedBy((user.getFirst_name()+" "+user.getLast_name()));				
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
-				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
 			} else {
 				responseModel.setResponseDescription("Favourite not inserted ");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -136,15 +135,13 @@ public class FavouriteController_v2 {
 			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
 
 			if (service.updateFavouriteView(favouriteModel.getAuthUserId(), favouriteModel) == 1) {
-				//Object categoryArr=service.getViewCategoryMapping(favouriteModel.getFavouriteId());
-				//favouriteModel.setCategoryColumns(categoryArr);
-				
+				catService.deleteCategoryMappingFavouriteIdOrChartId(favouriteModel.getFavouriteId());
+				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
+				favouriteModel.setCategoryColumns(catService.getCategoryLabelById(favouriteModel.getFavouriteId()));
 				responseModel.setResponseCode(HttpStatus.OK);
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully updated");
-				catService.deleteCategoryMappingFavouriteIdOrChartId(favouriteModel.getFavouriteId());
-				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
-
+			
 			} else {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				responseModel.setResponseDescription("Favourite Id not found ");

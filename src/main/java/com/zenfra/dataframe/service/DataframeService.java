@@ -761,15 +761,15 @@ public class DataframeService{
 	        
 	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
 
-	        List<String> columns = Arrays.asList(results.columns());
-	    	
-            for(String column : numericalHeaders) {                        	
-            	if(columns.contains(column)) { 
-            		results = results.withColumn(column, results.col(column).cast("float"));
-            	}
-            	
-            }
-	        	        
+            List<String> columns = Arrays.asList(results.columns());
+            
+            for(String column : numericalHeaders) {                            
+                if(columns.contains(column)) {                    
+                    //results = results.withColumn(column, lit(results.col(column).toString().replaceAll("\"", "")));
+                    results = results.withColumn(column, results.col(column).cast("float"));
+                }
+                
+            }       
 	        
 	       
 	       /* List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
