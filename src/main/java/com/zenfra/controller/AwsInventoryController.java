@@ -45,15 +45,15 @@ public class AwsInventoryController {
 			aws.setSecret_access_key(sha256hex);
 			aws.setCreated_date(common.getCurrentDateWithTime());
 			aws.setUpdated_date(common.getCurrentDateWithTime());
-			String query="INSERT INTO aws_cloud_credentials(userid, sitekey, access_key_id, secret_access_key, regions, description, created_date, data_id,lastFourKey)" + 
+			String query="INSERT INTO aws_cloud_credentials(userid, sitekey, access_key_id, secret_access_key, regions, description, created_date, data_id,lastfourkey)" + 
 					"VALUES (':userid_value', ':sitekey_value', ':access_key_id_value', ':secret_access_key_value', ':regions_value'::json, ':description_value'," + 
 					"':created_date_value', gen_random_uuid(),':lastFourKey_value')" + 
-					"ON CONFLICT (sitekey,access_key_id,secret_access_key) DO update set sitekey=':sitekey_value',access_key_id=':access_key_id_value'" + 
-					",userid=':userid_value',secret_access_key=':secret_access_key_value' ,regions=':regions_value'::json,description=':description_value',updated_date=':updated_date_value',lastFourKey=':lastFourKey_value";
+					"ON CONFLICT (sitekey,access_key_id) DO update set sitekey=':sitekey_value',access_key_id=':access_key_id_value'" + 
+					",userid=':userid_value',secret_access_key=':secret_access_key_value' ,regions=':regions_value'::json,description=':description_value',updated_date=':updated_date_value',lastfourkey=':lastFourKey_value'";
 			
 			query=query.replace(":userid_value", aws.getUserid()).replace(":sitekey_value", aws.getSitekey()).replace(":access_key_id_value", aws.getAccess_key_id())
 					.replace(":secret_access_key_value", aws.getSecret_access_key()).replace(":regions_value", aws.getRegions().toJSONString()).replace(":description_value", aws.getDescription())
-					.replace(":created_date_value", aws.getCreated_date()).replace(":updated_date_value", aws.getUpdated_date()).replace(":lastFourKey", lastFourKey);
+					.replace(":created_date_value", aws.getCreated_date()).replace(":updated_date_value", aws.getUpdated_date()).replace(":lastFourKey_value", lastFourKey);
 			
 			System.out.println("query::"+query);
 			Connection conn =post.getPostConnection();
