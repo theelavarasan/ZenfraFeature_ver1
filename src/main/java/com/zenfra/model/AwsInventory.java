@@ -4,9 +4,9 @@ import javax.validation.constraints.NotBlank;
 
 import org.json.simple.JSONArray;
 
-public class AwsInventory {
 
-	
+
+public class AwsInventory {
 	
 	private String data_id;
 	
