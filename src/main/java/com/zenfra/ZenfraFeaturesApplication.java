@@ -1,19 +1,26 @@
 package com.zenfra;
 
+import java.io.IOException;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
+import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
+import com.zenfra.model.ZKModel;
+import com.zenfra.utils.ZookeeperConnection;
 
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
@@ -82,14 +89,18 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	                .config("spark.executor.heartbeatInterval", "1000s")
 	                .config("spark.sql.sources.partitionOverwriteMode", "dynamic")
 	                .getOrCreate();
-	    }
+	    }	
 	    
-	   
-	    
-	  
-	    
+	   	    
 	   @PostConstruct
 	    public void createDataframeView() {		
+		   ZookeeperConnection zkConnection = new ZookeeperConnection();
+		    try {
+				ZKModel.zkData = zkConnection.getZKData();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 		    
 		   dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
 	    	//eolService.getEOLEOSData();
 	    	//eolService.getEOLEOSHW();
