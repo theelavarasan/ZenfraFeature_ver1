@@ -1,14 +1,18 @@
 package com.zenfra.controller;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.A;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +27,7 @@ import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.model.AwsInventory;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.DBUtils;
 
 @RestController
 @RequestMapping("/rest/aws-inventory")
@@ -39,9 +44,21 @@ public class AwsInventoryController {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 			
+			ObjectMapper map=new ObjectMapper();
 			String lastFourKey=aws.getSecret_access_key().substring(aws.getSecret_access_key().length() - 4 ); 
 			String sha256hex = DigestUtils.sha256Hex(aws.getSecret_access_key());
 			
+			String connection=checkConnection(aws.getAccess_key_id(), aws.getSecret_access_key());
+				System.out.println(connection);
+				
+			if(connection.contains("fail")&& connection.contains("InvalidClientTokenId")) {
+				responseModel.setResponseDescription("InvalidClientTokenId");
+				responseModel.setResponseCode(HttpStatus.BAD_REQUEST);
+				responseModel.setjData(map.readValue(connection, JSONObject.class));
+				return responseModel;
+				
+			}
+				
 			aws.setSecret_access_key(sha256hex);
 			aws.setCreated_date(common.getCurrentDateWithTime());
 			aws.setUpdated_date(common.getCurrentDateWithTime());
@@ -147,4 +164,26 @@ public class AwsInventoryController {
 	return model;
 	}
 
+	
+	
+	public String checkConnection(String access_id,String secret_key) {
+		
+		Map<String, String> map=DBUtils.getPostgres();
+		String responce="";
+		try {
+			
+			String cmd="python3 "+map.get("CLOUD_PYTHON")+" --id "+access_id+" --key "+secret_key;
+			System.out.println(cmd);
+			Process process = Runtime.getRuntime().exec(cmd);
+			 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			    String line = "";			    
+			    while ((line = reader.readLine()) != null) {
+			    	responce+=line;
+			    }
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return responce;
+	}
 }

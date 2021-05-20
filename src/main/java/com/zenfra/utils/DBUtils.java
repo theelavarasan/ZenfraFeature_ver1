@@ -16,11 +16,13 @@ public class DBUtils {
 			String url = ZKModel.getProperty(ZKConstants.POSTGRES_URL);
 			String userName = ZKModel.getProperty(ZKConstants.POSTGRES_USER);
 			String password = ZKModel.getProperty(ZKConstants.POSTGRES_PWD);
+			String CLOUD_PYTHON = ZKModel.getProperty(ZKConstants.CLOUD_PYTHON);
 			data.put("url", url);
 			data.put("userName", userName);
 			data.put("password", password);
 			String dbUrl = url +"?user="+ userName +"&password="+ password; 
 			data.put("dbUrl", dbUrl);
+			data.put("CLOUD_PYTHON", CLOUD_PYTHON);
 			
 			System.out.println(data);
 		} catch (Exception e) {
@@ -60,4 +62,6 @@ public class DBUtils {
 		return data;
 
 	}
+	
+	
 }
