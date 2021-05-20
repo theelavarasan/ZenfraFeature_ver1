@@ -2,6 +2,7 @@ package com.zenfra.model;
 
 public class ZKConstants {
 	
+	public static String CLOUD_PYTHON="/opt/ZENfra/repo/cloud-inventory-collectors/aws/authentication.py";
 	public static String SERVER = "server";
 	public static String PORT = "port";
 	public static String DEFAULT_PATH = "defaultPath";
