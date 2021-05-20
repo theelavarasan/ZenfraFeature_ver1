@@ -22,7 +22,7 @@ public class AwsInventory {
 	@NotBlank
 	private String secret_access_key;
 	
-	@NotBlank
+	
 	private String description;
 	
 	@NotBlank

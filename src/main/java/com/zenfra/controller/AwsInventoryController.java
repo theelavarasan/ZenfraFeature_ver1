@@ -168,11 +168,11 @@ public class AwsInventoryController {
 	
 	public String checkConnection(String access_id,String secret_key) {
 		
-		Map<String, String> map=DBUtils.getPostgres();
+		//Map<String, String> map=DBUtils.getPostgres();
 		String responce="";
 		try {
-			
-			String cmd="python3 "+map.get("CLOUD_PYTHON")+" --id "+access_id+" --key "+secret_key;
+			String path="/opt/ZENfra/repo/cloud-inventory-collectors/aws/authentication.py";
+			String cmd="python3 "+path+" --id "+access_id+" --key "+secret_key;
 			System.out.println(cmd);
 			Process process = Runtime.getRuntime().exec(cmd);
 			 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
