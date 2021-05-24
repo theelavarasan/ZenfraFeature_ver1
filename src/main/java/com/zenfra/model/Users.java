@@ -76,8 +76,8 @@ public class Users {
 	private String created_time;
 	
 	
-	@Column(name="pin_status")
-	private boolean pin_status=false;
+	//@Column(name="pin_status")
+	//private boolean pin_status=false;
 	
 	
 	@Column(name="last_visted_sitekey")
@@ -238,13 +238,7 @@ public class Users {
 		this.created_time = created_time;
 	}
 
-	public boolean isPin_status() {
-		return pin_status;
-	}
-
-	public void setPin_status(boolean pin_status) {
-		this.pin_status = pin_status;
-	}
+	
 
 	public String getLast_visted_sitekey() {
 		return last_visted_sitekey;
