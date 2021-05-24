@@ -106,8 +106,8 @@ public class ChartController {
 				responseModel.setjData(functions.convertEntityToJsonObject(chartExit));
 				responseModel.setResponseDescription("Chart Successfully saved");
 				responseModel.setResponseCode(HttpStatus.OK);
-				mapService.deleteCategoryMappingFavouriteIdOrChartId(chartModel.getChartId());
-				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
+				mapService.deleteCategoryMappingFavouriteIdOrChartId(chartExit.getChartId());
+				mapService.saveMap(chartExit.getCategoryList(), chartExit.getChartId());
 			} else {
 				responseModel.setResponseDescription("Chart not saved");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
