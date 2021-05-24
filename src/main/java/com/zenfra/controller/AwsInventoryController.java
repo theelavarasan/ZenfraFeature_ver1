@@ -1,6 +1,7 @@
 package com.zenfra.controller;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -21,6 +22,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -192,18 +195,15 @@ public class AwsInventoryController {
 			String token=request.getHeader("Authorization").replace("Bearer ", "");
 			token="Bearer "+token;
 			System.out.println(token);
-			
 			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token);
 			
 			ObjectMapper map=new ObjectMapper();
 			
 			JSONObject resJson=map.convertValue(insert, JSONObject.class);
 			JSONObject body=map.readValue(resJson.get("body").toString(), JSONObject.class);
-			
-			
-			System.out.println(body);
-			if(body!=null && body.containsKey("status")&& !body.get("status").equals("200")) {
-				model.setjData(resJson);
+			System.out.println("body::"+body);
+			if(body!=null && !body.get("responseCode").equals("200")) {
+				model.setjData(body);
 				model.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				return model;
 			}
@@ -277,6 +277,12 @@ public class AwsInventoryController {
 		String tenantId,String userId,String token) {
 		  Object responce=null;
 		try {
+			 String fileName = "json/temp.json";
+		        ClassLoader classLoader = getClass().getClassLoader();
+		 
+		        File file = new File(classLoader.getResource(fileName).getFile());
+		        
+		      
 			JSONObject obj=new JSONObject();
 				obj.put("logType", "AWS");
 				obj.put("description", "AWS data retrieval");
@@ -284,13 +290,24 @@ public class AwsInventoryController {
 				obj.put("userId", userId);
 				obj.put("tenantId", tenantId);
 				obj.put("uploadAndProcess", false);
+				obj.put("parseFile", file);
 			
+		MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
+			      body.add("parseFile", file);
+			      body.add("logType", "AWS");
+			      body.add("description", "AWS data retrieval");
+			      body.add("siteKey", siteKey);
+			      body.add("userId", userId);
+			      body.add("tenantId", tenantId);
+			      body.add("uploadAndProcess", false);
+		
+			      
 		 RestTemplate restTemplate=new RestTemplate();
-		 HttpEntity<Object> request = new HttpEntity<>(obj.toJSONString(),createHeaders(token));
+		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
           responce= restTemplate
                  .exchange("http://uat.zenfra.co:8080/parsing/upload", HttpMethod.POST, request, String.class);	
 			
-         System.out.println(responce);
+        
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -302,7 +319,7 @@ public class AwsInventoryController {
 	 HttpHeaders createHeaders(String token){
 	        return new HttpHeaders() {{
 	              set( "Authorization", token );
-	            setContentType(MediaType.APPLICATION_JSON);
+	            setContentType(MediaType.MULTIPART_FORM_DATA);
 	        }};
 	    }
 }
