@@ -14,6 +14,7 @@ public class ResponseModel_v2 implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private String responseMessage;
 	private HttpStatus responseCode;
+	private int statusCode;
 	private String responseDescription;
 	private JSONArray data;
 	private Object jData;
@@ -56,6 +57,12 @@ public class ResponseModel_v2 implements Serializable{
 	}
 	public void setjData(Object jData) {
 		this.jData = jData;
+	}
+	public int getStatusCode() {
+		return statusCode;
+	}
+	public void setStatusCode(int statusCode) {
+		this.statusCode = statusCode;
 	}
 	
 	

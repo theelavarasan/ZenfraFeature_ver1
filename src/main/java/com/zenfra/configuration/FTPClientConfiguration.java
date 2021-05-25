@@ -14,13 +14,13 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPCommand;
 import org.apache.commons.net.ftp.FTPFile;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.stereotype.Component;
 
 import com.zenfra.model.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
 
-@ComponentScan
+@Component
 public class FTPClientConfiguration {
 
 

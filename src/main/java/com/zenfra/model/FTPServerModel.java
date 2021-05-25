@@ -12,7 +12,7 @@ public class FTPServerModel implements Serializable {
 	
 	@Id
 	private String serverId;
-	private String siteKey;
+	private String siteKey;	
 	private String ftpName;
 	private String serverUsername;
 	private String port;
