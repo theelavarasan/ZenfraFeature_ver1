@@ -47,8 +47,8 @@ public class FTPSettingsController {
 
 	@SuppressWarnings({ "unchecked", "rawtypes", "static-access" })
 	@PostMapping("/saveConnection")
-	public ResponseEntity<?> saveFtbServer(@RequestParam(name = "authUserId", required = false) String userId,
-			FTPServerModel ftpServer) {
+	public ResponseEntity<?> saveFtbServer(@RequestParam(name = "userId", required = false) String userId,
+		@RequestBody FTPServerModel ftpServer) {
 			
 		try {
 
@@ -138,7 +138,7 @@ public class FTPSettingsController {
 	}
 	
 	@PostMapping("/testConnection")
-	public ResponseModel_v2 testConnection(FTPServerModel ftpserver){
+	public ResponseModel_v2 testConnection(@RequestBody FTPServerModel ftpserver){
 		ResponseModel_v2 response = new ResponseModel_v2();
 		
 		
@@ -186,7 +186,7 @@ public class FTPSettingsController {
 	}
 	
 	@GetMapping("/get-files-from-customer-server")
-	public ResponseModel_v2 getFilesFromCustomerPath(@RequestAttribute(name = "authUserId", required = false) String userId,
+	public ResponseModel_v2 getFilesFromCustomerPath(@RequestParam(name = "authUserId", required = false) String userId,
 			@RequestParam("fromPath") String fromPath,@RequestParam("siteKey") String siteKey,
 			@RequestParam("connectionName") String connectionName, @RequestParam("toServer") String toPath){
 		ResponseModel_v2 connectionRes = service.getFilesdFromServer(userId, connectionName, fromPath, toPath);

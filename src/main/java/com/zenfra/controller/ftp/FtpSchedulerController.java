@@ -3,20 +3,28 @@ package com.zenfra.controller.ftp;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.ftp.scheduler.Demo;
 import com.zenfra.ftp.scheduler.ScheduleTaskService;
 import com.zenfra.ftp.scheduler.SchedulerThread;
 import com.zenfra.ftp.service.FtpSchedulerService;
+import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ftp.FtpScheduler;
 
-@Controller
+
+@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/rest/ftpScheduler")
 public class FtpSchedulerController {
 
 	@Autowired
@@ -25,7 +33,7 @@ public class FtpSchedulerController {
 	@Autowired
 	ScheduleTaskService scheduleTaskService;
 
-	@PostMapping("/ftp-scheduler")
+	@PostMapping("/runScheduler")
 	public @ResponseBody String runScheduler(@RequestBody FtpScheduler ftpScheduler) {
 
 		try {
@@ -65,15 +73,23 @@ public class FtpSchedulerController {
 	}
 
 	@GetMapping("/ftp-scheduler")
-	public @ResponseBody FtpScheduler getFtpScheduler(@RequestParam("id") Long id) {
+	public ResponseModel_v2 getFtpScheduler(@RequestParam("id") Long id) {
 
+		ResponseModel_v2 response=new ResponseModel_v2();
 		try {
 
-			return schedulerService.getFtpScheduler(id);
+			response.setjData(schedulerService.getFtpScheduler(id));
+			response.setResponseCode(HttpStatus.OK);
+			response.setResponseMessage("Got the schedular Details Successfully");
+		
+		
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
+			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			response.setResponseMessage("Getting exception in Saving File name Settings: "+e.getMessage());
+	
 		}
+		return response;
 	}
 
 	@GetMapping("/ftp-scheduler-all")

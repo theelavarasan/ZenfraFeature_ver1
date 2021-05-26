@@ -49,6 +49,7 @@ public class FTPClientConfiguration {
 	
 	public static String testConenction(FTPServerModel server) {
 		try {
+			System.out.println(server.getIpAddress()+":"+Integer.parseInt(server.getPort()));
 			FTPClient ftpClient = new FTPClient();
 			ftpClient.connect(server.getIpAddress(), Integer.parseInt(server.getPort()));
 

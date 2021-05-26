@@ -58,6 +58,7 @@ public class FileNameSettingsController {
 			// Constants.filePath + uploadfile[0].getOriginalFilename(), serverPassword, "")
 			// != null) {
 			String fileNameSettingId = UUID.randomUUID().toString();
+			fileNameSettings.setFileNameSettingId(fileNameSettingId);
 			service.saveFileNameSettings(fileNameSettings);
 			
 			response.setResponseCode(HttpStatus.OK);
