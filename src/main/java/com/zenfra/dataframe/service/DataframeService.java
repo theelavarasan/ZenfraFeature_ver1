@@ -780,7 +780,7 @@ public class DataframeService{
 	        
 	        results = results.dropDuplicates();	        
 
-	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);	    	
+	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", request.getSourceType().toLowerCase(), "Discovery", siteKey);	    	
 	    	
 	    	List<String> columns = Arrays.asList(results.columns());
 	    	
