@@ -1,12 +1,26 @@
 package com.zenfra.ftp.service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
+import com.zenfra.model.BaseModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
@@ -65,61 +79,23 @@ public class FtpSchedulerService {
 
 			
 			System.out.println("--------------eneter runFtpSchedulerFiles---------");
-			List<FileWithPath> files = new ArrayList<FileWithPath>();
+			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
 
-			List<FtpScheduler> scheduler = new ArrayList<FtpScheduler>();
+			List<FileWithPath> files=getFilesBased(settings);
 			
 			
-
-			/*for (FtpScheduler s : scheduler) {
-
-				jsonObject jsonObject = new JsonParser().parse(s.getSchedulerAttributes()).getAsJsonObject();
-				
-				if (s.getType().equalsIgnoreCase("Hour")) {			
-					LocalTime now = LocalTime.now();
-					LocalTime limit = LocalTime.parse(jsonObject.get("hour").getAsString());
-					if(now.equals( limit )) {
-						getFilesBased(s);
-					}					
-				}else if(s.getType().equalsIgnoreCase("Month")) {
-					
-					int day=jsonObject.get("day").getAsInt();
-					Calendar cal = Calendar.getInstance();
-					int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
-					  
-					if(day!=0 && day==dayOfMonth) {
-						getFilesBased(s);
-					}					
-					
-				}else if(s.getType().equalsIgnoreCase("Week")) {
-					
-					List<String> daysList=Arrays.asList(jsonObject.get("days").getAsString().split(",") );
-					Calendar cal = Calendar.getInstance();
-					int dayOfMonth = cal.get(Calendar.DAY_OF_WEEK);
-					  
-					String[] arr=new String[] {
-							"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday","Saturday"};
-					if(daysList.contains(arr[dayOfMonth])) {
-						getFilesBased(s);
-					}					
-					
-				}
-
-			}*/
-
-			return getFilesBased(s);
+			return files;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	public List<FileWithPath> getFilesBased(FtpScheduler scheduler) {
+	public List<FileWithPath> getFilesBased(FileNameSettingsModel settings) {
 
 		try {
 
-			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(scheduler.getFileNameSettingsId());
-
+		
 			
 			return settingsService.getFilesByPattern(settings);
 		} catch (Exception e) {
@@ -129,4 +105,37 @@ public class FtpSchedulerService {
 	}
 
 	
+	public Object callParsing(String siteKey,
+		String tenantId,List<FileWithPath> files,String token) {
+		  Object responce=null;
+		try {
+			        
+		 	
+		MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
+			      body.add("files", files);
+			      body.add("siteKey", siteKey);
+			      body.add("tenantId", tenantId);
+		
+			      
+		 RestTemplate restTemplate=new RestTemplate();
+		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
+          responce= restTemplate
+                 .exchange("http://uat.zenfra.co:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);	
+			
+        
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return responce;
+	}
+	
+	
+	 HttpHeaders createHeaders(String token){
+	        return new HttpHeaders() {{
+	              set( "Authorization", token );
+	            setContentType(MediaType.APPLICATION_JSON);
+	        }};
+	    }
+
 }

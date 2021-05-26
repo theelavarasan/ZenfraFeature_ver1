@@ -36,6 +36,9 @@ public class FtpScheduler {
 	@Column
 	private String siteKey;
 	
+	@Column
+	private String userId;
+	
 	public long getId() {
 		return id;
 	}
@@ -90,6 +93,14 @@ public class FtpScheduler {
 
 	public void setSiteKey(String siteKey) {
 		this.siteKey = siteKey;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
 	

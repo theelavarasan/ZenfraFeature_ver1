@@ -8,6 +8,8 @@ public class FileWithPath {
 	private String logType;
 	private String checkSum;
 
+	private FTPServerModel serverModel;
+	
 	public String getLogType() {
 		return logType;
 	}
@@ -38,6 +40,14 @@ public class FileWithPath {
 
 	public void setCheckSum(String checkSum) {
 		this.checkSum = checkSum;
+	}
+
+	public FTPServerModel getServerModel() {
+		return serverModel;
+	}
+
+	public void setServerModel(FTPServerModel serverModel) {
+		this.serverModel = serverModel;
 	}
 
 }

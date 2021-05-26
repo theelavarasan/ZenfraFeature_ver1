@@ -19,6 +19,7 @@ import com.zenfra.ftp.scheduler.ScheduleTaskService;
 import com.zenfra.ftp.scheduler.SchedulerThread;
 import com.zenfra.ftp.service.FtpSchedulerService;
 import com.zenfra.model.ResponseModel_v2;
+import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
 
 
@@ -123,4 +124,18 @@ public class FtpSchedulerController {
 		return "done";
 	}
 
+	
+	@PostMapping("/run-sample")
+	public List<FileWithPath> run(@RequestParam long id){
+		
+		try {
+			FtpScheduler ftp=schedulerService.getFtpScheduler(id);
+			
+			return schedulerService.runFtpSchedulerFiles(ftp);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return null;
+	}
 }
