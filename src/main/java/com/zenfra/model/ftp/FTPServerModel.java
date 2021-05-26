@@ -1,4 +1,4 @@
-package com.zenfra.model;
+package com.zenfra.model.ftp;
 
 import java.io.Serializable;
 

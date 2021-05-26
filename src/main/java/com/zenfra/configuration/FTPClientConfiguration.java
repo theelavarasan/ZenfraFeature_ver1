@@ -16,7 +16,7 @@ import org.apache.commons.net.ftp.FTPCommand;
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.stereotype.Component;
 
-import com.zenfra.model.FTPServerModel;
+import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
 

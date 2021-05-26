@@ -9,12 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.ftp.repo.FileNameSettingsRepo;
-import com.zenfra.model.FTPServerModel;
-import com.zenfra.model.ftp.FileNameSettings;
+import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
-import com.zenfra.model.ftp.FtpServer;
+
 
 @Service
 public class FileNameSettingsService {

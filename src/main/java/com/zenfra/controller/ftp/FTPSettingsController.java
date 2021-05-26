@@ -23,8 +23,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.ftp.service.FTPClientService;
-import com.zenfra.model.FTPServerModel;
 import com.zenfra.model.ResponseModel_v2;
+import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.utils.CommonFunctions;
 

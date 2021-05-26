@@ -28,7 +28,6 @@ import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
 
 
-
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/rest/fNSetting")
