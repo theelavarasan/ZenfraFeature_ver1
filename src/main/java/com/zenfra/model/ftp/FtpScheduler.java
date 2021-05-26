@@ -23,9 +23,22 @@ public class FtpScheduler {
 	private String type;
 
 	
+	
 	@Column
 	private String schedulerCorn;
 
+	@Column
+	private boolean isActive;
+	
+	@Column
+	private String tenantId;
+	
+	@Column
+	private String siteKey;
+	
+	@Column
+	private String userId;
+	
 	public long getId() {
 		return id;
 	}
@@ -56,6 +69,38 @@ public class FtpScheduler {
 
 	public void setSchedulerCorn(String schedulerCorn) {
 		this.schedulerCorn = schedulerCorn;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+
+	public String getSiteKey() {
+		return siteKey;
+	}
+
+	public void setSiteKey(String siteKey) {
+		this.siteKey = siteKey;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
 	

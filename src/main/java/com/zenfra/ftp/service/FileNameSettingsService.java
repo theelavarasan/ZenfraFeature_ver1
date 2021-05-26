@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.ftp.repo.FileNameSettingsRepo;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
@@ -111,27 +112,33 @@ public class FileNameSettingsService {
 
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
 
+			
 			List<FileWithPath> files = clientService.getFiles(settings.getSiteKey(), server.getServerPath(), settings.getFtpName());
 
+			ObjectMapper map=new ObjectMapper();
 			for (FileWithPath f : files) {
-
+					//f.setServerModel(server);
+				//System.out.println(f.getName()+":"+f.getPath());
 				 String patternVal = null;
-				 String logType = null;
+				 String logType = null;		
 				 for(int j=0; j < settings.getPattern().size();j++) {
-					 JSONObject patJson =  (JSONObject) settings.getPattern().get(j);
-					 patternVal = patJson.get("namePattern").toString();
-					 logType = patJson.get("logType").toString();
+					 
+					 JSONObject patJson = map.convertValue(settings.getPattern().get(j), JSONObject.class);
+					 patternVal =Pattern.quote("*"+patJson.get("namePattern").toString());
+					 logType = Pattern.quote("*"+patJson.get("logType").toString()+"*");
+					 System.out.println("f.getName():::"+f.getName());
+					 //if ( Pattern.matches(patternVal,f.getName()) || Pattern.matches(logType, f.getName()) ) {
+							System.out.println("Find Match");
+							f.setLogType(logType);
+							filesFillter.add(f);
+						//}
+				
 				 }
 				
-				 if ( Pattern.matches(patternVal,f.getName()) || Pattern.matches(logType, f.getName()) ) {
-						System.out.println("Find Match");
-						f.setLogType(logType);
-						filesFillter.add(f);
-					}
-			
+		
 			}
 
-			// clientService.getFilesdFromServerPattern(server, settings, files);
+			 clientService.getFilesdFromServerPattern(server, settings, files);
 			return filesFillter;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -170,11 +177,11 @@ public class FileNameSettingsService {
 		}
 	}
 
-	public List<FileNameSettingsModel> getFileNameSettingsByFtpName(String serverUsername) {
+	public List<FileNameSettingsModel> getFileNameSettingsByFtpName(String siteKey,String ftpName) {
 		List<FileNameSettingsModel> list=new ArrayList<FileNameSettingsModel>();
 		try {
 			
-			list=repo.getsaveFileNameSettingsByFtpName(serverUsername);
+			list=repo.getsaveFileNameSettingsByFtpName(siteKey,ftpName);
 			
 			
 		} catch (Exception e) {

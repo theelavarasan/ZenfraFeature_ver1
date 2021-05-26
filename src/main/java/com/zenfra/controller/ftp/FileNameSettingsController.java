@@ -75,12 +75,12 @@ public class FileNameSettingsController {
 		}		
 	}
 	@PostMapping("/get")
-	public ResponseModel_v2 getFNSettings(@RequestParam(name = "authUserId", required = false) String userId,
-			String siteKey, String serverUsername) {
+	public ResponseModel_v2 getFNSettings(@RequestParam String userId,
+			@RequestParam String siteKey, @RequestParam String ftpName) {
 		System.out.println("Get into FN Settings");
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
-			List<FileNameSettingsModel> list=service.getFileNameSettingsByFtpName(serverUsername);
+			List<FileNameSettingsModel> list=service.getFileNameSettingsByFtpName(siteKey,ftpName);
 			response.setjData(list);
 			response.setResponseCode(HttpStatus.OK);
 			response.setResponseMessage("File Name Settings get call executed Successfully");

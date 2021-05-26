@@ -63,9 +63,9 @@ public class AwsInventoryController {
 			//String sha256hex = DigestUtils.sha256Hex(aws.getSecret_access_key());
 			
 			String connection=checkConnection(aws.getAccess_key_id(), aws.getSecret_access_key());
-				System.out.println(connection);
-				
-			if(connection.contains("exception") || connection.isEmpty() || (connection.contains("fail")&& connection.contains("InvalidClientTokenId"))) {
+			System.out.println("Con::"+connection);
+			
+			if(connection.contains("SignatureDoesNotMatch") || connection.contains("exception") || connection.isEmpty() || (connection.contains("fail") || connection.contains("InvalidClientTokenId"))) {
 				responseModel.setResponseDescription("InvalidClientTokenId");
 				responseModel.setResponseCode(HttpStatus.BAD_REQUEST);				
 				if(connection.contains("fail")) {
@@ -271,8 +271,7 @@ public class AwsInventoryController {
 			    while ((line = reader.readLine()) != null) {
 			    	responce+=line;
 			    }
-			
-		} catch (Exception e) {
+			} catch (Exception e) {
 			e.printStackTrace();
 			return "exception";
 		}

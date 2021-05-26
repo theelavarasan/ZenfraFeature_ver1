@@ -47,14 +47,12 @@ public class FTPSettingsController {
 
 	@SuppressWarnings({ "unchecked", "rawtypes", "static-access" })
 	@PostMapping("/saveConnection")
-	public ResponseEntity<?> saveFtbServer(@RequestParam(name = "userId", required = false) String userId,
+	public ResponseEntity<?> saveFtbServer(
 		@RequestBody FTPServerModel ftpServer) {
 			
 		try {
-
-			ftpServer.setUserId(userId);
 			ftpServer.setActive(true);
-			ftpServer.setCreate_by(userId);
+			ftpServer.setCreate_by(ftpServer.getUserId());
 			ftpServer.setCreate_time(functions.getCurrentDateWithTime());
 
 			// server.setFilePath(path.getFileName().toString());

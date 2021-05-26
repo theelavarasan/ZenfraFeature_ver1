@@ -86,7 +86,7 @@ public class FTPClientConfiguration {
 
 			List<FileWithPath> fileList = new ArrayList<FileWithPath>();
 
-			
+			System.out.println("path::"+path);
 			FTPClient ftpClient = getConnection(server);
 			
 			ftpClient.enterLocalPassiveMode();
@@ -97,7 +97,8 @@ public class FTPClientConfiguration {
 			// ftpClient.g
 			for (FTPFile file : files) {
 				String details = file.getName();
-				 File fileForChkSum = new File(path + "/" + details);
+				System.out.println("details::"+details);
+				// File fileForChkSum = new File(path + "/" + details);
 				 ftpClient.enterLocalPassiveMode();
 				 InputStream iStream=ftpClient.retrieveFileStream(path + "/" + details);
 				 if(iStream!=null) {
@@ -157,6 +158,7 @@ public class FTPClientConfiguration {
 			 ftpClient.retrieveFile("Pure-Collection-Commands.txt", fos); }
 			 */
 			toPath = toPath + "/" + fileName;
+			System.out.println("toPath::"+toPath);
 			try (FileOutputStream fos = new FileOutputStream(toPath)) {
 				ftpClient.retrieveFile(fileName, fos);
 			} catch (IOException e) {
@@ -237,14 +239,14 @@ public class FTPClientConfiguration {
 		}
 		return statusList;
 	}
-	public static List<FileWithPath> getAllFilesFromPath(FTPServerModel server, String path){
+	public static List<FileWithPath> getAllFilesFromPath(FTPServerModel server, String parentDir){
 		
 		 List<FileWithPath> files=new ArrayList<FileWithPath>();
 		try {
 			FTPClient ftpClient = getConnection(server);
 
 			ftpClient.enterLocalPassiveMode();
-			files.addAll(getAllFilesFromPath(ftpClient, path, "", 0, server, files));
+			files.addAll(getAllFilesFromPath(ftpClient, parentDir, "", 0, server, files));
 			ftpClient.logout();
 			ftpClient.disconnect();
 			return files;

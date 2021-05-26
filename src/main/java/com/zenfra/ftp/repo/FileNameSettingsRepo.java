@@ -18,8 +18,8 @@ public interface FileNameSettingsRepo extends JpaRepository<FileNameSettingsMode
 	@Query("delete from FileNameSettingsModel s where s.siteKey=:siteKey and s.ftpName=:ftpName")
 	void deletesaveFileNameSettings(@Param("siteKey")String siteKey,@Param("ftpName") String ftpName);
 
-	@Query("select s from FileNameSettingsModel s where s.ftpName=:ftpName")
-	List<FileNameSettingsModel> getsaveFileNameSettingsByFtpName(@Param("ftpName") String ftpName);
+	@Query("select s from FileNameSettingsModel s where s.siteKey=:siteKey and  s.ftpName=:ftpName")
+	List<FileNameSettingsModel> getsaveFileNameSettingsByFtpName(@Param("siteKey") String siteKey,@Param("ftpName") String ftpName);
 
 	@Query("select s from FileNameSettingsModel s where s.siteKey=:siteKey and s.ftpName=:ftpName")
 	List<FileNameSettingsModel> getsaveFileNameSettingsList(String siteKey, String ftpName);
