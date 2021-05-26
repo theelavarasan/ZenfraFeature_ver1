@@ -170,11 +170,11 @@ public class FileNameSettingsService {
 		}
 	}
 
-	public List<FileNameSettingsModel> getFileNameSettingsByFtpName(String serverUsername) {
+	public List<FileNameSettingsModel> getFileNameSettingsByFtpName(String siteKey,String ftpName) {
 		List<FileNameSettingsModel> list=new ArrayList<FileNameSettingsModel>();
 		try {
 			
-			list=repo.getsaveFileNameSettingsByFtpName(serverUsername);
+			list=repo.getsaveFileNameSettingsByFtpName(siteKey,ftpName);
 			
 			
 		} catch (Exception e) {
