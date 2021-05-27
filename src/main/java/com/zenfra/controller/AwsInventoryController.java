@@ -60,7 +60,7 @@ public class AwsInventoryController {
 			
 			ObjectMapper map=new ObjectMapper();
 			String lastFourKey=aws.getSecret_access_key().substring(aws.getSecret_access_key().length() - 4 ); 
-			String sha256hex = DigestUtils.sha256Hex(aws.getSecret_access_key());
+			//String sha256hex = DigestUtils.sha256Hex(aws.getSecret_access_key());
 			
 			String connection=checkConnection(aws.getAccess_key_id(), aws.getSecret_access_key());
 			System.out.println("Con::"+connection);
@@ -74,7 +74,7 @@ public class AwsInventoryController {
 				return responseModel;
 			}
 				
-			aws.setSecret_access_key(sha256hex);
+			//aws.setSecret_access_key(sha256hex);
 			aws.setCreated_date(common.getCurrentDateWithTime());
 			aws.setUpdated_date(common.getCurrentDateWithTime());
 			String query="INSERT INTO aws_cloud_credentials(userid, sitekey, access_key_id, secret_access_key, regions, description, created_date, data_id,lastfourkey)" + 
@@ -229,8 +229,7 @@ public class AwsInventoryController {
 		
 		return model;
 	}
-
-
+	
 	private Object callAwsScript(String secret_access_key,String access_key_id,String siteKey, String userId, String token) {
 		
 		String responce="";
@@ -330,7 +329,6 @@ public class AwsInventoryController {
 	            setContentType(MediaType.MULTIPART_FORM_DATA);
 	        }};
 	    }
-	 
 	 
 	 
 	 public AwsInventory getAwsInventoryByDataId(String data_id) {
