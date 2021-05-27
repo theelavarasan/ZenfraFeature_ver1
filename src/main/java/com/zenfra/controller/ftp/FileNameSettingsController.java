@@ -10,6 +10,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -26,6 +27,7 @@ import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
+import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 
 @CrossOrigin(origins = "*")
@@ -47,16 +49,27 @@ public class FileNameSettingsController {
 			@RequestBody FileNameSettingsModel fileNameSettings) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
+			
+			
+			FileNameSettingsModel exist=service.getFileNameSettingsById(fileNameSettings.getFileNameSettingId());
 
-			fileNameSettings.setActive(true);
+			
+			if(exist==null) {
+				String fileNameSettingId = UUID.randomUUID().toString();
+				fileNameSettings.setFileNameSettingId(fileNameSettingId);
+				fileNameSettings.setActive(true);				
+				service.saveFileNameSettings(fileNameSettings);			
+			}else {
+				BeanUtils.copyProperties(fileNameSettings, exist, NullAwareBeanUtilsBean.getNullPropertyNames(fileNameSettings));
+				exist.setActive(true);
+				service.saveFileNameSettings(exist);
+			}
 			// server.setFilePath(path.getFileName().toString());
 
 			// if (FtbConfiguration.connectToServer(serverUsername, ipAddress, port,
 			// Constants.filePath + uploadfile[0].getOriginalFilename(), serverPassword, "")
 			// != null) {
-			String fileNameSettingId = UUID.randomUUID().toString();
-			fileNameSettings.setFileNameSettingId(fileNameSettingId);
-			service.saveFileNameSettings(fileNameSettings);
+			
 			
 			response.setResponseCode(HttpStatus.OK);
 			 response.setResponseMessage("Saved FileName Settings");

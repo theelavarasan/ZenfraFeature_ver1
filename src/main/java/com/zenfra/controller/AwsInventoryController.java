@@ -35,6 +35,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
+import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.model.AwsInventory;
 import com.zenfra.model.ResponseModel_v2;
@@ -53,6 +54,9 @@ public class AwsInventoryController {
 	@Autowired
 	CommonFunctions common;
 	
+	@Autowired
+	AESEncryptionDecryption aesEncrypt;
+	
 	@PostMapping
 	public ResponseModel_v2 saveAws(@RequestBody AwsInventory aws){
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
@@ -60,7 +64,9 @@ public class AwsInventoryController {
 			
 			ObjectMapper map=new ObjectMapper();
 			String lastFourKey=aws.getSecret_access_key().substring(aws.getSecret_access_key().length() - 4 ); 
-			//String sha256hex = DigestUtils.sha256Hex(aws.getSecret_access_key());
+			String sha256hex = aesEncrypt.encrypt(aws.getSecret_access_key());
+			aws.setSecret_access_key(sha256hex);
+			
 			
 			String connection=checkConnection(aws.getAccess_key_id(), aws.getSecret_access_key());
 			System.out.println("Con::"+connection);
@@ -210,8 +216,9 @@ public class AwsInventoryController {
 			*/
 			
 			AwsInventory aws=getAwsInventoryByDataId(data_id);
+			String sha256hex = aesEncrypt.decrypt(aws.getSecret_access_key());
 			if(aws!=null) {
-				Object res=callAwsScript(aws.getSecret_access_key(),aws.getAccess_key_id(),siteKey,userId,token); 
+				Object res=callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token); 
 				model.setResponseCode(HttpStatus.OK);
 				model.setjData(res);
 				return model;
