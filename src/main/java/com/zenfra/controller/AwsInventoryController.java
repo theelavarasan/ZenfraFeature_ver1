@@ -181,20 +181,20 @@ public class AwsInventoryController {
 
 	
 	
+	
 	@GetMapping("/call-script")
 	public ResponseModel_v2 callScript(
 			@RequestParam String siteKey,
 			@RequestParam String userId,@RequestParam String tenantId,
+			@RequestParam String data_id,
 			HttpServletRequest request
 			) {
-		
-		//System.out.println("test");
 		
 		ResponseModel_v2 model=new ResponseModel_v2();
 		try {
 			String token=request.getHeader("Authorization").replace("Bearer ", "");
 			token="Bearer "+token;
-			System.out.println(token);
+			/*System.out.println(token);
 			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token);
 			
 			ObjectMapper map=new ObjectMapper();
@@ -207,12 +207,19 @@ public class AwsInventoryController {
 				model.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				return model;
 			}
+			*/
 			
-			Object res=callAwsScript(siteKey,userId,token) ; 
-			
-		
-			model.setResponseCode(HttpStatus.OK);
-			model.setjData(res);
+			AwsInventory aws=getAwsInventoryByDataId(data_id);
+			if(aws!=null) {
+				Object res=callAwsScript(aws.getSecret_access_key(),aws.getAccess_key_id(),siteKey,userId,token); 
+				model.setResponseCode(HttpStatus.OK);
+				model.setjData(res);
+				return model;
+			}else {
+				model.setResponseCode(HttpStatus.NOT_FOUND);
+				return model;
+			}
+	
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -222,15 +229,15 @@ public class AwsInventoryController {
 		
 		return model;
 	}
-	
-	
-	private Object callAwsScript(String siteKey, String userId, String token) {
+
+
+	private Object callAwsScript(String secret_access_key,String access_key_id,String siteKey, String userId, String token) {
 		
 		String responce="";
 		try {
 			
 			String path=" /opt/ZENfra/repo/cloud-inventory-collectors/aws/inventory_collection/aws_inventory.py";
-			String cmd="python3 "+path+" --sitekey "+siteKey;
+			String cmd="python3 "+path+" --akid "+access_key_id+" --sakey "+secret_access_key+" --sitekey "+siteKey;
 		
 			Process process = Runtime.getRuntime().exec(cmd);
 			 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -238,7 +245,6 @@ public class AwsInventoryController {
 			    while ((line = reader.readLine()) != null) {
 			    	responce+=line;
 			    }
-			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -262,7 +268,8 @@ public class AwsInventoryController {
 			    while ((line = reader.readLine()) != null) {
 			    	responce+=line;
 			    }
-			} catch (Exception e) {
+			
+		} catch (Exception e) {
 			e.printStackTrace();
 			return "exception";
 		}
@@ -299,12 +306,13 @@ public class AwsInventoryController {
 			      body.add("userId", userId);
 			      body.add("tenantId", tenantId);
 			      body.add("uploadAndProcess", false);
+			      body.add("status", "Processing");
 		
 			      
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
           responce= restTemplate
-                 .exchange("http://localhost:8080/parsing/upload", HttpMethod.POST, request, String.class);	
+                 .exchange("http://uat.zenfra.co:8080/parsing/upload", HttpMethod.POST, request, String.class);	
 			
         
 		} catch (Exception e) {
@@ -315,10 +323,49 @@ public class AwsInventoryController {
 	}
 	
 	
+	
 	 HttpHeaders createHeaders(String token){
 	        return new HttpHeaders() {{
 	              set( "Authorization", token );
 	            setContentType(MediaType.MULTIPART_FORM_DATA);
 	        }};
 	    }
+	 
+	 
+	 
+	 public AwsInventory getAwsInventoryByDataId(String data_id) {
+		 
+		 AwsInventory aws=new AwsInventory();
+		 try {
+			 String query="select * from aws_cloud_credentials where data_id=':data_id_value'";
+				query=query.replace(":data_id_value", data_id);
+				System.out.println(query);
+			   Connection conn =post.getPostConnection();
+			   Statement stmt = conn.createStatement();			
+		       ResultSet rs = stmt.executeQuery(query);
+		       List<AwsInventory> list=new ArrayList<AwsInventory>();
+		       ObjectMapper map=new ObjectMapper();
+		      
+		    	
+		       while(rs.next()){
+		    	    aws.setLastFourKey( rs.getString("lastFourKey")!=null ? rs.getString("lastFourKey").toString() : " " );
+		    	   	aws.setAccess_key_id( rs.getString("access_key_id")!=null ? rs.getString("access_key_id").toString() : " " );
+		    	  	aws.setSecret_access_key(rs.getString("secret_access_key")!=null ? rs.getString("secret_access_key").toString() : " ");
+		    	   	aws.setSitekey(rs.getString("sitekey")!=null ? rs.getString("sitekey").toString() : " ");
+		    	   	aws.setUserid(rs.getString("userid")!=null ? rs.getString("userid").toString() : " ");
+		    	   	aws.setUpdated_date(rs.getString("updated_date")!=null ? rs.getString("updated_date").toString() : " ");
+		    	   	aws.setRegions(rs.getString("regions")!=null ? map.readValue(rs.getString("regions"), JSONArray.class) : new JSONArray());
+		    	  
+		       }
+		 		stmt.close();
+				conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 
+		 return aws;
+	 }
 }
+
+
+

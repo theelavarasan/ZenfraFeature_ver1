@@ -31,14 +31,14 @@ public class FTPClientConfiguration {
 			int port = Integer.parseInt(server.getPort());
 			ftpClient.connect(server.getIpAddress(), port);
 
-			System.out.println(ftpClient.getReplyString());
+			//System.out.println(ftpClient.getReplyString());
 
 			ftpClient.sendCommand(FTPCommand.USER, server.getServerUsername());
 
-			System.out.println(ftpClient.getReplyString());
+			//System.out.println(ftpClient.getReplyString());
 
 			ftpClient.sendCommand(FTPCommand.PASS, server.getServerPassword());
-			System.out.println(ftpClient.getReplyString());
+			//System.out.println(ftpClient.getReplyString());
 
 			return ftpClient;
 		} catch (Exception e) {
