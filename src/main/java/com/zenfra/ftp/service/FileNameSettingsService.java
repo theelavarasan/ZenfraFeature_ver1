@@ -111,6 +111,7 @@ public class FileNameSettingsService {
 		List<FileWithPath> filesFillter = new ArrayList<FileWithPath>();
 		try {
 
+			
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
 
 			
@@ -129,7 +130,8 @@ public class FileNameSettingsService {
 					 patternVal =patJson.get("namePattern").toString();
 					 logType = patJson.get("logType").toString();
 					 System.out.println("f.getName():::"+f.getName());
-					if (isValidMatch(patternVal,f.getName()) || isValidMatch(logType, f.getName()) ) {
+					//if (isValidMatch(patternVal,f.getName()) || isValidMatch(logType, f.getName()) ) {
+					 if (f.getName().contains(patternVal) || f.getName().contains(logType) ) {
 							System.out.println("Find Match");
 							f.setLogType(logType);
 							filesFillter.add(f);
