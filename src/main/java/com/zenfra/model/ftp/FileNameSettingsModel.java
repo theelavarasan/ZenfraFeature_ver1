@@ -47,7 +47,7 @@ public class FileNameSettingsModel implements Serializable{
 	public void setFtpName(String ftpName) {
 		this.ftpName = ftpName;
 	}
-	public boolean isActive() {
+	public boolean getActive() {
 		return isActive;
 	}
 	public void setActive(boolean isActive) {
