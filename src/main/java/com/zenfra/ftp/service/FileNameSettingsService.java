@@ -2,6 +2,7 @@ package com.zenfra.ftp.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
@@ -128,12 +129,12 @@ public class FileNameSettingsService {
 					 patternVal =patJson.get("namePattern").toString();
 					 logType = patJson.get("logType").toString();
 					 System.out.println("f.getName():::"+f.getName());
-					 //if ( Pattern.matches(patternVal,f.getName()) || Pattern.matches(logType, f.getName()) ) {
+					if (isValidMatch(patternVal,f.getName()) || isValidMatch(logType, f.getName()) ) {
 							System.out.println("Find Match");
 							f.setLogType(logType);
 							filesFillter.add(f);
 							
-						//}
+					}
 				
 				 }
 				
@@ -193,8 +194,23 @@ public class FileNameSettingsService {
 		return list;
 	}
 
+	static boolean isValidMatch(String patternRegex, String content) {
+	    boolean isMatched = false;
+	    try {
+	        Pattern pattern = Pattern.compile(patternRegex, Pattern.CASE_INSENSITIVE);
+	        Matcher matcher = pattern.matcher(content);
+	        return matcher.find();              
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    
+	    return isMatched;
+	            
+	}
+
 	
+}
 
 	
 	
-}
+

@@ -1,14 +1,8 @@
 package com.zenfra.ftp.service;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +17,6 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
-import com.zenfra.model.BaseModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
@@ -55,11 +48,11 @@ public class FtpSchedulerService {
 		}
 	}
 
-	public FtpScheduler getFtpScheduler(Long id) {
+	public FtpScheduler getFtpScheduler(String fileNameSettingsId) {
 
 		try {
 
-			return repo.findAllById(id);
+			return repo.findAllById(fileNameSettingsId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

@@ -74,12 +74,12 @@ public class FtpSchedulerController {
 	}
 
 	@GetMapping("/ftp-scheduler")
-	public ResponseModel_v2 getFtpScheduler(@RequestParam("id") Long id) {
+	public ResponseModel_v2 getFtpScheduler(@RequestParam("fileNameSettingsId") String fileNameSettingsId) {
 
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {
 
-			response.setjData(schedulerService.getFtpScheduler(id));
+			response.setjData(schedulerService.getFtpScheduler(fileNameSettingsId));
 			response.setResponseCode(HttpStatus.OK);
 			response.setResponseMessage("Got the schedular Details Successfully");
 		
@@ -126,10 +126,10 @@ public class FtpSchedulerController {
 
 	
 	@PostMapping("/run-sample")
-	public List<FileWithPath> run(@RequestParam long id){
+	public List<FileWithPath> run(@RequestParam String fileNameSettingsId){
 		
 		try {
-			FtpScheduler ftp=schedulerService.getFtpScheduler(id);
+			FtpScheduler ftp=schedulerService.getFtpScheduler(fileNameSettingsId);
 			
 			return schedulerService.runFtpSchedulerFiles(ftp);
 		} catch (Exception e) {

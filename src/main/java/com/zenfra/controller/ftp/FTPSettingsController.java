@@ -55,11 +55,6 @@ public class FTPSettingsController {
 			ftpServer.setCreate_by(ftpServer.getUserId());
 			ftpServer.setCreate_time(functions.getCurrentDateWithTime());
 
-			// server.setFilePath(path.getFileName().toString());
-
-			// if (FtbConfiguration.connectToServer(serverUsername, ipAddress, port,
-			// Constants.filePath + uploadfile[0].getOriginalFilename(), serverPassword, "")
-			// != null) {
 			String serverId = UUID.randomUUID().toString();
 			ftpServer.setServerId(serverId);
 			service.saveFtpServer(ftpServer);

@@ -43,14 +43,12 @@ public class FileNameSettingsController {
 	
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@PostMapping("/save")
-	public ResponseModel_v2 saveFNSettings(@RequestParam(name = "authUserId", required = false) String userId,
+	public ResponseModel_v2 saveFNSettings(
 			@RequestBody FileNameSettingsModel fileNameSettings) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 
-			fileNameSettings.setUserId(userId);
 			fileNameSettings.setActive(true);
-
 			// server.setFilePath(path.getFileName().toString());
 
 			// if (FtbConfiguration.connectToServer(serverUsername, ipAddress, port,
