@@ -27,6 +27,11 @@ public class FtpScheduler {
 	@Column
 	private String schedulerCorn;
 
+	
+	@Column
+	private String time;
+	
+	
 	@Column
 	private boolean isActive;
 	
@@ -38,6 +43,9 @@ public class FtpScheduler {
 	
 	@Column
 	private String userId;
+	
+	@Column
+	private String email;
 	
 	public long getId() {
 		return id;
@@ -101,6 +109,22 @@ public class FtpScheduler {
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	public String getTime() {
+		return time;
+	}
+
+	public void setTime(String time) {
+		this.time = time;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	

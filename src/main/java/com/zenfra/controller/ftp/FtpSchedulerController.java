@@ -38,6 +38,8 @@ public class FtpSchedulerController {
 	public @ResponseBody String runScheduler(@RequestBody FtpScheduler ftpScheduler) {
 
 		try {
+			
+			ftpScheduler.setTime(ftpScheduler.getSchedulerCorn());
 			// https://www.freeformatter.com/cron-expression-generator-quartz.html
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
 
