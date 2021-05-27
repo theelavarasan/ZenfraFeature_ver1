@@ -181,6 +181,7 @@ public class AwsInventoryController {
 
 	
 	
+	
 	@GetMapping("/call-script")
 	public ResponseModel_v2 callScript(
 			@RequestParam String siteKey,
@@ -188,8 +189,6 @@ public class AwsInventoryController {
 			@RequestParam String data_id,
 			HttpServletRequest request
 			) {
-		
-		//System.out.println("test");
 		
 		ResponseModel_v2 model=new ResponseModel_v2();
 		try {
@@ -231,7 +230,6 @@ public class AwsInventoryController {
 		return model;
 	}
 	
-	
 	private Object callAwsScript(String secret_access_key,String access_key_id,String siteKey, String userId, String token) {
 		
 		String responce="";
@@ -247,8 +245,6 @@ public class AwsInventoryController {
 			    	responce+=line;
 			    }
 			
-			System.out.println(cmd);
-			System.out.println(responce);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -271,7 +267,8 @@ public class AwsInventoryController {
 			    while ((line = reader.readLine()) != null) {
 			    	responce+=line;
 			    }
-			} catch (Exception e) {
+			
+		} catch (Exception e) {
 			e.printStackTrace();
 			return "exception";
 		}
@@ -325,6 +322,7 @@ public class AwsInventoryController {
 	}
 	
 	
+	
 	 HttpHeaders createHeaders(String token){
 	        return new HttpHeaders() {{
 	              set( "Authorization", token );
@@ -366,3 +364,6 @@ public class AwsInventoryController {
 		 return aws;
 	 }
 }
+
+
+
