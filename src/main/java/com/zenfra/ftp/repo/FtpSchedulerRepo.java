@@ -11,8 +11,8 @@ import com.zenfra.model.ftp.FtpScheduler;
 public interface FtpSchedulerRepo extends JpaRepository<FtpScheduler, Long>{
 
 	
-	@Query("select f from FtpScheduler f where f.id=:id")
-	FtpScheduler findAllById(@Param("id")Long id);
+	@Query("select f from FtpScheduler f where f.fileNameSettingsId=:fileNameSettingsId")
+	FtpScheduler findAllById(@Param("fileNameSettingsId")String fileNameSettingsId);
 	
 	
 
