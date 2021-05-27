@@ -120,7 +120,7 @@ public class FtpSchedulerService {
 		      body.add("siteKey", siteKey);
 		      body.add("userId", userId);
 		      body.add("tenantId", tenantId);
-		      body.add("uploadAndProcess", false);
+		      body.add("uploadAndProcess", true);
 			      
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders("Bearer "+token));
