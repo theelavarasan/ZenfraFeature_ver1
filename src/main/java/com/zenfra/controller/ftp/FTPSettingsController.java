@@ -47,23 +47,29 @@ public class FTPSettingsController {
 
 	@SuppressWarnings({ "unchecked", "rawtypes", "static-access" })
 	@PostMapping("/saveConnection")
-	public ResponseEntity<?> saveFtbServer(
+	public ResponseModel_v2 saveFtbServer(
 		@RequestBody FTPServerModel ftpServer) {
-			
+		
+		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 			ftpServer.setActive(true);
 			ftpServer.setCreate_by(ftpServer.getUserId());
 			ftpServer.setCreate_time(functions.getCurrentDateWithTime());
-
 			String serverId = UUID.randomUUID().toString();
 			ftpServer.setServerId(serverId);
-			service.saveFtpServer(ftpServer);
-			return new ResponseEntity("Saved!", HttpStatus.OK);
-			
+			service.saveFtpServer(ftpServer);			
+			response.setResponseCode(HttpStatus.OK);
+			response.setjData(functions.convertEntityToJsonObject(ftpServer));
+			response.setResponseDescription("Saved!");
+				
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new ResponseEntity(e.getMessage(), HttpStatus.NOT_FOUND);
+			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			response.setResponseDescription(e.getMessage());			
+	
 		}
+		
+		return response;
 	}
 
 	@PostMapping(value = "/validateFTPName")
