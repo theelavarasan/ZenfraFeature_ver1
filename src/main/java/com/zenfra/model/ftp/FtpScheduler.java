@@ -44,6 +44,9 @@ public class FtpScheduler {
 	@Column
 	private String userId;
 	
+	@Column
+	private String email;
+	
 	public long getId() {
 		return id;
 	}
@@ -114,6 +117,14 @@ public class FtpScheduler {
 
 	public void setTime(String time) {
 		this.time = time;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	
