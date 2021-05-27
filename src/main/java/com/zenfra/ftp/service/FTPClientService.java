@@ -105,8 +105,7 @@ public class FTPClientService {
 			try {
 
 				FTPServerModel server = repo.findBySiteKey(siteKey, connectionName);
-
-				  if(server.getServerPath() != null) {
+				if(server.getServerPath() != null) {
 			        	listFilesFromPath = FTPClientConfiguration.getFilesFromPath( server,server.getServerPath());
 			        }
 			} catch (Exception e) {

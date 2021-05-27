@@ -304,7 +304,7 @@ public class AwsInventoryController {
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
           responce= restTemplate
-                 .exchange("http://uat.zenfra.co:8080/parsing/upload", HttpMethod.POST, request, String.class);	
+                 .exchange("http://localhost:8080/parsing/upload", HttpMethod.POST, request, String.class);	
 			
         
 		} catch (Exception e) {

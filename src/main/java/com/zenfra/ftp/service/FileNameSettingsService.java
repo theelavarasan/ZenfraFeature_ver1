@@ -117,6 +117,7 @@ public class FileNameSettingsService {
 
 			ObjectMapper map=new ObjectMapper();
 			for (FileWithPath f : files) {
+			
 					//f.setServerModel(server);
 				//System.out.println(f.getName()+":"+f.getPath());
 				 String patternVal = null;
@@ -124,13 +125,14 @@ public class FileNameSettingsService {
 				 for(int j=0; j < settings.getPattern().size();j++) {
 					 
 					 JSONObject patJson = map.convertValue(settings.getPattern().get(j), JSONObject.class);
-					 patternVal =Pattern.quote("*"+patJson.get("namePattern").toString());
-					 logType = Pattern.quote("*"+patJson.get("logType").toString()+"*");
+					 patternVal =patJson.get("namePattern").toString();
+					 logType = patJson.get("logType").toString();
 					 System.out.println("f.getName():::"+f.getName());
 					 //if ( Pattern.matches(patternVal,f.getName()) || Pattern.matches(logType, f.getName()) ) {
 							System.out.println("Find Match");
 							f.setLogType(logType);
 							filesFillter.add(f);
+							
 						//}
 				
 				 }

@@ -96,6 +96,9 @@ public class FTPClientConfiguration {
 			 String chkSumFTP = null;
 			// ftpClient.g
 			for (FTPFile file : files) {
+				if(file.getName().equalsIgnoreCase(".") || file.getName().equalsIgnoreCase("..")) {
+					continue;
+				}
 				String details = file.getName();
 				System.out.println("details::"+details);
 				// File fileForChkSum = new File(path + "/" + details);
