@@ -22,6 +22,8 @@ public class FTPServerModel implements Serializable {
 	private String update_by;
 	private String updated_time;
 	
+	private String timeoutLimit;
+	
 	
 	private boolean isActive;
 	public boolean isActive() {
