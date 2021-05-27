@@ -123,7 +123,8 @@ public class ReportDataController {
 		  try {	      		 
 	      		 if(localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
 	      			 String result = "Success";	      			 			
-	      			result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
+	      			//result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
+	      			result = dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			
 	      			//verify default fav is present or not
 	      			//favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
