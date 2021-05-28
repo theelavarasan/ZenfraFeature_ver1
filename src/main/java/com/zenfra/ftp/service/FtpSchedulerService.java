@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,16 +14,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
+import com.zenfra.model.ftp.FTPSettingsStatus;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
 
 @Service
-public class FtpSchedulerService {
+public class FtpSchedulerService extends CommonEntityManager{
 
 	@Autowired
 	FtpSchedulerRepo repo;
@@ -109,10 +113,19 @@ public class FtpSchedulerService {
 	public Object callParsing(String logType,String userId,String siteKey,
 		String tenantId,String path,String token) {
 		  Object responce=null;
-		try {
-			        
-		    File file = new File(path);
-			   System.out.println("parsing file name::"+file.getAbsolutePath());
+		  FTPSettingsStatus status=new FTPSettingsStatus();
+		try {			
+			
+					status.setFile(path);
+					status.setLogType(logType);
+					status.setUserId(userId);
+					status.setSiteKey(siteKey);
+					status.setTenantId(tenantId);
+				
+					
+			//File file = new File(path);
+			FileSystemResource file = new FileSystemResource(new File(path));
+			   System.out.println("parsing file name::"+file.getPath());
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 		      body.add("parseFile", file);
 		      body.add("logType", logType);
@@ -130,11 +143,14 @@ public class FtpSchedulerService {
 		 ObjectMapper mapper = new ObjectMapper();
          JsonNode root = mapper.readTree(response.getBody());	
          
+         status.setResponse(root.toString());
         System.out.println("root::"+root);
 		} catch (Exception e) {
 			e.printStackTrace();
+			 status.setResponse(e.getMessage());
 		}
 		
+		saveEntity(FTPSettingsStatus.class, status);
 		return responce;
 	}
 	

@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.validation.constraints.NotBlank;
 
 @Entity
 public class FTPServerModel implements Serializable {
@@ -12,9 +13,17 @@ public class FTPServerModel implements Serializable {
 	
 	@Id
 	private String serverId;
+	
+	@NotBlank(message = "siteKey must not be empty")
 	private String siteKey;	
+	
+	@NotBlank(message = "ftpName must not be empty")
 	private String ftpName;
+	
+	@NotBlank(message = "serverUsername must not be empty")
 	private String serverUsername;
+	
+	@NotBlank(message = "port must not be empty")
 	private String port;
 	private String create_by;
 	private String create_time;
@@ -32,9 +41,17 @@ public class FTPServerModel implements Serializable {
 	public void setActive(boolean isActive) {
 		this.isActive = isActive;
 	}
+	
+	@NotBlank(message = "ipAddress must not be empty")
 	private  String ipAddress;
+	
+	@NotBlank(message = "serverPath must not be empty")
 	private String serverPath;
+	
+	@NotBlank(message = "serverPassword must not be empty")
 	private String serverPassword;
+	
+	@NotBlank(message = "userId must not be empty")
 	private String userId;
 	
 	
@@ -118,6 +135,12 @@ public class FTPServerModel implements Serializable {
 	}
 	public void setUpdated_time(String updated_time) {
 		this.updated_time = updated_time;
+	}
+	public String getTimeoutLimit() {
+		return timeoutLimit;
+	}
+	public void setTimeoutLimit(String timeoutLimit) {
+		this.timeoutLimit = timeoutLimit;
 	}
 
 	

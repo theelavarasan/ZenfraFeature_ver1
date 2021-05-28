@@ -2,9 +2,13 @@ package com.zenfra.controller.ftp;
 
 import java.util.List;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +30,7 @@ import com.zenfra.model.ftp.FtpScheduler;
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/rest/ftpScheduler")
+@Validated
 public class FtpSchedulerController {
 
 	@Autowired
@@ -35,28 +40,25 @@ public class FtpSchedulerController {
 	ScheduleTaskService scheduleTaskService;
 
 	@PostMapping("/runScheduler")
-	public @ResponseBody String runScheduler(@RequestBody FtpScheduler ftpScheduler) {
+	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler) {
 
 		try {
-			
-			ftpScheduler.setTime(ftpScheduler.getSchedulerCorn());
 			// https://www.freeformatter.com/cron-expression-generator-quartz.html
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
 
 				String corn = "0 0 */hour ? * *";				
 				
-				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getSchedulerCorn()));
+				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getTimeSlot()));
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("month")) {
 
 				String corn = "0 0 0 month/1 * ?";
-				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getSchedulerCorn()));
+				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getTimeSlot()));
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("weekly")) {
 
 				String corn = "0 0 0 ? * weekly"; // 0 0 0 ? * MON,WED,THU *
-
-				ftpScheduler.setSchedulerCorn(corn.replace("weekly", ftpScheduler.getSchedulerCorn()));
+				ftpScheduler.setSchedulerCorn(corn.replace("weekly", ftpScheduler.getTimeSlot()));
 
 			}
 
@@ -76,7 +78,9 @@ public class FtpSchedulerController {
 	}
 
 	@GetMapping("/ftp-scheduler")
-	public ResponseModel_v2 getFtpScheduler(@RequestParam("fileNameSettingsId") String fileNameSettingsId) {
+	public ResponseModel_v2 getFtpScheduler(
+			@NotEmpty(message = "Please provide valid fileNameSettingsId")
+			@RequestParam("fileNameSettingsId") String fileNameSettingsId) {
 
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {

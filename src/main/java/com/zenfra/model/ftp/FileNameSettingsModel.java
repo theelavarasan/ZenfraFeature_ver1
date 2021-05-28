@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotBlank;
 
 import org.json.simple.JSONArray;
 
@@ -19,11 +20,18 @@ public class FileNameSettingsModel implements Serializable{
 	@Id
 	private String fileNameSettingId;
 	
+	@NotBlank(message = "userId must not be empty")
 	private String userId;
+	
+	@NotBlank(message = "ipAddress must not be empty")
 	private  String ipAddress;
+	
+	@NotBlank(message = "siteKey must not be empty")
 	private  String siteKey;
 	private JSONArray pattern;
 	private boolean isActive;
+	
+	@NotBlank(message = "ftpName must not be empty")
 	private String ftpName;
 	
 	private String toPath;
