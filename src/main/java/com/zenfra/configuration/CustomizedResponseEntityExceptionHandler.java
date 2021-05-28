@@ -1,5 +1,6 @@
 package com.zenfra.configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +10,8 @@ import org.apache.zookeeper.proto.ErrorResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,6 +25,7 @@ import com.zenfra.model.ResponseModel_v2;
 @RestController
 public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
+	
 	 @ExceptionHandler(ConstraintViolationException.class)
 	    public final List<String> handleConstraintViolation(
 	                                            ConstraintViolationException ex,
@@ -41,7 +45,19 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
 	  protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
 	      HttpHeaders headers, HttpStatus status, WebRequest request) {
 		 
-	        
-	    return new ResponseEntity(ex.getBindingResult().toString(), HttpStatus.BAD_REQUEST);
+		  List<String> errors = new ArrayList<String>();
+		    for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+		        errors.add(error.getField() + ": " + error.getDefaultMessage());
+		    }
+		   /* for (ObjectError error : ex.getBindingResult().getGlobalErrors()) {
+		        errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
+		    }*/
+	        ResponseModel_v2 model=new ResponseModel_v2();
+	        	model.setResponseCode(HttpStatus.BAD_REQUEST);
+	        	model.setResponseDescription(ex.getBindingResult().toString());
+	        	model.setResponseMessage("Please sent valid params");
+	        	model.setjData(errors);
+	        	
+	    return new ResponseEntity(model, HttpStatus.BAD_REQUEST);
 	  } 
 }

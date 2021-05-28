@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -120,8 +122,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 					status.setSiteKey(siteKey);
 					status.setTenantId(tenantId);
 				
-		    File file = new File(path);
-			   System.out.println("parsing file name::"+file.getAbsolutePath());
+					
+			//File file = new File(path);
+			FileSystemResource file = new FileSystemResource(new File(path));
+			   System.out.println("parsing file name::"+file.getPath());
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 		      body.add("parseFile", file);
 		      body.add("logType", logType);

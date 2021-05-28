@@ -31,6 +31,7 @@ public class FtpScheduler {
 
 	
 	@Column
+	@NotBlank(message = "timeSlot must not be empty")
 	private String timeSlot;
 	
 	
@@ -41,9 +42,11 @@ public class FtpScheduler {
 	private String tenantId;
 	
 	@Column
+	@NotBlank(message = "siteKey must not be empty")
 	private String siteKey;
 	
 	@Column
+	@NotBlank(message = "userId must not be empty")
 	private String userId;
 	
 	@Column

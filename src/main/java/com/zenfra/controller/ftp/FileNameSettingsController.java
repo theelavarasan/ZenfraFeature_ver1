@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -13,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -33,6 +37,7 @@ import com.zenfra.utils.NullAwareBeanUtilsBean;
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/rest/fNSetting")
+@Validated
 public class FileNameSettingsController {
 	public static final Logger logger = LoggerFactory.getLogger(FileNameSettingsController.class);
 	
@@ -46,7 +51,7 @@ public class FileNameSettingsController {
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@PostMapping("/save")
 	public ResponseModel_v2 saveFNSettings(
-			@RequestBody FileNameSettingsModel fileNameSettings) {
+			@Valid @RequestBody FileNameSettingsModel fileNameSettings) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 			
@@ -86,8 +91,10 @@ public class FileNameSettingsController {
 		}		
 	}
 	@PostMapping("/get")
-	public ResponseModel_v2 getFNSettings(@RequestParam String userId,
-			@RequestParam String siteKey, @RequestParam String ftpName) {
+	public ResponseModel_v2 getFNSettings(
+			 @RequestParam String userId,
+			 @NotEmpty(message = "Please provide valid siteKey") @RequestParam String siteKey,
+			 @NotEmpty(message = "Please provide valid ftp name") @RequestParam String ftpName) {
 		System.out.println("Get into FN Settings");
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
@@ -106,7 +113,8 @@ public class FileNameSettingsController {
 	
 	@PostMapping("/delete")
 	public ResponseModel_v2 deleteFNSettings(@RequestParam(name = "authUserId", required = false) String userId,
-			String siteKey, String serverUsername) {
+			 @NotEmpty(message = "Please provide valid siteKey") @RequestParam String siteKey, 
+			 @NotEmpty(message = "Please provide valid serverUsername") @RequestParam String serverUsername) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		
 		try {
@@ -127,7 +135,7 @@ public class FileNameSettingsController {
 	
 	@PostMapping("/getFromPattern")
 	public ResponseModel_v2 getFilesFromPattern(@RequestParam(name = "authUserId", required = false) String userId,
-			String siteKey, String ftpName) { 
+			@RequestParam String siteKey, @RequestParam String ftpName) { 
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {			
 			List<FileWithPath> filesFillter = service.getFilesByPattern(siteKey, ftpName,userId);
@@ -143,7 +151,7 @@ public class FileNameSettingsController {
 	
 	@PostMapping("/moveFilesByPattern")
 	public ResponseModel_v2 moveFilesByPattern(@RequestParam(name = "authUserId", required = false) String userId,
-			String siteKey, String serverUsername) { 
+			@RequestParam String siteKey,@RequestParam String serverUsername) { 
 		ResponseModel_v2 response = new ResponseModel_v2();
 		
 		try {

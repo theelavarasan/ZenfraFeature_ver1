@@ -6,17 +6,19 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,6 +36,7 @@ import com.zenfra.utils.CommonFunctions;
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/rest/ftpSetting")
+@Validated
 public class FTPSettingsController {
 
 	
@@ -48,7 +51,7 @@ public class FTPSettingsController {
 	@SuppressWarnings({ "unchecked", "rawtypes", "static-access" })
 	@PostMapping("/saveConnection")
 	public ResponseModel_v2 saveFtbServer(
-		@RequestBody FTPServerModel ftpServer) {
+			@Valid @RequestBody FTPServerModel ftpServer) {
 		
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
@@ -73,10 +76,11 @@ public class FTPSettingsController {
 	}
 
 	@PostMapping(value = "/validateFTPName")
-	public ResponseEntity<?> getUniqueNames(@RequestParam(name = "authUserId", required = false) String userId,
-			@RequestParam(name = "siteKey", required = false) String siteKey,
-			@RequestParam(name = "ftpName", required = false) String ftpName) throws IOException,
-			URISyntaxException, org.json.simple.parser.ParseException, ParseException, SQLException {
+	public ResponseEntity<?> getUniqueNames(@NotEmpty(message="authUserId is missing")
+	@RequestParam(name = "authUserId", required = false) String userId,
+	@RequestParam(name = "siteKey", required = false) String siteKey,
+	@NotEmpty(message = "Please provide valid ftp name") @RequestParam(name = "ftpName", required = false) String ftpName) throws IOException,
+	URISyntaxException, org.json.simple.parser.ParseException, ParseException, SQLException {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 			response = service.nameValidate(siteKey, userId, ftpName);
@@ -89,7 +93,7 @@ public class FTPSettingsController {
 	
 	@GetMapping(value = "/deleteFTPSettings")
 	public ResponseModel_v2 deleteFTPSettings(@RequestParam(name = "authUserId", required = false) String userId,
-			@RequestParam(name = "serverId") String serverId) {
+			@NotEmpty(message = "Please provide valid server id")	@RequestParam(name = "serverId") String serverId) {
 		
 		System.out.println("Delete option triggered");
 		ResponseModel_v2 response = new ResponseModel_v2();
@@ -110,7 +114,7 @@ public class FTPSettingsController {
 	@SuppressWarnings("static-access")
 	@PostMapping(value = "/updateFTPSettings")
 	public ResponseModel_v2 updateFTPSettings(@RequestParam(name = "authUserId", required = false) String userId,
-			@RequestBody FTPServerModel ftpServer) {
+			@Valid @RequestBody FTPServerModel ftpServer) {
 		System.out.println("Update FTP settings call....................");
 		ResponseModel_v2 response = new ResponseModel_v2();
 		

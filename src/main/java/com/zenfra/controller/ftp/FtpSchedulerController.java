@@ -3,6 +3,7 @@ package com.zenfra.controller.ftp;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,7 @@ import com.zenfra.model.ftp.FtpScheduler;
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/rest/ftpScheduler")
+@Validated
 public class FtpSchedulerController {
 
 	@Autowired
@@ -76,7 +78,9 @@ public class FtpSchedulerController {
 	}
 
 	@GetMapping("/ftp-scheduler")
-	public ResponseModel_v2 getFtpScheduler(@RequestParam("fileNameSettingsId") String fileNameSettingsId) {
+	public ResponseModel_v2 getFtpScheduler(
+			@NotEmpty(message = "Please provide valid fileNameSettingsId")
+			@RequestParam("fileNameSettingsId") String fileNameSettingsId) {
 
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {
