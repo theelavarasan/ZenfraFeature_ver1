@@ -127,14 +127,15 @@ public class FtpSchedulerService extends CommonEntityManager{
 			FileSystemResource file = new FileSystemResource(new File(path));
 			   System.out.println("parsing file name::"+file.getPath());
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
-		      body.add("parseFile", file);
+		      body.add("parseFile", path);
+		      body.add("isFTP", true);
 		      body.add("logType", logType);
 		      body.add("description", "FTP file parsing");
 		      body.add("siteKey", siteKey);
 		      body.add("userId", userId);
 		      body.add("tenantId", tenantId);
 		      body.add("uploadAndProcess", true);
-			      
+			  
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders("Bearer "+token));
 		 ResponseEntity<String> response= restTemplate
