@@ -127,7 +127,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			FileSystemResource file = new FileSystemResource(new File(path));
 			   System.out.println("parsing file name::"+file.getPath());
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
-		      body.add("parseFile", path);
+		      body.add("parseFilePath", file);
 		      body.add("isFTP", true);
 		      body.add("logType", logType);
 		      body.add("description", "FTP file parsing");
