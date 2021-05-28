@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
@@ -160,6 +161,12 @@ public class FTPClientConfiguration {
 			  "/home/vtg-admin/Desktop/aravind/Pure-Collection-Commands.txt")) {
 			 ftpClient.retrieveFile("Pure-Collection-Commands.txt", fos); }
 			 */
+			
+			File f=new File(toPath);
+			if(!(f.exists() && f.isDirectory())) {
+				f.mkdir();
+			}
+			
 			toPath = toPath + "/" + fileName;
 			System.out.println("toPath::"+toPath);
 			try (FileOutputStream fos = new FileOutputStream(toPath)) {
