@@ -85,11 +85,12 @@ public class FtpSchedulerService extends CommonEntityManager{
 			System.out.println("files size::"+files.size());
 			for(FileWithPath file:files) {
 				System.out.println("settings.getToPath()::"+settings.getToPath());
-				file.setPath(settings.getToPath()+"/"+file.getName());
+				//file.setPath(settings.getToPath()+"/"+file.getName());
 				String token=token("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 				System.out.println("Token::"+token);
 				callParsing(file.getLogType(), settings.getUserId(),
-						settings.getSiteKey(), s.getTenantId(), file.getPath(), token);
+						settings.getSiteKey(), s.getTenantId(), file.getName(), token,
+						settings.getToPath());
 			}
 			
 			return files;
@@ -111,23 +112,22 @@ public class FtpSchedulerService extends CommonEntityManager{
 
 	
 	public Object callParsing(String logType,String userId,String siteKey,
-		String tenantId,String path,String token) {
+		String tenantId,String fileName,String token,
+		String folderPath) {
 		  Object responce=null;
 		  FTPSettingsStatus status=new FTPSettingsStatus();
 		try {			
 			
-					status.setFile(path);
+					status.setFile(folderPath+"/"+fileName);
 					status.setLogType(logType);
 					status.setUserId(userId);
 					status.setSiteKey(siteKey);
 					status.setTenantId(tenantId);
 				
 					
-			//File file = new File(path);
-			FileSystemResource file = new FileSystemResource(new File(path));
-			   System.out.println("parsing file name::"+file.getPath());
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
-		      body.add("parseFilePath", file);
+		      body.add("parseFilePath", folderPath);
+		      body.add("parseFileName", fileName);
 		      body.add("isFTP", true);
 		      body.add("logType", logType);
 		      body.add("description", "FTP file parsing");
