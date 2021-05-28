@@ -16,13 +16,15 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
+import com.zenfra.model.ftp.FTPSettingsStatus;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
 
 @Service
-public class FtpSchedulerService {
+public class FtpSchedulerService extends CommonEntityManager{
 
 	@Autowired
 	FtpSchedulerRepo repo;
@@ -109,8 +111,15 @@ public class FtpSchedulerService {
 	public Object callParsing(String logType,String userId,String siteKey,
 		String tenantId,String path,String token) {
 		  Object responce=null;
-		try {
-			        
+		  FTPSettingsStatus status=new FTPSettingsStatus();
+		try {			
+			
+					status.setFile(path);
+					status.setLogType(logType);
+					status.setUserId(userId);
+					status.setSiteKey(siteKey);
+					status.setTenantId(tenantId);
+				
 		    File file = new File(path);
 			   System.out.println("parsing file name::"+file.getAbsolutePath());
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
@@ -130,11 +139,14 @@ public class FtpSchedulerService {
 		 ObjectMapper mapper = new ObjectMapper();
          JsonNode root = mapper.readTree(response.getBody());	
          
+         status.setResponse(root.toString());
         System.out.println("root::"+root);
 		} catch (Exception e) {
 			e.printStackTrace();
+			 status.setResponse(e.getMessage());
 		}
 		
+		saveEntity(FTPSettingsStatus.class, status);
 		return responce;
 	}
 	

@@ -119,6 +119,12 @@ public class FTPServerModel implements Serializable {
 	public void setUpdated_time(String updated_time) {
 		this.updated_time = updated_time;
 	}
+	public String getTimeoutLimit() {
+		return timeoutLimit;
+	}
+	public void setTimeoutLimit(String timeoutLimit) {
+		this.timeoutLimit = timeoutLimit;
+	}
 
 	
 

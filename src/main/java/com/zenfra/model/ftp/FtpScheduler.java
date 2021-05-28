@@ -5,8 +5,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotBlank;
 
-import org.hibernate.annotations.Type;
+import org.json.simple.JSONArray;
 
 @Entity
 public class FtpScheduler {
@@ -17,6 +18,7 @@ public class FtpScheduler {
 	private long id;
 
 	@Column
+	@NotBlank(message = "fileNameSettingsId must not be empty")
 	private String fileNameSettingsId;
 
 	@Column
@@ -29,7 +31,7 @@ public class FtpScheduler {
 
 	
 	@Column
-	private String time;
+	private String timeSlot;
 	
 	
 	@Column
@@ -45,7 +47,15 @@ public class FtpScheduler {
 	private String userId;
 	
 	@Column
-	private String email;
+	private JSONArray notificationEmail;
+	
+	@Column
+	private JSONArray selectedDay;
+	
+	@Column
+	private String selectedDate;
+	
+	
 	
 	public long getId() {
 		return id;
@@ -111,22 +121,49 @@ public class FtpScheduler {
 		this.userId = userId;
 	}
 
-	public String getTime() {
-		return time;
+	public String getTimeSlot() {
+		return timeSlot;
 	}
 
-	public void setTime(String time) {
-		this.time = time;
+	public void setTimeSlot(String timeSlot) {
+		this.timeSlot = timeSlot;
 	}
 
-	public String getEmail() {
-		return email;
+	
+
+	public String getSelectedDate() {
+		return selectedDate;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setSelectedDate(String selectedDate) {
+		this.selectedDate = selectedDate;
 	}
 
+	public JSONArray getSelectedDay() {
+		return selectedDay;
+	}
+
+	public void setSelectedDay(JSONArray selectedDay) {
+		this.selectedDay = selectedDay;
+	}
+
+	public JSONArray getNotificationEmail() {
+		return notificationEmail;
+	}
+
+	public void setNotificationEmail(JSONArray notificationEmail) {
+		this.notificationEmail = notificationEmail;
+	}
+
+	@Override
+	public String toString() {
+		return "FtpScheduler [id=" + id + ", fileNameSettingsId=" + fileNameSettingsId + ", type=" + type
+				+ ", schedulerCorn=" + schedulerCorn + ", timeSlot=" + timeSlot + ", isActive=" + isActive
+				+ ", tenantId=" + tenantId + ", siteKey=" + siteKey + ", userId=" + userId + ", notificationEmail="
+				+ notificationEmail + ", selectedDay=" + selectedDay + ", selectedDate=" + selectedDate + "]";
+	}
+
+	
 	
 	
 	

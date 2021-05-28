@@ -2,9 +2,12 @@ package com.zenfra.controller.ftp;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,28 +38,25 @@ public class FtpSchedulerController {
 	ScheduleTaskService scheduleTaskService;
 
 	@PostMapping("/runScheduler")
-	public @ResponseBody String runScheduler(@RequestBody FtpScheduler ftpScheduler) {
+	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler) {
 
 		try {
-			
-			ftpScheduler.setTime(ftpScheduler.getSchedulerCorn());
 			// https://www.freeformatter.com/cron-expression-generator-quartz.html
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
 
 				String corn = "0 0 */hour ? * *";				
 				
-				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getSchedulerCorn()));
+				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getTimeSlot()));
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("month")) {
 
 				String corn = "0 0 0 month/1 * ?";
-				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getSchedulerCorn()));
+				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getTimeSlot()));
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("weekly")) {
 
 				String corn = "0 0 0 ? * weekly"; // 0 0 0 ? * MON,WED,THU *
-
-				ftpScheduler.setSchedulerCorn(corn.replace("weekly", ftpScheduler.getSchedulerCorn()));
+				ftpScheduler.setSchedulerCorn(corn.replace("weekly", ftpScheduler.getTimeSlot()));
 
 			}
 
