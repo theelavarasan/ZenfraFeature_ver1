@@ -206,7 +206,7 @@ public class AwsInventoryController {
 		
 			
 			
-			/*Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
+			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
 			
 			ObjectMapper map=new ObjectMapper();
 			
@@ -219,7 +219,7 @@ public class AwsInventoryController {
 				model.setResponseDescription("Unable to insert log upload table!");
 				return model;
 			}
-			*/
+			
 			
 			AwsInventory aws=getAwsInventoryByDataId(data_id);
 			ProcessingStatus status=new ProcessingStatus();
@@ -287,9 +287,13 @@ public class AwsInventoryController {
 			    	response+=line;
 			    	System.out.println(response);
 			    }
-			
-			 status.setResponse(response);
-			 serivce.updateMerge(status);
+		 String query="update LogFileDetails set parsingStatus='success' and status='success' where logType='"+status.getLogType()+"' and siteKey='"+status.getSiteKey()+"' and response='"+response+"'";
+		 JSONObject json=new JSONObject();
+			 		json.put("method", "update");
+			 		json.put("query", query);
+			String responseRest=common.updateLogFile(json).toString();
+			status.setResponse(response+"~"+responseRest);
+			serivce.updateMerge(status);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -362,24 +366,7 @@ public class AwsInventoryController {
 		return responce;
 	}
 	
-	public Object updateLogFile() {
-		 Object response=null;
-		try {
-			String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
-			
-			JSONObject body=new JSONObject();
-					
-			 RestTemplate restTemplate=new RestTemplate();
-			 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
-	          response= restTemplate
-	                 .exchange("http://localhost:8080/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
-				
-	        
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return response;
-	}
+
 	
 	 HttpHeaders createHeaders(String token){
 	        return new HttpHeaders() {{
@@ -401,8 +388,7 @@ public class AwsInventoryController {
 		       ResultSet rs = stmt.executeQuery(query);
 		       List<AwsInventory> list=new ArrayList<AwsInventory>();
 		       ObjectMapper map=new ObjectMapper();
-		      
-		    	
+		   	
 		       while(rs.next()){
 		    	    aws.setLastFourKey( rs.getString("lastFourKey")!=null ? rs.getString("lastFourKey").toString() : " " );
 		    	   	aws.setAccess_key_id( rs.getString("access_key_id")!=null ? rs.getString("access_key_id").toString() : " " );
