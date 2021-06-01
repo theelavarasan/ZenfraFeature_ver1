@@ -48,18 +48,16 @@ public class FtpSchedulerController {
 
 				String corn = "0 0 */hour ? * *";				
 				
-				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getTimeSlot()));
+				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getTime()));
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("month")) {
 
 				String corn = "0 0 0 month/1 * ?";
-				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getTimeSlot()));
+				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getTime()));
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("weekly")) {
-
 				String corn = "0 0 0 ? * weekly"; // 0 0 0 ? * MON,WED,THU *
-				ftpScheduler.setSchedulerCorn(corn.replace("weekly", ftpScheduler.getTimeSlot()));
-
+				ftpScheduler.setSchedulerCorn(corn.replace("weekly", ftpScheduler.getTime()));
 			}
 
 			long id=schedulerService.saveFtpScheduler(ftpScheduler);

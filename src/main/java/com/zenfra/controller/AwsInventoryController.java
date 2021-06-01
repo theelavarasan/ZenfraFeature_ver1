@@ -312,13 +312,15 @@ public class AwsInventoryController {
 		String tenantId,String userId,String token,String status) {
 		  Object responce=null;
 		try {
+			
+			System.out.println("Start insertLogUploadTable..... ");
 			 String fileName = "json/temp.json";
 		        ClassLoader classLoader = getClass().getClassLoader();
 		 
 		        File file = new File(classLoader.getResource(fileName).getFile());
 				
 		MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
-			      body.add("parseFile", file);
+			      //body.add("parseFile", file);
 			      body.add("logType", "AWS");
 			      body.add("description", "AWS data retrieval");
 			      body.add("siteKey", siteKey);
@@ -334,7 +336,7 @@ public class AwsInventoryController {
                  .exchange("http://jdev.zenfra.co:8080/parsing/upload", HttpMethod.POST, request, String.class);	
 			
         
-        	
+          System.out.println("End insertLogUploadTable..... ");
            
 		} catch (Exception e) {
 			e.printStackTrace();
