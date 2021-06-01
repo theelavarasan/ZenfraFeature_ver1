@@ -271,6 +271,7 @@ public class AwsInventoryController {
 			    String line = "";			    
 			    while ((line = reader.readLine()) != null) {
 			    	response+=line;
+			    	System.out.println(response);
 			    }
 			
 			 status.setResponse(response);
@@ -291,11 +292,13 @@ public class AwsInventoryController {
 			String path="/opt/ZENfra/repo/cloud-inventory-collectors/aws/authentication.py";
 			String cmd="python3 "+path+" --id "+access_id+" --key "+secret_key;
 			
+			System.out.println("cmd::"+cmd);
 			Process process = Runtime.getRuntime().exec(cmd);
 			 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			    String line = "";			    
 			    while ((line = reader.readLine()) != null) {
 			    	responce+=line;
+			    	System.out.println(responce);
 			    }
 			
 		} catch (Exception e) {
