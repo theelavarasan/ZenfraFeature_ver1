@@ -234,11 +234,9 @@ public class AwsInventoryController {
 			String sha256hex = aesEncrypt.decrypt(aws.getSecret_access_key());
 			if(aws!=null) {	
 				
-				Runnable runnable =
-				        () -> { 
-				        	callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status); 
+				 callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status); 
 					 	
-				        };			
+				        		
 				model.setResponseCode(HttpStatus.OK);
 				model.setjData("Script successfully started");				
 			}else {
