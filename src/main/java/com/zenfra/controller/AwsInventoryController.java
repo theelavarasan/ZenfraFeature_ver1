@@ -33,9 +33,11 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
+import com.zenfra.ftp.scheduler.AwsScriptThread;
 import com.zenfra.model.AwsInventory;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ftp.ProcessingStatus;
+import com.zenfra.payload.model.CallAwsScript;
 import com.zenfra.service.ProcessService;
 import com.zenfra.utils.CommonFunctions;
 
@@ -234,9 +236,19 @@ public class AwsInventoryController {
 			String sha256hex = aesEncrypt.decrypt(aws.getSecret_access_key());
 			if(aws!=null) {	
 				
-				 callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status); 
-					 	
-				        		
+				CallAwsScript script=new CallAwsScript();
+					script.setSecurityKey(sha256hex);
+					script.setAccessKey(aws.getAccess_key_id());
+					script.setSiteKey(siteKey);
+					script.setUserId(userId);
+					script.setToken(token);
+					script.setProcessingStatus(status);
+					
+				AwsScriptThread awsScript=new AwsScriptThread(script);
+					awsScript.run();
+				
+				//callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status); 
+					
 				model.setResponseCode(HttpStatus.OK);
 				model.setjData("Script successfully started");				
 			}else {
@@ -256,7 +268,7 @@ public class AwsInventoryController {
 		return model;
 	}
 	
-	private Object callAwsScript(String secret_access_key,String access_key_id,String siteKey, String userId, String token, ProcessingStatus status) {
+	public  Object callAwsScript(String secret_access_key,String access_key_id,String siteKey, String userId, String token, ProcessingStatus status) {
 		
 		String response="";
 		try {

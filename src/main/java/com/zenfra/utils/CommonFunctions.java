@@ -180,16 +180,6 @@ public class CommonFunctions {
 	}
 
 
-	
-	
-
-	
-
-	
-	
-	
-
-
 	public JSONArray formatJsonArrayr(Object object) {
 		JSONArray jsonArray = new JSONArray();
 		JSONParser jsonParser = new JSONParser();
