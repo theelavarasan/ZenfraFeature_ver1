@@ -1,10 +1,10 @@
 package com.zenfra.ftp.service;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,16 +14,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
-import com.zenfra.model.ftp.FTPSettingsStatus;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
+import com.zenfra.model.ftp.ProcessingStatus;
+import com.zenfra.utils.CommonFunctions;
 
 @Service
 public class FtpSchedulerService extends CommonEntityManager{
@@ -36,7 +36,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 
 	@Autowired
 	FTPClientService clientService;
-
+	
+	@Autowired
+	CommonFunctions functions;
+	
 	public long saveFtpScheduler(FtpScheduler ftpScheduler) {
 
 		try {
@@ -81,16 +84,31 @@ public class FtpSchedulerService extends CommonEntityManager{
 			System.out.println("--------------eneter runFtpSchedulerFiles---------");
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
 
-			List<FileWithPath> files=getFilesBased(settings);
-			System.out.println("files size::"+files.size());
+			List<FileWithPath> files=getFilesBased(settings);			
+			System.out.println("FileWithPath size::"+files.size());
+			List<String> existFiles=getFilesFromFolder(settings.getToPath());
+			
 			for(FileWithPath file:files) {
 				System.out.println("settings.getToPath()::"+settings.getToPath());
 				//file.setPath(settings.getToPath()+"/"+file.getName());
-				String token=token("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
+				String token=functions.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 				System.out.println("Token::"+token);
+				
+				/*if(existFiles.contains(file.getName())) {
+					System.out.println("path::"+settings.getToPath()+"/"+file.getName());
+					 File file1 =new File(settings.getToPath()+"/"+file.getName());
+					 String checkSum=FTPClientConfiguration.getFileChecksum(file1);
+					System.out.println("Exist checkSum::"+file.getCheckSum());
+					System.out.println("New checkSum::"+checkSum);
+					 if(file.getCheckSum().equals(checkSum)) {
+						 System.out.println("File Already parsed");
+						 continue;
+					 }
+					 file1.delete();
+				}*/
 				callParsing(file.getLogType(), settings.getUserId(),
 						settings.getSiteKey(), s.getTenantId(), file.getName(), token,
-						settings.getToPath());
+						settings.getToPath(),s.getId());
 			}
 			
 			return files;
@@ -113,17 +131,19 @@ public class FtpSchedulerService extends CommonEntityManager{
 	
 	public Object callParsing(String logType,String userId,String siteKey,
 		String tenantId,String fileName,String token,
-		String folderPath) {
+		String folderPath,long schedulerId) {
 		  Object responce=null;
-		  FTPSettingsStatus status=new FTPSettingsStatus();
+		  ProcessingStatus status=new ProcessingStatus();
 		try {			
 			
+			System.out.println("Enter Parsing.....");
+					status.setProcessingType("FTP");
 					status.setFile(folderPath+"/"+fileName);
 					status.setLogType(logType);
 					status.setUserId(userId);
 					status.setSiteKey(siteKey);
 					status.setTenantId(tenantId);
-				
+					status.setDataId(schedulerId!=0 ? String.valueOf(schedulerId) : "");
 					
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 		      body.add("parseFilePath", folderPath);
@@ -145,13 +165,13 @@ public class FtpSchedulerService extends CommonEntityManager{
          JsonNode root = mapper.readTree(response.getBody());	
          
          status.setResponse(root.toString());
-        System.out.println("root::"+root);
+        
 		} catch (Exception e) {
 			e.printStackTrace();
 			 status.setResponse(e.getMessage());
 		}
 		
-		saveEntity(FTPSettingsStatus.class, status);
+		saveEntity(ProcessingStatus.class, status);
 		return responce;
 	}
 	
@@ -165,28 +185,21 @@ public class FtpSchedulerService extends CommonEntityManager{
 
 	 
 	 
-	 public String token(String username,String password) {
-		 
-		  Object token=null;
-			try {
-				        
-				   
-				MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
-			      body.add("userName", username);
-			      body.add("password", password);
-			  	      
-			 RestTemplate restTemplate=new RestTemplate();
-			 HttpEntity<Object> request = new HttpEntity<>(body);
-			 ResponseEntity<String> response= restTemplate
-	                 //.exchange("http://localhost:8080/usermanagment/auth/login", HttpMethod.POST, request, String.class);
-	        		  .exchange("http://uat.zenfra.co:8080/UserManagement/auth/login", HttpMethod.POST, request, String.class);
-	         ObjectMapper mapper = new ObjectMapper();
-	         JsonNode root = mapper.readTree(response.getBody());		
-	         token=root.get("jData").get("AccessToken");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+	
+	 
+	 public List<String> getFilesFromFolder(String path){
+		 List<String> listFiles=new ArrayList<String>();
+		 try {
 			
-			return token.toString().replace("\"", "");
+				System.out.println("Set path:: "+path);
+				File Folder = new File(path);
+				System.out.println("Folder:: "+Folder);
+				for(File filentry:Folder.listFiles()) {
+					listFiles.add(filentry.getName());
+				}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 return listFiles;
 	 }
 }

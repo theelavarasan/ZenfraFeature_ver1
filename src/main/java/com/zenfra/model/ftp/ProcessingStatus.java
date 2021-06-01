@@ -7,12 +7,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class FTPSettingsStatus {
+public class ProcessingStatus {
 
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Id
-	@Column(name = "ftp_status_id")
-	private long id;
+	@Column(name = "processing_id")
+	private String id;
 	
 	
 	private String file;
@@ -29,11 +28,21 @@ public class FTPSettingsStatus {
 	
 	private String response;
 
-	public long getId() {
+	private String dataId;
+	
+	
+	private String status;
+	
+	
+	private String processingType;
+	
+	
+
+	public String getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -92,6 +101,34 @@ public class FTPSettingsStatus {
 	public void setResponse(String response) {
 		this.response = response;
 	}
+
+	
+
+	public String getDataId() {
+		return dataId;
+	}
+
+	public void setDataId(String dataId) {
+		this.dataId = dataId;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getProcessingType() {
+		return processingType;
+	}
+
+	public void setProcessingType(String processingType) {
+		this.processingType = processingType;
+	}
+
+	
 	
 	
 	

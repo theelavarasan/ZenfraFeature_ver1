@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 
 import org.json.simple.JSONArray;
@@ -58,7 +59,8 @@ public class FtpScheduler {
 	@Column
 	private String selectedDate;
 	
-	
+	@Transient
+	private String time;
 	
 	public long getId() {
 		return id;
@@ -158,13 +160,15 @@ public class FtpScheduler {
 		this.notificationEmail = notificationEmail;
 	}
 
-	@Override
-	public String toString() {
-		return "FtpScheduler [id=" + id + ", fileNameSettingsId=" + fileNameSettingsId + ", type=" + type
-				+ ", schedulerCorn=" + schedulerCorn + ", timeSlot=" + timeSlot + ", isActive=" + isActive
-				+ ", tenantId=" + tenantId + ", siteKey=" + siteKey + ", userId=" + userId + ", notificationEmail="
-				+ notificationEmail + ", selectedDay=" + selectedDay + ", selectedDate=" + selectedDate + "]";
+	public String getTime() {
+		return time;
 	}
+
+	public void setTime(String time) {
+		this.time = time;
+	}
+
+	
 
 	
 	

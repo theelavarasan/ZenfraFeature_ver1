@@ -7,7 +7,6 @@ import javax.validation.constraints.NotEmpty;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.zenfra.ftp.scheduler.Demo;
 import com.zenfra.ftp.scheduler.ScheduleTaskService;
 import com.zenfra.ftp.scheduler.SchedulerThread;
 import com.zenfra.ftp.service.FtpSchedulerService;
@@ -48,18 +46,16 @@ public class FtpSchedulerController {
 
 				String corn = "0 0 */hour ? * *";				
 				
-				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getTimeSlot()));
+				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getTime()));
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("month")) {
 
 				String corn = "0 0 0 month/1 * ?";
-				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getTimeSlot()));
+				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getTime()));
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("weekly")) {
-
 				String corn = "0 0 0 ? * weekly"; // 0 0 0 ? * MON,WED,THU *
-				ftpScheduler.setSchedulerCorn(corn.replace("weekly", ftpScheduler.getTimeSlot()));
-
+				ftpScheduler.setSchedulerCorn(corn.replace("weekly", ftpScheduler.getTime()));
 			}
 
 			long id=schedulerService.saveFtpScheduler(ftpScheduler);
@@ -112,24 +108,7 @@ public class FtpSchedulerController {
 	}
 
 
-	@PostMapping("/run-ftp")
-	public @ResponseBody String runFtp(@RequestParam String corn,
-			@RequestParam String name) {
-		try {
-
-			System.out.println("---------------------------enter-------------");
-			Demo demo = new Demo(name);
-				scheduleTaskService.addTaskToScheduler(1, demo, corn);
-			
-			return "done";
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		}
-
-		return "done";
-	}
-
+	
 	
 	@PostMapping("/run-sample")
 	public List<FileWithPath> run(@RequestParam String fileNameSettingsId){

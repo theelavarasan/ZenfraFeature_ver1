@@ -7,8 +7,6 @@ import com.zenfra.model.ftp.FtpScheduler;
 
 public class  SchedulerThread implements Runnable{
 
-	@Autowired
-	FtpSchedulerService schedulerService;
 	
 	
 	FtpScheduler s;

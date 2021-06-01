@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,12 +18,14 @@ import org.apache.commons.net.ftp.FTPCommand;
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.stereotype.Component;
 
+import com.zenfra.dao.common.CommonEntityManager;
+import com.zenfra.model.ftp.CheckSumDetails;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
 
 @Component
-public class FTPClientConfiguration {
+public class FTPClientConfiguration extends CommonEntityManager{
 
 
 	public static FTPClient loginClient(FTPServerModel server) {
@@ -81,48 +84,47 @@ public class FTPClientConfiguration {
 		}
 	}
 
-	public static List<FileWithPath> getFilesFromPath(FTPServerModel server, String path) {
+	public  List<FileWithPath> getFilesFromPath(FTPServerModel server, String path) {
 
 		try {
 
+			
 			List<FileWithPath> fileList = new ArrayList<FileWithPath>();
 
+			List<String> existCheckSums=getCheckSumDetails();
+			
 			System.out.println("path::"+path);
 			FTPClient ftpClient = getConnection(server);
 			
 			ftpClient.enterLocalPassiveMode();
 			ftpClient.changeWorkingDirectory(path);
-			FTPFile[] files = ftpClient.listFiles();
-			 MessageDigest md5Digest = MessageDigest.getInstance("MD5");
+			FTPFile[] files = ftpClient.listFiles();			
 			 String chkSumFTP = null;
-			// ftpClient.g
 			for (FTPFile file : files) {
 				if(file.getName().equalsIgnoreCase(".") || file.getName().equalsIgnoreCase("..")) {
 					continue;
 				}
-				String details = file.getName();
-				System.out.println("details::"+details);
-				// File fileForChkSum = new File(path + "/" + details);
+				 String details = file.getName();
 				 ftpClient.enterLocalPassiveMode();
 				 InputStream iStream=ftpClient.retrieveFileStream(path + "/" + details);
 				 if(iStream!=null) {
-				 //File file1 = File.createTempFile("tmp", path + "/" + details);
-				 File file1 = File.createTempFile("tmp", null);
-				 System.out.println("File1:: "+file1);
-				 FileUtils.copyInputStreamToFile(iStream, file1);
-				 chkSumFTP =getFileChecksum(md5Digest, file1);
-				 file1.delete();
-				 iStream.close();
-				 ftpClient.completePendingCommand();
+				 // File file1 =File.createTempFile("tmp", null);
+				 // FileUtils.copyInputStreamToFile(iStream, file1);
+				 // iStream.close();
+				 // chkSumFTP =getFileChecksum(file1);
+				 // file1.delete();
+				 // if(copyStatus(existCheckSums,chkSumFTP,server.getServerId(),file.getName())) {
+				//	  continue;
+				 // }
+				
+				// ftpClient.completePendingCommand();
 				 }			 
-				/*
-				 * if (file.isDirectory()) { details = "[" + details + "]"; }
-				 */
 				FileWithPath path1 = new FileWithPath();
 				path1.setPath(path + "/" + details);
 				path1.setName(details);
 				path1.setCheckSum(chkSumFTP);
 				fileList.add(path1);
+				
 			}
 			 ftpClient.logout();
 			 ftpClient.disconnect();
@@ -145,23 +147,7 @@ public class FTPClientConfiguration {
 			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 			ftpClient.enterLocalPassiveMode();
 
-			/*FTPFile[] files = ftpClient.listFiles();
-
-			// ftpClient.g
-			for (FTPFile file : files) {
-				String details = file.getName();
-				if (file.isDirectory()) {
-					details = "[" + details + "]";
-				}
-				System.out.println(details);
-			}
-
-			
-			  try (FileOutputStream fos = new FileOutputStream(
-			  "/home/vtg-admin/Desktop/aravind/Pure-Collection-Commands.txt")) {
-			 ftpClient.retrieveFile("Pure-Collection-Commands.txt", fos); }
-			 */
-			
+					
 			File f=new File(toPath);
 			if(!(f.exists() && f.isDirectory())) {
 				f.mkdir();
@@ -199,30 +185,11 @@ public class FTPClientConfiguration {
 					String fileName=file[file.length-1];
 						String path=s.replace(fileName,"" );
 						FileUploadStatus status=new FileUploadStatus();
-						
-						
-
 						ftpClient.changeWorkingDirectory(path);
 						ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 						ftpClient.enterLocalPassiveMode();
 
-						/*FTPFile[] files = ftpClient.listFiles();
-
-						// ftpClient.g
-						for (FTPFile file : files) {
-							String details = file.getName();
-							if (file.isDirectory()) {
-								details = "[" + details + "]";
-							}
-							System.out.println(details);
-						}
-
-						
-						  try (FileOutputStream fos = new FileOutputStream(
-						  "/home/vtg-admin/Desktop/aravind/Pure-Collection-Commands.txt")) {
-						 ftpClient.retrieveFile("Pure-Collection-Commands.txt", fos); }
-						 */
-						String copyPath = toPath + "/" + fileName;
+					String copyPath = toPath + "/" + fileName;
 						try (FileOutputStream fos = new FileOutputStream(copyPath)) {
 							ftpClient.retrieveFile(fileName, fos);
 						} catch (IOException e) {
@@ -279,18 +246,6 @@ public class FTPClientConfiguration {
 			ftpClient.changeWorkingDirectory(dirToList);
 			FTPFile[] files = ftpClient.listFiles();
 
-			// ftpClient.g
-			/*for (FTPFile file : files) {
-				String details = file.getName();
-				FileWithPath path1 = new FileWithPath();
-				path1.setPath(path + "/" + file.getName());
-				path1.setName(file.getName());
-				System.out.println("------file----"+file.getName());
-				fileList.add(path1);
-	            
-				
-				
-			}*/
 			
 			for (FTPFile aFile : files) {
 	            String currentFileName = aFile.getName();
@@ -326,74 +281,11 @@ public class FTPClientConfiguration {
 	}
 
 
-	public static void main(String[] args) {
-		String server = "192.168.1.10";
-		int port = 21;
-		String user = "Test";
-		String pass = "ZENfra@123$";
-
-		FTPClient ftpClient = new FTPClient();
-
-		try {
-			ftpClient.connect(server, port);
-
-			System.out.println(ftpClient.getReplyString());
-
-			ftpClient.sendCommand(FTPCommand.USER, user);
-
-			System.out.println(ftpClient.getReplyString());
-
-			ftpClient.sendCommand(FTPCommand.PASS, pass);
-			System.out.println(ftpClient.getReplyString());
-
-			System.out.println(ftpClient.getReplyString());
-
-			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-			ftpClient.enterLocalPassiveMode();
-
-			ftpClient.changeWorkingDirectory("/home/FTP-Logs");
-			FTPFile[] files = ftpClient.listFiles();
-
-			// ftpClient.g
-			for (FTPFile file : files) {
-				String details = file.getName();
-				if (file.isDirectory()) {
-					details = "[" + details + "]";
-				}
-				System.out.println(details);
-			}
-
-			/*
-			 * ftpClient.changeWorkingDirectory("/home");
-			 * System.out.println(ftpClient.getReplyString());
-			 * 
-			 * 
-			 * FTPFile[] files = ftpClient.listFiles();
-			 * 
-			 * 
-			 * //ftpClient.g for (FTPFile file : files) { String details = file.getName();
-			 * if (file.isDirectory()) { details = "[" + details + "]"; }
-			 * System.out.println(details); }
-			 * 
-			 * System.out.println(ftpClient.getReplyString());
-			 * 
-			 * ftpClient.sendCommand(FTPCmd.CWD, "Upload");
-			 * 
-			 * System.out.println(ftpClient.getReplyString());
-			 * 
-			 * ftpClient.sendCommand(FTPCmd.MKD, "CodeJava");
-			 * 
-			 * ftpClient.sendCommand(FTPCmd.MLSD, pass);
-			 * 
-			 * System.out.println(ftpClient.getReplyString());
-			 * 
-			 */
-		} catch (IOException ex) {
-			System.err.println(ex);
-		}
-	}
-	private static String getFileChecksum(MessageDigest digest, File file) throws IOException
+	public static String getFileChecksum(File file) throws IOException, NoSuchAlgorithmException
 	{
+		
+		System.out.println("Checksum start.........."+file.getName());
+		MessageDigest digest = MessageDigest.getInstance("MD5");
 	    //Get file input stream for reading the file content
 	    FileInputStream fis = new FileInputStream(file);
 	     
@@ -420,7 +312,52 @@ public class FTPClientConfiguration {
 	        sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
 	    }
 	     
+	    System.out.println("Checksum exist.........."+file.getName());
 	    //return complete hash
 	   return sb.toString();
+	}
+	
+	
+	
+	public boolean copyStatus(List<String> existCheckSums, String checkSum, String serverId, String fileName) {
+		
+		try {
+			
+			System.out.println("checkSum::"+checkSum);
+			if(existCheckSums!=null && existCheckSums.contains(checkSum)) {
+				return true;
+			}
+			
+			CheckSumDetails checksum=new CheckSumDetails();
+				checksum.setClientFtpServerId(serverId);
+				checksum.setFileName(fileName);
+				checksum.setCheckSum(checkSum);			
+				saveEntity(CheckSumDetails.class, checksum);
+			
+		
+		   return false;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		
+	}
+	
+	
+	public List<String> getCheckSumDetails(){
+		List<String> list=new ArrayList<String>();
+		try {
+			List<Object> objList=getEntityListByColumn("select * from check_sum_details", CheckSumDetails.class);
+			for(Object obj:objList) {
+				CheckSumDetails check=(CheckSumDetails) obj;
+				list.add(check.getCheckSum());
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return list;
 	}
 }

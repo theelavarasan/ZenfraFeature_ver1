@@ -2,6 +2,8 @@ package com.zenfra.controller;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.json.simple.JSONArray;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +40,7 @@ public class CategoryViewController {
 	UserService userService;
 
 	@PostMapping
-	public ResponseEntity<?> saveCategoryView(@RequestBody CategoryView view) {
+	public ResponseEntity<?> saveCategoryView(@Valid @RequestBody CategoryView view) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {

@@ -21,6 +21,9 @@ public class FTPClientService {
 	
 	@Autowired
 	FTPServerRepo repo;
+	
+	@Autowired
+	FTPClientConfiguration fTPClientConfiguration;
 
 	public boolean saveFtpServer(FTPServerModel server) {
 
@@ -106,7 +109,7 @@ public class FTPClientService {
 
 				FTPServerModel server = repo.findBySiteKey(siteKey, connectionName);
 				if(server.getServerPath() != null) {
-			        	listFilesFromPath = FTPClientConfiguration.getFilesFromPath( server,server.getServerPath());
+			        	listFilesFromPath = fTPClientConfiguration.getFilesFromPath( server,server.getServerPath());
 			        }
 			} catch (Exception e) {
 				e.printStackTrace();
