@@ -203,7 +203,7 @@ public class AwsInventoryController {
 		
 			
 			
-			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
+			/*Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
 			
 			ObjectMapper map=new ObjectMapper();
 			
@@ -216,7 +216,7 @@ public class AwsInventoryController {
 				model.setResponseDescription("Unable to insert log upload table!");
 				return model;
 			}
-			
+			*/
 			
 			AwsInventory aws=getAwsInventoryByDataId(data_id);
 			ProcessingStatus status=new ProcessingStatus();
@@ -229,7 +229,7 @@ public class AwsInventoryController {
 				status.setDataId(aws.getData_id());
 				status.setProcessingType("aws");
 				status.setStatus("Processing");
-			//serivce.saveProcess(status);
+			serivce.saveProcess(status);
 			 
 			String sha256hex = aesEncrypt.decrypt(aws.getSecret_access_key());
 			if(aws!=null) {	
@@ -273,8 +273,8 @@ public class AwsInventoryController {
 			    	response+=line;
 			    }
 			
-			// status.setResponse(response);
-			// serivce.updateMerge(status);
+			 status.setResponse(response);
+			 serivce.updateMerge(status);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
