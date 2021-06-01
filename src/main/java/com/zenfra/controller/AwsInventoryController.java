@@ -263,9 +263,12 @@ public class AwsInventoryController {
 		String response="";
 		try {
 			
+			System.out.println("Call aws script......");
 			String path=" /opt/ZENfra/repo/cloud-inventory-collectors/aws/inventory_collection/aws_inventory.py";
 			String cmd="python3 "+path+" --akid "+access_key_id+" --sakey "+secret_access_key+" --sitekey "+siteKey;
 		
+			System.out.println("cmd::"+cmd);
+			
 			Process process = Runtime.getRuntime().exec(cmd);
 			 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			    String line = "";			    
