@@ -316,7 +316,7 @@ public class CommonFunctions {
 			 HttpEntity<Object> request = new HttpEntity<>(body);
 			 ResponseEntity<String> response= restTemplate
 	                 //.exchange("http://localhost:8080/usermanagment/auth/login", HttpMethod.POST, request, String.class);
-	        		  .exchange("http://jdev.zenfra.co:8080/UserManagement/auth/login", HttpMethod.POST, request, String.class);
+	        		  .exchange("http://localhost:8080/UserManagement/auth/login", HttpMethod.POST, request, String.class);
 	         ObjectMapper mapper = new ObjectMapper();
 	         JsonNode root = mapper.readTree(response.getBody());		
 	         token=root.get("jData").get("AccessToken");

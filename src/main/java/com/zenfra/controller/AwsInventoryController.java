@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.ftp.scheduler.AwsScriptThread;
@@ -349,7 +350,7 @@ public class AwsInventoryController {
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
           responce= restTemplate
-                 .exchange("http://jdev.zenfra.co:8080/parsing/upload", HttpMethod.POST, request, String.class);	
+                 .exchange("http://localhost:8080/parsing/upload", HttpMethod.POST, request, String.class);	
 			
         
           System.out.println("End insertLogUploadTable..... ");
@@ -361,7 +362,24 @@ public class AwsInventoryController {
 		return responce;
 	}
 	
-	
+	public Object updateLogFile() {
+		 Object response=null;
+		try {
+			String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
+			
+			JSONObject body=new JSONObject();
+					
+			 RestTemplate restTemplate=new RestTemplate();
+			 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
+	          response= restTemplate
+	                 .exchange("http://localhost:8080/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
+				
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return response;
+	}
 	
 	 HttpHeaders createHeaders(String token){
 	        return new HttpHeaders() {{
