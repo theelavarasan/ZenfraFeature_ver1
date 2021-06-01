@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.jvnet.hk2.annotations.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.zenfra.configuration.AESEncryptionDecryption;
@@ -64,6 +66,10 @@ public class AwsInventoryController {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 			
+			AwsInventory awsExist=getAwsInventoryBySiteKey(aws.getSitekey());
+				if(awsExist!=null && awsExist.getSitekey()!=null) {
+					aws.setSecret_access_key(aesEncrypt.decrypt(awsExist.getSecret_access_key()));					
+				}
 			ObjectMapper map=new ObjectMapper();
 			String lastFourKey=aws.getSecret_access_key().substring(aws.getSecret_access_key().length() - 4 ); 
 			String connection=checkConnection(aws.getAccess_key_id(), aws.getSecret_access_key());
@@ -155,31 +161,8 @@ public class AwsInventoryController {
 	public ResponseModel_v2 getLastFourValuesBySiteKey(@PathVariable String sitekey) {
 		
 		ResponseModel_v2 model=new ResponseModel_v2();
-	try {
-		String query="select * from aws_cloud_credentials where sitekey=':sitekey_value'";
-		query=query.replace(":sitekey_value", sitekey);
-		System.out.println(query);
-	   Connection conn =post.getPostConnection();
-	   Statement stmt = conn.createStatement();			
-       ResultSet rs = stmt.executeQuery(query);
-       List<AwsInventory> list=new ArrayList<AwsInventory>();
-       ObjectMapper map=new ObjectMapper();
-       while(rs.next()){
-    	   AwsInventory aws=new AwsInventory();
-    	   	aws.setLastFourKey( rs.getString("lastFourKey")!=null ? rs.getString("lastFourKey").toString() : " " );
-    	   	aws.setAccess_key_id( rs.getString("access_key_id")!=null ? rs.getString("access_key_id").toString() : " " );
-    	  	aws.setSecret_access_key(rs.getString("secret_access_key")!=null ? rs.getString("secret_access_key").toString() : " ");
-    	   	aws.setSitekey(rs.getString("sitekey")!=null ? rs.getString("sitekey").toString() : " ");
-    	   	aws.setUserid(rs.getString("userid")!=null ? rs.getString("userid").toString() : " ");
-    	   	aws.setUpdated_date(rs.getString("updated_date")!=null ? rs.getString("updated_date").toString() : " ");
-    	   	aws.setRegions(rs.getString("regions")!=null ? map.readValue(rs.getString("regions"), JSONArray.class) : new JSONArray());
-    	  list.add(aws);  	
-       }
-       
-		
-		stmt.close();
-		conn.close();
-		model.setjData(list);			
+	try {		
+		model.setjData(getAwsInventoryBySiteKey(sitekey));			
 	} catch (Exception e) {
 		e.printStackTrace();
 	}
@@ -205,21 +188,28 @@ public class AwsInventoryController {
 			
 		
 			
-			
+			String rid="";
 			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
 			
 			ObjectMapper map=new ObjectMapper();
 			
 			JSONObject resJson=map.convertValue(insert, JSONObject.class);
-			JSONObject body=map.readValue(resJson.get("body").toString(), JSONObject.class);
+			System.out.println("resJson::"+resJson);
+			JSONObject body=map.readValue(resJson.get("body").toString(), JSONObject.class);			
 			System.out.println("body::"+body);
-			if(body!=null && !body.get("responseCode").equals("200")) {
+			System.out.println("body.get(\"responseCode\")"+body.get("responseCode"));
+			JsonNode root = map.readTree(resJson.get("body").toString());	
+			if(body!=null && !body.get("responseCode").toString().equals("200")) {
+			
 				model.setjData(body);
 				model.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				model.setResponseDescription("Unable to insert log upload table!");
 				return model;
 			}
-			
+			System.out.println(root.get("jData").get("logFileDetails"));
+			rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString();
+			System.out.println("rid::"+rid);
+	
 			
 			AwsInventory aws=getAwsInventoryByDataId(data_id);
 			ProcessingStatus status=new ProcessingStatus();
@@ -244,6 +234,7 @@ public class AwsInventoryController {
 					script.setUserId(userId);
 					script.setToken(token);
 					script.setProcessingStatus(status);
+					script.setRid(rid);
 					
 				AwsScriptThread awsScript=new AwsScriptThread(script);
 					awsScript.run();
@@ -269,7 +260,7 @@ public class AwsInventoryController {
 		return model;
 	}
 	
-	public  Object callAwsScript(String secret_access_key,String access_key_id,String siteKey, String userId, String token, ProcessingStatus status) {
+	public  Object callAwsScript(String secret_access_key,String access_key_id,String siteKey, String userId, String token, ProcessingStatus status,String rid) {
 		
 		String response="";
 		try {
@@ -287,15 +278,18 @@ public class AwsInventoryController {
 			    	response+=line;
 			    	System.out.println(response);
 			    }
-		 String query="update LogFileDetails set parsingStatus='success' and status='success' where logType='"+status.getLogType()+"' and siteKey='"+status.getSiteKey()+"' and response='"+response+"'";
+		 String query="update LogFileDetails set parsingStatus='success',status='success',response='"+response+"' where @rid='"+rid+"'";
 		 JSONObject json=new JSONObject();
 			 		json.put("method", "update");
 			 		json.put("query", query);
-			String responseRest=common.updateLogFile(json).toString();
-			status.setResponse(response+"~"+responseRest);
+			 		
+			Object responseRest=common.updateLogFile(json);
+			status.setResponse(response+"~"+responseRest!=null && !responseRest.toString().isEmpty() ? responseRest.toString() : "unable to update logupload API");
 			serivce.updateMerge(status);
 		} catch (Exception e) {
-			e.printStackTrace();
+			status.setResponse(response+"~"+"unable to update logupload API");
+			serivce.updateMerge(status);
+			
 		}
 		
 		return response;
@@ -386,7 +380,6 @@ public class AwsInventoryController {
 			   Connection conn =post.getPostConnection();
 			   Statement stmt = conn.createStatement();			
 		       ResultSet rs = stmt.executeQuery(query);
-		       List<AwsInventory> list=new ArrayList<AwsInventory>();
 		       ObjectMapper map=new ObjectMapper();
 		   	
 		       while(rs.next()){
@@ -397,10 +390,41 @@ public class AwsInventoryController {
 		    	   	aws.setUserid(rs.getString("userid")!=null ? rs.getString("userid").toString() : " ");
 		    	   	aws.setUpdated_date(rs.getString("updated_date")!=null ? rs.getString("updated_date").toString() : " ");
 		    	   	aws.setRegions(rs.getString("regions")!=null ? map.readValue(rs.getString("regions"), JSONArray.class) : new JSONArray());
-		    	  
 		       }
 		 		stmt.close();
 				conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 
+		 return aws;
+	 }
+	 
+ public AwsInventory getAwsInventoryBySiteKey(String siteKey) {
+		 
+		 AwsInventory aws=new AwsInventory();
+		 try {String query="select * from aws_cloud_credentials where sitekey=':sitekey_value'";
+			query=query.replace(":sitekey_value", siteKey);
+			System.out.println(query);
+		   Connection conn =post.getPostConnection();
+		   Statement stmt = conn.createStatement();			
+	       ResultSet rs = stmt.executeQuery(query);
+	       List<AwsInventory> list=new ArrayList<AwsInventory>();
+	       ObjectMapper map=new ObjectMapper();
+	       while(rs.next()){
+	    	   	aws.setLastFourKey( rs.getString("lastFourKey")!=null ? rs.getString("lastFourKey").toString() : " " );
+	    	   	aws.setAccess_key_id( rs.getString("access_key_id")!=null ? rs.getString("access_key_id").toString() : " " );
+	    	  	aws.setSecret_access_key(rs.getString("secret_access_key")!=null ? rs.getString("secret_access_key").toString() : " ");
+	    	   	aws.setSitekey(rs.getString("sitekey")!=null ? rs.getString("sitekey").toString() : " ");
+	    	   	aws.setUserid(rs.getString("userid")!=null ? rs.getString("userid").toString() : " ");
+	    	   	aws.setUpdated_date(rs.getString("updated_date")!=null ? rs.getString("updated_date").toString() : " ");
+	    	   	aws.setRegions(rs.getString("regions")!=null ? map.readValue(rs.getString("regions"), JSONArray.class) : new JSONArray());
+	    	  list.add(aws);  	
+	       }
+	       
+			
+			stmt.close();
+			conn.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

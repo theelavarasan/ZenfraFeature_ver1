@@ -1,7 +1,5 @@
 package com.zenfra.ftp.scheduler;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.zenfra.controller.AwsInventoryController;
 import com.zenfra.payload.model.CallAwsScript;
 
@@ -19,7 +17,7 @@ public class AwsScriptThread implements Runnable{
 		System.out.println("Start AwsScriptThread");
 		AwsInventoryController control=new AwsInventoryController();
 		control.callAwsScript(script.getSecurityKey(), script.getAccessKey(),
-				script.getSiteKey(), script.getUserId(), script.getToken(), script.getProcessingStatus());
+				script.getSiteKey(), script.getUserId(), script.getToken(), script.getProcessingStatus(),script.getRid());
 	}
 
 }

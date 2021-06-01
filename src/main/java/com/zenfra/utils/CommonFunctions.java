@@ -340,7 +340,7 @@ public class CommonFunctions {
 		                 .exchange("http://localhost:8080/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
 		       
 			} catch (Exception e) {
-				e.printStackTrace();
+				return e.getMessage();
 			}
 			return response;
 		}
