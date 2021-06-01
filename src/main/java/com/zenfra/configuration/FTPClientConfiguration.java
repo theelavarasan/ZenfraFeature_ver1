@@ -104,26 +104,27 @@ public class FTPClientConfiguration extends CommonEntityManager{
 				if(file.getName().equalsIgnoreCase(".") || file.getName().equalsIgnoreCase("..")) {
 					continue;
 				}
-				String details = file.getName();
+				 String details = file.getName();
 				 ftpClient.enterLocalPassiveMode();
 				 InputStream iStream=ftpClient.retrieveFileStream(path + "/" + details);
 				 if(iStream!=null) {
-				  File file1 =File.createTempFile("tmp", null);
-				  FileUtils.copyInputStreamToFile(iStream, file1);
-				  iStream.close();
-				  chkSumFTP =getFileChecksum(file1);
-				  file1.delete();
-				  if(copyStatus(existCheckSums,chkSumFTP,server.getServerId(),file.getName())) {
-					  continue;
-				  }
+				 // File file1 =File.createTempFile("tmp", null);
+				 // FileUtils.copyInputStreamToFile(iStream, file1);
+				 // iStream.close();
+				 // chkSumFTP =getFileChecksum(file1);
+				 // file1.delete();
+				 // if(copyStatus(existCheckSums,chkSumFTP,server.getServerId(),file.getName())) {
+				//	  continue;
+				 // }
 				
-				 ftpClient.completePendingCommand();
+				// ftpClient.completePendingCommand();
 				 }			 
 				FileWithPath path1 = new FileWithPath();
 				path1.setPath(path + "/" + details);
 				path1.setName(details);
 				path1.setCheckSum(chkSumFTP);
 				fileList.add(path1);
+				
 			}
 			 ftpClient.logout();
 			 ftpClient.disconnect();
@@ -245,18 +246,6 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			ftpClient.changeWorkingDirectory(dirToList);
 			FTPFile[] files = ftpClient.listFiles();
 
-			// ftpClient.g
-			/*for (FTPFile file : files) {
-				String details = file.getName();
-				FileWithPath path1 = new FileWithPath();
-				path1.setPath(path + "/" + file.getName());
-				path1.setName(file.getName());
-				System.out.println("------file----"+file.getName());
-				fileList.add(path1);
-	            
-				
-				
-			}*/
 			
 			for (FTPFile aFile : files) {
 	            String currentFileName = aFile.getName();
@@ -294,6 +283,8 @@ public class FTPClientConfiguration extends CommonEntityManager{
 
 	public static String getFileChecksum(File file) throws IOException, NoSuchAlgorithmException
 	{
+		
+		System.out.println("Checksum start.........."+file.getName());
 		MessageDigest digest = MessageDigest.getInstance("MD5");
 	    //Get file input stream for reading the file content
 	    FileInputStream fis = new FileInputStream(file);
@@ -321,6 +312,7 @@ public class FTPClientConfiguration extends CommonEntityManager{
 	        sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
 	    }
 	     
+	    System.out.println("Checksum exist.........."+file.getName());
 	    //return complete hash
 	   return sb.toString();
 	}
@@ -331,7 +323,8 @@ public class FTPClientConfiguration extends CommonEntityManager{
 		
 		try {
 			
-			if(existCheckSums==null || existCheckSums.isEmpty() || existCheckSums.contains(checkSum)) {
+			System.out.println("checkSum::"+checkSum);
+			if(existCheckSums!=null && existCheckSums.contains(checkSum)) {
 				return true;
 			}
 			
@@ -341,6 +334,7 @@ public class FTPClientConfiguration extends CommonEntityManager{
 				checksum.setCheckSum(checkSum);			
 				saveEntity(CheckSumDetails.class, checksum);
 			
+		
 		   return false;
 			
 		} catch (Exception e) {
@@ -364,6 +358,6 @@ public class FTPClientConfiguration extends CommonEntityManager{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return list;
 	}
 }

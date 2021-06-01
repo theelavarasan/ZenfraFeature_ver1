@@ -11,7 +11,7 @@ public class CheckSumDetails {
 
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Id
-	@Column(name = "sheduler_id")
+	@Column(name = "check_sum_id")
 	private long data_id;
 	
 	private String fileName;

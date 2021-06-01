@@ -20,13 +20,18 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.ResourceUtils;
-
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.model.FavouriteModel;
 
@@ -307,6 +312,30 @@ public class CommonFunctions {
 		return query;
 	}
 
-
+	 public String getZenfraToken(String username,String password) {
+		 
+		  Object token=null;
+			try {
+				        
+				   
+				MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
+			      body.add("userName", username);
+			      body.add("password", password);
+			  	      
+			 RestTemplate restTemplate=new RestTemplate();
+			 HttpEntity<Object> request = new HttpEntity<>(body);
+			 ResponseEntity<String> response= restTemplate
+	                 //.exchange("http://localhost:8080/usermanagment/auth/login", HttpMethod.POST, request, String.class);
+	        		  .exchange("http://jdev.zenfra.co:8080/UserManagement/auth/login", HttpMethod.POST, request, String.class);
+	         ObjectMapper mapper = new ObjectMapper();
+	         JsonNode root = mapper.readTree(response.getBody());		
+	         token=root.get("jData").get("AccessToken");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			return token.toString().replace("\"", "");
+	 }
+	 
 
 }

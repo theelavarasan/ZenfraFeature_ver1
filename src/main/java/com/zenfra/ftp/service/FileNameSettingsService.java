@@ -110,20 +110,13 @@ public class FileNameSettingsService {
 
 		List<FileWithPath> filesFillter = new ArrayList<FileWithPath>();
 		try {
-
 			
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
-
-			
 			List<FileWithPath> files = clientService.getFiles(settings.getSiteKey(), server.getServerPath(), settings.getFtpName());
 
 			ObjectMapper map=new ObjectMapper();
 			for (FileWithPath f : files) {
 			
-				 System.out.println("f.getName():::"+f.getName());
-					
-					//f.setServerModel(server);
-				//System.out.println(f.getName()+":"+f.getPath());
 				 String patternVal = null;
 				 String logType = null;		
 				 for(int j=0; j < settings.getPattern().size();j++) {
@@ -131,6 +124,8 @@ public class FileNameSettingsService {
 					 JSONObject patJson = map.convertValue(settings.getPattern().get(j), JSONObject.class);
 					 patternVal =patJson.get("namePattern").toString().replace("*", ".*");
 					 logType = patJson.get("logType").toString().replace("*", ".*");
+					 System.out.println("patternVal::"+patternVal);
+					 System.out.println("logType::"+logType);
 					 //patternVal=".*sun.*";logType="";
 					if (isValidMatch(patternVal,f.getName()) || isValidMatch(logType, f.getName()) ) {
 					// if (f.getName().contains(patternVal) || f.getName().contains(logType) ) {
@@ -144,8 +139,9 @@ public class FileNameSettingsService {
 				
 		
 			}
-
-			 clientService.getFilesdFromServerPattern(server, settings, files);
+			if(filesFillter.size()>0) {
+				clientService.getFilesdFromServerPattern(server, settings, filesFillter);
+			}
 			return filesFillter;
 		} catch (Exception e) {
 			e.printStackTrace();
