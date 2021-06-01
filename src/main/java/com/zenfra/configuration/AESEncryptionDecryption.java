@@ -56,5 +56,9 @@ public class AESEncryptionDecryption {
 	        return null;
 	    }
 
+	    public static void main(String[] args) {
+	    	AESEncryptionDecryption aes=new AESEncryptionDecryption();
+	    	System.out.println(aes.decrypt("fJrsAaTb4JTY1SSWaoLSBzujI7ZB79bR+lD/ravCoRs="));
+	    }
 	   
 }

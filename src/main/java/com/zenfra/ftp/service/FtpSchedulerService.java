@@ -1,6 +1,9 @@
 package com.zenfra.ftp.service;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.configuration.FTPClientConfiguration;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
 import com.zenfra.model.ftp.FTPSettingsStatus;
@@ -36,7 +40,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 
 	@Autowired
 	FTPClientService clientService;
-
+	
+	
 	public long saveFtpScheduler(FtpScheduler ftpScheduler) {
 
 		try {
@@ -81,16 +86,31 @@ public class FtpSchedulerService extends CommonEntityManager{
 			System.out.println("--------------eneter runFtpSchedulerFiles---------");
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
 
-			List<FileWithPath> files=getFilesBased(settings);
-			System.out.println("files size::"+files.size());
+			List<FileWithPath> files=getFilesBased(settings);			
+			System.out.println("FileWithPath size::"+files.size());
+			List<String> existFiles=getFilesFromFolder(settings.getToPath());
+			
 			for(FileWithPath file:files) {
 				System.out.println("settings.getToPath()::"+settings.getToPath());
 				//file.setPath(settings.getToPath()+"/"+file.getName());
 				String token=token("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 				System.out.println("Token::"+token);
+				
+				/*if(existFiles.contains(file.getName())) {
+					System.out.println("path::"+settings.getToPath()+"/"+file.getName());
+					 File file1 =new File(settings.getToPath()+"/"+file.getName());
+					 String checkSum=FTPClientConfiguration.getFileChecksum(file1);
+					System.out.println("Exist checkSum::"+file.getCheckSum());
+					System.out.println("New checkSum::"+checkSum);
+					 if(file.getCheckSum().equals(checkSum)) {
+						 System.out.println("File Already parsed");
+						 continue;
+					 }
+					 file1.delete();
+				}*/
 				callParsing(file.getLogType(), settings.getUserId(),
 						settings.getSiteKey(), s.getTenantId(), file.getName(), token,
-						settings.getToPath());
+						settings.getToPath(),s.getId());
 			}
 			
 			return files;
@@ -113,17 +133,18 @@ public class FtpSchedulerService extends CommonEntityManager{
 	
 	public Object callParsing(String logType,String userId,String siteKey,
 		String tenantId,String fileName,String token,
-		String folderPath) {
+		String folderPath,long schedulerId) {
 		  Object responce=null;
 		  FTPSettingsStatus status=new FTPSettingsStatus();
 		try {			
 			
+			System.out.println("Enter Parsing.....");
 					status.setFile(folderPath+"/"+fileName);
 					status.setLogType(logType);
 					status.setUserId(userId);
 					status.setSiteKey(siteKey);
 					status.setTenantId(tenantId);
-				
+					status.setSchedulerId(schedulerId!=0 ? String.valueOf(schedulerId) : "");
 					
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 		      body.add("parseFilePath", folderPath);
@@ -145,7 +166,7 @@ public class FtpSchedulerService extends CommonEntityManager{
          JsonNode root = mapper.readTree(response.getBody());	
          
          status.setResponse(root.toString());
-        System.out.println("root::"+root);
+        
 		} catch (Exception e) {
 			e.printStackTrace();
 			 status.setResponse(e.getMessage());
@@ -188,5 +209,22 @@ public class FtpSchedulerService extends CommonEntityManager{
 			}
 			
 			return token.toString().replace("\"", "");
+	 }
+	 
+	 
+	 public List<String> getFilesFromFolder(String path){
+		 List<String> listFiles=new ArrayList<String>();
+		 try {
+			
+				System.out.println("Set path:: "+path);
+				File Folder = new File(path);
+				System.out.println("Folder:: "+Folder);
+				for(File filentry:Folder.listFiles()) {
+					listFiles.add(filentry.getName());
+				}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 return listFiles;
 	 }
 }

@@ -64,10 +64,6 @@ public class AwsInventoryController {
 			
 			ObjectMapper map=new ObjectMapper();
 			String lastFourKey=aws.getSecret_access_key().substring(aws.getSecret_access_key().length() - 4 ); 
-			String sha256hex = aesEncrypt.encrypt(aws.getSecret_access_key());
-			aws.setSecret_access_key(sha256hex);
-			
-			
 			String connection=checkConnection(aws.getAccess_key_id(), aws.getSecret_access_key());
 			System.out.println("Con::"+connection);
 			
@@ -77,10 +73,13 @@ public class AwsInventoryController {
 				if(connection.contains("fail")) {
 					responseModel.setjData(map.readValue(connection, JSONObject.class));
 				}
-				return responseModel;
+				//return responseModel;
 			}
-				
-			//aws.setSecret_access_key(sha256hex);
+			
+			String sha256hex = aesEncrypt.encrypt(aws.getSecret_access_key());
+			
+			aws.setSecret_access_key(sha256hex);
+			
 			aws.setCreated_date(common.getCurrentDateWithTime());
 			aws.setUpdated_date(common.getCurrentDateWithTime());
 			String query="INSERT INTO aws_cloud_credentials(userid, sitekey, access_key_id, secret_access_key, regions, description, created_date, data_id,lastfourkey)" + 

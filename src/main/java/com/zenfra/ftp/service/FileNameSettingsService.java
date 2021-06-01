@@ -120,6 +120,8 @@ public class FileNameSettingsService {
 			ObjectMapper map=new ObjectMapper();
 			for (FileWithPath f : files) {
 			
+				 System.out.println("f.getName():::"+f.getName());
+					
 					//f.setServerModel(server);
 				//System.out.println(f.getName()+":"+f.getPath());
 				 String patternVal = null;
@@ -127,11 +129,11 @@ public class FileNameSettingsService {
 				 for(int j=0; j < settings.getPattern().size();j++) {
 					 
 					 JSONObject patJson = map.convertValue(settings.getPattern().get(j), JSONObject.class);
-					 patternVal =patJson.get("namePattern").toString();
-					 logType = patJson.get("logType").toString();
-					 System.out.println("f.getName():::"+f.getName());
-					//if (isValidMatch(patternVal,f.getName()) || isValidMatch(logType, f.getName()) ) {
-					 if (f.getName().contains(patternVal) || f.getName().contains(logType) ) {
+					 patternVal =patJson.get("namePattern").toString().replace("*", ".*");
+					 logType = patJson.get("logType").toString().replace("*", ".*");
+					 //patternVal=".*sun.*";logType="";
+					if (isValidMatch(patternVal,f.getName()) || isValidMatch(logType, f.getName()) ) {
+					// if (f.getName().contains(patternVal) || f.getName().contains(logType) ) {
 							System.out.println("Find Match");
 							f.setLogType(logType);
 							filesFillter.add(f);

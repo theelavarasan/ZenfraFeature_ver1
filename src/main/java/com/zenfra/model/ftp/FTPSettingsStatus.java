@@ -29,6 +29,8 @@ public class FTPSettingsStatus {
 	
 	private String response;
 
+	private String schedulerId;
+	
 	public long getId() {
 		return id;
 	}
@@ -91,6 +93,14 @@ public class FTPSettingsStatus {
 
 	public void setResponse(String response) {
 		this.response = response;
+	}
+
+	public String getSchedulerId() {
+		return schedulerId;
+	}
+
+	public void setSchedulerId(String schedulerId) {
+		this.schedulerId = schedulerId;
 	}
 	
 	
