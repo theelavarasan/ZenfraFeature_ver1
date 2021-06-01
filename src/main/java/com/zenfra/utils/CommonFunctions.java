@@ -21,7 +21,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -327,5 +329,26 @@ public class CommonFunctions {
 			return token.toString().replace("\"", "");
 	 }
 	 
-
+		public Object updateLogFile(JSONObject body) {
+			 Object response=null;
+			try {
+				String token="Bearer "+getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
+						
+				 RestTemplate restTemplate=new RestTemplate();
+				 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
+		          response= restTemplate
+		                 .exchange("http://localhost:8080/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
+		       
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return response;
+		}
+		
+		 HttpHeaders createHeaders(String token){
+		        return new HttpHeaders() {{
+		              set( "Authorization", token );
+		            setContentType(MediaType.MULTIPART_FORM_DATA);
+		        }};
+		    }
 }
