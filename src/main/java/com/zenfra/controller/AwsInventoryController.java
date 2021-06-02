@@ -188,7 +188,7 @@ public class AwsInventoryController {
 			
 		
 			
-			String rid="";
+		
 			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
 			
 			ObjectMapper map=new ObjectMapper();
@@ -204,7 +204,7 @@ public class AwsInventoryController {
 				model.setResponseDescription("Unable to insert log upload table!");
 				return model;
 			}
-			rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString();
+			final String rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString();
 			
 			
 			AwsInventory aws=getAwsInventoryByDataId(data_id);
@@ -232,11 +232,16 @@ public class AwsInventoryController {
 					script.setProcessingStatus(status);
 					script.setRid(rid);
 					
-				AwsScriptThread awsScript=new AwsScriptThread(script);
-					awsScript.run();
+				//AwsScriptThread awsScript=new AwsScriptThread(script);
+				//	awsScript.run();
 				
-				//callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status, rid); 
+					new Thread(new Runnable() {
+				        public void run(){
+				        	callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status, rid); 
+					     }
+				    }).start();
 					
+				
 				model.setResponseCode(HttpStatus.OK);
 				model.setjData("Script successfully started");				
 			}else {
