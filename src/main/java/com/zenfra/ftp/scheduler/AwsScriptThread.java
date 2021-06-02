@@ -15,6 +15,7 @@ public class AwsScriptThread implements Runnable{
 	@Override
 	public void run() {
 		System.out.println("Start AwsScriptThread");
+		System.out.println();
 		AwsInventoryController control=new AwsInventoryController();
 		control.callAwsScript(script.getSecurityKey(), script.getAccessKey(),
 				script.getSiteKey(), script.getUserId(), script.getToken(), script.getProcessingStatus(),script.getRid());

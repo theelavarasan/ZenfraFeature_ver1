@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.jvnet.hk2.annotations.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -33,7 +32,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.ftp.scheduler.AwsScriptThread;
@@ -43,6 +41,7 @@ import com.zenfra.model.ftp.ProcessingStatus;
 import com.zenfra.payload.model.CallAwsScript;
 import com.zenfra.service.ProcessService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.Constants;
 
 @RestController
 @RequestMapping("/rest/aws-inventory")
@@ -196,7 +195,6 @@ public class AwsInventoryController {
 			JSONObject resJson=map.convertValue(insert, JSONObject.class);
 			System.out.println("resJson::"+resJson);
 			JSONObject body=map.readValue(resJson.get("body").toString(), JSONObject.class);			
-			System.out.println("body::"+body);
 			System.out.println("body.get(\"responseCode\")"+body.get("responseCode"));
 			JsonNode root = map.readTree(resJson.get("body").toString());	
 			if(body!=null && !body.get("responseCode").toString().equals("200")) {
@@ -206,10 +204,8 @@ public class AwsInventoryController {
 				model.setResponseDescription("Unable to insert log upload table!");
 				return model;
 			}
-			System.out.println(root.get("jData").get("logFileDetails"));
 			rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString();
-			System.out.println("rid::"+rid);
-	
+			
 			
 			AwsInventory aws=getAwsInventoryByDataId(data_id);
 			ProcessingStatus status=new ProcessingStatus();
@@ -239,7 +235,7 @@ public class AwsInventoryController {
 				AwsScriptThread awsScript=new AwsScriptThread(script);
 					awsScript.run();
 				
-				//callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status); 
+				//callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status, rid); 
 					
 				model.setResponseCode(HttpStatus.OK);
 				model.setjData("Script successfully started");				
@@ -262,6 +258,7 @@ public class AwsInventoryController {
 	
 	public  Object callAwsScript(String secret_access_key,String access_key_id,String siteKey, String userId, String token, ProcessingStatus status,String rid) {
 		
+		System.out.println("status::"+status.toString());
 		String response="";
 		try {
 			
@@ -278,16 +275,18 @@ public class AwsInventoryController {
 			    	response+=line;
 			    	System.out.println(response);
 			    }
+			    System.out.println("aws data script response::"+response);
 		 String query="update LogFileDetails set parsingStatus='success',status='success',response='"+response+"' where @rid='"+rid+"'";
-		 JSONObject json=new JSONObject();
-			 		json.put("method", "update");
-			 		json.put("query", query);
+		 MultiValueMap<String, Object> json=new LinkedMultiValueMap<String, Object>();
+			 		json.add("method", "update");
+			 		json.add("query", query);
 			 		
 			Object responseRest=common.updateLogFile(json);
 			status.setResponse(response+"~"+responseRest!=null && !responseRest.toString().isEmpty() ? responseRest.toString() : "unable to update logupload API");
 			serivce.updateMerge(status);
 		} catch (Exception e) {
-			status.setResponse(response+"~"+"unable to update logupload API");
+			e.printStackTrace();
+			status.setResponse(response+"~"+e.getMessage());
 			serivce.updateMerge(status);
 			
 		}
@@ -299,7 +298,7 @@ public class AwsInventoryController {
 	public String checkConnection(String access_id,String secret_key) {
 		
 		//Map<String, String> map=DBUtils.getPostgres();
-		String responce="";
+		String response="";
 		try {
 			String path="/opt/ZENfra/repo/cloud-inventory-collectors/aws/authentication.py";
 			String cmd="python3 "+path+" --id "+access_id+" --key "+secret_key;
@@ -309,15 +308,16 @@ public class AwsInventoryController {
 			 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			    String line = "";			    
 			    while ((line = reader.readLine()) != null) {
-			    	responce+=line;
-			    	System.out.println(responce);
+			    	response+=line;
+			    	System.out.println(response);
 			    }
 			
+			    System.out.println("checkConnection script response::"+response);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return "exception";
 		}
-		return responce;
+		return response;
 	}
 	
 	
@@ -348,7 +348,7 @@ public class AwsInventoryController {
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
           responce= restTemplate
-                 .exchange("http://localhost:8080/parsing/upload", HttpMethod.POST, request, String.class);	
+                 .exchange(Constants.current_url+"/parsing/upload", HttpMethod.POST, request, String.class);	
 			
         
           System.out.println("End insertLogUploadTable..... ");

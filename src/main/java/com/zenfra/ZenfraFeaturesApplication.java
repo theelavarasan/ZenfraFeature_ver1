@@ -1,21 +1,16 @@
 package com.zenfra;
 
-import java.io.IOException;
-
 import javax.annotation.PostConstruct;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
-import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.event.EventListener;
 
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
@@ -25,15 +20,15 @@ import com.zenfra.utils.ZookeeperConnection;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-@EnableSwagger2
 public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 
 	
 	@Autowired
 	DataframeService dataframeService;
+	
+	
 	
 	@Autowired
 	EolService eolService;
@@ -42,6 +37,7 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 		SpringApplication.run(ZenfraFeaturesApplication.class, args);
 	}
 
+	
 	 @Bean
 	   public Docket productApi() {
 	      return new Docket(DocumentationType.SWAGGER_2).select()
@@ -110,5 +106,6 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	    	
 	    }
 	   
-	   
+	 
+	  
 }
