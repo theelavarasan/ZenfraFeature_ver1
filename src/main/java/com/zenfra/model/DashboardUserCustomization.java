@@ -11,8 +11,6 @@ import org.hibernate.annotations.TypeDef;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import com.vladmihalcea.hibernate.type.array.ListArrayType;
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 
 @Entity
 @Table(name="dashboard_user_customization")

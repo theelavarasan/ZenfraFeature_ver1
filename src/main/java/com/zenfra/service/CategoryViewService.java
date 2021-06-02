@@ -63,9 +63,12 @@ public class CategoryViewService {
 			List<Object> list=dao.getEntityListByColumn(query, CategoryView.class);
 			Map<String,String> userList=userSerice.getUserNames();
 			 for(Object obj:list) {
+				
 				 CategoryView view=(CategoryView)obj;
+				 //System.out.println("report::"+view.getReportBy());
+				 //System.out.println("updateBY::"+view.getUpdatedBy());
 				 	view.setUpdatedBy(userList.get(view.getUpdatedBy()));
-				 arr.add(functions.convertEntityToJsonObject(obj));
+				 arr.add(functions.convertEntityToJsonObject(view));
 			 }
 		} catch (Exception e) {
 			e.printStackTrace();

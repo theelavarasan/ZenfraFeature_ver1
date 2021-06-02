@@ -14,19 +14,21 @@ import org.springframework.context.annotation.Bean;
 
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
+import com.zenfra.model.ZKModel;
+import com.zenfra.utils.ZookeeperConnection;
 
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-@EnableSwagger2
 public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 
 	
 	@Autowired
 	DataframeService dataframeService;
+	
+	
 	
 	@Autowired
 	EolService eolService;
@@ -35,6 +37,7 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 		SpringApplication.run(ZenfraFeaturesApplication.class, args);
 	}
 
+	
 	 @Bean
 	   public Docket productApi() {
 	      return new Docket(DocumentationType.SWAGGER_2).select()
@@ -82,15 +85,19 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	                .config("spark.executor.heartbeatInterval", "1000s")
 	                .config("spark.sql.sources.partitionOverwriteMode", "dynamic")
 	                .getOrCreate();
-	    }
+	    }	
 	    
-	   
-	    
-	  
-	    
+	   	    
 	   @PostConstruct
 	    public void createDataframeView() {		
-		   dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
+		   ZookeeperConnection zkConnection = new ZookeeperConnection();
+		    try {
+				ZKModel.zkData = zkConnection.getZKData();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 		    
+		   //dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
 	    	//eolService.getEOLEOSData();
 	    	//eolService.getEOLEOSHW();
 	    	//eolService.getGooglePricing();
@@ -99,5 +106,6 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	    	
 	    }
 	   
-	   
+	 
+	  
 }
