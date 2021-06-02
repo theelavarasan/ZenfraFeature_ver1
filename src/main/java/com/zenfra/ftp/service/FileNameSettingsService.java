@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.ftp.repo.FileNameSettingsRepo;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
@@ -25,6 +26,9 @@ public class FileNameSettingsService {
 
 	@Autowired
 	FTPClientService clientService;
+	
+	@Autowired
+	AESEncryptionDecryption encryption;
 
 	public String saveFileNameSettings(FileNameSettingsModel settings) {
 		try {
@@ -112,6 +116,7 @@ public class FileNameSettingsService {
 		try {
 			
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
+				server.setServerPassword(encryption.decrypt(server.getServerPassword()));
 			List<FileWithPath> files = clientService.getFiles(settings.getSiteKey(), server.getServerPath(), settings.getFtpName());
 
 			ObjectMapper map=new ObjectMapper();

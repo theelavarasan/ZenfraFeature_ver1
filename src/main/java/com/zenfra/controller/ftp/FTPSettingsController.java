@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.ftp.service.FTPClientService;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ftp.FTPServerModel;
@@ -46,6 +47,9 @@ public class FTPSettingsController {
 	@Autowired
 	CommonFunctions functions;
 	
+	@Autowired
+	AESEncryptionDecryption encrypt;
+	
 	public static final Logger logger = LoggerFactory.getLogger(FTPSettingsController.class);
 
 	@SuppressWarnings({ "unchecked", "rawtypes", "static-access" })
@@ -55,6 +59,7 @@ public class FTPSettingsController {
 		
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
+			ftpServer.setServerPassword(encrypt.encrypt(ftpServer.getServerPassword()));
 			ftpServer.setActive(true);
 			ftpServer.setCreate_by(ftpServer.getUserId());
 			ftpServer.setCreate_time(functions.getCurrentDateWithTime());

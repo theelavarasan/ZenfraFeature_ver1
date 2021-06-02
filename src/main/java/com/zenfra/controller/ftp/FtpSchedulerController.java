@@ -58,6 +58,7 @@ public class FtpSchedulerController {
 				ftpScheduler.setSchedulerCorn(corn.replace("weekly", ftpScheduler.getTime()));
 			}
 
+			
 			long id=schedulerService.saveFtpScheduler(ftpScheduler);
 
 			SchedulerThread r = new SchedulerThread(ftpScheduler);

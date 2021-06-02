@@ -12,6 +12,8 @@ public class CallAwsScript {
 	
 	private String userId;
 	
+	private String rid;
+	
 	private ProcessingStatus processingStatus;
 	
 	
@@ -77,6 +79,16 @@ public class CallAwsScript {
 
 	public void setToken(String token) {
 		this.token = token;
+	}
+
+
+	public String getRid() {
+		return rid;
+	}
+
+
+	public void setRid(String rid) {
+		this.rid = rid;
 	}
 
 
