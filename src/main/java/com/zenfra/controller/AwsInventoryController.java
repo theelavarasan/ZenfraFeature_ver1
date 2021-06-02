@@ -288,7 +288,8 @@ public class AwsInventoryController {
 			status.setResponse(response+"~"+responseRest!=null && !responseRest.toString().isEmpty() ? responseRest.toString() : "unable to update logupload API");
 			serivce.updateMerge(status);
 		} catch (Exception e) {
-			status.setResponse(response+"~"+"unable to update logupload API");
+			e.printStackTrace();
+			status.setResponse(response+"~"+e.getMessage());
 			serivce.updateMerge(status);
 			
 		}
