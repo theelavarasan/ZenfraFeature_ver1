@@ -262,6 +262,7 @@ public class AwsInventoryController {
 	
 	public  Object callAwsScript(String secret_access_key,String access_key_id,String siteKey, String userId, String token, ProcessingStatus status,String rid) {
 		
+		System.out.println("status::"+status.toString());
 		String response="";
 		try {
 			

@@ -128,6 +128,13 @@ public class ProcessingStatus {
 		this.processingType = processingType;
 	}
 
+	@Override
+	public String toString() {
+		return "ProcessingStatus [id=" + id + ", file=" + file + ", siteKey=" + siteKey + ", tenantId=" + tenantId
+				+ ", logType=" + logType + ", userId=" + userId + ", path=" + path + ", response=" + response
+				+ ", dataId=" + dataId + ", status=" + status + ", processingType=" + processingType + "]";
+	}
+
 	
 	
 	
