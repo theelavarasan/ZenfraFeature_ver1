@@ -181,13 +181,14 @@ public class AwsInventoryController {
 		
 		ResponseModel_v2 model=new ResponseModel_v2();
 		try {
+			
 			//String token=request.getHeader("Authorization");
 			String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 			System.out.println(token);
 			
 		
 			
-			String rid="";
+		
 			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
 			
 			ObjectMapper map=new ObjectMapper();
@@ -198,13 +199,12 @@ public class AwsInventoryController {
 			System.out.println("body.get(\"responseCode\")"+body.get("responseCode"));
 			JsonNode root = map.readTree(resJson.get("body").toString());	
 			if(body!=null && !body.get("responseCode").toString().equals("200")) {
-			
 				model.setjData(body);
 				model.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				model.setResponseDescription("Unable to insert log upload table!");
 				return model;
 			}
-			rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString();
+			final String rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString();
 			
 			
 			AwsInventory aws=getAwsInventoryByDataId(data_id);
@@ -232,11 +232,16 @@ public class AwsInventoryController {
 					script.setProcessingStatus(status);
 					script.setRid(rid);
 					
-				AwsScriptThread awsScript=new AwsScriptThread(script);
-					awsScript.run();
+				//AwsScriptThread awsScript=new AwsScriptThread(script);
+				//	awsScript.run();
 				
-				//callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status, rid); 
+					new Thread(new Runnable() {
+				        public void run(){
+				        	callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status, rid); 
+					     }
+				    }).start();
 					
+				
 				model.setResponseCode(HttpStatus.OK);
 				model.setjData("Script successfully started");				
 			}else {
