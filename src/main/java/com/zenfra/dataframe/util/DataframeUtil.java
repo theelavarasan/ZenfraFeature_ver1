@@ -48,7 +48,8 @@ public class DataframeUtil {
 	        return "{" +
 	                "\"data\": [" + String.join(",", result.getData()) + "], " +
 	                "\"lastRow\":" + result.getLastRow() + ", " +
-	                "\"totalCount\": " + result.getTotalRecord() + "" +	                
+	                "\"totalCount\": " + result.getTotalRecord() + ", " +	  
+	                "\"unit_conv_details\": " + result.getUnit_conv_details() + "" +	
 	                "}";
 	    }
 	 

@@ -20,7 +20,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,6 +53,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Sets;
+import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
 import com.zenfra.dataframe.filter.ColumnFilter;
 import com.zenfra.dataframe.filter.NumberColumnFilter;
@@ -65,7 +65,6 @@ import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.dataframe.util.ZenfraConstants;
-import com.zenfra.service.ReportService;
 import com.zenfra.utils.DBUtils;
 
 
@@ -107,6 +106,9 @@ public class DataframeService{
 	 
 	 @Autowired
 	 private ReportDao reportDao;
+	 
+	 @Autowired
+	 private FavouriteDao_v2 favouriteDao_v2;
 	 
 	
 	 
@@ -512,9 +514,11 @@ public class DataframeService{
 	                .collectAsList();
 
 	        // calculate last row
-	        long lastRow = endRow >= rowCount ? rowCount : -1;		       
+	        long lastRow = endRow >= rowCount ? rowCount : -1;		
 	        
-	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count());
+	       JSONObject metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
+	        
+	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count(), metrics);
 	    }
 
 	    private List<String> getSecondaryColumns(Dataset<Row> df) {
@@ -1642,6 +1646,46 @@ public DataResult getOptimizationReportData(ServerSideGetRowsRequest request) {
 				e.printStackTrace();
 			}
 			return result;
-		}		
+		}	
+		
+		
+		
+		 private JSONObject getUnitConvertDetails(String reportName, String deviceType) {
+		        logger.info("GetUnitConvertDetails Begins");
+		        JSONObject resultJSONObject = new JSONObject();
+		        try {
+		            JSONObject timeZoneMetricsObject = new JSONObject();
+		            List<Map<String, Object>> resultMap = new ArrayList<>();
+		            if (reportName == "capacity") {
+		                String query = "select column_name from report_capacity_columns where lower(device_type)= '"+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
+		                
+		                resultMap = favouriteDao_v2.getJsonarray(query);
+
+		                
+		            } else {
+		                String query = "select column_name from report_columns where lower(report_name) = '"+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
+		                        + "' and is_size_metrics = '1'";
+
+		                resultMap = favouriteDao_v2.getJsonarray(query);
+		            }
+		           
+		            JSONArray capacityMetricsColumns = new JSONArray();
+		            JSONObject capacityMetricsColumnObject = new JSONObject();
+		            for(Map<String, Object> list : resultMap) {
+		            	for (Map.Entry<String,Object> entry : list.entrySet()) {			                                
+			                    capacityMetricsColumns.add(entry.getValue());
+			            }
+		            }		           
+		            
+		            capacityMetricsColumnObject.put("column", capacityMetricsColumns);
+		            capacityMetricsColumnObject.put("metrics_in", "Gb");
+		            resultJSONObject.put("capacity_metrics", capacityMetricsColumnObject);
+		            resultJSONObject.put("timezone_metrics", timeZoneMetricsObject);
+		        } catch (Exception ex) {
+		            logger.error("Exception in GetUnitConvertDetails ", ex);
+		        }
+		        logger.info("GetUnitConvertDetails Ends");		       
+		        return resultJSONObject;
+		    }
 	    
 }
