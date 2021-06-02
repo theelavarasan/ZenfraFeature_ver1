@@ -181,8 +181,8 @@ public class AwsInventoryController {
 		
 		ResponseModel_v2 model=new ResponseModel_v2();
 		try {
-			//String token=request.getHeader("Authorization");
-			String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
+			String token=request.getHeader("Authorization");
+			//String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 			System.out.println(token);
 			
 		
@@ -198,7 +198,6 @@ public class AwsInventoryController {
 			System.out.println("body.get(\"responseCode\")"+body.get("responseCode"));
 			JsonNode root = map.readTree(resJson.get("body").toString());	
 			if(body!=null && !body.get("responseCode").toString().equals("200")) {
-			
 				model.setjData(body);
 				model.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				model.setResponseDescription("Unable to insert log upload table!");
