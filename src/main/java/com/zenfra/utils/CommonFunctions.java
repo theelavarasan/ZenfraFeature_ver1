@@ -1,20 +1,11 @@
 package com.zenfra.utils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
-import java.util.ArrayList;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
-
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -28,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -309,7 +299,7 @@ public class CommonFunctions {
 		  Object token=null;
 			try {
 				        
-				   
+				 System.out.println("Start get token");
 				MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 			      body.add("userName", username);
 			      body.add("password", password);
@@ -318,7 +308,7 @@ public class CommonFunctions {
 			 HttpEntity<Object> request = new HttpEntity<>(body);
 			 ResponseEntity<String> response= restTemplate
 	                 //.exchange("http://localhost:8080/usermanagment/auth/login", HttpMethod.POST, request, String.class);
-	        		  .exchange("http://localhost:8080/UserManagement/auth/login", HttpMethod.POST, request, String.class);
+	        		  .exchange(Constants.current_url+"/UserManagement/auth/login", HttpMethod.POST, request, String.class);
 	         ObjectMapper mapper = new ObjectMapper();
 	         JsonNode root = mapper.readTree(response.getBody());		
 	         token=root.get("jData").get("AccessToken");
@@ -329,26 +319,26 @@ public class CommonFunctions {
 			return token.toString().replace("\"", "");
 	 }
 	 
-		public Object updateLogFile(JSONObject body) {
+		public Object updateLogFile(MultiValueMap<String, Object> body) {
 			 Object response=null;
 			try {
 				String token="Bearer "+getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
-						
 				 RestTemplate restTemplate=new RestTemplate();
 				 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
 		          response= restTemplate
-		                 .exchange("http://localhost:8080/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
+		                 .exchange(Constants.current_url+"/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
 		       
 			} catch (Exception e) {
 				return e.getMessage();
 			}
+			System.out.println("Rest response::"+response);
 			return response;
 		}
 		
 		 HttpHeaders createHeaders(String token){
 		        return new HttpHeaders() {{
 		              set( "Authorization", token );
-		            setContentType(MediaType.MULTIPART_FORM_DATA);
+		            setContentType(MediaType.APPLICATION_JSON);
 		        }};
 		    }
 }
