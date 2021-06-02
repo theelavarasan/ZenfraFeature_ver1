@@ -273,13 +273,13 @@ public class AwsInventoryController {
 		
 			System.out.println("cmd::"+cmd);
 			
-			/*Process process = Runtime.getRuntime().exec(cmd);
+			Process process = Runtime.getRuntime().exec(cmd);
 			 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			    String line = "";			    
 			    while ((line = reader.readLine()) != null) {
 			    	response+=line;
 			    	System.out.println(response);
-			    }*/
+			    }
 			    System.out.println("aws data script response::"+response);
 		 String query="update LogFileDetails set parsingStatus='success',status='success',response=':response_value' where @rid=':rid_value'";
 		 query=query.replace(":rid_value", rid).replace(":response_value", response);
