@@ -159,7 +159,7 @@ public class FavouriteApiService_v2 {
 				
 				
 			String updateFavView = "";
-			if (createdBy.equalsIgnoreCase(userId)) {
+			if (favView!=null && favView.getCreated_by().equalsIgnoreCase(userId)) {
 				updateFavView =queries.favouriteView().getUpdateCreatedByEqualsUserId()
 						.replace(":favourite_id", favouriteId);
 				System.out.println("3::"+updateFavView);

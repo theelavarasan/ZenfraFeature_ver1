@@ -182,8 +182,8 @@ public class AwsInventoryController {
 		ResponseModel_v2 model=new ResponseModel_v2();
 		try {
 			
-			//String token=request.getHeader("Authorization");
-			String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
+			String token=request.getHeader("Authorization");
+			//String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 			System.out.println(token);
 			
 		
@@ -281,12 +281,12 @@ public class AwsInventoryController {
 			    	System.out.println(response);
 			    }
 			    System.out.println("aws data script response::"+response);
-		 String query="update LogFileDetails set parsingStatus='success',status='success',response='"+response+"' where @rid='"+rid+"'";
-		 MultiValueMap<String, Object> json=new LinkedMultiValueMap<String, Object>();
-			 		json.add("method", "update");
-			 		json.add("query", query);
-			 		
-			Object responseRest=common.updateLogFile(json);
+		 String query="update LogFileDetails set parsingStatus='success',status='success',response=':response_value' where @rid=':rid_value'";
+		 query=query.replace(":rid_value", rid).replace(":response_value", response);
+		 JSONObject request=new JSONObject();
+		 	request.put("method", "update");
+		 	request.put("query", query);
+			Object responseRest=common.updateLogFile(request);
 			status.setResponse(response+"~"+responseRest!=null && !responseRest.toString().isEmpty() ? responseRest.toString() : "unable to update logupload API");
 			serivce.updateMerge(status);
 		} catch (Exception e) {

@@ -319,12 +319,12 @@ public class CommonFunctions {
 			return token.toString().replace("\"", "");
 	 }
 	 
-		public Object updateLogFile(MultiValueMap<String, Object> body) {
+		public Object updateLogFile(JSONObject json) {
 			 Object response=null;
 			try {
 				String token="Bearer "+getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 				 RestTemplate restTemplate=new RestTemplate();
-				 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
+				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));
 		          response= restTemplate
 		                 .exchange(Constants.current_url+"/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
 		       
