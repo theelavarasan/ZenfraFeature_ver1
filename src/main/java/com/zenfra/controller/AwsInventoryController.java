@@ -187,8 +187,6 @@ public class AwsInventoryController {
 			System.out.println(token);
 			
 		
-			
-		
 			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
 			
 			ObjectMapper map=new ObjectMapper();
@@ -204,15 +202,16 @@ public class AwsInventoryController {
 				model.setResponseDescription("Unable to insert log upload table!");
 				return model;
 			}
-			final String rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString();
-			
+			final String rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
+			System.out.println("rid::"+rid);
 			
 			AwsInventory aws=getAwsInventoryByDataId(data_id);
 			ProcessingStatus status=new ProcessingStatus();
 				status.setId(common.generateRandomId());
-				status.setFile("");
-				status.setLogType("");
+				status.setFile("AWS");
+				status.setLogType("AWS");
 				status.setUserId(userId);
+				status.setDataId(rid);
 				status.setSiteKey(siteKey);
 				status.setTenantId(tenantId);
 				status.setDataId(aws.getData_id());
@@ -222,18 +221,6 @@ public class AwsInventoryController {
 			 
 			String sha256hex = aesEncrypt.decrypt(aws.getSecret_access_key());
 			if(aws!=null) {	
-				
-				CallAwsScript script=new CallAwsScript();
-					script.setSecurityKey(sha256hex);
-					script.setAccessKey(aws.getAccess_key_id());
-					script.setSiteKey(siteKey);
-					script.setUserId(userId);
-					script.setToken(token);
-					script.setProcessingStatus(status);
-					script.setRid(rid);
-					
-				//AwsScriptThread awsScript=new AwsScriptThread(script);
-				//	awsScript.run();
 				
 					new Thread(new Runnable() {
 				        public void run(){
@@ -280,17 +267,24 @@ public class AwsInventoryController {
 			    	response+=line;
 			    	System.out.println(response);
 			    }
-			    System.out.println("aws data script response::"+response);
+		
+		 if(response!=null && !response.isEmpty() && response.contains("completed")) {
+			 response="Script excuted";
+		 }else {
+			 response="Script return invalid response";
+		 }
 		 String query="update LogFileDetails set parsingStatus='success',status='success',response=':response_value' where @rid=':rid_value'";
 		 query=query.replace(":rid_value", rid).replace(":response_value", response);
 		 JSONObject request=new JSONObject();
 		 	request.put("method", "update");
 		 	request.put("query", query);
 			Object responseRest=common.updateLogFile(request);
-			status.setResponse(response+"~"+responseRest!=null && !responseRest.toString().isEmpty() ? responseRest.toString() : "unable to update logupload API");
+			status.setResponse(rid+"~"+response+"~"+responseRest!=null && !responseRest.toString().isEmpty() ? responseRest.toString() : "unable to update logupload API");
+			status.setStatus("complete");
 			serivce.updateMerge(status);
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace();	
+			status.setStatus("complete");
 			status.setResponse(response+"~"+e.getMessage());
 			serivce.updateMerge(status);
 			
