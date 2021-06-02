@@ -17,6 +17,10 @@ import com.zenfra.dataframe.service.EolService;
 import com.zenfra.model.ZKModel;
 import com.zenfra.utils.ZookeeperConnection;
 
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+
 @SpringBootApplication
 public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 
@@ -34,6 +38,12 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	}
 
 	
+	 @Bean
+	   public Docket productApi() {
+	      return new Docket(DocumentationType.SWAGGER_2).select()
+	         .apis(RequestHandlerSelectors.basePackage("com.zenfra")).build();
+	   }
+	 
 
 	   @Override
 	   protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
