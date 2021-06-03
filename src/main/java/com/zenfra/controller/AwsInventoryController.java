@@ -32,6 +32,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.ftp.scheduler.AwsScriptThread;
@@ -189,19 +190,28 @@ public class AwsInventoryController {
 		
 			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
 			
+			
 			ObjectMapper map=new ObjectMapper();
 			
 			JSONObject resJson=map.convertValue(insert, JSONObject.class);
 			System.out.println("resJson::"+resJson);
 			JSONObject body=map.readValue(resJson.get("body").toString(), JSONObject.class);			
-			System.out.println("body.get(\"responseCode\")"+body.get("responseCode"));
-			JsonNode root = map.readTree(resJson.get("body").toString());	
-			if(body!=null && !body.get("responseCode").toString().equals("200")) {
+		if(body!=null && !body.get("responseCode").toString().equals("200")) {
 				model.setjData(body);
 				model.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				model.setResponseDescription("Unable to insert log upload table!");
 				return model;
 			}
+			JsonNode root = map.readTree(resJson.get("body").toString());
+			JSONObject arr=map.readValue(root.get("jData").get("logFileDetails").get(0).toString(),JSONObject.class);
+					System.out.println("map::"+arr);
+					arr.put("status", "File processing");
+			JSONArray array=new JSONArray();
+				array.add(arr);
+			JSONObject obj=new JSONObject();
+					obj.put("logFileDetails", arr);
+			model.setjData(obj);
+			
 			final String rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
 			System.out.println("rid::"+rid);
 			
@@ -229,8 +239,7 @@ public class AwsInventoryController {
 				    }).start();
 					
 				
-				model.setResponseCode(HttpStatus.OK);
-				model.setjData("Script successfully started");				
+				model.setResponseCode(HttpStatus.OK);			
 			}else {
 				model.setResponseCode(HttpStatus.NOT_FOUND);
 				return model;
