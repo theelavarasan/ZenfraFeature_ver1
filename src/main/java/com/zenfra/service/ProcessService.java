@@ -1,7 +1,9 @@
 package com.zenfra.service;
 
-import org.springframework.stereotype.Service;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.zenfra.dao.ProcessDao;
 import com.zenfra.model.ftp.ProcessingStatus;
@@ -41,6 +43,18 @@ public class ProcessService {
 		} catch (Exception e) {
 				e.printStackTrace();
 		}
+	}
+
+	public Object getFTPLogByServerId(String serverId) {
+			try {
+				
+				String query="select * from processing_status where data_id=':data_id_value'";
+					query=query.replace(":data_id_value", serverId);
+				 return dao.getEntityListByColumn(query, ProcessingStatus.class);
+			} catch (Exception e) {
+				return e.getMessage();
+			}
+			
 	}
 	
 }

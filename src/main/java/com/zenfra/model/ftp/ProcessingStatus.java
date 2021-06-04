@@ -5,6 +5,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
+
+import org.json.simple.JSONArray;
 
 @Entity
 public class ProcessingStatus {
@@ -37,7 +40,16 @@ public class ProcessingStatus {
 	private String processingType;
 	
 	
-
+	private String startTime;
+	
+	
+	private String endTime;
+	
+	@Transient
+	private JSONArray fileList;
+	
+	private String logCount;
+	
 	public String getId() {
 		return id;
 	}
@@ -133,6 +145,38 @@ public class ProcessingStatus {
 		return "ProcessingStatus [id=" + id + ", file=" + file + ", siteKey=" + siteKey + ", tenantId=" + tenantId
 				+ ", logType=" + logType + ", userId=" + userId + ", path=" + path + ", response=" + response
 				+ ", dataId=" + dataId + ", status=" + status + ", processingType=" + processingType + "]";
+	}
+
+	public String getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(String startTime) {
+		this.startTime = startTime;
+	}
+
+	public String getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(String endTime) {
+		this.endTime = endTime;
+	}
+
+	public JSONArray getFileList() {
+		return fileList;
+	}
+
+	public void setFileList(JSONArray fileList) {
+		this.fileList = fileList;
+	}
+
+	public String getLogCount() {
+		return logCount;
+	}
+
+	public void setLogCount(String logCount) {
+		this.logCount = logCount;
 	}
 
 	

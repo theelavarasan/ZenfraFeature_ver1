@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,13 +18,16 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.FTPClientConfiguration;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
+import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
 import com.zenfra.model.ftp.ProcessingStatus;
+import com.zenfra.service.ProcessService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Constants;
 
@@ -41,6 +45,14 @@ public class FtpSchedulerService extends CommonEntityManager{
 	
 	@Autowired
 	CommonFunctions functions;
+	
+	
+	@Autowired
+	ProcessService process;
+	
+	
+	@Autowired
+	AESEncryptionDecryption encryption;
 	
 	public long saveFtpScheduler(FtpScheduler ftpScheduler) {
 
@@ -79,17 +91,28 @@ public class FtpSchedulerService extends CommonEntityManager{
 		}
 	}
 
-	public List<FileWithPath> runFtpSchedulerFiles(FtpScheduler s) {
+	public Object runFtpSchedulerFiles(FtpScheduler s) {
+		ProcessingStatus status=new ProcessingStatus();
 		try {
-
 			
-			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
+				System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
+			
+			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
+				
+				status.setDataId(String.valueOf(server.getServerId()));
+				status.setStartTime(functions.getCurrentDateWithTime());
+				status.setId(functions.generateRandomId());
+				status.setStatus("Processing");
+			process.saveProcess(status);	
+			
 				
 			
-			List<FileWithPath> files=getFilesBased(settings);			
+			List<FileWithPath> files=getFilesBased(server,settings);			
 			System.out.println("FileWithPath size::"+files.size());
 			List<String> existFiles=getFilesFromFolder(settings.getToPath());
+			
+			JSONArray fileList=new JSONArray();
 			
 			for(FileWithPath file:files) {
 				System.out.println("settings.getToPath()::"+file.getPath());
@@ -110,22 +133,28 @@ public class FtpSchedulerService extends CommonEntityManager{
 					 file1.delete();
 				}
 				System.out.println("Final::"+file.getPath());
-				//callParsing(file.getLogType(), settings.getUserId(),
-				//		settings.getSiteKey(), s.getTenantId(), file.getName(), token,
-				//		file.getPath(),s.getId());
-			}
-			
+					fileList.add(file.getPath()+"/"+file.getName());
+				callParsing(file.getLogType(), settings.getUserId(),
+						settings.getSiteKey(), s.getTenantId(), file.getName(), token,
+						file.getPath(),s.getId());
+			}		
+			status.setStatus("Completed");
+			status.setFile(fileList.toJSONString());
+			status.setLogCount(String.valueOf(fileList.size()));
+			status.setEndTime(functions.getCurrentDateWithTime());
+			process.updateMerge(status);
 			return files;
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			status.setStatus(e.getMessage());
+			process.updateMerge(status);
+			return status;
 		}
 	}
 
-	public List<FileWithPath> getFilesBased(FileNameSettingsModel settings) {
+	public List<FileWithPath> getFilesBased(FTPServerModel server,FileNameSettingsModel settings) {
 
 		try {
-			return settingsService.getFilesByPattern(settings);
+			return settingsService.getFilesByPattern(server,settings);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

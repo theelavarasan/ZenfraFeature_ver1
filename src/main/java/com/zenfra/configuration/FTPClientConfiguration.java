@@ -16,6 +16,7 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPCommand;
 import org.apache.commons.net.ftp.FTPFile;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.zenfra.dao.common.CommonEntityManager;
@@ -26,6 +27,7 @@ import com.zenfra.model.ftp.FileWithPath;
 
 @Component
 public class FTPClientConfiguration extends CommonEntityManager{
+
 
 
 	public static FTPClient loginClient(FTPServerModel server) {
@@ -40,8 +42,9 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			ftpClient.sendCommand(FTPCommand.USER, server.getServerUsername());
 
 			//System.out.println(ftpClient.getReplyString());
-
-			ftpClient.sendCommand(FTPCommand.PASS, server.getServerPassword());
+			AESEncryptionDecryption encryption=new AESEncryptionDecryption();
+			
+			ftpClient.sendCommand(FTPCommand.PASS,  encryption.decrypt(server.getServerPassword()));
 			//System.out.println(ftpClient.getReplyString());
 
 			return ftpClient;
