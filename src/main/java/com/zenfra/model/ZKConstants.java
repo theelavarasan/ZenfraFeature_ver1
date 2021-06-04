@@ -87,5 +87,5 @@ public class ZKConstants {
 	public static String POSTGRES_PWD = "postgres_pwd";
 	public static String ZENFR_FEATURES_CONTEXT_PATH = "zenfra-features";
 	public static String pg_db_url="pg_db_url";
-	public static String pg_db_port="pg_db_url";
+	public static String pg_db_port="pg_db_port";
 }
