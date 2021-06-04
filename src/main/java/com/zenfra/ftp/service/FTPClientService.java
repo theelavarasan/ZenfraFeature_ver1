@@ -14,6 +14,7 @@ import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
+import com.zenfra.utils.CommonFunctions;
 
 @Service
 public class FTPClientService {
@@ -24,6 +25,8 @@ public class FTPClientService {
 	
 	@Autowired
 	FTPClientConfiguration fTPClientConfiguration;
+	
+	
 
 	public boolean saveFtpServer(FTPServerModel server) {
 
@@ -168,9 +171,8 @@ public List<FileUploadStatus> getFilesdFromServerPattern(FTPServerModel server,F
 			
 			List<FileUploadStatus> statusList=new ArrayList<FileUploadStatus>();
 				for(FileWithPath s:files) {
-					///home/FTP-Logs/PureFlashArrayVTGNew.log
 							FileUploadStatus status=new FileUploadStatus();
-								status.setStatus(FTPClientConfiguration.getFileFromFtp(server,server.getServerPath(), settings.getToPath(),s.getName()));
+								status.setStatus(FTPClientConfiguration.getFileFromFtp(server,server.getServerPath(), settings.getToPath()+s.getPath(),s.getName()));
 								status.setFileName(s.getName());
 								statusList.add(status);
 				}

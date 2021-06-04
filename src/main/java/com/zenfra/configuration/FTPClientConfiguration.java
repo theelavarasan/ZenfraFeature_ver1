@@ -16,6 +16,7 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPCommand;
 import org.apache.commons.net.ftp.FTPFile;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.zenfra.dao.common.CommonEntityManager;
@@ -26,6 +27,7 @@ import com.zenfra.model.ftp.FileWithPath;
 
 @Component
 public class FTPClientConfiguration extends CommonEntityManager{
+
 
 
 	public static FTPClient loginClient(FTPServerModel server) {
@@ -40,8 +42,9 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			ftpClient.sendCommand(FTPCommand.USER, server.getServerUsername());
 
 			//System.out.println(ftpClient.getReplyString());
-
-			ftpClient.sendCommand(FTPCommand.PASS, server.getServerPassword());
+			AESEncryptionDecryption encryption=new AESEncryptionDecryption();
+			
+			ftpClient.sendCommand(FTPCommand.PASS,  encryption.decrypt(server.getServerPassword()));
 			//System.out.println(ftpClient.getReplyString());
 
 			return ftpClient;
@@ -108,16 +111,16 @@ public class FTPClientConfiguration extends CommonEntityManager{
 				 ftpClient.enterLocalPassiveMode();
 				 InputStream iStream=ftpClient.retrieveFileStream(path + "/" + details);
 				 if(iStream!=null) {
-				 // File file1 =File.createTempFile("tmp", null);
-				 // FileUtils.copyInputStreamToFile(iStream, file1);
-				 // iStream.close();
-				 // chkSumFTP =getFileChecksum(file1);
-				 // file1.delete();
-				 // if(copyStatus(existCheckSums,chkSumFTP,server.getServerId(),file.getName())) {
-				//	  continue;
-				 // }
+				  File file1 =File.createTempFile("tmp", null);
+				  FileUtils.copyInputStreamToFile(iStream, file1);
+				  iStream.close();
+				  chkSumFTP =getFileChecksum(file1);
+				  file1.delete();
+				  if(copyStatus(existCheckSums,chkSumFTP,server.getServerId(),file.getName())) {
+					  continue;
+				  }
 				
-				// ftpClient.completePendingCommand();
+				 ftpClient.completePendingCommand();
 				 }			 
 				FileWithPath path1 = new FileWithPath();
 				path1.setPath(path + "/" + details);
@@ -141,19 +144,13 @@ public class FTPClientConfiguration extends CommonEntityManager{
 
 
 			FTPClient	ftpClient = getConnection(server);
-			
-
 			ftpClient.changeWorkingDirectory(path);
 			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 			ftpClient.enterLocalPassiveMode();
-
-					
 			File f=new File(toPath);
 			if(!(f.exists() && f.isDirectory())) {
 				f.mkdir();
-			}
-			
-			toPath = toPath + "/" + fileName;
+			}			
 			System.out.println("toPath::"+toPath);
 			try (FileOutputStream fos = new FileOutputStream(toPath)) {
 				ftpClient.retrieveFile(fileName, fos);

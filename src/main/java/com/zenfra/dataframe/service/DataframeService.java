@@ -514,9 +514,11 @@ public class DataframeService{
 	                .collectAsList();
 
 	        // calculate last row
-	        long lastRow = endRow >= rowCount ? rowCount : -1;		
+	        long lastRow = endRow >= rowCount ? rowCount : -1;
+	       
+	        JSONObject metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
 	        
-	       JSONObject metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
+	       
 	        
 	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count(), metrics);
 	    }
@@ -1566,81 +1568,41 @@ public DataResult getOptimizationReportData(ServerSideGetRowsRequest request) {
 			 }
 			 return resultArray;
 		}
-
-
-
-		//@SuppressWarnings("deprecation")
+		
+	
 		public String recreateLocalDiscovery(String siteKey, String sourceType) {
 			String result = "";
 			try {
 				sourceType = sourceType.toLowerCase();
-				String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+				
 				Map<String, String> options = new HashMap<String, String>();
-				options.put("url", dbUrl);
-				//options.put("dbtable", "select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
-				options.put("dbtable", "local_discovery");
+				options.put("url", dbUrl);				
+				options.put("dbtable", "local_discovery");				
 				
-				//@SuppressWarnings("deprecation")	
 				sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
-				Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
-				//Dataset<Row> localDiscoveryDF = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable")).registerTempTable(tableName);;
 				
-				Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");				
+				boolean isMultipleSourceType = false;
+				if(sourceType.contains("hyper") || sourceType.contains("vmware") || sourceType.contains("nutanix")) {
+					isMultipleSourceType = true;
+				} 
 				
-				try {
-					Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
-							"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
-					
-					 String filePathSrc = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;
-					File f = new File(filePathSrc);
-					if (!f.exists()) {
-						f.mkdir();
+				if(!isMultipleSourceType) {
+					reinitiateDiscoveryDataframe(siteKey, sourceType);
+				} else {
+					if(sourceType.contains("hyper")) {
+						reinitiateDiscoveryDataframe(siteKey, "hyper-v-host");
+						reinitiateDiscoveryDataframe(siteKey, "hyper-v-vm");
+					} else if(sourceType.contains("vmware")) {
+						reinitiateDiscoveryDataframe(siteKey,"vmware");
+						reinitiateDiscoveryDataframe(siteKey, "vmware-host");
+					}  else if(sourceType.contains("nutanix")) {
+						reinitiateDiscoveryDataframe(siteKey,"nutanix-guest");
+						reinitiateDiscoveryDataframe(siteKey, "nutanix-host");
+					} else {
+						reinitiateDiscoveryDataframe(siteKey, sourceType);
 					}
-					
-					dataframeBySiteKey.show();
-					
-					dataframeBySiteKey = dataframeBySiteKey.drop("site_key").drop("source_type");	
-					 
-					dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
-							.format("org.apache.spark.sql.json")
-							.mode(SaveMode.Overwrite).save(f.getPath());
-					dataframeBySiteKey.unpersist();
-					
-					// remove double quotes from json file
-					File[] files = new File(filePathSrc).listFiles();
-					if (files != null) {
-						DataframeUtil.formatJsonFile(files);
-					}
-					
-					for(File file : files) {
-						
-			            String filePath =  file.getAbsolutePath();
-			            if(filePath.endsWith(".json")) {			            	
-			   	         	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator + "*.json";
-			   	         	String viewName = siteKey+"_"+sourceType.toLowerCase();
-			   	         	viewName = viewName.replaceAll("-", "");
-			   	       
-			   	      try {			   	    	 
-			   	        	 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
-			   	        	 dataset.createOrReplaceTempView("tmpView");
-			   	        	 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-			   		         dataset.createOrReplaceGlobalTempView(viewName); 
-			   		         dataset.cache();
-			   		 	 System.out.println("---------View created-------- :: " + viewName);
-		        		} catch (Exception e) {
-		        			e.printStackTrace();
-		        			 System.out.println("---------Not able to create View-------- :: " + viewName);
-		        		}  
-			            	
-			            }
-			        
-					}
-					
-					 
-					
-				} catch (Exception e) {
-					logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(), e);
 				}
+				
 				
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -1648,6 +1610,65 @@ public DataResult getOptimizationReportData(ServerSideGetRowsRequest request) {
 			return result;
 		}	
 		
+
+		private void reinitiateDiscoveryDataframe(String siteKey, String sourceType) {
+			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+			Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
+			
+			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");				
+			
+			try {
+				Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
+						"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
+				
+				 String filePathSrc = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;
+				File f = new File(filePathSrc);
+				if (!f.exists()) {
+					f.mkdir();
+				}
+				
+				dataframeBySiteKey.show();
+				
+				dataframeBySiteKey = dataframeBySiteKey.drop("site_key").drop("source_type");	
+				 
+				dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
+						.format("org.apache.spark.sql.json")
+						.mode(SaveMode.Overwrite).save(f.getPath());
+				dataframeBySiteKey.unpersist();
+				
+				// remove double quotes from json file
+				File[] files = new File(filePathSrc).listFiles();
+				if (files != null) {
+					DataframeUtil.formatJsonFile(files);
+				}
+				
+				for(File file : files) {
+					
+		            String filePath =  file.getAbsolutePath();
+		            if(filePath.endsWith(".json")) {			            	
+		   	         	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator + "*.json";
+		   	         	String viewName = siteKey+"_"+sourceType.toLowerCase();
+		   	         	viewName = viewName.replaceAll("-", "");
+		   	       
+		   	      try {			   	    	 
+		   	        	 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
+		   	        	 dataset.createOrReplaceTempView("tmpView");
+		   	        	 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+		   		         dataset.createOrReplaceGlobalTempView(viewName); 
+		   		         dataset.cache();
+		   		 	 System.out.println("---------View created-------- :: " + viewName);
+	        		} catch (Exception e) {
+	        			e.printStackTrace();
+	        			 System.out.println("---------Not able to create View-------- :: " + viewName);
+	        		}  
+		            	
+		            }
+		        
+				}
+		}  catch (Exception e) {
+			logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(), e);
+		}
+ }
 		
 		
 		 private JSONObject getUnitConvertDetails(String reportName, String deviceType) {
@@ -1687,5 +1708,63 @@ public DataResult getOptimizationReportData(ServerSideGetRowsRequest request) {
 		        logger.info("GetUnitConvertDetails Ends");		       
 		        return resultJSONObject;
 		    }
+
+
+
+		public DataResult getCloudCostData(ServerSideGetRowsRequest request) {
+			 Dataset<Row> dataset = null;
+			try {
+				String siteKey = request.getSiteKey();
+				String deviceType = request.getDeviceType();
+				
+				 String viewName = siteKey+"_"+deviceType.toLowerCase();
+				 viewName = viewName.replaceAll("-", "")+"_opt";
+				
+				 boolean isDiscoveryDataInView = false;
+				 try {
+					 dataset = sparkSession.sql("select * from global_temp."+viewName);
+					 dataset.cache();
+					 isDiscoveryDataInView = true;			
+				} catch (Exception e) {
+					
+				} 
+				 
+				 if(!isDiscoveryDataInView) {
+					 Map<String, String> options = new HashMap<String, String>();
+						options.put("url", dbUrl);						
+						options.put("dbtable", "mview_aws_cost_report");						
+						sparkSession.sqlContext().load("jdbc", options).registerTempTable("mview_aws_cost_report"); 
+						dataset = sparkSession.sql("select * from mview_aws_cost_report where site_key='"+ siteKey + "'");
+						dataset.createOrReplaceGlobalTempView(viewName); 
+						dataset.cache();					
+				 }
+				 
+				   
+				 
+			} catch (Exception e) {
+				e.printStackTrace();
+			}		
+			
+			dataset = DataframeUtil.renameDataFrameColumn(dataset, "data_temp_", "");
+			
+			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+	        groupKeys = request.getGroupKeys();
+	        valueColumns = request.getValueCols();
+	        pivotColumns = request.getPivotCols();
+	        filterModel = request.getFilterModel();
+	        sortModel = request.getSortModel();
+	        isPivotMode = request.isPivotMode();
+	        isGrouping = rowGroups.size() > groupKeys.size();	        
+	       
+	        rowGroups =  formatInputColumnNames(rowGroups);
+	        groupKeys =  formatInputColumnNames(groupKeys);
+	        sortModel =  formatSortModel(sortModel);
+	        request.setStartRow(1);
+	        request.setEndRow((int)dataset.count());
+	        
+	        dataset.show();
+	        
+	        return paginate(dataset, request);
+		}
 	    
 }

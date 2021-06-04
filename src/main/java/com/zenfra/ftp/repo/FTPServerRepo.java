@@ -25,6 +25,7 @@ public interface FTPServerRepo extends JpaRepository<FTPServerModel, String>{
 	@Query("select s from FTPServerModel s where s.siteKey=:siteKey")
 	List<FTPServerModel> findConnectionsBySiteKey(@Param("siteKey") String siteKey);
 
+	@Transactional
 	@Query("select s from FTPServerModel s where s.siteKey=:siteKey and s.ftpName=:ftpName")
 	FTPServerModel findBySiteKey(@Param("siteKey") String siteKey,@Param("ftpName") String ftpName);
 

@@ -65,6 +65,7 @@ public class FTPSettingsController {
 			ftpServer.setCreate_time(functions.getCurrentDateWithTime());
 			String serverId = UUID.randomUUID().toString();
 			ftpServer.setServerId(serverId);
+			ftpServer.setServerPath("/"+ftpServer.getServerPath());
 			service.saveFtpServer(ftpServer);			
 			response.setResponseCode(HttpStatus.OK);
 			response.setjData(functions.convertEntityToJsonObject(ftpServer));

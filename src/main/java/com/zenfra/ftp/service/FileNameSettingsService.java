@@ -16,6 +16,7 @@ import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
+import com.zenfra.utils.CommonFunctions;
 
 
 @Service
@@ -30,6 +31,9 @@ public class FileNameSettingsService {
 	@Autowired
 	AESEncryptionDecryption encryption;
 
+	@Autowired
+	CommonFunctions functions;
+	
 	public String saveFileNameSettings(FileNameSettingsModel settings) {
 		try {
 
@@ -110,15 +114,13 @@ public class FileNameSettingsService {
 
 	
 	
-	public List<FileWithPath> getFilesByPattern(FileNameSettingsModel settings) {
+	public List<FileWithPath> getFilesByPattern(FTPServerModel server,FileNameSettingsModel settings) {
 
 		List<FileWithPath> filesFillter = new ArrayList<FileWithPath>();
 		try {
 			
-			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
-				server.setServerPassword(encryption.decrypt(server.getServerPassword()));
 			List<FileWithPath> files = clientService.getFiles(settings.getSiteKey(), server.getServerPath(), settings.getFtpName());
-
+			String toPath=functions.getDate();
 			ObjectMapper map=new ObjectMapper();
 			for (FileWithPath f : files) {
 			
@@ -136,6 +138,7 @@ public class FileNameSettingsService {
 					// if (f.getName().contains(patternVal) || f.getName().contains(logType) ) {
 							System.out.println("Find Match");
 							f.setLogType(logType);
+							f.setPath(server.getServerPath()+"/"+logType+"_"+toPath);
 							filesFillter.add(f);
 							
 					}
@@ -188,8 +191,11 @@ public class FileNameSettingsService {
 	public List<FileNameSettingsModel> getFileNameSettingsByFtpName(String siteKey,String ftpName) {
 		List<FileNameSettingsModel> list=new ArrayList<FileNameSettingsModel>();
 		try {
-			
-			list=repo.getsaveFileNameSettingsByFtpName(siteKey,ftpName);
+			List<FileNameSettingsModel> temp=list=repo.getsaveFileNameSettingsByFtpName(siteKey,ftpName);
+				 for(FileNameSettingsModel t:temp) {
+					 t.setToPath("");
+					 list.add(t);
+				 }
 			
 			
 		} catch (Exception e) {

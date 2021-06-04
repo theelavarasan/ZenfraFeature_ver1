@@ -54,7 +54,7 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
 		    }*/
 	        ResponseModel_v2 model=new ResponseModel_v2();
 	        	model.setResponseCode(HttpStatus.BAD_REQUEST);
-	        	model.setResponseDescription(ex.getBindingResult().toString());
+	        	//model.setResponseDescription(ex.getBindingResult().toString());
 	        	model.setResponseMessage("Please sent valid params");
 	        	model.setjData(errors);
 	        	
