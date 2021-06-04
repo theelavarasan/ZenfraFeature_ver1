@@ -108,16 +108,16 @@ public class FTPClientConfiguration extends CommonEntityManager{
 				 ftpClient.enterLocalPassiveMode();
 				 InputStream iStream=ftpClient.retrieveFileStream(path + "/" + details);
 				 if(iStream!=null) {
-				 // File file1 =File.createTempFile("tmp", null);
-				 // FileUtils.copyInputStreamToFile(iStream, file1);
-				 // iStream.close();
-				 // chkSumFTP =getFileChecksum(file1);
-				 // file1.delete();
-				 // if(copyStatus(existCheckSums,chkSumFTP,server.getServerId(),file.getName())) {
-				//	  continue;
-				 // }
+				  File file1 =File.createTempFile("tmp", null);
+				  FileUtils.copyInputStreamToFile(iStream, file1);
+				  iStream.close();
+				  chkSumFTP =getFileChecksum(file1);
+				  file1.delete();
+				  if(copyStatus(existCheckSums,chkSumFTP,server.getServerId(),file.getName())) {
+					  continue;
+				  }
 				
-				// ftpClient.completePendingCommand();
+				 ftpClient.completePendingCommand();
 				 }			 
 				FileWithPath path1 = new FileWithPath();
 				path1.setPath(path + "/" + details);
@@ -141,18 +141,13 @@ public class FTPClientConfiguration extends CommonEntityManager{
 
 
 			FTPClient	ftpClient = getConnection(server);
-			
-
 			ftpClient.changeWorkingDirectory(path);
 			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 			ftpClient.enterLocalPassiveMode();
-
-					
 			File f=new File(toPath);
 			if(!(f.exists() && f.isDirectory())) {
 				f.mkdir();
-			}
-			
+			}			
 			toPath = toPath + "/" + fileName;
 			System.out.println("toPath::"+toPath);
 			try (FileOutputStream fos = new FileOutputStream(toPath)) {

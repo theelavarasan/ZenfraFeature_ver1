@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.configuration.FTPClientConfiguration;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
 import com.zenfra.model.ftp.FileNameSettingsModel;
@@ -81,20 +82,21 @@ public class FtpSchedulerService extends CommonEntityManager{
 		try {
 
 			
-			System.out.println("--------------eneter runFtpSchedulerFiles---------");
+			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
-
+				
+			
 			List<FileWithPath> files=getFilesBased(settings);			
 			System.out.println("FileWithPath size::"+files.size());
 			List<String> existFiles=getFilesFromFolder(settings.getToPath());
 			
 			for(FileWithPath file:files) {
-				System.out.println("settings.getToPath()::"+settings.getToPath());
+				System.out.println("settings.getToPath()::"+file.getPath());
 				//file.setPath(settings.getToPath()+"/"+file.getName());
 				String token=functions.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 				System.out.println("Token::"+token);
 				
-				/*if(existFiles.contains(file.getName())) {
+				if(existFiles.contains(file.getName())) {
 					System.out.println("path::"+settings.getToPath()+"/"+file.getName());
 					 File file1 =new File(settings.getToPath()+"/"+file.getName());
 					 String checkSum=FTPClientConfiguration.getFileChecksum(file1);
@@ -105,10 +107,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 						 continue;
 					 }
 					 file1.delete();
-				}*/
+				}
 				callParsing(file.getLogType(), settings.getUserId(),
 						settings.getSiteKey(), s.getTenantId(), file.getName(), token,
-						settings.getToPath(),s.getId());
+						file.getPath(),s.getId());
 			}
 			
 			return files;

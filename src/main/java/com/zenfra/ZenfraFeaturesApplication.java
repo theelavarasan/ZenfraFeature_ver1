@@ -11,15 +11,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
 
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
 import com.zenfra.model.ZKModel;
 import com.zenfra.utils.ZookeeperConnection;
-
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
 
 @SpringBootApplication
 public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
@@ -99,6 +96,11 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	    	//eolService.getAWSPricing();
 	    	
 	    }
+	   
+	   @Bean
+	   public RestTemplate restTemplate() {
+	       return new RestTemplate();
+	   }
 	   
 	 
 	  

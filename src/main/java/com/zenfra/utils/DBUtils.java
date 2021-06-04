@@ -3,6 +3,8 @@ package com.zenfra.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
+
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 
@@ -64,4 +66,30 @@ public class DBUtils {
 	}
 	
 	
+	public static String getEmailURL() {
+		String url="";
+		try {
+			ZookeeperConnection zkConnection = new ZookeeperConnection();			
+			ZKModel.zkData = zkConnection.getZKData();
+			url = ZKModel.getProperty(ZKConstants.SEND_MAIL_URL);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return url;
+	}
+	
+	public static Map<String,String> getServerDetails(){
+		ZookeeperConnection zkConnection = new ZookeeperConnection();
+		Map<String,String> map=new HashMap<String, String>();		
+		try {
+			ZKModel.zkData = zkConnection.getZKData();
+			map.put("protocol",ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL.toString()));
+			map.put("host_name", ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
+			map.put("port",ZKModel.getProperty(ZKConstants.APP_SERVER_PORT));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
 }
