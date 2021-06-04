@@ -38,12 +38,6 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	}
 
 	
-	 @Bean
-	   public Docket productApi() {
-	      return new Docket(DocumentationType.SWAGGER_2).select()
-	         .apis(RequestHandlerSelectors.basePackage("com.zenfra")).build();
-	   }
-	 
 
 	   @Override
 	   protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
@@ -97,7 +91,7 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 		    
-		   //dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
+		   dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
 	    	//eolService.getEOLEOSData();
 	    	//eolService.getEOLEOSHW();
 	    	//eolService.getGooglePricing();
