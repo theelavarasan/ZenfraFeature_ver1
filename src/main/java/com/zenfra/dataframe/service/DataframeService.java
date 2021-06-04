@@ -515,8 +515,11 @@ public class DataframeService{
 
 	        // calculate last row
 	        long lastRow = endRow >= rowCount ? rowCount : -1;		
-	        
-	       JSONObject metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
+	        JSONObject metrics = new JSONObject();
+	        if(request.getReportType().equalsIgnoreCase("Discovery")) {
+	        	metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
+	        }
+	       
 	        
 	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count(), metrics);
 	    }
@@ -1687,5 +1690,63 @@ public DataResult getOptimizationReportData(ServerSideGetRowsRequest request) {
 		        logger.info("GetUnitConvertDetails Ends");		       
 		        return resultJSONObject;
 		    }
+
+
+
+		public DataResult getCloudCostData(ServerSideGetRowsRequest request) {
+			 Dataset<Row> dataset = null;
+			try {
+				String siteKey = request.getSiteKey();
+				String deviceType = request.getDeviceType();
+				
+				 String viewName = siteKey+"_"+deviceType.toLowerCase();
+				 viewName = viewName.replaceAll("-", "")+"_opt";
+				
+				 boolean isDiscoveryDataInView = false;
+				 try {
+					 dataset = sparkSession.sql("select * from global_temp."+viewName);
+					 dataset.cache();
+					 isDiscoveryDataInView = true;			
+				} catch (Exception e) {
+					
+				} 
+				 
+				 if(!isDiscoveryDataInView) {
+					 Map<String, String> options = new HashMap<String, String>();
+						options.put("url", dbUrl);						
+						options.put("dbtable", "mview_aws_cost_report");						
+						sparkSession.sqlContext().load("jdbc", options).registerTempTable("mview_aws_cost_report"); 
+						dataset = sparkSession.sql("select * from mview_aws_cost_report where site_key='"+ siteKey + "'");
+						dataset.createOrReplaceGlobalTempView(viewName); 
+						dataset.cache();					
+				 }
+				 
+				   
+				 
+			} catch (Exception e) {
+				e.printStackTrace();
+			}		
+			
+			dataset = DataframeUtil.renameDataFrameColumn(dataset, "data_temp_", "");
+			
+			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+	        groupKeys = request.getGroupKeys();
+	        valueColumns = request.getValueCols();
+	        pivotColumns = request.getPivotCols();
+	        filterModel = request.getFilterModel();
+	        sortModel = request.getSortModel();
+	        isPivotMode = request.isPivotMode();
+	        isGrouping = rowGroups.size() > groupKeys.size();	        
+	       
+	        rowGroups =  formatInputColumnNames(rowGroups);
+	        groupKeys =  formatInputColumnNames(groupKeys);
+	        sortModel =  formatSortModel(sortModel);
+	        request.setStartRow(1);
+	        request.setEndRow((int)dataset.count());
+	        
+	        dataset.show();
+	        
+	        return paginate(dataset, request);
+		}
 	    
 }

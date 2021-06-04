@@ -1,7 +1,9 @@
 package com.zenfra.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -73,12 +75,46 @@ public class ReportDataController {
 	    public ResponseEntity<String> getRows(@RequestBody ServerSideGetRowsRequest request) { 		
 		  
 		  try {
-	      		 DataResult data = dataframeService.getReportData(request);
+			  if(request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery")) {
+				  DataResult data = dataframeService.getReportData(request);
+		      		 if(data != null) {
+		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+		      		 }
+			  } else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
+				  System.out.println("------------------opt report------------------------");
+				  JSONArray data = reportService.getCloudCostData(request);
+		      		 if(data != null) {		      			
+		      			return new ResponseEntity<>(data.toString(), HttpStatus.OK);
+		      		 }
+			  }
+	      		
+	 	        
+			} catch (Exception e) {
+				System.out.println("Not able to fecth report {}"+ e);
+			}   	
+	    	JSONArray emptyArray = new JSONArray();
+	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
+	    }
+	 
+	 
+	 @PostMapping("getCloudCost")
+	    public ResponseEntity<String> getCloudCost(@RequestBody ServerSideGetRowsRequest request) { 		
+		  
+		  try {
+			     request.setAnalyticstype("optimization");
+			     request.setSourceType(request.getDeviceType());
+			     request.setReportType("optimization");
+			     Date st = new Date();
+			   //  DataResult data = dataframeService.getCloudCostData(request);
+	      		/// System.out.println("------- " + data);
+			     JSONArray data = reportService.getCloudCostData(request);
 	      		 if(data != null) {
-	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+	      			//return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+	      			return new ResponseEntity<>(data.toString(), HttpStatus.OK);
 	      		 }
 	 	        
 			} catch (Exception e) {
+				e.printStackTrace();
 				System.out.println("Not able to fecth report {}"+ e);
 			}   	
 	    	JSONArray emptyArray = new JSONArray();
