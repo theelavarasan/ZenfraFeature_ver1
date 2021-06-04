@@ -214,14 +214,36 @@ public class ReportDataController {
 	 
 	 
 	 @PostMapping("getReportHeader")
-	    public ResponseEntity<String> getReportHeader(@RequestParam("reportType") String reportName, @RequestParam("ostype") String deviceType, @RequestParam("reportBy") String reportBy, @RequestParam("siteKey") String siteKey, @RequestParam("reportList") String reportList) { 	     
-		  
-		  try {	      		 
-	      		 if(reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
-	      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList);
-	      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
-	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
+	    public ResponseEntity<String> getReportHeader(ServerSideGetRowsRequest request) { 	
+		 
+		
+		  try {	    
+			  String reportName = "";
+			  String deviceType = "";
+			  String reportBy = "";
+			  String siteKey = "";
+			  String reportList = "";
+			  if(request.getReportType().equalsIgnoreCase("discovery")) {
+				  reportName = request.getReportType();
+				  deviceType = request.getOstype();
+				  reportBy = request.getReportBy();
+				  siteKey = request.getSiteKey();
+				  reportList = request.getReportList();
+			  } else if(request.getReportType().equalsIgnoreCase("optimization")){
+				   reportName = request.getReportType();
+				   deviceType = request.getDeviceType();
+				   reportBy = request.getReportType();
+				   siteKey = request.getSiteKey();
+				   reportList = request.getReportList();
+			  }
+			  
+				if(reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
+		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList);
+		      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
+		        }  else {
+	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		
+	      	    }
+	      		 
 	      		
 			} catch (Exception e) {
 				System.out.println("Not able to get report headers {}"+ e);

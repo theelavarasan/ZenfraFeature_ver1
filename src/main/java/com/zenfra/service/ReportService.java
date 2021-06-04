@@ -62,8 +62,13 @@ public class ReportService {
 			result = reportDao.getReportHeader(reportName, deviceType, reportBy);
 		}
 		
-		 	String report_label = reportList + " " + deviceType + " by "+  reportBy;
-	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	       
+				 	
+			String report_label = reportList + " " + deviceType + " by "+  reportBy;	
+	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	 
+	        if(reportName.equalsIgnoreCase("optimization")) {
+	        	report_label = "Cloud Cost Comparison Report";
+	        	report_name =  "optimization"+ "_" + deviceType;
+	        }
 	        
 	        JSONObject resultObject = new JSONObject();
 	        resultObject.put("headerInfo", result);
