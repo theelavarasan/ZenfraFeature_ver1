@@ -6,11 +6,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -18,6 +21,7 @@ import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,7 +29,9 @@ import org.springframework.stereotype.Component;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 import com.zenfra.model.ZenfraJSONObject;
+import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
+import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.service.DataframeService;
 
 @Component
@@ -43,6 +49,9 @@ public class ReportService {
 	 @Value("${zenfra.path}")
 	 private String commonPath;
 	 
+	 @Autowired
+	 private FavouriteDao_v2 favouriteDao_v2;
+	 
 	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String reportList) {
 		JSONArray result = new JSONArray();
 		if(reportName.equalsIgnoreCase("migrationautomation")) { //get headers from dataframe
@@ -53,8 +62,13 @@ public class ReportService {
 			result = reportDao.getReportHeader(reportName, deviceType, reportBy);
 		}
 		
-		 	String report_label = reportList + " " + deviceType + " by "+  reportBy;
-	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	       
+				 	
+			String report_label = reportList + " " + deviceType + " by "+  reportBy;	
+	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	 
+	        if(reportName.equalsIgnoreCase("optimization")) {
+	        	report_label = "Cloud Cost Comparison Report";
+	        	report_name =  "optimization"+ "_" + deviceType;
+	        }
 	        
 	        JSONObject resultObject = new JSONObject();
 	        resultObject.put("headerInfo", result);
@@ -121,6 +135,7 @@ public class ReportService {
                 columnsNameArray.add("Server Name");
                 columnsNameArray.add("vCenter");
                 columnsNameArray.add("VM");
+                columnsNameArray.add("Host Name");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                 }
@@ -297,6 +312,70 @@ public class ReportService {
         //System.out.println("!!!!! result: " + result);
         return result;
     }
+
+
+	public JSONArray getCloudCostData(ServerSideGetRowsRequest request) {
+		List<Map<String, Object>> cloudCostData = new ArrayList<>();
+		JSONArray resultArray = new JSONArray();
+		try {
+			JSONParser jsonParser = new JSONParser();
+			String deviceType = request.getDeviceType();
+			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"'";
+			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {
+				if(deviceType.contains("ware")) {
+					deviceType = "ware";
+					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(actual_os_type) like '%"+deviceType.toLowerCase()+"%'";
+				} else {
+					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(actual_os_type)='"+deviceType.toLowerCase()+"'";
+				}
+				
+			}
+			
+			cloudCostData = favouriteDao_v2.getJsonarray(query) ;
+			if(cloudCostData != null && !cloudCostData.isEmpty()) {
+				for(Map<String, Object> map : cloudCostData) {
+					
+					JSONObject json = new JSONObject();
+					
+					 Set<String> elementNamesFirstLevel = map.keySet();	
+					 for (String elementName : elementNamesFirstLevel) {	
+						 if(!elementName.equalsIgnoreCase("data_temp")) {
+							 json.put(elementName, map.get(elementName));
+						 }
+					 }
+					
+					Object object = null;
+					JSONArray arrayObj = null;					
+					PGobject pgObject = (PGobject) map.get("data_temp");				
+					object=jsonParser.parse(pgObject.toString());
+					arrayObj=(JSONArray) object;
+					
+					map.remove("data_temp");
+					for (int i = 0; i < arrayObj.size();  i++)  {
+				      JSONObject data = (JSONObject) arrayObj.get(i);
+				      Set<String> elementNames = data.keySet();				      
+				      for (String elementName : elementNames) {			
+				    	  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
+				    		  json.put("actual_os_type_data", data.get(elementName));
+				    	  } else {				    		
+				    		  json.put(elementName, data.get(elementName));
+				    	  }
+				    	  
+				      }
+				    }
+					resultArray.add(json);
+				}
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+		return resultArray;
+	}
 	
 	
 	
