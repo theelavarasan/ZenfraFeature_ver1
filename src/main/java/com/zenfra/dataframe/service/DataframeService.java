@@ -514,11 +514,10 @@ public class DataframeService{
 	                .collectAsList();
 
 	        // calculate last row
-	        long lastRow = endRow >= rowCount ? rowCount : -1;		
-	        JSONObject metrics = new JSONObject();
-	        if(request.getReportType().equalsIgnoreCase("Discovery")) {
-	        	metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
-	        }
+	        long lastRow = endRow >= rowCount ? rowCount : -1;
+	       
+	        JSONObject metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
+	        
 	       
 	        
 	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count(), metrics);
