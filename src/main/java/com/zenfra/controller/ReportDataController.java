@@ -146,7 +146,7 @@ public class ReportDataController {
 		  System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : " + siteKey + " : "+userId);
 		 
 		  try {	      		 
-	      		
+			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 	      			
 	      			return new ResponseEntity<>("", HttpStatus.OK);
