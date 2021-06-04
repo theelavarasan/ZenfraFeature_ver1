@@ -19,11 +19,15 @@ public class DBUtils {
 			String userName = ZKModel.getProperty(ZKConstants.POSTGRES_USER);
 			String password = ZKModel.getProperty(ZKConstants.POSTGRES_PWD);
 			String CLOUD_PYTHON = ZKModel.getProperty(ZKConstants.CLOUD_PYTHON);
+			String aws_db_url=ZKModel.getProperty(ZKConstants.pg_db_url);
+			String aws_db_port=ZKModel.getProperty(ZKConstants.pg_db_port);
 			data.put("url", url);
 			data.put("userName", userName);
 			data.put("password", password);
 			String dbUrl = url +"?user="+ userName +"&password="+ password; 
 			data.put("dbUrl", dbUrl);
+			data.put("aws_db_url", aws_db_url);
+			data.put("aws_db_port", aws_db_port);
 			data.put("CLOUD_PYTHON", CLOUD_PYTHON);
 			
 			System.out.println(data);

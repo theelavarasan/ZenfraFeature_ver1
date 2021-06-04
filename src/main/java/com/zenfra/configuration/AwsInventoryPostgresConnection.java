@@ -17,7 +17,7 @@ public class AwsInventoryPostgresConnection {
 		Map<String, String> data=DBUtils.getPostgres();
 		try {
 			Class.forName("org.postgresql.Driver");
-			Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/aws_inventory", data.get("userName"),data.get("password"));
+			Connection connection = DriverManager.getConnection("jdbc:postgresql://"+data.get("aws_db_url")+":"+data.get("aws_db_port")+"/aws_inventory", data.get("userName"),data.get("password"));
 			return connection;
 		} catch(Exception e) {
 			e.printStackTrace();
