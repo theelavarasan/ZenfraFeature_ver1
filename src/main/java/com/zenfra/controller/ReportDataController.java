@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -214,9 +215,8 @@ public class ReportDataController {
 	 
 	 
 	 @PostMapping("getReportHeader")
-	    public ResponseEntity<String> getReportHeader(@RequestBody ServerSideGetRowsRequest request) { 
+	    public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) { 
 		
-		 System.out.println(request.getReportType() + "===" + " : " + request.getSiteKey());
 		  try {	    
 			  String reportName = "";
 			  String deviceType = "";
