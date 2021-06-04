@@ -363,6 +363,7 @@ public class ReportService {
 				    	  
 				      }
 				    }
+					
 					resultArray.add(json);
 				}
 			}
