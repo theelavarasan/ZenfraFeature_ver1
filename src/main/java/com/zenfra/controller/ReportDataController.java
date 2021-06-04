@@ -74,23 +74,28 @@ public class ReportDataController {
 	 
 	 @PostMapping("getReportData")
 	    public ResponseEntity<String> getRows(@RequestBody ServerSideGetRowsRequest request) { 		
-		  
+		  		 
 		  try {
 			  if(request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery")) {
 				  DataResult data = dataframeService.getReportData(request);
 		      		 if(data != null) {
 		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 		      		 }
-			  } else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
-				  System.out.println("------------------opt report------------------------");
+			  } else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {				
 				  JSONArray data = reportService.getCloudCostData(request);
-		      		 if(data != null) {		      			
-		      			return new ResponseEntity<>(data.toString(), HttpStatus.OK);
+				  
+		      		 if(data != null) {	
+		      			JSONObject resultData = new JSONObject();
+		      			resultData.put("data", data);
+		      			resultData.put("lastRow", data.size());
+		      			resultData.put("totalCount", data.size());
+		      			return new ResponseEntity<>(resultData.toString(), HttpStatus.OK);
 		      		 }
 			  }
 	      		
 	 	        
 			} catch (Exception e) {
+				e.printStackTrace();
 				System.out.println("Not able to fecth report {}"+ e);
 			}   	
 	    	JSONArray emptyArray = new JSONArray();
