@@ -214,9 +214,9 @@ public class ReportDataController {
 	 
 	 
 	 @PostMapping("getReportHeader")
-	    public ResponseEntity<String> getReportHeader(ServerSideGetRowsRequest request) { 	
-		 
+	    public ResponseEntity<String> getReportHeader(@RequestBody ServerSideGetRowsRequest request) { 
 		
+		 System.out.println(request.getReportType() + "===" + " : " + request.getSiteKey());
 		  try {	    
 			  String reportName = "";
 			  String deviceType = "";
@@ -231,7 +231,7 @@ public class ReportDataController {
 				  reportList = request.getReportList();
 			  } else if(request.getReportType().equalsIgnoreCase("optimization")){
 				   reportName = request.getReportType();
-				   deviceType = request.getDeviceType();
+				   deviceType = "All";
 				   reportBy = request.getReportType();
 				   siteKey = request.getSiteKey();
 				   reportList = request.getReportList();
@@ -246,6 +246,7 @@ public class ReportDataController {
 	      		 
 	      		
 			} catch (Exception e) {
+				
 				System.out.println("Not able to get report headers {}"+ e);
 			}   	
 	    	
