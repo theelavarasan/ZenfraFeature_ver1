@@ -59,7 +59,7 @@ public class FtpScheduler {
 	@Column
 	private String selectedDate;
 	
-	@Transient
+	@Column
 	private String time;
 	
 	public long getId() {
