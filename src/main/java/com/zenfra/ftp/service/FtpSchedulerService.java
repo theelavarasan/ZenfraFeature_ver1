@@ -113,7 +113,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			List<String> existFiles=getFilesFromFolder(settings.getToPath());
 			
 			JSONArray fileList=new JSONArray();
-			fileList.add("test");
+			
 			for(FileWithPath file:files) {
 				System.out.println("settings.getToPath()::"+file.getPath());
 				//file.setPath(settings.getToPath()+"/"+file.getName());
