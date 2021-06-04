@@ -25,6 +25,7 @@ import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
 import com.zenfra.model.ftp.ProcessingStatus;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.Constants;
 
 @Service
 public class FtpSchedulerService extends CommonEntityManager{
@@ -108,9 +109,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 					 }
 					 file1.delete();
 				}
-				callParsing(file.getLogType(), settings.getUserId(),
-						settings.getSiteKey(), s.getTenantId(), file.getName(), token,
-						file.getPath(),s.getId());
+				System.out.println("Final::"+file.getPath());
+				//callParsing(file.getLogType(), settings.getUserId(),
+				//		settings.getSiteKey(), s.getTenantId(), file.getName(), token,
+				//		file.getPath(),s.getId());
 			}
 			
 			return files;
@@ -162,7 +164,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders("Bearer "+token));
 		 ResponseEntity<String> response= restTemplate
                  //.exchange("http://localhost:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);
-        		  .exchange("http://uat.zenfra.co:8080/parsing/upload", HttpMethod.POST, request, String.class);
+        		  .exchange(Constants.current_url+"/parsing/upload", HttpMethod.POST, request, String.class);
 		 ObjectMapper mapper = new ObjectMapper();
          JsonNode root = mapper.readTree(response.getBody());	
          

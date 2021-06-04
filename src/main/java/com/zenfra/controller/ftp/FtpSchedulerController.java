@@ -49,11 +49,11 @@ public class FtpSchedulerController {
 			}
 
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
-				String corn = "0 0 0/hour ? * * *";
+				String corn = "0 0 0/hour ? * * ";
 				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getTime()));
 			} else if (ftpScheduler.getType().equalsIgnoreCase("daily")) {
 				String timseslot = ftpScheduler.getTimeSlot().replace(" ", "").replace("AM", "").replace("PM", "");
-				String corn = "0 0 from-two today/everyday * ? *";
+				String corn = "0 0 from-two today/everyday * ? ";
 				corn = corn.replace("from-two", timseslot).replace("everyday", ftpScheduler.getTime()).replace("today",
 						String.valueOf(new Date().getDate()));
 				ftpScheduler.setSchedulerCorn(corn);

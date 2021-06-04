@@ -148,7 +148,6 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			if(!(f.exists() && f.isDirectory())) {
 				f.mkdir();
 			}			
-			toPath = toPath + "/" + fileName;
 			System.out.println("toPath::"+toPath);
 			try (FileOutputStream fos = new FileOutputStream(toPath)) {
 				ftpClient.retrieveFile(fileName, fos);
