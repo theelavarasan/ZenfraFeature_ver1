@@ -118,7 +118,7 @@ public class FtpSchedulerController {
 	}
 
 	@PostMapping("/run-sample")
-	public List<FileWithPath> run(@RequestParam String fileNameSettingsId) {
+	public Object run(@RequestParam String fileNameSettingsId) {
 
 		try {
 			FtpScheduler ftp = schedulerService.getFtpScheduler(fileNameSettingsId);

@@ -114,13 +114,11 @@ public class FileNameSettingsService {
 
 	
 	
-	public List<FileWithPath> getFilesByPattern(FileNameSettingsModel settings) {
+	public List<FileWithPath> getFilesByPattern(FTPServerModel server,FileNameSettingsModel settings) {
 
 		List<FileWithPath> filesFillter = new ArrayList<FileWithPath>();
 		try {
 			
-			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
-				server.setServerPassword(encryption.decrypt(server.getServerPassword()));
 			List<FileWithPath> files = clientService.getFiles(settings.getSiteKey(), server.getServerPath(), settings.getFtpName());
 			String toPath=functions.getDate();
 			ObjectMapper map=new ObjectMapper();
