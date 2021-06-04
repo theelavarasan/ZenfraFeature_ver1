@@ -3,6 +3,7 @@ package com.zenfra.utils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -11,6 +12,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -31,6 +33,9 @@ import com.zenfra.model.FavouriteModel;
 public class CommonFunctions {
 
 
+	@Autowired
+	RestTemplate restTemplate;
+	
 	public Map<String, Object> getFavViewCheckNull(Map<String, Object> row) {
 
 		try {
@@ -323,7 +328,6 @@ public class CommonFunctions {
 			 Object response=null;
 			try {
 				String token="Bearer "+getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
-				 RestTemplate restTemplate=new RestTemplate();
 				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));
 		          response= restTemplate
 		                 .exchange(Constants.current_url+"/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
@@ -341,4 +345,50 @@ public class CommonFunctions {
 		            setContentType(MediaType.APPLICATION_JSON);
 		        }};
 		    }
+		 
+		 public String getDate() {
+			 String formattedDate="";
+			 try {
+				 LocalDateTime myDateObj = LocalDateTime.now();
+				    System.out.println("Before formatting: " + myDateObj);
+				    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
+				    formattedDate = myDateObj.format(myFormatObj);
+				    System.out.println("After formatting: " + formattedDate);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 return  formattedDate;
+		 }
+		 
+		 public boolean sentEmail(JSONObject partObj,String content,String hostName) {
+			 
+			 boolean isSuccess = false;
+			 try {
+				 
+				 
+				 	HttpHeaders headers = new HttpHeaders();
+			        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+			        headers.setContentType(MediaType.APPLICATION_JSON);
+			        HttpEntity<JSONObject> requestEntity = new HttpEntity<JSONObject>(partObj, headers);
+			        String resetLink = DBUtils.getEmailURL().replaceAll("<HOSTNAME>", "uat.zenfra.co");
+			        System.out.println("!!!!! resetLink: " + resetLink);
+			        ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
+			        if (uri != null && uri.getBody() != null) {
+			            if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
+			                isSuccess = true;
+			            } else {
+			                isSuccess = false;
+			            }
+			        } else {
+			        	isSuccess = true;
+			        }
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 
+			return isSuccess; 
+		 }
+		 
+		 
+
 }
