@@ -99,10 +99,18 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			System.out.println("Start iStream FTP"+path);
 			FTPClient ftpClient = getConnection(server);
 			
-			ftpClient.enterLocalPassiveMode();
-			ftpClient.changeWorkingDirectory(path);
-			FTPFile[] files = ftpClient.listFiles();			
-			 String chkSumFTP = null;
+			
+			fileList=getAllFilesFromPath(server, path,existCheckSums);
+			
+			
+			System.out.println("file read END");
+			//ftpClient.enterLocalPassiveMode();
+			//ftpClient.changeWorkingDirectory(path);
+			//FTPFile[] files = ftpClient.listFiles();			
+			 //String chkSumFTP = null;
+			 
+			 /*
+			  * 
 			for (FTPFile file : files) {
 				if(file.getName().equalsIgnoreCase(".") || file.getName().equalsIgnoreCase("..")) {
 					continue;
@@ -128,7 +136,7 @@ public class FTPClientConfiguration extends CommonEntityManager{
 				path1.setCheckSum(chkSumFTP);
 				fileList.add(path1);
 				
-			}
+			}*/
 			 ftpClient.logout();
 			 ftpClient.disconnect();
 			 System.out.println("End iStream FTP"+path);
@@ -151,6 +159,7 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			if(!(f.exists() && f.isDirectory())) {
 				f.mkdir();
 			}	
+			
 			toPath=toPath+"/"+fileName;
 			System.out.println("toPath::"+toPath);
 			try (FileOutputStream fos = new FileOutputStream(toPath)) {
@@ -215,14 +224,14 @@ public class FTPClientConfiguration extends CommonEntityManager{
 		}
 		return statusList;
 	}
-	public static List<FileWithPath> getAllFilesFromPath(FTPServerModel server, String parentDir){
+	public  List<FileWithPath> getAllFilesFromPath(FTPServerModel server, String parentDir,List<String> existChecksums){
 		
 		 List<FileWithPath> files=new ArrayList<FileWithPath>();
 		try {
 			FTPClient ftpClient = getConnection(server);
 
 			ftpClient.enterLocalPassiveMode();
-			files.addAll(getAllFilesFromPath(ftpClient, parentDir, "", 0, server, files));
+			files.addAll(getAllFilesFromPath(ftpClient, parentDir, "", 0, server, files,existChecksums));
 			ftpClient.logout();
 			ftpClient.disconnect();
 			return files;
@@ -231,11 +240,11 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			return null;
 		}
 	}
-	public static List<FileWithPath> getAllFilesFromPath(
+	public  List<FileWithPath> getAllFilesFromPath(
 			FTPClient ftpClient, String parentDir,
             String currentDir, int level,
             FTPServerModel server, 
-			List<FileWithPath> fileList) throws IOException {
+			List<FileWithPath> fileList,List<String> existCheckSums) throws IOException {
 
 		try {
 			 String dirToList = parentDir;
@@ -258,19 +267,45 @@ public class FTPClientConfiguration extends CommonEntityManager{
 	            }
 	            if (aFile.isDirectory()) {
 	                System.out.println("[" + currentFileName + "]");
-	                getAllFilesFromPath(ftpClient, parentDir, currentFileName, level, server, fileList);
+	                getAllFilesFromPath(ftpClient, parentDir, currentFileName, level, server, fileList,existCheckSums);
 	            } else {
-	                System.out.println(currentFileName);
+	            	
+	            	 String chkSumFTP="";
+	            	 System.out.println(currentFileName);
+	              
+	                if(aFile.getName().equalsIgnoreCase(".") || aFile.getName().equalsIgnoreCase("..")) {
+						continue;
+					}
 	                String details = aFile.getName();
+					 System.out.println("Stream path::"+dirToList + "/" +aFile.getName());
+					 InputStream iStream=ftpClient.retrieveFileStream(dirToList + "/" +aFile.getName());
+					 if(iStream!=null) {
+					  File file1 =File.createTempFile("tmp", null);
+					  FileUtils.copyInputStreamToFile(iStream, file1);
+					  iStream.close();
+					  chkSumFTP =getFileChecksum(file1);
+					  file1.delete();
+					  ftpClient.completePendingCommand();
+					  if(copyStatus(existCheckSums,chkSumFTP,server.getServerId(),aFile.getName())) {
+						  continue;
+					  }
+					
+					 
+					 }			 
 					FileWithPath path1 = new FileWithPath();
-					path1.setPath(dirToList + "/" + aFile.getName());
-					path1.setName(aFile.getName());
-				
-	                fileList.add(path1);
+					path1.setPath(dirToList + "/" +aFile.getName());
+					path1.setName(details);
+					path1.setCheckSum(chkSumFTP);
+					fileList.add(path1);
+					/*
+					 * FileWithPath path1 = new FileWithPath(); path1.setPath(dirToList + "/" +
+					 * aFile.getName()); path1.setName(aFile.getName());
+					 * 
+					 * fileList.add(path1);
+					 */
 	            }
 	        }
 
-			//getFilesFromSubFolder(ftpClient)
 			
 			return fileList;
 		} catch (Exception e) {
@@ -359,4 +394,6 @@ public class FTPClientConfiguration extends CommonEntityManager{
 		}
 		return list;
 	}
+	
+	
 }

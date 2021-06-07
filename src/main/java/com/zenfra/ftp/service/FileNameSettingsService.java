@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -122,21 +123,25 @@ public class FileNameSettingsService {
 			List<FileWithPath> files = clientService.getFiles(settings.getSiteKey(), server.getServerPath(), settings.getFtpName());
 			String toPath=functions.getDate();
 			ObjectMapper map=new ObjectMapper();
-			for (FileWithPath f : files) {
+			List<String> addedFileNames=new ArrayList<String>();
+				addedFileNames.add("dummyvalue");//do not remove
+;			for (FileWithPath f : files) {
 			
 				 String patternVal = null;
 				 String logType = null;		
 				 for(int j=0; j < settings.getPattern().size();j++) {
 					 
+					 System.out.println("f.getName():::"+f.getName());
 					 JSONObject patJson = map.convertValue(settings.getPattern().get(j), JSONObject.class);
 					 patternVal =patJson.get("namePattern").toString().replace("*", ".*");
 					 logType = patJson.get("logType").toString().replace("*", ".*");
 					 System.out.println("patternVal::"+patternVal);
 					 System.out.println("logType::"+logType);
 					 //patternVal=".*sun.*";logType="";
-					if (isValidMatch(patternVal,f.getName()) || isValidMatch(logType, f.getName()) ) {
+					if (!addedFileNames.contains(f.getName()) &&(isValidMatch(patternVal,f.getName()) || isValidMatch(logType, f.getName())) ) {
 					// if (f.getName().contains(patternVal) || f.getName().contains(logType) ) {
 							System.out.println("Find Match");
+							addedFileNames.add(f.getName());
 							f.setLogType(logType);
 							System.out.println("Path::check::"+settings.getToPath()+"/"+logType+"_"+toPath);
 							f.setPath(settings.getToPath()+"/"+logType+"_"+toPath);

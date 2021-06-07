@@ -50,4 +50,10 @@ public class FileWithPath {
 		this.serverModel = serverModel;
 	}
 
+	@Override
+	public String toString() {
+		return "FileWithPath [name=" + name + ", path=" + path + ", logType=" + logType + ", checkSum=" + checkSum
+				+ ", serverModel=" + serverModel + "]";
+	}
+
 }
