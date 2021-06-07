@@ -143,7 +143,6 @@ public class FTPClientConfiguration extends CommonEntityManager{
 
 		try {
 
-
 			FTPClient	ftpClient = getConnection(server);
 			ftpClient.changeWorkingDirectory(path);
 			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
