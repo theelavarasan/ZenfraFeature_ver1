@@ -100,6 +100,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
 				
+				status.setProcessingType("FTP");
 				status.setDataId(String.valueOf(server.getServerId()));
 				status.setStartTime(functions.getCurrentDateWithTime());
 				status.setId(functions.generateRandomId());
@@ -142,10 +143,12 @@ public class FtpSchedulerService extends CommonEntityManager{
 			status.setFile(fileList.toJSONString());
 			status.setLogCount(String.valueOf(fileList.size()));
 			status.setEndTime(functions.getCurrentDateWithTime());
+			status.setPath(server.getServerPath());
 			process.updateMerge(status);
 			return files;
 		} catch (Exception e) {
-			status.setStatus(e.getMessage());
+			status.setStatus("Failed");
+			status.setResponse(e.getMessage());
 			process.updateMerge(status);
 			return status;
 		}
@@ -166,18 +169,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 		String tenantId,String fileName,String token,
 		String folderPath,long schedulerId) {
 		  Object responce=null;
-		  ProcessingStatus status=new ProcessingStatus();
 		try {			
 			
 			System.out.println("Enter Parsing.....");
-					status.setProcessingType("FTP");
-					status.setFile(folderPath+"/"+fileName);
-					status.setLogType(logType);
-					status.setUserId(userId);
-					status.setSiteKey(siteKey);
-					status.setTenantId(tenantId);
-					status.setDataId(schedulerId!=0 ? String.valueOf(schedulerId) : "");
-					
+						
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 		      body.add("parseFilePath", folderPath);
 		      body.add("parseFileName", fileName);
@@ -197,14 +192,12 @@ public class FtpSchedulerService extends CommonEntityManager{
 		 ObjectMapper mapper = new ObjectMapper();
          JsonNode root = mapper.readTree(response.getBody());	
          
-         status.setResponse(root.toString());
         
 		} catch (Exception e) {
 			e.printStackTrace();
-			 status.setResponse(e.getMessage());
 		}
 		
-		saveEntity(ProcessingStatus.class, status);
+		
 		return responce;
 	}
 	

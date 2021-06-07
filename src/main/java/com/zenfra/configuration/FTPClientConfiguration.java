@@ -147,6 +147,7 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			ftpClient.changeWorkingDirectory(path);
 			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 			ftpClient.enterLocalPassiveMode();
+			toPath=toPath+"/"+fileName;
 			File f=new File(toPath);
 			if(!(f.exists() && f.isDirectory())) {
 				f.mkdir();

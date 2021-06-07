@@ -172,7 +172,7 @@ public List<FileUploadStatus> getFilesdFromServerPattern(FTPServerModel server,F
 			List<FileUploadStatus> statusList=new ArrayList<FileUploadStatus>();
 				for(FileWithPath s:files) {
 							FileUploadStatus status=new FileUploadStatus();
-								status.setStatus(FTPClientConfiguration.getFileFromFtp(server,server.getServerPath(), settings.getToPath()+s.getPath(),s.getName()));
+								status.setStatus(FTPClientConfiguration.getFileFromFtp(server,server.getServerPath(), s.getPath(),s.getName()));
 								status.setFileName(s.getName());
 								statusList.add(status);
 				}
