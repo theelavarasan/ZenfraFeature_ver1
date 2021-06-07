@@ -168,7 +168,7 @@ public List<FileUploadStatus> getFilesdFromServerPattern(FTPServerModel server,F
 		,List<FileWithPath> files){
 		
 		try {
-			
+			System.out.println("Get files from FTP start");
 			List<FileUploadStatus> statusList=new ArrayList<FileUploadStatus>();
 				for(FileWithPath s:files) {
 							FileUploadStatus status=new FileUploadStatus();
@@ -176,7 +176,7 @@ public List<FileUploadStatus> getFilesdFromServerPattern(FTPServerModel server,F
 								status.setFileName(s.getName());
 								statusList.add(status);
 				}
-			
+				System.out.println("Get files from FTP end");
 			return statusList;
 		} catch (Exception e) {
 			e.printStackTrace();

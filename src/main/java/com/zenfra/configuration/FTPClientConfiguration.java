@@ -96,7 +96,7 @@ public class FTPClientConfiguration extends CommonEntityManager{
 
 			List<String> existCheckSums=getCheckSumDetails();
 			
-			System.out.println("path::"+path);
+			System.out.println("Start iStream FTP"+path);
 			FTPClient ftpClient = getConnection(server);
 			
 			ftpClient.enterLocalPassiveMode();
@@ -108,7 +108,7 @@ public class FTPClientConfiguration extends CommonEntityManager{
 					continue;
 				}
 				 String details = file.getName();
-				 ftpClient.enterLocalPassiveMode();
+				 System.out.println("Stream path::"+path + "/" + details);
 				 InputStream iStream=ftpClient.retrieveFileStream(path + "/" + details);
 				 if(iStream!=null) {
 				  File file1 =File.createTempFile("tmp", null);
@@ -131,6 +131,7 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			}
 			 ftpClient.logout();
 			 ftpClient.disconnect();
+			 System.out.println("End iStream FTP"+path);
 			return fileList;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -142,21 +143,21 @@ public class FTPClientConfiguration extends CommonEntityManager{
 
 		try {
 
-
 			FTPClient	ftpClient = getConnection(server);
 			ftpClient.changeWorkingDirectory(path);
 			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 			ftpClient.enterLocalPassiveMode();
-			toPath=toPath+"/"+fileName;
 			File f=new File(toPath);
 			if(!(f.exists() && f.isDirectory())) {
 				f.mkdir();
-			}			
+			}	
+			toPath=toPath+"/"+fileName;
 			System.out.println("toPath::"+toPath);
 			try (FileOutputStream fos = new FileOutputStream(toPath)) {
 				ftpClient.retrieveFile(fileName, fos);
 			} catch (IOException e) {
 				e.printStackTrace();
+				getFileFromFtp( server,  path,  toPath,  fileName);
 				return e.getMessage().toString();
 			}
 
