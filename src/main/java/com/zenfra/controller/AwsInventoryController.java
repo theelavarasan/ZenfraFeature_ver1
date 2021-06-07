@@ -205,7 +205,7 @@ public class AwsInventoryController {
 			JsonNode root = map.readTree(resJson.get("body").toString());
 			JSONObject arr=map.readValue(root.get("jData").get("logFileDetails").get(0).toString(),JSONObject.class);
 					System.out.println("map::"+arr);
-					arr.put("status", "File processing");
+					arr.put("status", "parsing");
 			JSONArray array=new JSONArray();
 				array.add(arr);
 			JSONObject obj=new JSONObject();
