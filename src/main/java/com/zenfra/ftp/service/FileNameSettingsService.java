@@ -138,7 +138,8 @@ public class FileNameSettingsService {
 					// if (f.getName().contains(patternVal) || f.getName().contains(logType) ) {
 							System.out.println("Find Match");
 							f.setLogType(logType);
-							f.setPath(server.getServerPath()+"/"+logType+"_"+toPath);
+							System.out.println("Path::check::"+settings.getToPath()+"/"+logType+"_"+toPath);
+							f.setPath(settings.getToPath()+"/"+logType+"_"+toPath);
 							filesFillter.add(f);
 							
 					}
