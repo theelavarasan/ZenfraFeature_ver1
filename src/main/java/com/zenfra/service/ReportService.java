@@ -362,7 +362,27 @@ public class ReportService {
 		List<Map<String, Object>> cloudCostData = new ArrayList<>();
 		JSONArray resultArray = new JSONArray();
 		try {
+			
+			//getHeader 
 			JSONParser jsonParser = new JSONParser();
+			String reportName = request.getReportType();
+			String deviceTypeHeder = "All";
+			String reportBy = request.getReportType();
+			String siteKey = request.getSiteKey();
+			String reportList = request.getReportList();
+		   JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+		
+		   List<String> columnHeaders = new ArrayList<>();
+		   if(headers != null && headers.size() > 0) {
+			   for(Object o : headers){
+				    if ( o instanceof JSONObject ) {
+				    	String col = (String) ((JSONObject) o).get("actualName");
+				    	columnHeaders.add(col);
+				    }
+				}
+		   }
+			
+			
 			String deviceType = request.getDeviceType();
 			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"'";
 			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {
@@ -383,8 +403,19 @@ public class ReportService {
 					
 					 Set<String> elementNamesFirstLevel = map.keySet();	
 					 for (String elementName : elementNamesFirstLevel) {	
-						 if(!elementName.equalsIgnoreCase("data_temp")) {
-							 json.put(elementName, map.get(elementName));
+						 if(!elementName.equalsIgnoreCase("data_temp")) {							
+							 if(map.get(elementName) instanceof  String) {
+								 String value = (String) map.get(elementName);
+								 if(value == null || value.trim().isEmpty()) {
+						    		  value = "N/A";
+						    	  }
+								 json.put(elementName, value);
+							 } else {
+								 json.put(elementName, map.get(elementName));
+							 }
+					    	  
+							 
+							
 						 }
 					 }
 					
@@ -398,15 +429,35 @@ public class ReportService {
 					for (int i = 0; i < arrayObj.size();  i++)  {
 				      JSONObject data = (JSONObject) arrayObj.get(i);
 				      Set<String> elementNames = data.keySet();				      
-				      for (String elementName : elementNames) {			
-				    	  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
-				    		  json.put("actual_os_type_data", data.get(elementName));
-				    	  } else {				    		
-				    		  json.put(elementName, data.get(elementName));
-				    	  }
+				      for (String elementName : elementNames) {	
 				    	  
+				    	  if(data.get(elementName) instanceof  String) {
+				    		  String value = (String) data.get(elementName);
+					    	  if(value == null || value.trim().isEmpty()) {
+					    		  value = "N/A";
+					    	  }
+					    	  
+					    	  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
+					    		  json.put("actual_os_type_data", value);
+					    	  } else {				    		
+					    		  json.put(elementName, value);
+					    	  }
+				    	  } else {
+				    		  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
+					    		  json.put("actual_os_type_data", data.get(elementName));
+					    	  } else {				    		
+					    		  json.put(elementName, data.get(elementName));
+					    	  }
+				    	  }
 				      }
 				    }
+					
+					Set<String> jsonKeySset =  json.keySet();
+					for(String key : columnHeaders) {
+					    if (!jsonKeySset.contains(key)) {					    	
+					    	json.put(key, "N/A") ;
+					    }
+					}
 					
 					resultArray.add(json);
 				}
