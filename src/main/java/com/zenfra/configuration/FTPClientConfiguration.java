@@ -59,12 +59,15 @@ public class FTPClientConfiguration extends CommonEntityManager{
 			System.out.println(server.getIpAddress()+":"+Integer.parseInt(server.getPort()));
 			FTPClient ftpClient = new FTPClient();
 			ftpClient.connect(server.getIpAddress(), Integer.parseInt(server.getPort()));
-
+			
 			boolean ftpChk = ftpClient.login(server.getServerUsername(), server.getServerPassword());
 			 
 			 System.out.println("FTP client Code:: "+ftpChk);
-			 if (!ftpChk) {
+			 if (!ftpChk) {				 
 			     return "Test Connection Failed!";
+			 }
+			 if(!ftpClient.changeWorkingDirectory(server.getServerPath())) {
+				 return "The given path is invalid!";
 			 }
 			 ftpClient.logout();
 			 ftpClient.disconnect();

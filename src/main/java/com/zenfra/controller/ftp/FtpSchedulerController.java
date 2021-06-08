@@ -42,10 +42,13 @@ public class FtpSchedulerController {
 	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler) {
 
 		try {
-			FtpScheduler temp = schedulerService.getFtpScheduler(ftpScheduler.getFileNameSettingsId());
-
-			if (temp != null) {
-				return "Scheduler already agains the given filename settings";
+			
+			if (ftpScheduler.getId()==0) {
+				FtpScheduler temp = schedulerService.getFtpScheduler(ftpScheduler.getFileNameSettingsId());
+				if(temp!=null) {
+					return "Scheduler already agains the given filename settings";
+				}
+				
 			}
 
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {

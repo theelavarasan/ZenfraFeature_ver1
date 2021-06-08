@@ -88,4 +88,5 @@ public class ZKConstants {
 	public static String ZENFR_FEATURES_CONTEXT_PATH = "zenfra-features";
 	public static String pg_db_url="pg_db_url";
 	public static String pg_db_port="pg_db_port";
+	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE="ftp_file_complete_mail_template";
 }

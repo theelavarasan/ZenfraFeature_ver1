@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,12 +23,14 @@ import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.FTPClientConfiguration;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
+import com.zenfra.model.Users;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
 import com.zenfra.model.ftp.ProcessingStatus;
 import com.zenfra.service.ProcessService;
+import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Constants;
 
@@ -53,6 +56,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 	
 	@Autowired
 	AESEncryptionDecryption encryption;
+	
+	@Autowired
+	UserService userService;
+	
 	
 	public long saveFtpScheduler(FtpScheduler ftpScheduler) {
 
@@ -93,12 +100,21 @@ public class FtpSchedulerService extends CommonEntityManager{
 
 	public Object runFtpSchedulerFiles(FtpScheduler s) {
 		ProcessingStatus status=new ProcessingStatus();
+		JSONObject email=new JSONObject();
+		
 		try {
+			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
 			
-				System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
+			Users user=userService.getUserByUserId(s.getUserId());
+			JSONArray fileList=new JSONArray();
+				email.put("mailFrom", user.getEmail());
+				email.put("mailTo", functions.convertJsonArrayToList(s.getNotificationEmail()));
+				email.put("subject", "FTP File Parsing trigger mail");
+				email.put("firstName", user.getFirst_name());
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
 			
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
+				email.put("FTPname", server.getFtpName());
 				
 				status.setProcessingType("FTP");
 				status.setDataId(String.valueOf(server.getServerId()));
@@ -113,7 +129,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			System.out.println("FileWithPath size::"+files.size());
 			List<String> existFiles=getFilesFromFolder(settings.getToPath());
 			
-			JSONArray fileList=new JSONArray();
+			
 			
 			for(FileWithPath file:files) {
 				System.out.println("settings.getToPath()::"+file.getPath());
@@ -138,18 +154,27 @@ public class FtpSchedulerService extends CommonEntityManager{
 				callParsing(file.getLogType(), settings.getUserId(),
 						settings.getSiteKey(), s.getTenantId(), file.getName(), token,
 						file.getPath(),s.getId());
-			}		
+			}	
+			
+			if(fileList.isEmpty() || fileList==null) {
+				fileList.add("No files");
+			}
+			//email.put("Time", functions.getCurrentDateWithTime());
+			//email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
 			status.setStatus("Completed");
 			status.setFile(fileList.toJSONString());
 			status.setLogCount(String.valueOf(fileList.size()));
 			status.setEndTime(functions.getCurrentDateWithTime());
 			status.setPath(server.getServerPath());
 			process.updateMerge(status);
+			//process.sentEmailFTP(email);
 			return files;
 		} catch (Exception e) {
+			//email.put("Notes", "Unable to parse file.Don't worry admin look in to this.");
+			//process.sentEmailFTP(email);
 			status.setStatus("Failed");
 			status.setResponse(e.getMessage());
-			process.updateMerge(status);
+			process.updateMerge(status);			
 			return status;
 		}
 	}

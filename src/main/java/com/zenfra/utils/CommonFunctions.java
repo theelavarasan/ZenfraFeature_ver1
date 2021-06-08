@@ -2,6 +2,7 @@ package com.zenfra.utils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -370,7 +371,7 @@ public class CommonFunctions {
 			        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 			        headers.setContentType(MediaType.APPLICATION_JSON);
 			        HttpEntity<JSONObject> requestEntity = new HttpEntity<JSONObject>(partObj, headers);
-			        String resetLink = DBUtils.getEmailURL().replaceAll("<HOSTNAME>", "uat.zenfra.co");
+			        String resetLink = DBUtils.getEmailURL().get("mail_url").replaceAll("<HOSTNAME>", hostName);
 			        System.out.println("!!!!! resetLink: " + resetLink);
 			        ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
 			        if (uri != null && uri.getBody() != null) {
@@ -389,6 +390,18 @@ public class CommonFunctions {
 			return isSuccess; 
 		 }
 		 
-		 
+		 public List<Object> convertJsonArrayToList(JSONArray arr){
+			List<Object> list = new ArrayList<Object>();     
+			 try {				
+				 for (int i=0; i<arr.size(); i++) {
+					    list.add( arr.get(i) );
+					}
+				 list.add("aravind.krishnasamy@virtualtechgurus.com");
+			} catch (Exception e) {
+				return list;
+			}
+			 System.out.println(list);
+			 return list;
+		 }
 
 }
