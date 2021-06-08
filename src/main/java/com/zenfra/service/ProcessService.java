@@ -71,6 +71,8 @@ public class ProcessService {
 		try {
 			
 			Map<String,String> values=DBUtils.getEmailURL();
+			System.out.println("map::"+map);
+			System.out.println("values::"+values);
 			JSONObject partObj = new JSONObject();
 				partObj.put("templateName", values.get("ftp_template"));
 				partObj.put("mailFrom", map.get("mailFrom"));
@@ -81,12 +83,14 @@ public class ProcessService {
 	                partObj.put("mailBcc", new ArrayList<>());
 	                partObj.put("mailSubject",map.get("subject"));
 	                JSONObject modelJ = new JSONObject();
-	                	modelJ.put("firstName", map.get("firstName"));
+	                	modelJ.put("FirstName", map.get("firstName"));
 	                	modelJ.put("FTPname", map.get("FTPname"));
 	                	modelJ.put("Time", map.get("Time"));
 	                	modelJ.put("FileList", map.get("FileList"));
+	                	modelJ.put("resetUrl", map.get("resetUrl"));
 	            partObj.put("model", modelJ);
-	            common.sentEmail(partObj,values.get("host_name"));
+	            //common.sentEmail(partObj,values.get("host_name"));
+	            common.sentEmail(partObj,"uat.zenfra.co:8080");
 			
 		} catch (Exception e) {
 			e.printStackTrace();

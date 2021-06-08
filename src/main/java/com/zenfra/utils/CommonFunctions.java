@@ -366,14 +366,15 @@ public class CommonFunctions {
 			 boolean isSuccess = false;
 			 try {
 				 
+				 System.out.println("email object"+partObj);
 				 	
 				 	HttpHeaders headers = new HttpHeaders();
 			        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 			        headers.setContentType(MediaType.APPLICATION_JSON);
 			        HttpEntity<JSONObject> requestEntity = new HttpEntity<JSONObject>(partObj, headers);
-			        String resetLink = DBUtils.getEmailURL().get("mail_url").replaceAll("<HOSTNAME>", hostName);
-			        System.out.println("!!!!! resetLink: " + resetLink);
-			        ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
+			        //String resetLink = DBUtils.getEmailURL().get("mail_url").replaceAll("<HOSTNAME>", hostName);
+			        String resetLink="http://uat.zenfra.co:8080/mailservice/mail/send";
+			       ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
 			        if (uri != null && uri.getBody() != null) {
 			            if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
 			                isSuccess = true;
@@ -383,6 +384,7 @@ public class CommonFunctions {
 			        } else {
 			        	isSuccess = true;
 			        }
+			      System.out.println("Mail response::"+isSuccess);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
