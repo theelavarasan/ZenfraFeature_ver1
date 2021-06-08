@@ -1,6 +1,9 @@
 package com.zenfra.ftp.service;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -134,14 +137,13 @@ public class FtpSchedulerService extends CommonEntityManager{
 				status.setId(functions.generateRandomId());
 				status.setStatus("Processing");
 			process.saveProcess(status);	
-			
-				
-			
 			List<FileWithPath> files=getFilesBased(server,settings);			
 			System.out.println("FileWithPath size::"+files.size());
 			List<String> existFiles=getFilesFromFolder(settings.getToPath());
 			
 			String token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+			
+			
 			
 			for(FileWithPath file:files) {
 				System.out.println("settings.getToPath()::"+file.getPath());
@@ -180,7 +182,6 @@ public class FtpSchedulerService extends CommonEntityManager{
 			process.updateMerge(status);
 			//process.sentEmailFTP(email);
 			return files;
-		
 		} catch (Exception e) {
 			//email.put("Notes", "Unable to parse file.Don't worry admin look in to this.");
 			//process.sentEmailFTP(email);
@@ -208,6 +209,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		  Object responce=null;
 		try {			
 			
+			RestTemplate restTemplate=new RestTemplate();
 			System.out.println("Enter Parsing.....");
 						
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
@@ -221,7 +223,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		      body.add("tenantId", tenantId);
 		      body.add("uploadAndProcess", true);
 			  
-		 RestTemplate restTemplate=new RestTemplate();
+		 
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders("Bearer "+token));
 		 ResponseEntity<String> response= restTemplate
                  //.exchange("http://localhost:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);
@@ -235,24 +237,28 @@ public class FtpSchedulerService extends CommonEntityManager{
 		}
 		System.out.println("Upload response::"+response);
      	final String rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
-		System.out.println("rid::"+rid);
+		
 		
 		if(rid==null && rid.isEmpty()) {
 			return "invalid rid";
 		}
 		
-		String url="/parsing/parse?rid=:rid_value&logType=:logType_value&description=&isReparse=false";
-			url=url.replace(":rid_value", rid).replace(":logType_value", logType);
-		/*MultiValueMap<String, Object> bodyParse= new LinkedMultiValueMap<>();
-		bodyParse.add("rid", rid);
-		bodyParse.add("logType", logType);
-		bodyParse.add("description", "");
-		bodyParse.add("isReparse", false);*/
-			System.out.println("Parisng call::"+url);
+
+		StringBuilder builder = new StringBuilder(Constants.current_url+"/parsing/parse");
+         builder.append("?rid=");	
+         builder.append(URLEncoder.encode(rid,StandardCharsets.UTF_8.toString()));
+         builder.append("&logType=");	
+         builder.append(URLEncoder.encode(logType,StandardCharsets.UTF_8.toString()));
+         builder.append("&description=");	
+         builder.append(URLEncoder.encode("",StandardCharsets.UTF_8.toString()));
+         builder.append("&isReparse=");	
+         builder.append(URLEncoder.encode("false",StandardCharsets.UTF_8.toString()));
+         URI uri = URI.create(builder.toString());
+				System.out.println("Parisng call::"+uri);
 	 HttpEntity<Object> requestParse = new HttpEntity<>(createHeaders("Bearer "+token));
 	 ResponseEntity<String> responseParse= restTemplate
            //.exchange("http://localhost:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);
-  		  .exchange(Constants.current_url+url, HttpMethod.GET, requestParse, String.class);
+  		  .exchange(uri, HttpMethod.GET, requestParse, String.class);
 	
 		System.out.println(responseParse!=null ? responseParse : "invalid response");         
 		} catch (Exception e) {
