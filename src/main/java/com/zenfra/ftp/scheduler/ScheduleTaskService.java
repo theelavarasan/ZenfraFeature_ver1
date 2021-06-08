@@ -45,7 +45,7 @@ public class ScheduleTaskService {
 		
 		// Schedule Task to be executed every night at 00 or 12 am
 		public void addTaskToScheduler(long id,Runnable task,String corn,String timeZone) {//"0 0 0 * * ?"
-			ScheduledFuture<?> scheduledTask = scheduler.schedule(task, new CronTrigger(corn, TimeZone.getTimeZone(timeZone)));
+			ScheduledFuture<?> scheduledTask = scheduler.schedule(task, new CronTrigger(corn, TimeZone.getTimeZone(TimeZone.getDefault().getID())));//TimeZone.getTimeZone(TimeZone.getDefault().getID())
 			jobsMap.put(id, scheduledTask);
 		}
 		
