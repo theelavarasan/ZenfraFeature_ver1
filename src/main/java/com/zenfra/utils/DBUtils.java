@@ -79,6 +79,7 @@ public class DBUtils {
 			ZKModel.zkData = zkConnection.getZKData();			
 				value.put("mail_url", ZKModel.getProperty(ZKConstants.SEND_MAIL_URL));
 				value.put("ftp_template", ZKModel.getProperty(ZKConstants.FTP_FILE_COMLETE_MAILL_TEMPLATE));
+				value.putAll(getServerDetails());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		

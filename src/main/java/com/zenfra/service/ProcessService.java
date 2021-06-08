@@ -5,12 +5,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.spark.sql.functions;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.dao.ProcessDao;
 import com.zenfra.model.ftp.ProcessingStatus;
+import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.DBUtils;
 
 @Service
@@ -19,6 +21,9 @@ public class ProcessService {
 	
 	@Autowired
 	ProcessDao dao;
+	
+	@Autowired
+	CommonFunctions common;
 	
 	public void saveProcess(ProcessingStatus process) {
 		
@@ -81,10 +86,7 @@ public class ProcessService {
 	                	modelJ.put("Time", map.get("Time"));
 	                	modelJ.put("FileList", map.get("FileList"));
 	            partObj.put("model", modelJ);
-	                	
-	              
-				
-				
+	            common.sentEmail(partObj,values.get("host_name"));
 			
 		} catch (Exception e) {
 			e.printStackTrace();
