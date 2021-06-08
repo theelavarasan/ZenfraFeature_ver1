@@ -449,18 +449,12 @@ public class ReportService {
 					    		  json.put(elementName, data.get(elementName));
 					    	  }
 				    	  }
-				    	  
-				    	  
 				      }
 				    }
 					
-					System.out.println("---------------columnHeaders-------------------" + columnHeaders);
-					System.out.println("---------------columnHeaders-------------------" + json.keySet());
-					Iterator<String> keys = json.keySet().iterator();
-
-					while(keys.hasNext()) {
-					    String key = keys.next();
-					    if (!columnHeaders.contains(key)) {
+					Set<String> jsonKeySset =  json.keySet();
+					for(String key : columnHeaders) {
+					    if (!jsonKeySset.contains(key)) {					    	
 					    	json.put(key, "N/A") ;
 					    }
 					}
