@@ -384,12 +384,18 @@ public class ReportService {
 					 Set<String> elementNamesFirstLevel = map.keySet();	
 					 for (String elementName : elementNamesFirstLevel) {	
 						 if(!elementName.equalsIgnoreCase("data_temp")) {							
-							 String value = (String) map.get(elementName);
-					    	  if(value == null || value.trim().isEmpty()) {
-					    		  value = "N/A";
-					    	  }
+							 if(map.get(elementName) instanceof  String) {
+								 String value = (String) map.get(elementName);
+								 if(value == null || value.trim().isEmpty()) {
+						    		  value = "N/A";
+						    	  }
+								 json.put(elementName, value);
+							 } else {
+								 json.put(elementName, map.get(elementName));
+							 }
+					    	  
 							 
-							 json.put(elementName, value);
+							
 						 }
 					 }
 					
@@ -403,17 +409,27 @@ public class ReportService {
 					for (int i = 0; i < arrayObj.size();  i++)  {
 				      JSONObject data = (JSONObject) arrayObj.get(i);
 				      Set<String> elementNames = data.keySet();				      
-				      for (String elementName : elementNames) {		
-				    	  String value = (String) data.get(elementName);
-				    	  if(value == null || value.trim().isEmpty()) {
-				    		  value = "N/A";
+				      for (String elementName : elementNames) {	
+				    	  
+				    	  if(data.get(elementName) instanceof  String) {
+				    		  String value = (String) data.get(elementName);
+					    	  if(value == null || value.trim().isEmpty()) {
+					    		  value = "N/A";
+					    	  }
+					    	  
+					    	  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
+					    		  json.put("actual_os_type_data", value);
+					    	  } else {				    		
+					    		  json.put(elementName, value);
+					    	  }
+				    	  } else {
+				    		  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
+					    		  json.put("actual_os_type_data", data.get(elementName));
+					    	  } else {				    		
+					    		  json.put(elementName, data.get(elementName));
+					    	  }
 				    	  }
 				    	  
-				    	  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
-				    		  json.put("actual_os_type_data", value);
-				    	  } else {				    		
-				    		  json.put(elementName, value);
-				    	  }
 				    	  
 				      }
 				    }
