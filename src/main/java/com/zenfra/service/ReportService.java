@@ -362,7 +362,27 @@ public class ReportService {
 		List<Map<String, Object>> cloudCostData = new ArrayList<>();
 		JSONArray resultArray = new JSONArray();
 		try {
+			
+			//getHeader 
 			JSONParser jsonParser = new JSONParser();
+			String reportName = request.getReportType();
+			String deviceTypeHeder = "All";
+			String reportBy = request.getReportType();
+			String siteKey = request.getSiteKey();
+			String reportList = request.getReportList();
+		   JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+		
+		   List<String> columnHeaders = new ArrayList<>();
+		   if(headers != null && headers.size() > 0) {
+			   for(Object o : headers){
+				    if ( o instanceof JSONObject ) {
+				    	String col = (String) ((JSONObject) o).get("actualName");
+				    	columnHeaders.add(col);
+				    }
+				}
+		   }
+			
+			
 			String deviceType = request.getDeviceType();
 			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"'";
 			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {
@@ -433,6 +453,17 @@ public class ReportService {
 				    	  
 				      }
 				    }
+					
+					System.out.println("---------------columnHeaders-------------------" + columnHeaders);
+					System.out.println("---------------columnHeaders-------------------" + json.keySet());
+					Iterator<String> keys = json.keySet().iterator();
+
+					while(keys.hasNext()) {
+					    String key = keys.next();
+					    if (!columnHeaders.contains(key)) {
+					    	json.put(key, "N/A") ;
+					    }
+					}
 					
 					resultArray.add(json);
 				}
