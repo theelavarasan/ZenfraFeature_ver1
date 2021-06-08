@@ -39,6 +39,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 
 	@Autowired
 	FtpSchedulerRepo repo;
+	
 
 	@Autowired
 	FileNameSettingsService settingsService;
@@ -105,12 +106,23 @@ public class FtpSchedulerService extends CommonEntityManager{
 		try {
 			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
 			
-			Users user=userService.getUserByUserId(s.getUserId());
 			JSONArray fileList=new JSONArray();
+			/*List<String> l=new ArrayList<String>();
+				l.add("aravind.krishnasamy@virtualtechgurus.com");
+			Users user=userService.getUserByUserId(s.getUserId());
+		
+					fileList.add("test");
 				email.put("mailFrom", user.getEmail());
-				email.put("mailTo", functions.convertJsonArrayToList(s.getNotificationEmail()));
+				//email.put("mailTo", functions.convertJsonArrayToList(s.getNotificationEmail()));
+				email.put("mailTo", l);
 				email.put("subject", "FTP File Parsing trigger mail");
 				email.put("firstName", user.getFirst_name());
+				email.put("Time", functions.getCurrentDateWithTime());
+				email.put("resetUrl", "uat.zenfra.co");
+				email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
+			
+				process.sentEmailFTP(email);*/
+				
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
 			
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
@@ -168,6 +180,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			process.updateMerge(status);
 			//process.sentEmailFTP(email);
 			return files;
+		
 		} catch (Exception e) {
 			//email.put("Notes", "Unable to parse file.Don't worry admin look in to this.");
 			//process.sentEmailFTP(email);
@@ -227,16 +240,19 @@ public class FtpSchedulerService extends CommonEntityManager{
 		if(rid==null && rid.isEmpty()) {
 			return "invalid rid";
 		}
-		MultiValueMap<String, Object> bodyParse= new LinkedMultiValueMap<>();
+		
+		String url="/parsing/parse?rid=:rid_value&logType=:logType_value&description=&isReparse=false";
+			url=url.replace(":rid_value", rid).replace(":logType_value", logType);
+		/*MultiValueMap<String, Object> bodyParse= new LinkedMultiValueMap<>();
 		bodyParse.add("rid", rid);
 		bodyParse.add("logType", logType);
 		bodyParse.add("description", "");
-		bodyParse.add("isReparse", false);
-	     
-	 HttpEntity<Object> requestParse = new HttpEntity<>(body,createHeaders("Bearer "+token));
+		bodyParse.add("isReparse", false);*/
+			System.out.println("Parisng call::"+url);
+	 HttpEntity<Object> requestParse = new HttpEntity<>(createHeaders("Bearer "+token));
 	 ResponseEntity<String> responseParse= restTemplate
            //.exchange("http://localhost:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);
-  		  .exchange(Constants.current_url+"/parsing/parse", HttpMethod.GET, requestParse, String.class);
+  		  .exchange(Constants.current_url+url, HttpMethod.GET, requestParse, String.class);
 	
 		System.out.println(responseParse!=null ? responseParse : "invalid response");         
 		} catch (Exception e) {

@@ -62,6 +62,11 @@ public class FtpScheduler {
 	@Column
 	private String time;
 	
+	
+	@Column
+	private String timeZone;
+	
+	
 	public long getId() {
 		return id;
 	}
@@ -166,6 +171,23 @@ public class FtpScheduler {
 
 	public void setTime(String time) {
 		this.time = time;
+	}
+
+	public String getTimeZone() {
+		return timeZone;
+	}
+
+	public void setTimeZone(String timeZone) {
+		this.timeZone = timeZone;
+	}
+
+	@Override
+	public String toString() {
+		return "FtpScheduler [id=" + id + ", fileNameSettingsId=" + fileNameSettingsId + ", type=" + type
+				+ ", schedulerCorn=" + schedulerCorn + ", timeSlot=" + timeSlot + ", isActive=" + isActive
+				+ ", tenantId=" + tenantId + ", siteKey=" + siteKey + ", userId=" + userId + ", notificationEmail="
+				+ notificationEmail + ", selectedDay=" + selectedDay + ", selectedDate=" + selectedDate + ", time="
+				+ time + ", timeZone=" + timeZone + "]";
 	}
 
 	

@@ -78,7 +78,7 @@ public class FtpSchedulerController {
 
 			SchedulerThread r = new SchedulerThread(ftpScheduler);
 
-			scheduleTaskService.addTaskToScheduler(id, r, ftpScheduler.getSchedulerCorn());
+			scheduleTaskService.addTaskToScheduler(id, r, ftpScheduler.getSchedulerCorn(),ftpScheduler.getTimeZone());
 
 			return "saved! & Cron add to thread";
 		} catch (Exception e) {
