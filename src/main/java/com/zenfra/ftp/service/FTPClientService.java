@@ -26,6 +26,8 @@ public class FTPClientService {
 	@Autowired
 	FTPClientConfiguration fTPClientConfiguration;
 	
+	@Autowired
+	FileNameSettingsService fileNameService;
 	
 
 	public boolean saveFtpServer(FTPServerModel server) {
@@ -69,9 +71,20 @@ public class FTPClientService {
 	  
 	  public String deleteConncection(String serverId) {
 			
-			try {				
-				repo.deleteById(serverId);
-				return "deleted";
+			try {		
+				
+				FTPServerModel server=getServerByServerId(serverId);
+				if(server!=null) {					
+					fileNameService.deleteFileNameSettingsByFtpName(server.getFtpName());
+					repo.deleteById(serverId);					
+					return "deleted";
+				}else {
+					return "Please sent valid server id";
+				}
+				
+				
+				
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 				return e.getMessage();
@@ -195,7 +208,15 @@ public FTPServerModel getFtpConnectionBySiteKey(String siteKey, String connectio
 	return model;
 }
 	
-	
+public FTPServerModel getServerByServerId(String id) {
+	try {
+		
+		return repo.findByserverId(id);
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+	return null;
+}
 
 
 }

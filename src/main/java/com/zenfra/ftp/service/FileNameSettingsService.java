@@ -8,11 +8,14 @@ import java.util.regex.Pattern;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.support.DaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.configuration.AESEncryptionDecryption;
+import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FileNameSettingsRepo;
+import com.zenfra.ftp.repo.FtpSchedulerRepo;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileUploadStatus;
@@ -21,7 +24,7 @@ import com.zenfra.utils.CommonFunctions;
 
 
 @Service
-public class FileNameSettingsService {
+public class FileNameSettingsService extends CommonEntityManager{
 
 	@Autowired
 	FileNameSettingsRepo repo;
@@ -34,6 +37,9 @@ public class FileNameSettingsService {
 
 	@Autowired
 	CommonFunctions functions;
+	
+	@Autowired
+	FtpSchedulerRepo repoScheduler;
 	
 	public String saveFileNameSettings(FileNameSettingsModel settings) {
 		try {
@@ -226,6 +232,25 @@ public class FileNameSettingsService {
 	}
 
 	
+	
+	public boolean deleteFileNameSettingsByFtpName(String ftpName) {
+		try {
+			System.out.println("ftpName::"+ftpName);
+			List<String> filnameSettings=new ArrayList<String>();
+			List<FileNameSettingsModel> list=repo.getEntityListByColumn(ftpName);
+				for(FileNameSettingsModel l:list) {
+					filnameSettings.add(l.getFileNameSettingId());
+				}
+				System.out.println("filnameSettings::"+filnameSettings);
+			String deleteQueryFileNameSettingsModel="delete from file_name_settings_model  where ftp_name='"+ftpName+"'";
+					updateQuery(deleteQueryFileNameSettingsModel); //delete FileNameSettingsModel
+			 repoScheduler.deleteFtpSchedulerByFileNameSettingsId(filnameSettings);
+			 return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }
 
 	
