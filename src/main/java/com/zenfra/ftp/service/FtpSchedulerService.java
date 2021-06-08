@@ -129,12 +129,11 @@ public class FtpSchedulerService extends CommonEntityManager{
 			System.out.println("FileWithPath size::"+files.size());
 			List<String> existFiles=getFilesFromFolder(settings.getToPath());
 			
-			
+			String token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 			
 			for(FileWithPath file:files) {
 				System.out.println("settings.getToPath()::"+file.getPath());
 				//file.setPath(settings.getToPath()+"/"+file.getName());
-				String token=functions.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 				System.out.println("Token::"+token);
 				
 				if(existFiles.contains(file.getName())) {
@@ -215,9 +214,31 @@ public class FtpSchedulerService extends CommonEntityManager{
                  //.exchange("http://localhost:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);
         		  .exchange(Constants.current_url+"/parsing/upload", HttpMethod.POST, request, String.class);
 		 ObjectMapper mapper = new ObjectMapper();
-         JsonNode root = mapper.readTree(response.getBody());	
+         JsonNode root = mapper.readTree(response.getBody());
          
-        
+        //String rid, String logType, String description, boolean isReparse
+		if(root==null && root.isEmpty()) {
+			System.out.println("invalid response");
+		}
+		System.out.println("Upload response::"+response);
+     	final String rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
+		System.out.println("rid::"+rid);
+		
+		if(rid==null && rid.isEmpty()) {
+			return "invalid rid";
+		}
+		MultiValueMap<String, Object> bodyParse= new LinkedMultiValueMap<>();
+		bodyParse.add("rid", rid);
+		bodyParse.add("logType", logType);
+		bodyParse.add("description", "");
+		bodyParse.add("isReparse", false);
+	     
+	 HttpEntity<Object> requestParse = new HttpEntity<>(body,createHeaders("Bearer "+token));
+	 ResponseEntity<String> responseParse= restTemplate
+           //.exchange("http://localhost:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);
+  		  .exchange(Constants.current_url+"/parsing/parse", HttpMethod.GET, requestParse, String.class);
+	
+		System.out.println(responseParse!=null ? responseParse : "invalid response");         
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

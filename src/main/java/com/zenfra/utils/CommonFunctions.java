@@ -328,7 +328,7 @@ public class CommonFunctions {
 		public Object updateLogFile(JSONObject json) {
 			 Object response=null;
 			try {
-				String token="Bearer "+getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
+				String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));
 		          response= restTemplate
 		                 .exchange(Constants.current_url+"/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
@@ -361,12 +361,12 @@ public class CommonFunctions {
 			 return  formattedDate;
 		 }
 		 
-		 public boolean sentEmail(JSONObject partObj,String content,String hostName) {
+		 public boolean sentEmail(JSONObject partObj,String hostName) {
 			 
 			 boolean isSuccess = false;
 			 try {
 				 
-				 
+				 	
 				 	HttpHeaders headers = new HttpHeaders();
 			        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 			        headers.setContentType(MediaType.APPLICATION_JSON);
