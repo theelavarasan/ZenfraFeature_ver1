@@ -69,6 +69,7 @@ public class ZKConstants {
 	
 	
 	
+	
 	public static String TASKLIST_DEFAULT_FIELDS = "taskDefaultFields";
 	public static String CRCOLUMNNAMES = "CR_Columnnames";
 	public static String CRDevice = "CR_Device";
@@ -89,4 +90,5 @@ public class ZKConstants {
 	public static String pg_db_url="pg_db_url";
 	public static String pg_db_port="pg_db_port";
 	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE="ftp_file_complete_mail_template";
+	public static String MAIL_SERVICE_URL="mailServiceUrl";
 }
