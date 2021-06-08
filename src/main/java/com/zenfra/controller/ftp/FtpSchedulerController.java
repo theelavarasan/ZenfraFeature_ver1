@@ -6,7 +6,6 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -23,7 +22,6 @@ import com.zenfra.ftp.scheduler.ScheduleTaskService;
 import com.zenfra.ftp.scheduler.SchedulerThread;
 import com.zenfra.ftp.service.FtpSchedulerService;
 import com.zenfra.model.ResponseModel_v2;
-import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
 
 @CrossOrigin(origins = "*")
@@ -133,4 +131,23 @@ public class FtpSchedulerController {
 		}
 		return null;
 	}
+	
+	@PostMapping("/run-ftp")
+	public @ResponseBody String runFtp(@RequestParam String corn,
+			@RequestParam String name) {
+		try {
+
+			System.out.println("---------------------------enter-------------");
+			Demo demo = new Demo(name);
+				scheduleTaskService.addTaskToScheduler(1, demo, corn,"UTC");
+			
+			return "done";
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+
+		return "done";
+	}
+
 }
