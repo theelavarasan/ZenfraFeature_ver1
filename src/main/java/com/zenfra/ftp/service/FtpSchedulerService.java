@@ -140,7 +140,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			List<FileWithPath> files=getFilesBased(server,settings);			
 			System.out.println("FileWithPath size::"+files.size());
 			
-			String token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+			String token="";//functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 			
 			
 			
@@ -151,15 +151,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 				System.out.println("Final::"+file.getPath());
 				String url="";
 
-					if(file.isSubFolder()) {
-						 url=callParsing(file.getLogType(), settings.getUserId(),
-								settings.getSiteKey(), s.getTenantId(), file.getName(), token,
-								file.getSubFolderPath(),s.getId());					
-					}else {
-						 url=callParsing(file.getLogType(), settings.getUserId(),
-								settings.getSiteKey(), s.getTenantId(), file.getName(), token,
-								file.getPath(),s.getId());
-					}
+				 url=callParsing(file.getLogType(), settings.getUserId(),
+							settings.getSiteKey(), s.getTenantId(), file.getName(), token,
+							file.getPath(),s.getId());
+		
 				fileList.put(file.getPath()+"/"+file.getName(),url);
 			}	
 			
