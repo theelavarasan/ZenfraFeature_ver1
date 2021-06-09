@@ -145,15 +145,21 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 			
 			for(FileWithPath file:files) {
-				System.out.println("settings.getToPath()::"+file.getPath());
 				//file.setPath(settings.getToPath()+"/"+file.getName());
 				System.out.println("Token::"+token);
 			
 				System.out.println("Final::"+file.getPath());
-					
-				String url=callParsing(file.getLogType(), settings.getUserId(),
-						settings.getSiteKey(), s.getTenantId(), file.getName(), token,
-						file.getPath(),s.getId());
+				String url="";
+
+					if(file.isSubFolder()) {
+						 url=callParsing(file.getLogType(), settings.getUserId(),
+								settings.getSiteKey(), s.getTenantId(), file.getName(), token,
+								file.getSubFolderPath(),s.getId());					
+					}else {
+						 url=callParsing(file.getLogType(), settings.getUserId(),
+								settings.getSiteKey(), s.getTenantId(), file.getName(), token,
+								file.getPath(),s.getId());
+					}
 				fileList.put(file.getPath()+"/"+file.getName(),url);
 			}	
 			
