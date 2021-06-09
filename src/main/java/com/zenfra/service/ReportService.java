@@ -364,13 +364,13 @@ public class ReportService {
 		try {
 			
 			//getHeader 
-			JSONParser jsonParser = new JSONParser();
+			/* JSONParser jsonParser = new JSONParser();
 			String reportName = request.getReportType();
 			String deviceTypeHeder = "All";
 			String reportBy = request.getReportType();
 			String siteKey = request.getSiteKey();
 			String reportList = request.getReportList();
-		   JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+		  JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
 		
 		   List<String> columnHeaders = new ArrayList<>();
 		   if(headers != null && headers.size() > 0) {
@@ -381,18 +381,13 @@ public class ReportService {
 				    }
 				}
 		   }
+		   */
 			
 			
-			String deviceType = request.getDeviceType();
-			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"'";
-			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {
-				if(deviceType.contains("ware")) {
-					deviceType = "ware";
-					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(actual_os_type) like '%"+deviceType.toLowerCase()+"%'";
-				} else {
-					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(actual_os_type)='"+deviceType.toLowerCase()+"'";
-				}
-				
+		   String deviceType = request.getDeviceType();
+			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(source_type) in ('windows', 'linux', 'vmware')";
+			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {				
+					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(source_type)='"+deviceType.toLowerCase()+"'";
 			}
 			
 			cloudCostData = favouriteDao_v2.getJsonarray(query) ;
@@ -413,13 +408,11 @@ public class ReportService {
 							 } else {
 								 json.put(elementName, map.get(elementName));
 							 }
-					    	  
-							 
-							
 						 }
 					 }
+					 
 					
-					Object object = null;
+					/*Object object = null;
 					JSONArray arrayObj = null;					
 					PGobject pgObject = (PGobject) map.get("data_temp");				
 					object=jsonParser.parse(pgObject.toString());
@@ -451,13 +444,13 @@ public class ReportService {
 				    	  }
 				      }
 				    }
-					
-					Set<String> jsonKeySset =  json.keySet();
+					*/
+					/*Set<String> jsonKeySset =  json.keySet();
 					for(String key : columnHeaders) {
 					    if (!jsonKeySset.contains(key)) {					    	
 					    	json.put(key, "N/A") ;
 					    }
-					}
+					}*/
 					
 					resultArray.add(json);
 				}
