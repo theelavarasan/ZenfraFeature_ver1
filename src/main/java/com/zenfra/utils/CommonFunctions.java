@@ -326,6 +326,7 @@ public class CommonFunctions {
 	 
 		public Object updateLogFile(JSONObject json) {
 			 Object response=null;
+			 System.out.println(DBUtils.getParsingServerIP());
 			try {
 				String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));

@@ -183,6 +183,7 @@ public class AwsInventoryController {
 		ResponseModel_v2 model=new ResponseModel_v2();
 		try {
 			
+			
 			String token=request.getHeader("Authorization");
 			//String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 			System.out.println(token);
@@ -297,14 +298,13 @@ public class AwsInventoryController {
 			String path="/opt/ZENfra/repo/cloud-inventory-collectors/aws/authentication.py";
 			String cmd="python3 "+path+" --id "+access_id+" --key "+secret_key;
 			
-			System.out.println("cmd::"+cmd);
-			Process process = Runtime.getRuntime().exec(cmd);
-			 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			    String line = "";			    
-			    while ((line = reader.readLine()) != null) {
-			    	response+=line;
-			    	System.out.println(response);
-			    }
+			System.out.println("testconnection cmd::"+cmd);
+			JSONObject request=new JSONObject();
+			 	request.put("cmd", cmd);
+			 	request.put("aws_type", "testconnection");
+			 	request.put("rid", "");
+			 	
+			 	response=common.updateLogFile(request).toString();
 			
 			    System.out.println("checkConnection script response::"+response);
 		} catch (Exception e) {
