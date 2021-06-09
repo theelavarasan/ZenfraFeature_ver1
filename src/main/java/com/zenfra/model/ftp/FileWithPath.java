@@ -7,7 +7,12 @@ public class FileWithPath {
 	private String path;
 	private String logType;
 	private String checkSum;
+	
+	private boolean subFolder;
 
+	private String subFolderPath;
+	
+	
 	private FTPServerModel serverModel;
 	
 	public String getLogType() {
@@ -50,10 +55,31 @@ public class FileWithPath {
 		this.serverModel = serverModel;
 	}
 
+	public boolean isSubFolder() {
+		return subFolder;
+	}
+
+	public void setSubFolder(boolean subFolder) {
+		this.subFolder = subFolder;
+	}
+
+	public String getSubFolderPath() {
+		return subFolderPath;
+	}
+
+	public void setSubFolderPath(String subFolderPath) {
+		this.subFolderPath = subFolderPath;
+	}
+
 	@Override
 	public String toString() {
 		return "FileWithPath [name=" + name + ", path=" + path + ", logType=" + logType + ", checkSum=" + checkSum
-				+ ", serverModel=" + serverModel + "]";
+				+ ", subFolder=" + subFolder + ", subFolderPath=" + subFolderPath + ", serverModel=" + serverModel
+				+ "]";
 	}
+
+	
+
+	
 
 }
