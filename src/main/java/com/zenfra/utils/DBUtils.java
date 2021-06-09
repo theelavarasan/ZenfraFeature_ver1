@@ -96,4 +96,18 @@ public class DBUtils {
 		}
 		return map;
 	}
+	
+	public static String getParsingServerIP() {
+		String url="";
+		try {
+			ZookeeperConnection zkConnection = new ZookeeperConnection();
+			ZKModel.zkData = zkConnection.getZKData();
+				url=ZKModel.getProperty(ZKConstants.parsing_server_ip)+":"+ZKModel.getProperty(ZKConstants.parsingServerPort);;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
+	return url;	
+	}
+	
+	
 }

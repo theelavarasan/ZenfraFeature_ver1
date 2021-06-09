@@ -327,10 +327,10 @@ public class CommonFunctions {
 		public Object updateLogFile(JSONObject json) {
 			 Object response=null;
 			try {
-				String token="Bearer "+getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
+				String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));
 		          response= restTemplate
-		                 .exchange(Constants.current_url+"/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
+		                 .exchange(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-call", HttpMethod.POST, request, String.class);	
 		       
 			} catch (Exception e) {
 				return e.getMessage();

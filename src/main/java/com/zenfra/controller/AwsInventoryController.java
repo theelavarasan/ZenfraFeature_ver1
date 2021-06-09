@@ -268,26 +268,12 @@ public class AwsInventoryController {
 			String cmd="python3 "+path+" --akid "+access_key_id+" --sakey "+secret_access_key+" --sitekey "+siteKey;
 		
 			System.out.println("cmd::"+cmd);
-			
-			Process process = Runtime.getRuntime().exec(cmd);
-			 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			    String line = "";			    
-			    while ((line = reader.readLine()) != null) {
-			    	response+=line;
-			    	System.out.println(response);
-			    }
-		
-		 if(response!=null && !response.isEmpty() && response.contains("completed")) {
-			 response="Script excuted";
-		 }else {
-			 response="Script return invalid response";
-		 }
-		 String query="update LogFileDetails set parsingStatus='success',status='success',response=':response_value' where @rid=':rid_value'";
-		 query=query.replace(":rid_value", rid).replace(":response_value", response);
-		 JSONObject request=new JSONObject();
-		 	request.put("method", "update");
-		 	request.put("query", query);
-			Object responseRest=common.updateLogFile(request);
+		JSONObject request=new JSONObject();
+		 	request.put("cmd", cmd);
+		 	request.put("aws_type", "call aws script");
+		 	request.put("rid", rid);
+		 	
+		Object responseRest=common.updateLogFile(request);
 			status.setResponse(rid+"~"+response+"~"+responseRest!=null && !responseRest.toString().isEmpty() ? responseRest.toString() : "unable to update logupload API");
 			status.setStatus("complete");
 			serivce.updateMerge(status);
