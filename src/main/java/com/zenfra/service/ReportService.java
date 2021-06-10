@@ -424,7 +424,7 @@ public class ReportService {
 				      Set<String> elementNames = data.keySet();				      
 				      for (String elementName : elementNames) {	
 				    	  
-				    	  if(columnHeaders.contains("elementName") && data.get(elementName) instanceof  String) {
+				    	  if(columnHeaders.contains(elementName) && data.get(elementName) instanceof  String) {
 				    		  String value = (String) data.get(elementName);
 					    	  if(value == null || value.trim().isEmpty()) {
 					    		  value = "N/A";
@@ -435,7 +435,7 @@ public class ReportService {
 					    	  } else {				    		
 					    		  json.put(elementName, value);
 					    	  }*/
-				    	  } else if(columnHeaders.contains("elementName")){
+				    	  } else if(columnHeaders.contains(elementName)){
 				    		  json.put(elementName, data.get(elementName));
 				    		 /* if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
 					    		  json.put("actual_os_type_data", data.get(elementName));
