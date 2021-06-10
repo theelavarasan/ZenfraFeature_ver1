@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException.Unauthorized;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -140,7 +141,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			List<FileWithPath> files=getFilesBased(server,settings);			
 			System.out.println("FileWithPath size::"+files.size());
 			
-			String token="";//functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+			String token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 			
 			
 			
@@ -151,6 +152,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 				System.out.println("Final::"+file.getPath());
 				String url="";
 
+				
 				 url=callParsing(file.getLogType(), settings.getUserId(),
 							settings.getSiteKey(), s.getTenantId(), file.getName(), token,
 							file.getPath(),s.getId());
@@ -243,7 +245,11 @@ public class FtpSchedulerService extends CommonEntityManager{
          builder.append("&isReparse=");	
          builder.append(URLEncoder.encode("false",StandardCharsets.UTF_8.toString()));
          	
-         this.sync(restTemplate, builder, token);
+     	new Thread(new Runnable() {
+	        public void run(){
+	        	CallFTPParseAPI(restTemplate, builder, token); 
+		     }
+	    }).start();     	
          
          return builder.toString();
 		} catch (Exception e) {
@@ -284,8 +290,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 	 
 	 
 	 
-	 @Async
-	 public void sync(RestTemplate restTemplate,StringBuilder builder,String token) {
+	
+	 public void CallFTPParseAPI(RestTemplate restTemplate,StringBuilder builder,String token) {
 		 
 		 try {
 			
@@ -296,7 +302,10 @@ public class FtpSchedulerService extends CommonEntityManager{
          //.exchange("http://localhost:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);
 						.exchange(uri, HttpMethod.GET, requestParse, String.class);
 	
-		} catch (Exception e) {
+		} catch (Unauthorized e) {
+			token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+			CallFTPParseAPI(restTemplate, builder, token);
+		}catch (Exception e) {
 			e.printStackTrace();
 		}
 	 }
