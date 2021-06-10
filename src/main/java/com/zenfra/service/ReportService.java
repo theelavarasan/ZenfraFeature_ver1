@@ -446,12 +446,12 @@ public class ReportService {
 				      }
 				    }
 					
-					/*Set<String> jsonKeySset =  json.keySet();
+					Set<String> jsonKeySset =  json.keySet();
 					for(String key : columnHeaders) {
 					    if (!jsonKeySset.contains(key)) {					    	
 					    	json.put(key, "N/A") ;
 					    }
-					}*/
+					}
 					
 					resultArray.add(json);
 				}
