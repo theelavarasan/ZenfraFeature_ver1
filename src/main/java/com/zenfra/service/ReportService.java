@@ -370,7 +370,7 @@ public class ReportService {
 			String reportBy = request.getReportType();
 			String siteKey = request.getSiteKey();
 			String reportList = request.getReportList();
-		   JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+		  JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
 		
 		   List<String> columnHeaders = new ArrayList<>();
 		   if(headers != null && headers.size() > 0) {
@@ -381,18 +381,13 @@ public class ReportService {
 				    }
 				}
 		   }
+		   
 			
 			
-			String deviceType = request.getDeviceType();
-			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"'";
-			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {
-				if(deviceType.contains("ware")) {
-					deviceType = "ware";
-					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(actual_os_type) like '%"+deviceType.toLowerCase()+"%'";
-				} else {
-					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(actual_os_type)='"+deviceType.toLowerCase()+"'";
-				}
-				
+		   String deviceType = request.getDeviceType();
+			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(source_type) in ('windows', 'linux', 'vmware')";
+			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {				
+					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(source_type)='"+deviceType.toLowerCase()+"'";
 			}
 			
 			cloudCostData = favouriteDao_v2.getJsonarray(query) ;
@@ -413,11 +408,9 @@ public class ReportService {
 							 } else {
 								 json.put(elementName, map.get(elementName));
 							 }
-					    	  
-							 
-							
 						 }
 					 }
+					 
 					
 					Object object = null;
 					JSONArray arrayObj = null;					
@@ -431,23 +424,24 @@ public class ReportService {
 				      Set<String> elementNames = data.keySet();				      
 				      for (String elementName : elementNames) {	
 				    	  
-				    	  if(data.get(elementName) instanceof  String) {
+				    	  if(columnHeaders.contains(elementName) && data.get(elementName) instanceof  String) {
 				    		  String value = (String) data.get(elementName);
 					    	  if(value == null || value.trim().isEmpty()) {
 					    		  value = "N/A";
 					    	  }
-					    	  
-					    	  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
+					    	  json.put(elementName, value);
+					    	  /*if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
 					    		  json.put("actual_os_type_data", value);
 					    	  } else {				    		
 					    		  json.put(elementName, value);
-					    	  }
-				    	  } else {
-				    		  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
+					    	  }*/
+				    	  } else if(columnHeaders.contains(elementName)){
+				    		  json.put(elementName, data.get(elementName));
+				    		 /* if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
 					    		  json.put("actual_os_type_data", data.get(elementName));
 					    	  } else {				    		
 					    		  json.put(elementName, data.get(elementName));
-					    	  }
+					    	  } */
 				    	  }
 				      }
 				    }
