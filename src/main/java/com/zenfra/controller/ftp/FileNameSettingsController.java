@@ -69,20 +69,12 @@ public class FileNameSettingsController {
 				exist.setActive(true);
 				service.saveFileNameSettings(exist);
 			}
-			// server.setFilePath(path.getFileName().toString());
-
-			// if (FtbConfiguration.connectToServer(serverUsername, ipAddress, port,
-			// Constants.filePath + uploadfile[0].getOriginalFilename(), serverPassword, "")
-			// != null) {
-			
 			
 			response.setResponseCode(HttpStatus.OK);
 			 response.setResponseMessage("Saved FileName Settings");
-			// service.saveFtpServer(server);
+			
 			return response;
-			// }
-			// return new ResponseEntity("Unable to login using this credentials!",
-			// HttpStatus.OK);
+		
 		} catch (Exception e) {
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			response.setResponseMessage("Getting exception in Saving File name Settings: "+e.getMessage());

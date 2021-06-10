@@ -233,11 +233,11 @@ public class FileNameSettingsService extends CommonEntityManager{
 
 	
 	
-	public boolean deleteFileNameSettingsByFtpName(String ftpName) {
+	public boolean deleteFileNameSettingsByFtpName(String ftpName,String siteKey) {
 		try {
 			System.out.println("ftpName::"+ftpName);
 			List<String> filnameSettings=new ArrayList<String>();
-			List<FileNameSettingsModel> list=repo.getEntityListByColumn(ftpName);
+			List<FileNameSettingsModel> list=repo.getEntityListByColumn(ftpName,siteKey);
 				for(FileNameSettingsModel l:list) {
 					filnameSettings.add(l.getFileNameSettingId());
 				}

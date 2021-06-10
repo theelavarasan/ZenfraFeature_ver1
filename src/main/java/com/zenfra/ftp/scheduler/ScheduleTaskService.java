@@ -44,7 +44,7 @@ public class ScheduleTaskService {
 		
 		
 		// Schedule Task to be executed every night at 00 or 12 am
-		public void addTaskToScheduler(long id,Runnable task,String corn,String timeZone) {//"0 0 0 * * ?"
+		public void addTaskToScheduler(long id,Runnable task,String corn) {//"0 0 0 * * ?"
 			ScheduledFuture<?> scheduledTask = scheduler.schedule(task, new CronTrigger(corn, TimeZone.getTimeZone(TimeZone.getDefault().getID())));//TimeZone.getTimeZone(TimeZone.getDefault().getID())
 			jobsMap.put(id, scheduledTask);
 		}
@@ -69,7 +69,7 @@ public class ScheduleTaskService {
 			
 				for(FtpScheduler s:list) {
 					SchedulerThread r = new SchedulerThread(s);
-					addTaskToScheduler(s.getId(), r, s.getSchedulerCorn(),s.getTimeZone());
+					addTaskToScheduler(s.getId(), r, s.getSchedulerCorn());
 					System.out.println("--------corn added----"+s.getType()+":"+s.getSchedulerCorn());
 				}
 			

@@ -27,7 +27,7 @@ public interface FileNameSettingsRepo extends JpaRepository<FileNameSettingsMode
 	@Query("select s from FileNameSettingsModel s where s.fileNameSettingId=:id")
 	FileNameSettingsModel findByid(String id);
 
-	@Query("select s from FileNameSettingsModel s where s.ftpName=:ftpName")
-	List<FileNameSettingsModel> getEntityListByColumn(String ftpName);
+	@Query("select s from FileNameSettingsModel s where s.ftpName=:ftpName and s.siteKey=:siteKey")
+	List<FileNameSettingsModel> getEntityListByColumn(String ftpName,String siteKey);
 
 }
