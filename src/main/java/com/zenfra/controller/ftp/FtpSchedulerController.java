@@ -169,10 +169,10 @@ public class FtpSchedulerController {
 				String corn = "0 0 hour ? * weekly"; // 0 0 0 ? * MON,WED,THU *
 				ftpScheduler.setSchedulerCorn(corn.replace("weekly", days).replace("hour", ftpScheduler.getTime()));
 			}else if(ftpScheduler.getType().equalsIgnoreCase("secounds")) {
-				String corn = "0/secound 0 0 ? * *"; 
+				String corn = "0/secound * * ? * * *"; 
 				ftpScheduler.setSchedulerCorn(corn.replace("secound", ftpScheduler.getTime()));
 			}else if(ftpScheduler.getType().equalsIgnoreCase("minutes")) {
-				String corn = "* */minutes * * * ?"; 
+				String corn = "* 0/minutes * ? * * *"; 
 				ftpScheduler.setSchedulerCorn(corn.replace("minutes", ftpScheduler.getTime()));
 			}
 				scheduleTaskService.addTaskToScheduler(1, demo, ftpScheduler.getSchedulerCorn());
