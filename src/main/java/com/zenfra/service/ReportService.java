@@ -364,7 +364,7 @@ public class ReportService {
 		try {
 			
 			//getHeader 
-			/* JSONParser jsonParser = new JSONParser();
+			JSONParser jsonParser = new JSONParser();
 			String reportName = request.getReportType();
 			String deviceTypeHeder = "All";
 			String reportBy = request.getReportType();
@@ -381,7 +381,7 @@ public class ReportService {
 				    }
 				}
 		   }
-		   */
+		   
 			
 			
 		   String deviceType = request.getDeviceType();
@@ -412,7 +412,7 @@ public class ReportService {
 					 }
 					 
 					
-					/*Object object = null;
+					Object object = null;
 					JSONArray arrayObj = null;					
 					PGobject pgObject = (PGobject) map.get("data_temp");				
 					object=jsonParser.parse(pgObject.toString());
@@ -424,27 +424,28 @@ public class ReportService {
 				      Set<String> elementNames = data.keySet();				      
 				      for (String elementName : elementNames) {	
 				    	  
-				    	  if(data.get(elementName) instanceof  String) {
+				    	  if(columnHeaders.contains("elementName") && data.get(elementName) instanceof  String) {
 				    		  String value = (String) data.get(elementName);
 					    	  if(value == null || value.trim().isEmpty()) {
 					    		  value = "N/A";
 					    	  }
-					    	  
-					    	  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
+					    	  json.put(elementName, value);
+					    	  /*if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
 					    		  json.put("actual_os_type_data", value);
 					    	  } else {				    		
 					    		  json.put(elementName, value);
-					    	  }
-				    	  } else {
-				    		  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
+					    	  }*/
+				    	  } else if(columnHeaders.contains("elementName")){
+				    		  json.put(elementName, data.get(elementName));
+				    		 /* if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
 					    		  json.put("actual_os_type_data", data.get(elementName));
 					    	  } else {				    		
 					    		  json.put(elementName, data.get(elementName));
-					    	  }
+					    	  } */
 				    	  }
 				      }
 				    }
-					*/
+					
 					/*Set<String> jsonKeySset =  json.keySet();
 					for(String key : columnHeaders) {
 					    if (!jsonKeySset.contains(key)) {					    	
