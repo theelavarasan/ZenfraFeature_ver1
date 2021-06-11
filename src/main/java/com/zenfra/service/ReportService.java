@@ -357,7 +357,7 @@ public class ReportService {
         return result;
     }
 
-
+	
 	public JSONArray getCloudCostData(ServerSideGetRowsRequest request) {
 		List<Map<String, Object>> cloudCostData = new ArrayList<>();
 		JSONArray resultArray = new JSONArray();
@@ -367,10 +367,9 @@ public class ReportService {
 			JSONParser jsonParser = new JSONParser();
 			String reportName = request.getReportType();
 			String deviceTypeHeder = "All";
-			String reportBy = request.getReportType();
-			String siteKey = request.getSiteKey();
-			String reportList = request.getReportList();
-		   JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+			String reportBy = request.getReportType();			
+		  JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+		  
 		
 		   List<String> columnHeaders = new ArrayList<>();
 		   if(headers != null && headers.size() > 0) {
@@ -381,18 +380,29 @@ public class ReportService {
 				    }
 				}
 		   }
+		   
+		   List<String> taskListServers = new ArrayList<>();
+		 if(request.getProjectId() != null && !request.getProjectId().isEmpty()) {
+			 List<Map<String, Object>> resultMap = favouriteDao_v2.getJsonarray("select server_name from tasklist where project_id='"+request.getProjectId()+"'");
+			 if(resultMap != null && !resultMap.isEmpty()) {
+				 for(Map<String, Object> map : resultMap) {
+					 taskListServers.add((String) map.get("server_name"));
+				 }
+			 }
+		 }
 			
+		   String deviceType = request.getDeviceType();
+			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(source_type) in ('windows', 'linux', 'vmware')";
+			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {				
+					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(source_type)='"+deviceType.toLowerCase()+"'";
+			}
 			
-			String deviceType = request.getDeviceType();
-			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"'";
-			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {
-				if(deviceType.contains("ware")) {
-					deviceType = "ware";
-					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(actual_os_type) like '%"+deviceType.toLowerCase()+"%'";
-				} else {
-					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(actual_os_type)='"+deviceType.toLowerCase()+"'";
-				}
-				
+			if(request.getProjectId() != null && !request.getProjectId().isEmpty() && !taskListServers.isEmpty()) {
+				String serverNames = String.join(",", taskListServers
+			            .stream()
+			            .map(name -> ("'" + name + "'"))
+			            .collect(Collectors.toList()));
+				query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and server_name in ("+serverNames+")";
 			}
 			
 			cloudCostData = favouriteDao_v2.getJsonarray(query) ;
@@ -413,11 +423,9 @@ public class ReportService {
 							 } else {
 								 json.put(elementName, map.get(elementName));
 							 }
-					    	  
-							 
-							
 						 }
 					 }
+					 
 					
 					Object object = null;
 					JSONArray arrayObj = null;					
@@ -431,23 +439,15 @@ public class ReportService {
 				      Set<String> elementNames = data.keySet();				      
 				      for (String elementName : elementNames) {	
 				    	  
-				    	  if(data.get(elementName) instanceof  String) {
+				    	  if(columnHeaders.contains(elementName) && data.get(elementName) instanceof  String) {
 				    		  String value = (String) data.get(elementName);
 					    	  if(value == null || value.trim().isEmpty()) {
 					    		  value = "N/A";
 					    	  }
+					    	  json.put(elementName, value);
 					    	  
-					    	  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
-					    		  json.put("actual_os_type_data", value);
-					    	  } else {				    		
-					    		  json.put(elementName, value);
-					    	  }
-				    	  } else {
-				    		  if(elementName.equalsIgnoreCase("actual_os_type")) {				    		
-					    		  json.put("actual_os_type_data", data.get(elementName));
-					    	  } else {				    		
-					    		  json.put(elementName, data.get(elementName));
-					    	  }
+				    	  } else if(columnHeaders.contains(elementName)){
+				    		  json.put(elementName, data.get(elementName));				    		 
 				    	  }
 				      }
 				    }
@@ -473,7 +473,4 @@ public class ReportService {
 		return resultArray;
 	}
 	
-	
-	
-
 }
