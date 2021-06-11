@@ -36,6 +36,7 @@ public class FtpSchedulerController {
 	@Autowired
 	ScheduleTaskService scheduleTaskService;
 
+	
 	@PostMapping("/runScheduler")
 	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler) {
 
