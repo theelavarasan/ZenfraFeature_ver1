@@ -1671,14 +1671,20 @@ public DataResult getOptimizationReportData(ServerSideGetRowsRequest request) {
  }
 		
 		
-		 private JSONObject getUnitConvertDetails(String reportName, String deviceType) {
+		 public JSONObject getUnitConvertDetails(String reportName, String deviceType) {
 		        logger.info("GetUnitConvertDetails Begins");
 		        JSONObject resultJSONObject = new JSONObject();
 		        try {
 		            JSONObject timeZoneMetricsObject = new JSONObject();
 		            List<Map<String, Object>> resultMap = new ArrayList<>();
-		            if (reportName == "capacity") {
+		            if (reportName.equalsIgnoreCase("capacity")) {
 		                String query = "select column_name from report_capacity_columns where lower(device_type)= '"+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
+		                
+		                resultMap = favouriteDao_v2.getJsonarray(query);
+
+		                
+		            } else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
+		            	  String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all' and is_size_metrics = '1'";
 		                
 		                resultMap = favouriteDao_v2.getJsonarray(query);
 
