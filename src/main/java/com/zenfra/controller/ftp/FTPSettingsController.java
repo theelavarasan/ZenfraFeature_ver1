@@ -104,11 +104,9 @@ public class FTPSettingsController {
 		System.out.println("Delete option triggered");
 		ResponseModel_v2 response = new ResponseModel_v2();
 		
-		try {
-			
-			service.deleteConncection(serverId);
+		try {			
 			response.setResponseCode(HttpStatus.OK);
-			response.setResponseMessage("Deleted Successfully");
+			response.setResponseMessage(service.deleteConncection(serverId));
 		} catch(Exception e) {
 			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			response.setResponseMessage("Error in delete API");
@@ -160,7 +158,7 @@ public class FTPSettingsController {
 				response.setResponseMessage("Connection Succeeded");
 			}else {
 				response.setResponseCode(HttpStatus.CREATED);
-				response.setResponseMessage("Connection Failed, Please enter valid server info");
+				response.setResponseMessage("Connection Failed, Please enter valid server or server path info");
 			}
 			
 		} catch (Exception e) {

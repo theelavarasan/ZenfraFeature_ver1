@@ -26,6 +26,8 @@ public class FTPClientService {
 	@Autowired
 	FTPClientConfiguration fTPClientConfiguration;
 	
+	@Autowired
+	FileNameSettingsService fileNameService;
 	
 
 	public boolean saveFtpServer(FTPServerModel server) {
@@ -46,7 +48,7 @@ public class FTPClientService {
 
 	        try {
 	        
-	        	List<FTPServerModel> list=repo.checkName(ftpName);
+	        	List<FTPServerModel> list=repo.checkName(ftpName,siteKey);
 	            if (list.size() > 0) {
 	            	response.setResponseCode(HttpStatus.CONFLICT);
 	            	response.setResponseMessage("Provided "+ftpName+" already Available");
@@ -69,9 +71,20 @@ public class FTPClientService {
 	  
 	  public String deleteConncection(String serverId) {
 			
-			try {				
-				repo.deleteById(serverId);
-				return "deleted";
+			try {		
+				
+				FTPServerModel server=getServerByServerId(serverId);
+				if(server!=null) {					
+					fileNameService.deleteFileNameSettingsByFtpName(server.getFtpName(),server.getSiteKey());
+					repo.deleteById(serverId);					
+					return "deleted";
+				}else {
+					return "Please sent valid server id";
+				}
+				
+				
+				
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 				return e.getMessage();
@@ -168,15 +181,19 @@ public List<FileUploadStatus> getFilesdFromServerPattern(FTPServerModel server,F
 		,List<FileWithPath> files){
 		
 		try {
-			
+			System.out.println("Get files from FTP start");
 			List<FileUploadStatus> statusList=new ArrayList<FileUploadStatus>();
 				for(FileWithPath s:files) {
 							FileUploadStatus status=new FileUploadStatus();
-								status.setStatus(FTPClientConfiguration.getFileFromFtp(server,server.getServerPath(), settings.getToPath()+s.getPath(),s.getName()));
+								if(s.isSubFolder()) {
+									status.setStatus(FTPClientConfiguration.getFileFromFtp(server,s.getSubFolderPath(), s.getPath(),s.getName()));
+								}else {
+									status.setStatus(FTPClientConfiguration.getFileFromFtp(server,server.getServerPath(), s.getPath(),s.getName()));
+								}
 								status.setFileName(s.getName());
 								statusList.add(status);
 				}
-			
+				System.out.println("Get files from FTP end");
 			return statusList;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -195,7 +212,15 @@ public FTPServerModel getFtpConnectionBySiteKey(String siteKey, String connectio
 	return model;
 }
 	
-	
+public FTPServerModel getServerByServerId(String id) {
+	try {
+		
+		return repo.findByserverId(id);
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+	return null;
+}
 
 
 }

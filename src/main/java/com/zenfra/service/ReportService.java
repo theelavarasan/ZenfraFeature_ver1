@@ -52,7 +52,7 @@ public class ReportService {
 	 @Autowired
 	 private FavouriteDao_v2 favouriteDao_v2;
 	 
-	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String reportList) {
+	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String reportList, String category) {
 		JSONArray result = new JSONArray();
 		if(reportName.equalsIgnoreCase("migrationautomation")) { //get headers from dataframe
 			 
@@ -63,7 +63,8 @@ public class ReportService {
 		}
 		
 				 	
-			String report_label = reportList + " " + deviceType + " by "+  reportBy;	
+			//String report_label = reportList + " " + deviceType + " by "+  reportBy;	
+			String report_label = getReportLabelName(category, reportList, deviceType, reportBy);
 	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	 
 	        if(reportName.equalsIgnoreCase("optimization")) {
 	        	report_label = "Cloud Cost Comparison Report";
@@ -78,6 +79,49 @@ public class ReportService {
 	}
 
 	
+	private String getReportLabelName(String category, String reportList, String deviceType, String reportBy) {
+		try {
+			String label = "";
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) && reportList.equalsIgnoreCase("Local")) {
+	            label = "Server";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("Local")) {
+	            label = "Storage";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("Local")) {
+	            label = "Switch";
+	        }
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) &&
+	                reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	       
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) &&
+	                reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        String reportLabel = label + " " + deviceType + " by " + reportBy;
+	        return reportLabel;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "";
+	}
+
+
 	public JSONArray getChartLayout(String userId, String siteKey, String reportName) {
 		JSONArray jSONArray = reportDao.getChartLayout(userId, siteKey, reportName);		
 		return jSONArray;
@@ -88,6 +132,8 @@ public class ReportService {
 		JSONObject reportDataObj =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
 		JSONArray chartData = chartService.getMigarationReport(siteKey, userId, reportName);
 		reportDataObj.put("chart", chartData);
+		JSONObject unitMetrics = dataframeService.getUnitConvertDetails(reportName, "");
+		reportDataObj.put("unit_conv_details", unitMetrics);
 		return reportDataObj;
 	}
 	
@@ -311,9 +357,9 @@ public class ReportService {
 
         //System.out.println("!!!!! result: " + result);
         return result;
-    }
-
-
+ 
+}
+	
 	public JSONArray getCloudCostData(ServerSideGetRowsRequest request) {
 		List<Map<String, Object>> cloudCostData = new ArrayList<>();
 		JSONArray resultArray = new JSONArray();
@@ -428,7 +474,4 @@ public class ReportService {
 		
 		return resultArray;
 	}
-	
-	
-
 }
