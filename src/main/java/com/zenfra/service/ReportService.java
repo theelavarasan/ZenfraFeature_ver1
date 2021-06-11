@@ -133,7 +133,7 @@ public class ReportService {
 		JSONArray chartData = chartService.getMigarationReport(siteKey, userId, reportName);
 		reportDataObj.put("chart", chartData);
 		JSONObject unitMetrics = dataframeService.getUnitConvertDetails(reportName, "");
-		reportDataObj.putAll(unitMetrics);
+		reportDataObj.put("unit_conv_details", unitMetrics);
 		return reportDataObj;
 	}
 	
