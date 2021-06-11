@@ -132,6 +132,8 @@ public class ReportService {
 		JSONObject reportDataObj =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
 		JSONArray chartData = chartService.getMigarationReport(siteKey, userId, reportName);
 		reportDataObj.put("chart", chartData);
+		JSONObject unitMetrics = dataframeService.getUnitConvertDetails(reportName, "");
+		reportDataObj.put("unit_conv_details", unitMetrics);
 		return reportDataObj;
 	}
 	
