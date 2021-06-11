@@ -17,8 +17,8 @@ public interface FTPServerRepo extends JpaRepository<FTPServerModel, String>{
 	
 	@Transactional
 	@Modifying
-	@Query("select s from FTPServerModel s where s.isActive=true and s.ftpName=:ftpName")
-	List<FTPServerModel> checkName(@Param("ftpName") String ftpName);
+	@Query("select s from FTPServerModel s where s.isActive=true and s.ftpName=:ftpName and s.siteKey=:siteKey")
+	List<FTPServerModel> checkName(@Param("ftpName") String ftpName,@Param("siteKey") String siteKey);
 	
 	@Transactional
 	@Modifying

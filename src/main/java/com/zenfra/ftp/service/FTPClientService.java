@@ -48,7 +48,7 @@ public class FTPClientService {
 
 	        try {
 	        
-	        	List<FTPServerModel> list=repo.checkName(ftpName);
+	        	List<FTPServerModel> list=repo.checkName(ftpName,siteKey);
 	            if (list.size() > 0) {
 	            	response.setResponseCode(HttpStatus.CONFLICT);
 	            	response.setResponseMessage("Provided "+ftpName+" already Available");
@@ -75,7 +75,7 @@ public class FTPClientService {
 				
 				FTPServerModel server=getServerByServerId(serverId);
 				if(server!=null) {					
-					fileNameService.deleteFileNameSettingsByFtpName(server.getFtpName());
+					fileNameService.deleteFileNameSettingsByFtpName(server.getFtpName(),server.getSiteKey());
 					repo.deleteById(serverId);					
 					return "deleted";
 				}else {

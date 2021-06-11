@@ -110,13 +110,11 @@ public class FtpSchedulerService extends CommonEntityManager{
 		
 		try {
 			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
-			
 			JSONObject fileList=new JSONObject();
-			/*List<String> l=new ArrayList<String>();
+			List<String> l=new ArrayList<String>();
 				l.add("aravind.krishnasamy@virtualtechgurus.com");
-			Users user=userService.getUserByUserId(s.getUserId());
-		
-					fileList.add("test");
+			Users user=userService.getUserByUserId(s.getUserId());		
+					fileList.put("test","test");
 				email.put("mailFrom", user.getEmail());
 				//email.put("mailTo", functions.convertJsonArrayToList(s.getNotificationEmail()));
 				email.put("mailTo", l);
@@ -126,7 +124,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 				email.put("resetUrl", "uat.zenfra.co");
 				email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
 			
-				process.sentEmailFTP(email);*/
+				process.sentEmailFTP(email);
 				
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
 			
@@ -147,16 +145,12 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 			for(FileWithPath file:files) {
 				//file.setPath(settings.getToPath()+"/"+file.getName());
-				System.out.println("Token::"+token);
-			
+				System.out.println("Token::"+token);			
 				System.out.println("Final::"+file.getPath());
-				String url="";
-
-				
+				String url="";				
 				 url=callParsing(file.getLogType(), settings.getUserId(),
 							settings.getSiteKey(), s.getTenantId(), file.getName(), token,
-							file.getPath(),s.getId());
-		
+							file.getPath(),s.getId());		
 				fileList.put(file.getPath()+"/"+file.getName(),url);
 			}	
 			
@@ -223,7 +217,7 @@ public class FtpSchedulerService extends CommonEntityManager{
          JsonNode root = mapper.readTree(response.getBody());
          
         //String rid, String logType, String description, boolean isReparse
-		if(root==null && root.isEmpty()) {
+		if(root==null) {
 			System.out.println("invalid response");
 		}
 		System.out.println("Upload response::"+response);
@@ -249,7 +243,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 	        public void run(){
 	        	CallFTPParseAPI(restTemplate, builder, token); 
 		     }
-	    }).start();     	
+	    }).start();
          
          return builder.toString();
 		} catch (Exception e) {
