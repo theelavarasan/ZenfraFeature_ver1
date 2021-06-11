@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,7 +25,7 @@ public class ProcessController {
 	@Autowired
 	ProcessService service;
 	
-	@GetMapping
+	@PostMapping
 	public ResponseModel_v2 getFTPLogByServerId(@NotEmpty(message = "Please provide valid server id")@RequestParam("server_id") String serverId) {
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {

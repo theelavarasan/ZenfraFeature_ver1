@@ -132,6 +132,8 @@ public class ReportService {
 		JSONObject reportDataObj =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
 		JSONArray chartData = chartService.getMigarationReport(siteKey, userId, reportName);
 		reportDataObj.put("chart", chartData);
+		JSONObject unitMetrics = dataframeService.getUnitConvertDetails(reportName, "");
+		reportDataObj.put("unit_conv_details", unitMetrics);
 		return reportDataObj;
 	}
 	
@@ -355,8 +357,8 @@ public class ReportService {
 
         //System.out.println("!!!!! result: " + result);
         return result;
-    }
-
+ 
+}
 	
 	public JSONArray getCloudCostData(ServerSideGetRowsRequest request) {
 		List<Map<String, Object>> cloudCostData = new ArrayList<>();
@@ -472,5 +474,4 @@ public class ReportService {
 		
 		return resultArray;
 	}
-	
 }

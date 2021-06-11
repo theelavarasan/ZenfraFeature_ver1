@@ -203,12 +203,7 @@ public class FileNameSettingsService extends CommonEntityManager{
 	public List<FileNameSettingsModel> getFileNameSettingsByFtpName(String siteKey,String ftpName) {
 		List<FileNameSettingsModel> list=new ArrayList<FileNameSettingsModel>();
 		try {
-			List<FileNameSettingsModel> temp=list=repo.getsaveFileNameSettingsByFtpName(siteKey,ftpName);
-				 for(FileNameSettingsModel t:temp) {
-					 t.setToPath("");
-					 list.add(t);
-				 }
-			
+			list=repo.getsaveFileNameSettingsByFtpName(siteKey,ftpName);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -233,11 +228,11 @@ public class FileNameSettingsService extends CommonEntityManager{
 
 	
 	
-	public boolean deleteFileNameSettingsByFtpName(String ftpName) {
+	public boolean deleteFileNameSettingsByFtpName(String ftpName,String siteKey) {
 		try {
 			System.out.println("ftpName::"+ftpName);
 			List<String> filnameSettings=new ArrayList<String>();
-			List<FileNameSettingsModel> list=repo.getEntityListByColumn(ftpName);
+			List<FileNameSettingsModel> list=repo.getEntityListByColumn(ftpName,siteKey);
 				for(FileNameSettingsModel l:list) {
 					filnameSettings.add(l.getFileNameSettingId());
 				}

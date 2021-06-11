@@ -1,12 +1,20 @@
 package com.zenfra.utils;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import org.json.simple.JSONArray;
@@ -29,6 +37,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.model.FavouriteModel;
+import com.zenfra.model.ftp.FtpScheduler;
 
 @Component
 public class CommonFunctions {
@@ -342,7 +351,9 @@ public class CommonFunctions {
 		
 		 HttpHeaders createHeaders(String token){
 		        return new HttpHeaders() {{
-		              set( "Authorization", token );
+		        	if(token!=null) {
+		        		  set( "Authorization", token );
+		        	}		            
 		            setContentType(MediaType.APPLICATION_JSON);
 		        }};
 		    }
@@ -406,4 +417,90 @@ public class CommonFunctions {
 			 return list;
 		 }
 
+		 
+		 public static String convertTimeZone(String inputTimeZone,String timeSlot) {
+			 String hour="0";
+			 try {
+				 	
+				 String[] arr=timeSlot.replace(" ", "").split("-");
+				 String[] split=arr[0].split("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
+				 int time=Integer.valueOf(split[0]);
+				 String clock=split[1];
+				 String DATE_FORMAT = "dd-M-yyyy hh:mm:ss a";
+				 SimpleDateFormat parseFormat = new SimpleDateFormat("hh:mm a");		     
+				 Date date = parseFormat.parse(time+":00 "+clock);
+				 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+				 //String inputTimeZone = "UTC";
+				 String outputTimeZone = TimeZone.getDefault().getID();				
+				 //String dateInString = "10-06-2021 10:00:00 AM";
+				 LocalDateTime myDateObj = LocalDate.now().atTime(date.getHours(), 0);
+				 
+				 String formattedDate = myDateObj.format(formatter);
+				 //System.out.println(formattedDate);			 
+				 LocalDateTime ldt = LocalDateTime.parse(formattedDate, DateTimeFormatter.ofPattern(DATE_FORMAT));
+				 TimeZone inputDateWithZone = TimeZone.getTimeZone(inputTimeZone);
+				 ZonedDateTime inputTimeWithTimeZone = ldt.atZone(inputDateWithZone.toZoneId());
+				 ZonedDateTime utcTime = inputTimeWithTimeZone.withZoneSameInstant(ZoneId.of(outputTimeZone));
+				 //System.out.println(formatter.format(inputTimeWithTimeZone));
+				 //System.out.println(formatter.format(utcTime));
+				// System.out.println(" convert hour--------- " + utcTime.getHour());
+				 hour=String.valueOf(utcTime.getHour());
+	        
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 
+			 return hour;
+		 }
+		 
+		 
+		 public String getCorn(FtpScheduler ftpScheduler) {
+			 String corn="";
+			 try {
+				 String timseslot = ftpScheduler.getTimeSlot().replace(" ", "").replaceAll("[a-zA-Z]", "");
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			return corn;
+		 }
+		 
+		 public static void main(String[] args) {
+			 System.out.println(convertTimeZone("UTC", "12 AM - 12 AM IST"));
+			 //CommonFunctions f=new CommonFunctions();
+			 //	f.logout("Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ6MEVqMlhRWGZSc3NranlMR2g3UXFkbkp2TVRaRkRVQXE2diswdTBBV1NMbjBXUUhHbmpXbkE9PSIsInNjb3BlcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaXNzIjoiaHR0cDovL3plbmZyYS5jb20iLCJpYXQiOjE2MjMzMjUxNzh9.xg33ygz9pAIwIAAK7iu96dS-vYekVlYWSQ_bgjGzPUo");
+		 }
+		 
+		 public  String logout(String token) {
+			 try {
+				  RestTemplate restTemplate=new RestTemplate();
+				 // token=token.replace("Bearer ","");
+					 HttpEntity<Object> request = new HttpEntity<>(null,createHeaders(null));
+			        ResponseEntity<String> response= restTemplate
+			                 .exchange(Constants.current_url+"UserManagement/auth/logout?token="+token, HttpMethod.POST, request, String.class);	
+			        
+			        System.out.println(response.getBody());
+				 
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 return "logout";
+		 }
+		 
+		 
+		 
+		 public String getCurrentHour() {
+			 String hour="*";
+			 try {
+				 Date dt = new Date();
+			      SimpleDateFormat dateFormat;
+			      dateFormat = new SimpleDateFormat("kk:mm:ss");
+			      hour=dateFormat.format(dt).split(":")[0];
+			
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 return hour;
+		 }
 }

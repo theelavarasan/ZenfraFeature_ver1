@@ -10,9 +10,12 @@ import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
 
 import org.json.simple.JSONArray;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
+@JsonIgnoreProperties(value = {
+	    "toPath"
+	})
 public class FileNameSettingsModel implements Serializable{
 
 	private static final long serialVersionUID = 1L;
