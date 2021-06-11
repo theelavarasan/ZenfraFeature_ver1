@@ -60,12 +60,16 @@ public class FileNameSettingsController {
 
 			
 			if(exist==null) {
+				
+				System.out.println("enter new");
 				String fileNameSettingId = UUID.randomUUID().toString();
 				fileNameSettings.setFileNameSettingId(fileNameSettingId);
 				fileNameSettings.setActive(true);				
 				service.saveFileNameSettings(fileNameSettings);			
 			}else {
+				System.out.println("enter exist");
 				BeanUtils.copyProperties(fileNameSettings, exist, NullAwareBeanUtilsBean.getNullPropertyNames(fileNameSettings));
+				System.out.println(exist.toString());
 				exist.setActive(true);
 				service.saveFileNameSettings(exist);
 			}

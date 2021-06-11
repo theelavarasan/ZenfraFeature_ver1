@@ -203,12 +203,7 @@ public class FileNameSettingsService extends CommonEntityManager{
 	public List<FileNameSettingsModel> getFileNameSettingsByFtpName(String siteKey,String ftpName) {
 		List<FileNameSettingsModel> list=new ArrayList<FileNameSettingsModel>();
 		try {
-			List<FileNameSettingsModel> temp=list=repo.getsaveFileNameSettingsByFtpName(siteKey,ftpName);
-				 for(FileNameSettingsModel t:temp) {
-					 t.setToPath("");
-					 list.add(t);
-				 }
-			
+			list=repo.getsaveFileNameSettingsByFtpName(siteKey,ftpName);
 			
 		} catch (Exception e) {
 			e.printStackTrace();

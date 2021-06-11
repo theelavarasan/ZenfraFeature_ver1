@@ -217,7 +217,7 @@ public class FtpSchedulerService extends CommonEntityManager{
          JsonNode root = mapper.readTree(response.getBody());
          
         //String rid, String logType, String description, boolean isReparse
-		if(root==null && root.isEmpty()) {
+		if(root==null) {
 			System.out.println("invalid response");
 		}
 		System.out.println("Upload response::"+response);
