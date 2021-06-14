@@ -101,6 +101,20 @@ public class DBUtils {
 		return map;
 	}
 	
+
+	public static String getParsingServerIP() {
+		String url="";
+		try {
+			ZookeeperConnection zkConnection = new ZookeeperConnection();
+			ZKModel.zkData = zkConnection.getZKData();
+				url=ZKModel.getProperty(ZKConstants.parsing_server_ip)+":"+ZKModel.getProperty(ZKConstants.parsingServerPort);;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
+	return url;	
+	}
+	
+
 	public static String getServerUrl(){
 			String url="localhost:8080";
 		try {
@@ -115,6 +129,35 @@ public class DBUtils {
 		System.out.println("ServerUrl::"+url);
 		return url;
 	}
+	
+	
+	public static String awsScriptAuth() {
+		String path="";
+		try {
+			ZookeeperConnection zkConnection = new ZookeeperConnection();
+			ZKModel.zkData = zkConnection.getZKData();
+			
+			path=ZKModel.getProperty(ZKConstants.aws_test_connection_path);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return path;
+	}
+	
+	public static String awsScriptData() {
+		String path="";
+		try {
+			ZookeeperConnection zkConnection = new ZookeeperConnection();
+			ZKModel.zkData = zkConnection.getZKData();
+			
+			path=ZKModel.getProperty(ZKConstants.aws_data_script_path);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return path;
+	}
+
+
 	
 	
 }
