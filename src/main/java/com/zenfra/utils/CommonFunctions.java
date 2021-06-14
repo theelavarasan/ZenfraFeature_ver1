@@ -510,7 +510,7 @@ public class CommonFunctions {
 				 Date dt = new Date();
 			      SimpleDateFormat dateFormat;
 			      dateFormat = new SimpleDateFormat("kk:mm:ss");
-			      minutes=dateFormat.format(dt).split(":")[1];
+			      minutes=String.valueOf((Integer.valueOf(dateFormat.format(dt).split(":")[1])+1));
 			
 			} catch (Exception e) {
 				e.printStackTrace();
