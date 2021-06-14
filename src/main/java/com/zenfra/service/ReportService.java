@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -363,6 +364,7 @@ public class ReportService {
 	public JSONArray getCloudCostData(ServerSideGetRowsRequest request) {
 		List<Map<String, Object>> cloudCostData = new ArrayList<>();
 		JSONArray resultArray = new JSONArray();
+		refreshViews("mview_localdiscovery");
 		try {
 			
 			//getHeader 
@@ -473,5 +475,15 @@ public class ReportService {
 		
 		
 		return resultArray;
+	}
+
+
+	private void refreshViews(String view) {
+		try {			
+			favouriteDao_v2.updateQuery("REFRESH MATERIALIZED VIEW " +  view);				
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 }
