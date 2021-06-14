@@ -364,7 +364,7 @@ public class ReportService {
 	public JSONArray getCloudCostData(ServerSideGetRowsRequest request) {
 		List<Map<String, Object>> cloudCostData = new ArrayList<>();
 		JSONArray resultArray = new JSONArray();
-		refreshViews("mview_localdiscovery");
+		
 		try {
 			
 			//getHeader 
@@ -487,6 +487,13 @@ public class ReportService {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+	}
+
+
+	public void refreshCloudCostViews() {
+		refreshViews("mview_localdiscovery");
+		refreshViews("mview_aws_cost_report");
 		
 	}
 }
