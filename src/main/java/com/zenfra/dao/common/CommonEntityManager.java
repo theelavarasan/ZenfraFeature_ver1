@@ -12,8 +12,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@Transactional
 @Repository
+@Transactional(readOnly = true)
 public abstract class CommonEntityManager extends JdbcCommonOperations {
 
 	@PersistenceContext
@@ -44,6 +44,7 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		return true;
 	}
 
+	@Transactional
 	public Boolean updateEntity(Class c, Object obj) {
 
 		try {
