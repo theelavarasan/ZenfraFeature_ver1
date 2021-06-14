@@ -73,7 +73,7 @@ public class ReportDataController {
 	 */
 	 
 	 @PostMapping("getReportData")
-	    public ResponseEntity<String> getRows(@RequestBody ServerSideGetRowsRequest request) { 		
+	    public ResponseEntity<String> getReportData(@RequestBody ServerSideGetRowsRequest request) { 		
 		  		 
 		  try {
 			  if(request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery")) {
@@ -82,7 +82,7 @@ public class ReportDataController {
 		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 		      		 }
 			  } else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {				
-				  JSONArray data = reportService.getCloudCostData(request);
+				  /*JSONArray data = reportService.getCloudCostData(request);
 				  
 		      		 if(data != null) {	
 		      			JSONObject resultData = new JSONObject();
@@ -91,66 +91,17 @@ public class ReportDataController {
 		      			resultData.put("totalCount", data.size());
 		      			return new ResponseEntity<>(resultData.toString(), HttpStatus.OK);
 		      		 }
+		      		 */
+				  
+				  DataResult data = dataframeService.getOptimizationReport(request);
+				  if(data != null) {
+		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+		      		 }
 			  }
 	      		
 	 	        
 			} catch (Exception e) {
 				e.printStackTrace();
-				System.out.println("Not able to fecth report {}"+ e);
-			}   	
-	    	JSONArray emptyArray = new JSONArray();
-	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
-	    }
-	 
-	 
-	 @PostMapping("getCloudCost")
-	    public ResponseEntity<String> getCloudCost(@RequestBody ServerSideGetRowsRequest request) { 		
-		  
-		  try {
-			     request.setAnalyticstype("optimization");
-			     request.setSourceType(request.getDeviceType());
-			     request.setReportType("optimization");
-			     Date st = new Date();
-			   //  DataResult data = dataframeService.getCloudCostData(request);
-	      		/// System.out.println("------- " + data);
-			     JSONArray data = reportService.getCloudCostData(request);
-	      		 if(data != null) {
-	      			//return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
-	      			return new ResponseEntity<>(data.toString(), HttpStatus.OK);
-	      		 }
-	 	        
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.out.println("Not able to fecth report {}"+ e);
-			}   	
-	    	JSONArray emptyArray = new JSONArray();
-	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
-	    }
-	 
-	 
-	/*
-	 * @PostMapping("geteoleosData") public ResponseEntity<String>
-	 * geteoleosData(@RequestBody ServerSideGetRowsRequest request) {
-	 * 
-	 * try { DataResult data = dataframeService.getReportData(request, "eoleos");
-	 * if(data != null) { return new
-	 * ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK); }
-	 * 
-	 * } catch (Exception e) { System.out.println("Not able to fecth report {}"+ e);
-	 * } JSONArray emptyArray = new JSONArray(); return new
-	 * ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK); }
-	 */
-	 
-	 @PostMapping("getOptimizationReportData")
-	    public ResponseEntity<String> getOptimizationReportData(@RequestBody ServerSideGetRowsRequest request) { 		
-		  
-		  try {
-	      		 DataResult data = dataframeService.getOptimizationReportData(request);
-	      		 if(data != null) {
-	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
-	      		 }
-	 	        
-			} catch (Exception e) {
 				System.out.println("Not able to fecth report {}"+ e);
 			}   	
 	    	JSONArray emptyArray = new JSONArray();
@@ -188,9 +139,12 @@ public class ReportDataController {
 		  System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : " + siteKey + " : "+userId);
 		 
 		  try {	
-			  		if(sourceType != null && (sourceType.equalsIgnoreCase("LINUX") || sourceType.equalsIgnoreCase("WINDOWS") || sourceType.equalsIgnoreCase("VMWARE"))) {
-			  			reportService.refreshCloudCostViews();
-			  		}
+			/*
+			 * if(sourceType != null && (sourceType.equalsIgnoreCase("LINUX") ||
+			 * sourceType.equalsIgnoreCase("WINDOWS") ||
+			 * sourceType.equalsIgnoreCase("VMWARE"))) {
+			 * reportService.refreshCloudCostViews(); }
+			 */
 			  		
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
@@ -204,24 +158,6 @@ public class ReportDataController {
 	    	
 	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
 	    }
-	 
-	 /*RequestMapping(method = RequestMethod.POST, value = "getReportHeader")
-	    public ResponseEntity<String> getReportHeader(@RequestParam("reportType") String reportType, @RequestParam("deviceType") String deviceType, @RequestParam("reportBy") String reportBy) { 	     
-		  
-		  try {	      		 
-	      		 if(reportType != null && !reportType.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
-	      			DataResult columnHeaders = dataframeService.getReportHeader(reportType, deviceType, reportBy);
-	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(columnHeaders), HttpStatus.OK);
-	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
-	      		
-			} catch (Exception e) {
-				System.out.println("Not able to get report headers {}"+ e);
-			}   	
-	    	
-	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
-	    } */
-	 
 	 
 	 @PostMapping("getReportHeader")
 	    public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) { 
@@ -282,23 +218,6 @@ public class ReportDataController {
 	    }
 	 
 	 
-	/* @RequestMapping(method = RequestMethod.POST, value = "getSublinkList")
-	    public ResponseEntity<String> getReportHeader(@RequestParam("deviceType") String deviceType, @RequestParam("reportType") String reportType) { 	     
-		  
-		  try {	      		 
-	      		 if(reportType != null && !reportType.isEmpty() && deviceType != null && !deviceType.isEmpty()) {
-	      			//JSONObject sublinkData = dataframeService.getSubReportList(reportType, deviceType);
-	      			return new ResponseEntity<>("", HttpStatus.OK);
-	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
-	      		
-			} catch (Exception e) {
-				System.out.println("Not able to get sublink data {}"+ e);
-			}   	
-	    	
-	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
-	    }
-	  */
 	 
 	 @GetMapping("/getAllSublinkData")
 	    public ResponseEntity<?> getAllSublinkData() {	    	 
@@ -313,107 +232,6 @@ public class ReportDataController {
 	          return ResponseEntity.ok(resultObject);
 	          
 	    }
-	  /*  @RequestMapping(value = "/getReportData/optimization", method = RequestMethod.POST)
-	    public ResponseEntity<?> getReport(@RequestAttribute(name = "authUserId", required = false) String userId,
-	                                       @RequestParam(name = "deviceType") String deviceType,
-	                                       @RequestParam(name = "groupBy", required = false) String groupBy,
-	                                       @RequestParam(name = "filterBy", required = false) String filterBy,
-	                                       @RequestParam(name = "filterValue", required = false) String filterValue,
-	                                       @RequestParam(name = "siteKey", required = false) String siteKey) {
-	       
-	        System.out.println("**** Generating the Optimization Report");
-	        ObjectMapper mapping = new ObjectMapper();
-	        com.zenfra.model.ReportResultModel reportResultModel = new com.zenfra.model.ReportResultModel();
-	        try {
-	            mapping.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-	            mapping.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-	            //mapping.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-	        	           
-	            JSONArray  reportArr = new JSONArray();
-	                String deviceTypeCondition;
-	                if (deviceType.equalsIgnoreCase("All")) {
-	                    deviceTypeCondition = " (lcase(aws.actualOSType) in ('windows','linux', 'vmware'))";
-	                } else {
-	                    deviceTypeCondition = "(lcase(aws.actualOSType)='" + deviceType.toLowerCase() + "')";
-	                }
-	                List<String> serverNameLst = new ArrayList<>();
-	                if(!StringUtils.isBlank(filterValue)) {
-	                    String serverNameQuery = "select set(serverName.toLowerCase()).asString() as serverName from taskList where projectId = '"+filterValue+"'";
-	                    JSONArray serverNameArr = QueryExecutor.orientDBQueryExecution(serverNameQuery);
-	                    if(!serverNameArr.isEmpty()) {
-	                        com.zenfra.model.ZenfraJSONObject serverNameObj = (com.zenfra.model.ZenfraJSONObject) serverNameArr.get(0);
-	                        String serverName = serverNameObj.get("serverName").toString();
-	                        String[] sq = serverName.split(",");
-	                        for(int i=0;i<sq.length;i++) {
-	                            serverNameLst.add(sq[i].trim());
-	                        }
-	                    }
-	                }
-	                reportArr = sparkUtilities.getReport(siteKey, deviceTypeCondition, serverNameLst);
-
-	                reportResultModel.setData(reportArr);
-	              
-	           
-
-	            String reportName = "optimization" + "_" + deviceType;
-
-	            reportResultModel.setHeaderInfo(getHeaderInfo(reportArr, "optimization", ""));
-	            if(StringUtils.isBlank(filterValue)) {
-	                ChartController chartController = new ChartController();
-	                reportResultModel.setReport_label("Cloud Cost Comparison Report");
-	                reportResultModel.setReport_name(reportName);
-	                reportResultModel.setColumnGroupInfo(null);
-	                reportResultModel.setDetailsColumnOrder(new JSONArray());
-	                reportResultModel.setDetailsData(new JSONArray());
-	                reportResultModel.setDetailsHeaderInfo(new JSONArray());
-
-	                String columnOrderQuery = "select columnName from reportColumns where reportName ='Optimization' and deviceType='All' order by seq,columnName";
-	                JSONArray columnOrderArray = QueryExecutor.orientDBQueryExecution(columnOrderQuery);
-	                JSONArray columnArray = new JSONArray();
-	                if (!columnOrderArray.isEmpty()) {
-	                    for (int i = 0; i < columnOrderArray.size(); i++) {
-	                        ZenfraJSONObject columnOrderObject = (ZenfraJSONObject) columnOrderArray.get(i);
-	                        if (!columnOrderObject.get("columnName").toString().equalsIgnoreCase("Server Name"))
-	                            columnArray.add(columnOrderObject.get("columnName"));
-	                    }
-	                }
-
-	                reportResultModel.setUnit_conv_details(null);
-	                reportResultModel.setChartOnly_enabled(0);
-	                reportResultModel.setChart(chartController.getChart(siteKey, userId, "optimization_" + deviceType));
-	                String chartLayoutQuery = "select from reportUserCustomization where siteKey = '" + siteKey
-	                        + "' and userId = '" + userId + "' and reportName = 'optimization_" + deviceType + "'";
-
-	                JSONArray chartLayoutData = QueryExecutor.orientDBQueryExecution(chartLayoutQuery);
-	                JSONArray chartLayoutArray = new JSONArray();
-	                if (!chartLayoutData.isEmpty()) {
-	                    for (int i = 0; i < chartLayoutData.size(); i++) {
-	                        ZenfraJSONObject jsonObject = (ZenfraJSONObject) chartLayoutData.get(i);
-	                        List<Object> chartLayoutList = (List<Object>) jsonObject.get("chartLayout");
-	                        chartLayoutArray.addAll(chartLayoutList);
-	                        List<String> columnsVisibleArray = (List<String>) jsonObject.get("columnsVisible");
-	                        if (!columnsVisibleArray.isEmpty()) {
-	                            columnArray = new JSONArray();
-	                            columnArray.addAll(columnsVisibleArray);
-	                        }
-	                    }
-	                }
-	                reportResultModel.setColumnOrder(columnArray);
-	                reportResultModel.setChartLayout(chartLayoutArray);
-	            }
-	            reportResultModel.setResponseCode(200);
-	            reportResultModel.setResponseMessage("success");
-	            reportResultModel.setResponseDescription("successfully loaded with "+reportArr.size());
-	        } catch (Exception ex) {
-	            logger.error("Exception in Generating the Report: " + ex);
-	            ex.printStackTrace();
-	            reportResultModel.setReport_label("Cloud Cost Comparison Report");
-	            reportResultModel.setResponseCode(400);
-	            reportResultModel.setResponseMessage("Failure");
-	            reportResultModel.setResponseDescription(ex.toString());
-	        }
-	        return ResponseEntity.ok(reportResultModel);
-	    }*/
+	
 	 
 }
