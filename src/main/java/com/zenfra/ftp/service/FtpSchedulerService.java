@@ -111,7 +111,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		try {
 			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
 			JSONObject fileList=new JSONObject();
-			List<String> l=new ArrayList<String>();
+			/*List<String> l=new ArrayList<String>();
 				l.add("aravind.krishnasamy@virtualtechgurus.com");
 			Users user=userService.getUserByUserId(s.getUserId());		
 					fileList.put("test","test");
@@ -125,7 +125,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 				email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
 			
 				process.sentEmailFTP(email);
-				
+				*/
+			
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
 			
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
