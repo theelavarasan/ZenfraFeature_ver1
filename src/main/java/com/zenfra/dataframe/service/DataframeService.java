@@ -1955,7 +1955,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then " +
 				                    " localDiscoveryDF.`Logical Processor Count` else 0 end) as `vCPU`" +
 				                    " FROM global_temp.localDiscoveryTemp localDiscoveryDF" +
-				                    " left join global_temp.azurePricingDF azurePricingDF on azurePricingDF.vCPUs >= (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then" +
+				                    " left join global_temp.azurePricingDF azurePricingDF on azurePricingDF.VCPUs >= (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then" +
 				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then" +
 				                    " localDiscoveryDF.`Logical Processor Count` else 0 end)" +
 				                    " and azurePricingDF.Memory >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end) and" +

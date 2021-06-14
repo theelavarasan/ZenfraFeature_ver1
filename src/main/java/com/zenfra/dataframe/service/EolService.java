@@ -116,20 +116,21 @@ public class EolService {
                     .load(commonPath+"/Dataframe/data/Azure_Pricing_Data.csv");
 
             azurePriceDataSet.createOrReplaceTempView("AzurePricing");
+            azurePriceDataSet.printSchema();
             
             System.out.println("-----azurePriceDataSet- " + azurePriceDataSet.count());
 
-            Dataset<Row> dataCheck = sparkSession.sql("Select concat_ws(',', concat('Operating System: ',az.OperatingSystem),concat('vCPU: ',az.vCPUs)" +
+            Dataset<Row> dataCheck = sparkSession.sql("Select concat_ws(',', concat('Operating System: ',az.OperatingSystem),concat('vCPU: ',az.VCPUs)" +
                     " ,concat('Memory: ',az.Memory)) as `Azure Specs`,az.InstanceType" +
-                    ",az.OperatingSystem,az.vCPUs,az.Memory" +
-                    ",(Min(az.PricePerHour)*730)+min(ifnull(az.softwarecost,0)) as demandPrice" +
-                    ",(Min(b.PricePerHour)*730)+min(ifnull(b.softwarecost,0)) as 3YrPrice " +
-                    ",(Min(c.PricePerHour)*730)+min(ifnull(c.softwarecost,0)) as 1YrPrice " +
+                    ",az.OperatingSystem,az.VCPUs,az.Memory" +
+                    ",(Min(az.PricePerHour)*730)+min(ifnull(az.SoftwareCost,0)) as demandPrice" +
+                    ",(Min(b.PricePerHour)*730)+min(ifnull(b.SoftwareCost,0)) as 3YrPrice " +
+                    ",(Min(c.PricePerHour)*730)+min(ifnull(c.SoftwareCost,0)) as 1YrPrice " +
                     "from AzurePricing az " +
                     "join AzurePricing b on b.InstanceType=az.InstanceType and b.Type='3yr' and b.OperatingSystem = az.OperatingSystem " +
                     "join AzurePricing c on c.InstanceType=az.InstanceType and c.Type='1yr' and c.OperatingSystem = az.OperatingSystem " +
                     "where az.Region = 'US East' and az.Type = 'OnDemand' and az.OperatingSystem is not null and az.InstanceType is not NULL " +
-                    "group by az.OperatingSystem,az.InstanceType,az.vCPUs,az.Memory");
+                    "group by az.OperatingSystem,az.InstanceType,az.VCPUs,az.Memory");
             dataCheck.createOrReplaceGlobalTempView("azurePricingDF");            
             System.out.println("-----azurePriceDataSet----------- " + dataCheck.count());
         } catch (Exception ex) {
