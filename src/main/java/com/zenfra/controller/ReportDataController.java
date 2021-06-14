@@ -187,7 +187,11 @@ public class ReportDataController {
 	    public ResponseEntity<String> testfav(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) { 	     
 		  System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : " + siteKey + " : "+userId);
 		 
-		  try {	      		 
+		  try {	
+			  		if(sourceType != null && (sourceType.equalsIgnoreCase("LINUX") || sourceType.equalsIgnoreCase("WINDOWS") || sourceType.equalsIgnoreCase("VMWARE"))) {
+			  			reportService.refreshCloudCostViews();
+			  		}
+			  		
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 	      			

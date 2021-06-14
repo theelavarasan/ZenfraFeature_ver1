@@ -144,6 +144,7 @@ public class AwsInventoryController {
 	    	   	aws.setUpdated_date(rs.getString("updated_date")!=null ? rs.getString("updated_date").toString() : " ");
 	    	   	aws.setRegions(rs.getString("regions")!=null ? map.readValue(rs.getString("regions"), JSONArray.class) : new JSONArray());
 	    	 list.add(aws);  	
+	       
 	       }
 	       
 			
@@ -351,8 +352,6 @@ public class AwsInventoryController {
 			      body.add("tenantId", tenantId);
 			      body.add("uploadAndProcess", false);
 			      body.add("status", status);
-		
-			      
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
           responce= restTemplate
