@@ -335,18 +335,18 @@ public class CommonFunctions {
 	 }
 	 
 		public Object updateLogFile(JSONObject json) {
-			 Object response=null;
+			 ResponseEntity<String> response=null;
+			 System.out.println(DBUtils.getParsingServerIP());
 			try {
 				String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));
 		          response= restTemplate
-		                 .exchange(Constants.current_url+"/parsing/rest/api/excute-rest-call", HttpMethod.POST, request, String.class);	
+		                 .exchange(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-call", HttpMethod.POST, request, String.class);	
 		       
+		        return response.getBody();
 			} catch (Exception e) {
 				return e.getMessage();
-			}
-			System.out.println("Rest response::"+response);
-			return response;
+		}
 		}
 		
 		 HttpHeaders createHeaders(String token){
@@ -403,7 +403,8 @@ public class CommonFunctions {
 			return isSuccess; 
 		 }
 		 
-		 public List<Object> convertJsonArrayToList(JSONArray arr){
+
+	 public List<Object> convertJsonArrayToList(JSONArray arr){
 			List<Object> list = new ArrayList<Object>();     
 			 try {				
 				 for (int i=0; i<arr.size(); i++) {
@@ -416,7 +417,6 @@ public class CommonFunctions {
 			 System.out.println(list);
 			 return list;
 		 }
-
 		 
 		 public static String convertTimeZone(String inputTimeZone,String timeSlot) {
 			 String hour="0";
