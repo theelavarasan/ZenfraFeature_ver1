@@ -3,6 +3,7 @@ package com.zenfra.ftp.repo;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -32,5 +33,9 @@ public interface FileNameSettingsRepo extends JpaRepository<FileNameSettingsMode
 
 	@Query("select s from FileNameSettingsModel s where s.ftpName=:ftpName and s.siteKey=:siteKey")
 	List<FileNameSettingsModel> getEntityListByColumn(String ftpName,String siteKey);
+
+	@Modifying
+	@Query("delete  from FileNameSettingsModel s where s.ftpName=:ftpName ")
+	void deleteQueryFileNameSettingsModelByFtbName(String ftpName);
 
 }

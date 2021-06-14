@@ -237,9 +237,11 @@ public class FileNameSettingsService extends CommonEntityManager{
 					filnameSettings.add(l.getFileNameSettingId());
 				}
 				System.out.println("filnameSettings::"+filnameSettings);
-			String deleteQueryFileNameSettingsModel="delete from file_name_settings_model  where ftp_name='"+ftpName+"'";
-					updateQuery(deleteQueryFileNameSettingsModel); //delete FileNameSettingsModel
-			 repoScheduler.deleteFtpSchedulerByFileNameSettingsId(filnameSettings);
+			//String deleteQueryFileNameSettingsModel="delete from file_name_settings_model  where ftp_name='"+ftpName+"'";
+					//updateQuery(deleteQueryFileNameSettingsModel); //delete FileNameSettingsModel
+				repo.deleteQueryFileNameSettingsModelByFtbName(ftpName);
+				
+				repoScheduler.deleteFtpSchedulerByFileNameSettingsId(filnameSettings);
 			 return true;
 		} catch (Exception e) {
 			e.printStackTrace();

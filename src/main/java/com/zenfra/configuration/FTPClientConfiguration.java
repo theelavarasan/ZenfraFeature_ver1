@@ -352,6 +352,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				return true;
 			}
 
+			
 			CheckSumDetails checksum = new CheckSumDetails();
 			checksum.setClientFtpServerId(serverId);
 			checksum.setFileName(fileName);
