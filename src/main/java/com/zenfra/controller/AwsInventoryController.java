@@ -133,17 +133,18 @@ public class AwsInventoryController {
 		ObjectMapper map=new ObjectMapper();
 	       while(rs.next()){
 	    	   AwsInventory aws=new AwsInventory();
-	    	   	aws.setLastFourKey( rs.getString("lastFourKey")!=null ? rs.getString("lastFourKey").toString() : " " );
-	    	   	aws.setAccess_key_id( rs.getString("access_key_id")!=null ? rs.getString("access_key_id").toString() : " " );
+	    	   	//aws.setLastFourKey( rs.getString("lastFourKey")!=null ? rs.getString("lastFourKey").toString() : " " );
+	    	   	aws.setAccess_key_id(rs.getString("access_key_id")!=null  ? rs.getString("access_key_id").toString().substring(rs.getString("access_key_id").length() - 4 ) : " " );
 	    	   	aws.setCreated_date(rs.getString("created_date")!=null ? rs.getString("created_date").toString() : " ");
 	    	   	aws.setData_id(rs.getString("data_id")!=null ? rs.getString("data_id").toString() : " ");
 	    	   	aws.setDescription(rs.getString("description")!=null ? rs.getString("description").toString() : " ");
-	    	   	aws.setSecret_access_key(rs.getString("secret_access_key")!=null ? rs.getString("secret_access_key").toString() : " ");
+	    	   	aws.setSecret_access_key(rs.getString("lastFourKey")!=null ? rs.getString("lastFourKey").toString() : " ");
 	    	   	aws.setSitekey(rs.getString("sitekey")!=null ? rs.getString("sitekey").toString() : " ");
 	    	   	aws.setUserid(rs.getString("userid")!=null ? rs.getString("userid").toString() : " ");
 	    	   	aws.setUpdated_date(rs.getString("updated_date")!=null ? rs.getString("updated_date").toString() : " ");
 	    	   	aws.setRegions(rs.getString("regions")!=null ? map.readValue(rs.getString("regions"), JSONArray.class) : new JSONArray());
 	    	 list.add(aws);  	
+	       
 	       }
 	       
 			
@@ -351,8 +352,6 @@ public class AwsInventoryController {
 			      body.add("tenantId", tenantId);
 			      body.add("uploadAndProcess", false);
 			      body.add("status", status);
-		
-			      
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
           responce= restTemplate
