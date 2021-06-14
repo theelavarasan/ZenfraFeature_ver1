@@ -10,6 +10,7 @@ import java.util.UUID;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import org.json.simple.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.ftp.service.FTPClientService;
+import com.zenfra.ftp.service.FileNameSettingsService;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ftp.FTPServerModel;
+import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.utils.CommonFunctions;
 
@@ -50,6 +54,9 @@ public class FTPSettingsController {
 	@Autowired
 	AESEncryptionDecryption encrypt;
 	
+	@Autowired
+	FileNameSettingsService fileService;
+	
 	public static final Logger logger = LoggerFactory.getLogger(FTPSettingsController.class);
 
 	@SuppressWarnings({ "unchecked", "rawtypes", "static-access" })
@@ -64,13 +71,31 @@ public class FTPSettingsController {
 			ftpServer.setCreate_by(ftpServer.getUserId());
 			ftpServer.setCreate_time(functions.getCurrentDateWithTime());
 			String serverId = UUID.randomUUID().toString();
-			ftpServer.setServerId(serverId);
-			ftpServer.setServerPath("/"+ftpServer.getServerPath());
+			ftpServer.setServerId(serverId);		
+			
+			ftpServer.setServerPath(ftpServer.getServerPath().startsWith("/") ? ftpServer.getServerPath() : "/"+ftpServer.getServerPath() );
 			service.saveFtpServer(ftpServer);			
 			response.setResponseCode(HttpStatus.OK);
 			response.setjData(functions.convertEntityToJsonObject(ftpServer));
 			response.setResponseDescription("Saved!");
-				
+			
+			
+			String deafultString="[{\"namePattern\":\"*SunOS*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*EMCRPT*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*_Linux_*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*RVTools*\",\"logType\":\"VMWARE\"},{\"namePattern\":\"*3PAR*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*Support*\",\"logType\":\"BROCADE\"},{\"namePattern\":\"*PURE*\",\"logType\":\"PURE\"},{\"namePattern\":\"*ntnx*\",\"logType\":\"NUTANIX\"},{\"namePattern\":\"*treme*\",\"logType\":\"XTREMIO\"},{\"namePattern\":\"*max*\",\"logType\":\"VMAX\"},{\"namePattern\":\"*Splore*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*AIX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*Linux*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*HPUX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*VNXCellera*\",\"logType\":\"VNXFILE\"},{\"namePattern\":\"*vplex*\",\"logType\":\"VPLEX\"},{\"namePattern\":\"*HDS*\",\"logType\":\"HDS\"},{\"namePattern\":\"*netapp*\",\"logType\":\"NETAPP\"},{\"namePattern\":\"*vnx*\",\"logType\":\"VNX\"},{\"namePattern\":\"*isilon*\",\"logType\":\"ISILON\"},{\"namePattern\":\"*cisco*\",\"logType\":\"CISCO\"},{\"namePattern\":\"*test*\",\"logType\":\"AUTO\"}]";
+			ObjectMapper map=new ObjectMapper();
+			
+			JSONArray arr=map.readValue(deafultString, JSONArray.class);
+			FileNameSettingsModel fileName=new FileNameSettingsModel();
+			System.out.println(arr);
+				String fileNameId = UUID.randomUUID().toString();
+					fileName.setFileNameSettingId(fileNameId);
+					fileName.setActive(true);
+					fileName.setFtpName(ftpServer.getFtpName());
+					fileName.setIpAddress(ftpServer.getIpAddress());
+					fileName.setSiteKey(ftpServer.getSiteKey());
+					fileName.setUserId(ftpServer.getUserId());
+					fileName.setToPath("/opt/ZENfra/ZenfraFiles/"+ftpServer.getSiteKey()+"/UploadedLogs");
+					fileName.setPattern(arr);
+					fileService.saveEntity(FileNameSettingsModel.class, fileName);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
