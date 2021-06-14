@@ -60,7 +60,7 @@ public class FileNameSettingsController {
 
 			
 			if(exist==null) {
-				
+				System.out.println(fileNameSettings.toString());
 				System.out.println("enter new");
 				String fileNameSettingId = UUID.randomUUID().toString();
 				fileNameSettings.setFileNameSettingId(fileNameSettingId);
