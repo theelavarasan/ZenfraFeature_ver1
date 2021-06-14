@@ -479,8 +479,11 @@ public class ReportService {
 
 
 	private void refreshViews(String view) {
-		try {			
-			favouriteDao_v2.updateQuery("REFRESH MATERIALIZED VIEW " +  view);				
+		try {
+			Date date = new Date();
+			favouriteDao_v2.updateQuery("REFRESH MATERIALIZED VIEW " +  view +" WITH DATA");
+			Date date2 = new Date();	
+			System.out.println("----------refresh time----------- " + (date2.getTime() - date.getTime()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
