@@ -97,7 +97,7 @@ public class EolService {
         try {
             Dataset<Row> awsPriceDataSet = sparkSession.read().format("csv")
                     .option("header", "true").option("inferschema", false)
-                    .load(commonPath+"/AWS EC2 Pricing - US East Ohio.csv");
+                    .load(commonPath+"/Dataframe/data/AWS EC2 Pricing - US East Ohio.csv");
             awsPriceDataSet.createOrReplaceGlobalTempView("awsPricingDF");
           
         } catch (Exception ex) {
@@ -113,7 +113,7 @@ public class EolService {
 			try {
             Dataset<Row> azurePriceDataSet = sparkSession.read().format("csv")
                     .option("header", "true").option("inferschema", false)
-                    .load(commonPath+"/Azure_Pricing_Data.csv");
+                    .load(commonPath+"/Dataframe/data/Azure_Pricing_Data.csv");
 
             azurePriceDataSet.createOrReplaceTempView("AzurePricing");
 
@@ -145,7 +145,7 @@ public class EolService {
 		        logger.info("Construct Google Pricing Dataframe Ends");
             Dataset<Row> googlePriceDataSet = sparkSession.read().format("csv")
                     .option("header", "true").option("inferschema", false)
-                    .load(commonPath+"/Google_Pricing_Data.csv");
+                    .load(commonPath+"/Dataframe/data/Google_Pricing_Data.csv");
 
             googlePriceDataSet.createOrReplaceGlobalTempView("googlePricingDF");
         } catch (Exception ex) {
