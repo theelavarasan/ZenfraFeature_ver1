@@ -1804,10 +1804,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                  
              } catch (Exception ex) {
                  logger.error("Exception in getReport ", ex);
-                 ex.printStackTrace();
+                // ex.printStackTrace();
              }
-            
-             return null;
+             
+             dataCheck = sparkSession.emptyDataFrame();
+             return paginate(dataCheck, request);
 		}
 		
 		
