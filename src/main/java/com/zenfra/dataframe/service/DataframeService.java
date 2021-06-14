@@ -1659,7 +1659,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		public DataResult getOptimizationReport(ServerSideGetRowsRequest request) {
 			 
 			 String siteKey = request.getSiteKey();
-	         String deviceType = request.getSourceType();
+	         String deviceType = request.getDeviceType();
 	        	         
 	         
 	         String reportName = request.getReportType();
