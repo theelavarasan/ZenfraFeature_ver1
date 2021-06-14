@@ -1,7 +1,5 @@
 package com.zenfra.ftp.scheduler;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.zenfra.ftp.service.FtpSchedulerService;
 import com.zenfra.model.ftp.FtpScheduler;
 

@@ -69,6 +69,7 @@ public class ZKConstants {
 	
 	
 	
+	
 	public static String TASKLIST_DEFAULT_FIELDS = "taskDefaultFields";
 	public static String CRCOLUMNNAMES = "CR_Columnnames";
 	public static String CRDevice = "CR_Device";
@@ -88,9 +89,14 @@ public class ZKConstants {
 	public static String ZENFR_FEATURES_CONTEXT_PATH = "zenfra-features";
 	public static String pg_db_url="pg_db_url";
 	public static String pg_db_port="pg_db_port";
+
 	public static String parsing_server_ip="parsingServerIP";
 	public static String parsingServerPort="parsingServerPort";
 	public static String aws_data_script_path="aws_data_script_path";
 	public static String aws_test_connection_path="aws_test_connection_path";
 	
+
+	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE="ftp_file_complete_mail_template";
+	public static String MAIL_SERVICE_URL="mailServiceUrl";
+
 }

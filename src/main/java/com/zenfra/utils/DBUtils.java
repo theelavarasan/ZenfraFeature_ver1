@@ -70,18 +70,22 @@ public class DBUtils {
 	}
 	
 	
-	public static String getEmailURL() {
-		String url="";
+	public static Map<String,String> getEmailURL() {
+	
+		Map<String,String> value=new HashMap<String, String>();
 		try {
+			
 			ZookeeperConnection zkConnection = new ZookeeperConnection();			
-			ZKModel.zkData = zkConnection.getZKData();
-			url = ZKModel.getProperty(ZKConstants.SEND_MAIL_URL);
+			ZKModel.zkData = zkConnection.getZKData();			
+				value.put("mail_url", ZKModel.getProperty(ZKConstants.SEND_MAIL_URL));
+				value.put("ftp_template", ZKModel.getProperty(ZKConstants.FTP_FILE_COMLETE_MAILL_TEMPLATE));
+				value.putAll(getServerDetails());
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-		
-		return url;
+		}		
+		return value;
 	}
+	
 	
 	public static Map<String,String> getServerDetails(){
 		ZookeeperConnection zkConnection = new ZookeeperConnection();
@@ -97,6 +101,7 @@ public class DBUtils {
 		return map;
 	}
 	
+
 	public static String getParsingServerIP() {
 		String url="";
 		try {
@@ -151,4 +156,8 @@ public class DBUtils {
 		}
 		return path;
 	}
+
+
+	
+	
 }

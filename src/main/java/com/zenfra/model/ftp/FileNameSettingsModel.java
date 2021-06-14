@@ -10,7 +10,9 @@ import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
 
 import org.json.simple.JSONArray;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 @Entity
 public class FileNameSettingsModel implements Serializable{
@@ -34,6 +36,7 @@ public class FileNameSettingsModel implements Serializable{
 	@NotBlank(message = "ftpName must not be empty")
 	private String ftpName;
 	
+	@JsonProperty(access = Access.WRITE_ONLY)
 	private String toPath;
 	
 	
@@ -84,6 +87,12 @@ public class FileNameSettingsModel implements Serializable{
 	}
 	public void setPattern(JSONArray pattern) {
 		this.pattern = pattern;
+	}
+	@Override
+	public String toString() {
+		return "FileNameSettingsModel [fileNameSettingId=" + fileNameSettingId + ", userId=" + userId + ", ipAddress="
+				+ ipAddress + ", siteKey=" + siteKey + ", pattern=" + pattern + ", isActive=" + isActive + ", ftpName="
+				+ ftpName + ", toPath=" + toPath + "]";
 	}
 	
 	

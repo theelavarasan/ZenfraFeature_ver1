@@ -60,29 +60,25 @@ public class FileNameSettingsController {
 
 			
 			if(exist==null) {
+				System.out.println(fileNameSettings.toString());
+				System.out.println("enter new");
 				String fileNameSettingId = UUID.randomUUID().toString();
 				fileNameSettings.setFileNameSettingId(fileNameSettingId);
 				fileNameSettings.setActive(true);				
 				service.saveFileNameSettings(fileNameSettings);			
 			}else {
+				System.out.println("enter exist");
 				BeanUtils.copyProperties(fileNameSettings, exist, NullAwareBeanUtilsBean.getNullPropertyNames(fileNameSettings));
+				System.out.println(exist.toString());
 				exist.setActive(true);
 				service.saveFileNameSettings(exist);
 			}
-			// server.setFilePath(path.getFileName().toString());
-
-			// if (FtbConfiguration.connectToServer(serverUsername, ipAddress, port,
-			// Constants.filePath + uploadfile[0].getOriginalFilename(), serverPassword, "")
-			// != null) {
-			
 			
 			response.setResponseCode(HttpStatus.OK);
 			 response.setResponseMessage("Saved FileName Settings");
-			// service.saveFtpServer(server);
+			
 			return response;
-			// }
-			// return new ResponseEntity("Unable to login using this credentials!",
-			// HttpStatus.OK);
+		
 		} catch (Exception e) {
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			response.setResponseMessage("Getting exception in Saving File name Settings: "+e.getMessage());

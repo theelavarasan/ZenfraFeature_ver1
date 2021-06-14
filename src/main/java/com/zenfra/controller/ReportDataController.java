@@ -187,7 +187,11 @@ public class ReportDataController {
 	    public ResponseEntity<String> testfav(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) { 	     
 		  System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : " + siteKey + " : "+userId);
 		 
-		  try {	      		 
+		  try {	
+			  		if(sourceType != null && (sourceType.equalsIgnoreCase("LINUX") || sourceType.equalsIgnoreCase("WINDOWS") || sourceType.equalsIgnoreCase("VMWARE"))) {
+			  			reportService.refreshCloudCostViews();
+			  		}
+			  		
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 	      			
@@ -243,7 +247,7 @@ public class ReportDataController {
 			  }
 			  
 				if(reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
-		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList);
+		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList, request.getCategory());
 		      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 		        }  else {
 	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		

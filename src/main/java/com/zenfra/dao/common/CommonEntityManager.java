@@ -8,10 +8,12 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Transactional
+@Repository
 public abstract class CommonEntityManager extends JdbcCommonOperations {
 
 	@PersistenceContext
@@ -29,11 +31,12 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 	
 	
 
+	@Transactional
 	public Boolean saveEntity(Class c, Object obj) {
 
 		try {
 			
-			entityManager.persist(obj);
+			this.entityManager.persist(obj);			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -100,4 +103,6 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		return true;
 	}
 
+	
+	
 }

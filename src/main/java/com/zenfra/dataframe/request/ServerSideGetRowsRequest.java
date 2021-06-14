@@ -54,6 +54,8 @@ public class ServerSideGetRowsRequest implements Serializable {
     private String reportCategory;
     
     private String deviceType;
+    
+    private String projectId;
 
     public ServerSideGetRowsRequest() {
         this.rowGroupCols = emptyList();
@@ -216,6 +218,14 @@ public class ServerSideGetRowsRequest implements Serializable {
 
 	public void setDeviceType(String deviceType) {
 		this.deviceType = deviceType;
+	}
+
+	public String getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
 	}
 	
     
