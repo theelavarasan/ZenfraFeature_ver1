@@ -100,4 +100,20 @@ public class DBUtils {
 		}
 		return map;
 	}
+	
+	public static String getServerUrl(){
+			String url="localhost:8080";
+		try {
+			ZookeeperConnection zkConnection = new ZookeeperConnection();
+			ZKModel.zkData = zkConnection.getZKData();
+			url=ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL.toString());
+			url+="://"+ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+			url+=":"+ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return url;
+	}
+	
+	
 }
