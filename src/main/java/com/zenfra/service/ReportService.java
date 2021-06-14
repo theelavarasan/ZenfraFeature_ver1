@@ -6,11 +6,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -18,6 +22,7 @@ import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,7 +30,9 @@ import org.springframework.stereotype.Component;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 import com.zenfra.model.ZenfraJSONObject;
+import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
+import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.service.DataframeService;
 
 @Component
@@ -43,7 +50,10 @@ public class ReportService {
 	 @Value("${zenfra.path}")
 	 private String commonPath;
 	 
-	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String reportList) {
+	 @Autowired
+	 private FavouriteDao_v2 favouriteDao_v2;
+	 
+	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String reportList, String category) {
 		JSONArray result = new JSONArray();
 		if(reportName.equalsIgnoreCase("migrationautomation")) { //get headers from dataframe
 			 
@@ -53,8 +63,14 @@ public class ReportService {
 			result = reportDao.getReportHeader(reportName, deviceType, reportBy);
 		}
 		
-		 	String report_label = reportList + " " + deviceType + " by "+  reportBy;
-	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	       
+				 	
+			//String report_label = reportList + " " + deviceType + " by "+  reportBy;	
+			String report_label = getReportLabelName(category, reportList, deviceType, reportBy);
+	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	 
+	        if(reportName.equalsIgnoreCase("optimization")) {
+	        	report_label = "Cloud Cost Comparison Report";
+	        	report_name =  "optimization"+ "_" + deviceType;
+	        }
 	        
 	        JSONObject resultObject = new JSONObject();
 	        resultObject.put("headerInfo", result);
@@ -64,6 +80,49 @@ public class ReportService {
 	}
 
 	
+	private String getReportLabelName(String category, String reportList, String deviceType, String reportBy) {
+		try {
+			String label = "";
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) && reportList.equalsIgnoreCase("Local")) {
+	            label = "Server";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("Local")) {
+	            label = "Storage";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("Local")) {
+	            label = "Switch";
+	        }
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) &&
+	                reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	       
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) &&
+	                reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        String reportLabel = label + " " + deviceType + " by " + reportBy;
+	        return reportLabel;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "";
+	}
+
+
 	public JSONArray getChartLayout(String userId, String siteKey, String reportName) {
 		JSONArray jSONArray = reportDao.getChartLayout(userId, siteKey, reportName);		
 		return jSONArray;
@@ -74,6 +133,8 @@ public class ReportService {
 		JSONObject reportDataObj =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
 		JSONArray chartData = chartService.getMigarationReport(siteKey, userId, reportName);
 		reportDataObj.put("chart", chartData);
+		JSONObject unitMetrics = dataframeService.getUnitConvertDetails(reportName, "");
+		reportDataObj.put("unit_conv_details", unitMetrics);
 		return reportDataObj;
 	}
 	
@@ -121,6 +182,7 @@ public class ReportService {
                 columnsNameArray.add("Server Name");
                 columnsNameArray.add("vCenter");
                 columnsNameArray.add("VM");
+                columnsNameArray.add("Host Name");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                 }
@@ -296,9 +358,142 @@ public class ReportService {
 
         //System.out.println("!!!!! result: " + result);
         return result;
-    }
+ 
+}
 	
-	
-	
+	public JSONArray getCloudCostData(ServerSideGetRowsRequest request) {
+		List<Map<String, Object>> cloudCostData = new ArrayList<>();
+		JSONArray resultArray = new JSONArray();
+		
+		try {
+			
+			//getHeader 
+			JSONParser jsonParser = new JSONParser();
+			String reportName = request.getReportType();
+			String deviceTypeHeder = "All";
+			String reportBy = request.getReportType();			
+		  JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+		  
+		
+		   List<String> columnHeaders = new ArrayList<>();
+		   if(headers != null && headers.size() > 0) {
+			   for(Object o : headers){
+				    if ( o instanceof JSONObject ) {
+				    	String col = (String) ((JSONObject) o).get("actualName");
+				    	columnHeaders.add(col);
+				    }
+				}
+		   }
+		   
+		   List<String> taskListServers = new ArrayList<>();
+		 if(request.getProjectId() != null && !request.getProjectId().isEmpty()) {
+			 List<Map<String, Object>> resultMap = favouriteDao_v2.getJsonarray("select server_name from tasklist where project_id='"+request.getProjectId()+"'");
+			 if(resultMap != null && !resultMap.isEmpty()) {
+				 for(Map<String, Object> map : resultMap) {
+					 taskListServers.add((String) map.get("server_name"));
+				 }
+			 }
+		 }
+			
+		   String deviceType = request.getDeviceType();
+			String query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(source_type) in ('windows', 'linux', 'vmware')";
+			if(deviceType != null && !deviceType.equalsIgnoreCase("All")) {				
+					query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and lower(source_type)='"+deviceType.toLowerCase()+"'";
+			}
+			
+			if(request.getProjectId() != null && !request.getProjectId().isEmpty() && !taskListServers.isEmpty()) {
+				String serverNames = String.join(",", taskListServers
+			            .stream()
+			            .map(name -> ("'" + name + "'"))
+			            .collect(Collectors.toList()));
+				query = "select * from mview_aws_cost_report where site_key='"+request.getSiteKey()+"' and server_name in ("+serverNames+")";
+			}
+			
+			cloudCostData = favouriteDao_v2.getJsonarray(query) ;
+			if(cloudCostData != null && !cloudCostData.isEmpty()) {
+				for(Map<String, Object> map : cloudCostData) {
+					
+					JSONObject json = new JSONObject();
+					
+					 Set<String> elementNamesFirstLevel = map.keySet();	
+					 for (String elementName : elementNamesFirstLevel) {	
+						 if(!elementName.equalsIgnoreCase("data_temp")) {							
+							 if(map.get(elementName) instanceof  String) {
+								 String value = (String) map.get(elementName);
+								 if(value == null || value.trim().isEmpty()) {
+						    		  value = "N/A";
+						    	  }
+								 json.put(elementName, value);
+							 } else {
+								 json.put(elementName, map.get(elementName));
+							 }
+						 }
+					 }
+					 
+					
+					Object object = null;
+					JSONArray arrayObj = null;					
+					PGobject pgObject = (PGobject) map.get("data_temp");				
+					object=jsonParser.parse(pgObject.toString());
+					arrayObj=(JSONArray) object;
+					
+					map.remove("data_temp");
+					for (int i = 0; i < arrayObj.size();  i++)  {
+				      JSONObject data = (JSONObject) arrayObj.get(i);
+				      Set<String> elementNames = data.keySet();				      
+				      for (String elementName : elementNames) {	
+				    	  
+				    	  if(columnHeaders.contains(elementName) && data.get(elementName) instanceof  String) {
+				    		  String value = (String) data.get(elementName);
+					    	  if(value == null || value.trim().isEmpty()) {
+					    		  value = "N/A";
+					    	  }
+					    	  json.put(elementName, value);
+					    	  
+				    	  } else if(columnHeaders.contains(elementName)){
+				    		  json.put(elementName, data.get(elementName));				    		 
+				    	  }
+				      }
+				    }
+					
+					Set<String> jsonKeySset =  json.keySet();
+					for(String key : columnHeaders) {
+					    if (!jsonKeySset.contains(key)) {					    	
+					    	json.put(key, "N/A") ;
+					    }
+					}
+					
+					resultArray.add(json);
+				}
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+		return resultArray;
+	}
 
+
+	private void refreshViews(String view) {
+		try {
+			Date date = new Date();
+			favouriteDao_v2.updateQuery("REFRESH MATERIALIZED VIEW " +  view +" WITH DATA");
+			Date date2 = new Date();	
+			System.out.println("----------refresh time----------- " + (date2.getTime() - date.getTime()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+
+	public void refreshCloudCostViews() {
+		refreshViews("mview_localdiscovery");
+		refreshViews("mview_aws_cost_report");
+		
+	}
 }

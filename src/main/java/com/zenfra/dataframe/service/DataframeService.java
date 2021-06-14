@@ -20,7 +20,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,6 +53,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Sets;
+import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
 import com.zenfra.dataframe.filter.ColumnFilter;
 import com.zenfra.dataframe.filter.NumberColumnFilter;
@@ -65,7 +65,6 @@ import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.dataframe.util.ZenfraConstants;
-import com.zenfra.service.ReportService;
 import com.zenfra.utils.DBUtils;
 
 
@@ -107,6 +106,9 @@ public class DataframeService{
 	 
 	 @Autowired
 	 private ReportDao reportDao;
+	 
+	 @Autowired
+	 private FavouriteDao_v2 favouriteDao_v2;
 	 
 	
 	 
@@ -512,9 +514,13 @@ public class DataframeService{
 	                .collectAsList();
 
 	        // calculate last row
-	        long lastRow = endRow >= rowCount ? rowCount : -1;		       
+	        long lastRow = endRow >= rowCount ? rowCount : -1;
+	       
+	        JSONObject metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
 	        
-	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count());
+	       
+	        
+	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count(), metrics);
 	    }
 
 	    private List<String> getSecondaryColumns(Dataset<Row> df) {
@@ -1561,6 +1567,210 @@ public DataResult getOptimizationReportData(ServerSideGetRowsRequest request) {
 				 }
 			 }
 			 return resultArray;
+		}
+		
+	
+		public String recreateLocalDiscovery(String siteKey, String sourceType) {
+			String result = "";
+			try {
+				sourceType = sourceType.toLowerCase();
+				
+				Map<String, String> options = new HashMap<String, String>();
+				options.put("url", dbUrl);				
+				options.put("dbtable", "local_discovery");				
+				
+				sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
+				
+				boolean isMultipleSourceType = false;
+				if(sourceType.contains("hyper") || sourceType.contains("vmware") || sourceType.contains("nutanix")) {
+					isMultipleSourceType = true;
+				} 
+				
+				if(!isMultipleSourceType) {
+					reinitiateDiscoveryDataframe(siteKey, sourceType);
+				} else {
+					if(sourceType.contains("hyper")) {
+						reinitiateDiscoveryDataframe(siteKey, "hyper-v-host");
+						reinitiateDiscoveryDataframe(siteKey, "hyper-v-vm");
+					} else if(sourceType.contains("vmware")) {
+						reinitiateDiscoveryDataframe(siteKey,"vmware");
+						reinitiateDiscoveryDataframe(siteKey, "vmware-host");
+					}  else if(sourceType.contains("nutanix")) {
+						reinitiateDiscoveryDataframe(siteKey,"nutanix-guest");
+						reinitiateDiscoveryDataframe(siteKey, "nutanix-host");
+					} else {
+						reinitiateDiscoveryDataframe(siteKey, sourceType);
+					}
+				}
+				
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return result;
+		}	
+		
+
+		private void reinitiateDiscoveryDataframe(String siteKey, String sourceType) {
+			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+			Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
+			
+			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");				
+			
+			try {
+				Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
+						"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
+				
+				 String filePathSrc = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;
+				File f = new File(filePathSrc);
+				if (!f.exists()) {
+					f.mkdir();
+				}
+				
+				dataframeBySiteKey.show();
+				
+				dataframeBySiteKey = dataframeBySiteKey.drop("site_key").drop("source_type");	
+				 
+				dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
+						.format("org.apache.spark.sql.json")
+						.mode(SaveMode.Overwrite).save(f.getPath());
+				dataframeBySiteKey.unpersist();
+				
+				// remove double quotes from json file
+				File[] files = new File(filePathSrc).listFiles();
+				if (files != null) {
+					DataframeUtil.formatJsonFile(files);
+				}
+				
+				for(File file : files) {
+					
+		            String filePath =  file.getAbsolutePath();
+		            if(filePath.endsWith(".json")) {			            	
+		   	         	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator + "*.json";
+		   	         	String viewName = siteKey+"_"+sourceType.toLowerCase();
+		   	         	viewName = viewName.replaceAll("-", "");
+		   	       
+		   	      try {			   	    	 
+		   	        	 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
+		   	        	 dataset.createOrReplaceTempView("tmpView");
+		   	        	 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+		   		         dataset.createOrReplaceGlobalTempView(viewName); 
+		   		         dataset.cache();
+		   		 	 System.out.println("---------View created-------- :: " + viewName);
+	        		} catch (Exception e) {
+	        			e.printStackTrace();
+	        			 System.out.println("---------Not able to create View-------- :: " + viewName);
+	        		}  
+		            	
+		            }
+		        
+				}
+		}  catch (Exception e) {
+			logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(), e);
+		}
+ }
+		
+		
+		 public JSONObject getUnitConvertDetails(String reportName, String deviceType) {
+		        logger.info("GetUnitConvertDetails Begins");
+		        JSONObject resultJSONObject = new JSONObject();
+		        try {
+		            JSONObject timeZoneMetricsObject = new JSONObject();
+		            List<Map<String, Object>> resultMap = new ArrayList<>();
+		            if (reportName.equalsIgnoreCase("capacity")) {
+		                String query = "select column_name from report_capacity_columns where lower(device_type)= '"+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
+		                
+		                resultMap = favouriteDao_v2.getJsonarray(query);
+
+		                
+		            } else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
+		            	  String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'";
+		                
+		                resultMap = favouriteDao_v2.getJsonarray(query);
+
+		                
+		            } else {
+		                String query = "select column_name from report_columns where lower(report_name) = '"+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
+		                        + "' and is_size_metrics = '1'";
+
+		                resultMap = favouriteDao_v2.getJsonarray(query);
+		            }
+		           
+		            JSONArray capacityMetricsColumns = new JSONArray();
+		            JSONObject capacityMetricsColumnObject = new JSONObject();
+		            for(Map<String, Object> list : resultMap) {
+		            	for (Map.Entry<String,Object> entry : list.entrySet()) {			                                
+			                    capacityMetricsColumns.add(entry.getValue());
+			            }
+		            }		           
+		            
+		            capacityMetricsColumnObject.put("column", capacityMetricsColumns);
+		            capacityMetricsColumnObject.put("metrics_in", "Gb");
+		            resultJSONObject.put("capacity_metrics", capacityMetricsColumnObject);
+		            resultJSONObject.put("timezone_metrics", timeZoneMetricsObject);
+		        } catch (Exception ex) {
+		            logger.error("Exception in GetUnitConvertDetails ", ex);
+		        }
+		        logger.info("GetUnitConvertDetails Ends");		       
+		        return resultJSONObject;
+		    }
+
+
+
+		public DataResult getCloudCostData(ServerSideGetRowsRequest request) {
+			 Dataset<Row> dataset = null;
+			try {
+				String siteKey = request.getSiteKey();
+				String deviceType = request.getDeviceType();
+				
+				 String viewName = siteKey+"_"+deviceType.toLowerCase();
+				 viewName = viewName.replaceAll("-", "")+"_opt";
+				
+				 boolean isDiscoveryDataInView = false;
+				 try {
+					 dataset = sparkSession.sql("select * from global_temp."+viewName);
+					 dataset.cache();
+					 isDiscoveryDataInView = true;			
+				} catch (Exception e) {
+					
+				} 
+				 
+				 if(!isDiscoveryDataInView) {
+					 Map<String, String> options = new HashMap<String, String>();
+						options.put("url", dbUrl);						
+						options.put("dbtable", "mview_aws_cost_report");						
+						sparkSession.sqlContext().load("jdbc", options).registerTempTable("mview_aws_cost_report"); 
+						dataset = sparkSession.sql("select * from mview_aws_cost_report where site_key='"+ siteKey + "'");
+						dataset.createOrReplaceGlobalTempView(viewName); 
+						dataset.cache();					
+				 }
+				 
+				   
+				 
+			} catch (Exception e) {
+				e.printStackTrace();
+			}		
+			
+			dataset = DataframeUtil.renameDataFrameColumn(dataset, "data_temp_", "");
+			
+			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+	        groupKeys = request.getGroupKeys();
+	        valueColumns = request.getValueCols();
+	        pivotColumns = request.getPivotCols();
+	        filterModel = request.getFilterModel();
+	        sortModel = request.getSortModel();
+	        isPivotMode = request.isPivotMode();
+	        isGrouping = rowGroups.size() > groupKeys.size();	        
+	       
+	        rowGroups =  formatInputColumnNames(rowGroups);
+	        groupKeys =  formatInputColumnNames(groupKeys);
+	        sortModel =  formatSortModel(sortModel);
+	        request.setStartRow(1);
+	        request.setEndRow((int)dataset.count());
+	        
+	        dataset.show();
+	        
+	        return paginate(dataset, request);
 		}
 	    
 }

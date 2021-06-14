@@ -10,13 +10,15 @@ public class DataResult {
     private long lastRow;
     private List<String> secondaryColumns;
     private long totalRecord;
+    private JSONObject unit_conv_details;
     
 
-    public DataResult(List<String> data, long lastRow, List<String> secondaryColumns, long totalRecord) {
+    public DataResult(List<String> data, long lastRow, List<String> secondaryColumns, long totalRecord, JSONObject unit_conv_details) {
         this.data = data;
         this.lastRow = lastRow;
         this.secondaryColumns = secondaryColumns;
-        this.totalRecord = totalRecord;       
+        this.totalRecord = totalRecord; 
+        this.unit_conv_details = unit_conv_details;
     }
 
     public List<String> getData() {
@@ -51,8 +53,12 @@ public class DataResult {
 		this.totalRecord = totalRecord;
 	}
 
-	
-    
-	
+	public JSONObject getUnit_conv_details() {
+		return unit_conv_details;
+	}
+
+	public void setUnit_conv_details(JSONObject unit_conv_details) {
+		this.unit_conv_details = unit_conv_details;
+	}
     
 }

@@ -1,7 +1,9 @@
 package com.zenfra.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -16,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -71,14 +74,53 @@ public class ReportDataController {
 	 
 	 @PostMapping("getReportData")
 	    public ResponseEntity<String> getRows(@RequestBody ServerSideGetRowsRequest request) { 		
+		  		 
+		  try {
+			  if(request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery")) {
+				  DataResult data = dataframeService.getReportData(request);
+		      		 if(data != null) {
+		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+		      		 }
+			  } else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {				
+				  JSONArray data = reportService.getCloudCostData(request);
+				  
+		      		 if(data != null) {	
+		      			JSONObject resultData = new JSONObject();
+		      			resultData.put("data", data);
+		      			resultData.put("lastRow", data.size());
+		      			resultData.put("totalCount", data.size());
+		      			return new ResponseEntity<>(resultData.toString(), HttpStatus.OK);
+		      		 }
+			  }
+	      		
+	 	        
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Not able to fecth report {}"+ e);
+			}   	
+	    	JSONArray emptyArray = new JSONArray();
+	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
+	    }
+	 
+	 
+	 @PostMapping("getCloudCost")
+	    public ResponseEntity<String> getCloudCost(@RequestBody ServerSideGetRowsRequest request) { 		
 		  
 		  try {
-	      		 DataResult data = dataframeService.getReportData(request);
+			     request.setAnalyticstype("optimization");
+			     request.setSourceType(request.getDeviceType());
+			     request.setReportType("optimization");
+			     Date st = new Date();
+			   //  DataResult data = dataframeService.getCloudCostData(request);
+	      		/// System.out.println("------- " + data);
+			     JSONArray data = reportService.getCloudCostData(request);
 	      		 if(data != null) {
-	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+	      			//return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+	      			return new ResponseEntity<>(data.toString(), HttpStatus.OK);
 	      		 }
 	 	        
 			} catch (Exception e) {
+				e.printStackTrace();
 				System.out.println("Not able to fecth report {}"+ e);
 			}   	
 	    	JSONArray emptyArray = new JSONArray();
@@ -123,7 +165,8 @@ public class ReportDataController {
 		  try {	      		 
 	      		 if(localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
 	      			 String result = "Success";	      			 			
-	      			result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
+	      			//result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
+	      			result = dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			
 	      			//verify default fav is present or not
 	      			//favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
@@ -144,8 +187,12 @@ public class ReportDataController {
 	    public ResponseEntity<String> testfav(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) { 	     
 		  System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : " + siteKey + " : "+userId);
 		 
-		  try {	      		 
-	      		
+		  try {	
+			  		if(sourceType != null && (sourceType.equalsIgnoreCase("LINUX") || sourceType.equalsIgnoreCase("WINDOWS") || sourceType.equalsIgnoreCase("VMWARE"))) {
+			  			reportService.refreshCloudCostViews();
+			  		}
+			  		
+			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 	      			
 	      			return new ResponseEntity<>("", HttpStatus.OK);
@@ -177,16 +224,38 @@ public class ReportDataController {
 	 
 	 
 	 @PostMapping("getReportHeader")
-	    public ResponseEntity<String> getReportHeader(@RequestParam("reportType") String reportName, @RequestParam("ostype") String deviceType, @RequestParam("reportBy") String reportBy, @RequestParam("siteKey") String siteKey, @RequestParam("reportList") String reportList) { 	     
-		  
-		  try {	      		 
-	      		 if(reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
-	      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList);
-	      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
-	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
+	    public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) { 
+		
+		  try {	    
+			  String reportName = "";
+			  String deviceType = "";
+			  String reportBy = "";
+			  String siteKey = "";
+			  String reportList = "";
+			  if(request.getReportType().equalsIgnoreCase("discovery")) {
+				  reportName = request.getReportType();
+				  deviceType = request.getOstype();
+				  reportBy = request.getReportBy();
+				  siteKey = request.getSiteKey();
+				  reportList = request.getReportList();
+			  } else if(request.getReportType().equalsIgnoreCase("optimization")){
+				   reportName = request.getReportType();
+				   deviceType = "All";
+				   reportBy = request.getReportType();
+				   siteKey = request.getSiteKey();
+				   reportList = request.getReportList();
+			  }
+			  
+				if(reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
+		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList, request.getCategory());
+		      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
+		        }  else {
+	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		
+	      	    }
+	      		 
 	      		
 			} catch (Exception e) {
+				
 				System.out.println("Not able to get report headers {}"+ e);
 			}   	
 	    	

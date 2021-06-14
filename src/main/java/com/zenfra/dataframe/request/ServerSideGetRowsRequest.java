@@ -48,6 +48,14 @@ public class ServerSideGetRowsRequest implements Serializable {
     private String category;
     
     private String ostype;
+    
+    private String reportType;
+    
+    private String reportCategory;
+    
+    private String deviceType;
+    
+    private String projectId;
 
     public ServerSideGetRowsRequest() {
         this.rowGroupCols = emptyList();
@@ -188,8 +196,37 @@ public class ServerSideGetRowsRequest implements Serializable {
 		this.sourceType = ostype;
 	}
 
-	
-    
+	public String getReportType() {
+		return reportType;
+	}
+
+	public void setReportType(String reportType) {
+		this.reportType = reportType;
+	}
+
+	public String getReportCategory() {
+		return reportCategory;
+	}
+
+	public void setReportCategory(String reportCategory) {
+		this.reportCategory = reportCategory;
+	}
+
+	public String getDeviceType() {
+		return deviceType;
+	}
+
+	public void setDeviceType(String deviceType) {
+		this.deviceType = deviceType;
+	}
+
+	public String getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
+	}
 	
     
 }
