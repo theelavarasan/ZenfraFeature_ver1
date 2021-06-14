@@ -503,4 +503,18 @@ public class CommonFunctions {
 			}
 			 return hour;
 		 }
+		 
+		 public String getCurrentMinutes() {
+			 String minutes="*";
+			 try {
+				 Date dt = new Date();
+			      SimpleDateFormat dateFormat;
+			      dateFormat = new SimpleDateFormat("kk:mm:ss");
+			      minutes=String.valueOf((Integer.valueOf(dateFormat.format(dt).split(":")[1])+1));
+			
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 return minutes;
+		 }
 }
