@@ -116,6 +116,8 @@ public class EolService {
                     .load(commonPath+"/Dataframe/data/Azure_Pricing_Data.csv");
 
             azurePriceDataSet.createOrReplaceTempView("AzurePricing");
+            
+            System.out.println("-----azurePriceDataSet- " + azurePriceDataSet.count());
 
             Dataset<Row> dataCheck = sparkSession.sql("Select concat_ws(',', concat('Operating System: ',az.OperatingSystem),concat('vCPU: ',az.vCPUs)" +
                     " ,concat('Memory: ',az.Memory)) as `Azure Specs`,az.InstanceType" +
@@ -128,8 +130,10 @@ public class EolService {
                     "join AzurePricing c on c.InstanceType=az.InstanceType and c.Type='1yr' and c.OperatingSystem = az.OperatingSystem " +
                     "where az.Region = 'US East' and az.Type = 'OnDemand' and az.OperatingSystem is not null and az.InstanceType is not NULL " +
                     "group by az.OperatingSystem,az.InstanceType,az.vCPUs,az.Memory");
-            dataCheck.createOrReplaceGlobalTempView("azurePricingDF");
+            dataCheck.createOrReplaceGlobalTempView("azurePricingDF");            
+            System.out.println("-----azurePriceDataSet----------- " + dataCheck.count());
         } catch (Exception ex) {
+        	ex.printStackTrace();
             logger.error("Exception in getAzurePricing:", ex);
         }
 		}
