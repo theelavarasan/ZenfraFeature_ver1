@@ -1,8 +1,6 @@
 package com.zenfra.controller;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -32,17 +30,15 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
-import com.zenfra.ftp.scheduler.AwsScriptThread;
 import com.zenfra.model.AwsInventory;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ftp.ProcessingStatus;
-import com.zenfra.payload.model.CallAwsScript;
 import com.zenfra.service.ProcessService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Constants;
+import com.zenfra.utils.DBUtils;
 
 @RestController
 @RequestMapping("/rest/aws-inventory")
@@ -65,7 +61,6 @@ public class AwsInventoryController {
 	public ResponseModel_v2 saveAws(@RequestBody AwsInventory aws){
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			
 			AwsInventory awsExist=getAwsInventoryBySiteKey(aws.getSitekey());
 				if(awsExist!=null && awsExist.getSitekey()!=null) {
 					aws.setSecret_access_key(aesEncrypt.decrypt(awsExist.getSecret_access_key()));					
@@ -265,7 +260,8 @@ public class AwsInventoryController {
 		try {
 			
 			System.out.println("Call aws script......");
-			String path=" /opt/ZENfra/repo/cloud-inventory-collectors/aws/inventory_collection/aws_inventory.py";
+			//String path=" /opt/ZENfra/repo/cloud-inventory-collectors/aws/inventory_collection/aws_inventory.py";
+			String path= DBUtils.awsScriptData();
 			String cmd="python3 "+path+" --akid "+access_key_id+" --sakey "+secret_access_key+" --sitekey "+siteKey;
 		
 			System.out.println("cmd::"+cmd);
@@ -295,7 +291,7 @@ public class AwsInventoryController {
 		//Map<String, String> map=DBUtils.getPostgres();
 		String response="";
 		try {
-			String path="/opt/ZENfra/repo/cloud-inventory-collectors/aws/authentication.py";
+			String path= DBUtils.awsScriptAuth(); //"/opt/ZENfra/repo/cloud-inventory-collectors/aws/authentication.py";
 			String cmd="python3 "+path+" --id "+access_id+" --key "+secret_key;
 			
 			System.out.println("testconnection cmd::"+cmd);
@@ -339,6 +335,7 @@ public class AwsInventoryController {
 			      body.add("status", status);
 		
 			      
+			      System.out.println(Constants.current_url);
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
           responce= restTemplate

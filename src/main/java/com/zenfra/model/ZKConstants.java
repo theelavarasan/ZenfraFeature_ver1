@@ -90,5 +90,7 @@ public class ZKConstants {
 	public static String pg_db_port="pg_db_port";
 	public static String parsing_server_ip="parsingServerIP";
 	public static String parsingServerPort="parsingServerPort";
+	public static String aws_data_script_path="aws_data_script_path";
+	public static String aws_test_connection_path="aws_test_connection_path";
 	
 }

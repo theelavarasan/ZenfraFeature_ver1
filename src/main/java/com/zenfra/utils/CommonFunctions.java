@@ -325,7 +325,7 @@ public class CommonFunctions {
 	 }
 	 
 		public Object updateLogFile(JSONObject json) {
-			 Object response=null;
+			 ResponseEntity<String> response=null;
 			 System.out.println(DBUtils.getParsingServerIP());
 			try {
 				String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
@@ -333,11 +333,10 @@ public class CommonFunctions {
 		          response= restTemplate
 		                 .exchange(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-call", HttpMethod.POST, request, String.class);	
 		       
+		        return response.getBody();
 			} catch (Exception e) {
 				return e.getMessage();
-			}
-			System.out.println("Rest response::"+response);
-			return response;
+		}
 		}
 		
 		 HttpHeaders createHeaders(String token){
@@ -389,6 +388,7 @@ public class CommonFunctions {
 			 
 			return isSuccess; 
 		 }
+		 
 		 
 		 
 
