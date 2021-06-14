@@ -112,6 +112,7 @@ public class DBUtils {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.out.println("ServerUrl::"+url);
 		return url;
 	}
 	
