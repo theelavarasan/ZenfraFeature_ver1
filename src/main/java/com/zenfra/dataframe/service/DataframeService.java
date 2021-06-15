@@ -1558,23 +1558,26 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		        try {
 		            JSONObject timeZoneMetricsObject = new JSONObject();
 		            List<Map<String, Object>> resultMap = new ArrayList<>();
-		            if (reportName.equalsIgnoreCase("capacity")) {
-		                String query = "select column_name from report_capacity_columns where lower(device_type)= '"+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
-		                
-		                resultMap = favouriteDao_v2.getJsonarray(query);
+		            if(reportName != null && !reportName.isEmpty()) {
+		            	 if (reportName.equalsIgnoreCase("capacity")) {
+				                String query = "select column_name from report_capacity_columns where lower(device_type)= '"+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
+				                
+				                resultMap = favouriteDao_v2.getJsonarray(query);
 
-		                
-		            } else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
-		            	  String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'";
-		                
-		                resultMap = favouriteDao_v2.getJsonarray(query);
+				                
+				            } else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
+				            	  String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'";
+				                
+				                resultMap = favouriteDao_v2.getJsonarray(query);
 
-		                
-		            } else {
-		                String query = "select column_name from report_columns where lower(report_name) = '"+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
-		                        + "' and is_size_metrics = '1'";
+				                
+				            } else {
+				                String query = "select column_name from report_columns where lower(report_name) = '"+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
+				                        + "' and is_size_metrics = '1'";
 
-		                resultMap = favouriteDao_v2.getJsonarray(query);
+				                resultMap = favouriteDao_v2.getJsonarray(query);
+				            }
+				           
 		            }
 		           
 		            JSONArray capacityMetricsColumns = new JSONArray();
