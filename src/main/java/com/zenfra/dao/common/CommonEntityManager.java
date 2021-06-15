@@ -36,9 +36,9 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 	public Boolean saveEntity(Class c, Object obj) {
 
 		try {
-			entityManager.getTransaction().begin();
-				entityManager.persist(obj);
-			entityManager.getTransaction().commit();
+			
+			entityManager.persist(obj);
+			entityManager.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -50,9 +50,9 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 	public Boolean updateEntity(Class c, Object obj) {
 
 		try {		
-			entityManager.getTransaction().begin();
-				entityManager.merge(obj);
-			entityManager.getTransaction().commit();
+			
+			entityManager.merge(obj);
+			entityManager.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

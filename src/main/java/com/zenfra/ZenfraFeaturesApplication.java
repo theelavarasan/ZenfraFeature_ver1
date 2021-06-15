@@ -88,7 +88,7 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 		    
-		   dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
+		   //dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
 	    	//eolService.getEOLEOSData();
 	    	//eolService.getEOLEOSHW();
 	    	//eolService.getGooglePricing();
