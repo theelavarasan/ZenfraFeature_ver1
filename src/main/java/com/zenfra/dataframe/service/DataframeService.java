@@ -1793,7 +1793,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                  
                logger.info("getReport Details Ends");
                
-               request.setStartRow(1);
+               request.setStartRow(0);
                request.setEndRow((int)dataCheck.count());
                rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
     	        groupKeys = request.getGroupKeys();
