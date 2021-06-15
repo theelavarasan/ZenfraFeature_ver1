@@ -324,7 +324,8 @@ public class CommonFunctions {
 			 ResponseEntity<String> response= restTemplate
 	                 //.exchange("http://localhost:8080/usermanagment/auth/login", HttpMethod.POST, request, String.class);
 	        		  .exchange(Constants.current_url+"/UserManagement/auth/login", HttpMethod.POST, request, String.class);
-	         ObjectMapper mapper = new ObjectMapper();
+			 System.out.println(Constants.current_url);
+			 ObjectMapper mapper = new ObjectMapper();
 	         JsonNode root = mapper.readTree(response.getBody());		
 	         token=root.get("jData").get("AccessToken");
 			} catch (Exception e) {
