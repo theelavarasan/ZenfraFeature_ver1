@@ -58,7 +58,7 @@ public class ProcessService {
 	public Object getFTPLogByServerId(String serverId) {
 			try {
 				
-				String query="select * from processing_status where data_id=':data_id_value'";
+				String query="select * from processing_status where process_data_id=':data_id_value'";
 					query=query.replace(":data_id_value", serverId);
 				 return dao.getEntityListByColumn(query, ProcessingStatus.class);
 			} catch (Exception e) {

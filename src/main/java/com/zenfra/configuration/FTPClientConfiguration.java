@@ -98,7 +98,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 			List<FileWithPath> fileList = new ArrayList<FileWithPath>();
 
-			List<String> existCheckSums = getCheckSumDetails();
+			List<String> existCheckSums = getCheckSumDetails(server.getSiteKey());
 
 			System.out.println("Start iStream FTP" + path);
 			FTPClient ftpClient = getConnection(server);
@@ -274,12 +274,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					path1.setCheckSum(chkSumFTP);
 					path1.setSubFolder(subFolder);
 					fileList.add(path1);
-					/*
-					 * FileWithPath path1 = new FileWithPath(); path1.setPath(dirToList + "/" +
-					 * aFile.getName()); path1.setName(aFile.getName());
-					 * 
-					 * fileList.add(path1);
-					 */
+					
 
 				}
 			}
@@ -349,10 +344,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 	}
 
-	public List<String> getCheckSumDetails() {
+	public List<String> getCheckSumDetails(String sitekey) {
 		List<String> list = new ArrayList<String>();
 		try {
-			List<Object> objList = getEntityListByColumn("select * from check_sum_details", CheckSumDetails.class);
+			List<Object> objList = getEntityListByColumn("select * from check_sum_details where site_key='"+sitekey+"'", CheckSumDetails.class);
 			for (Object obj : objList) {
 				CheckSumDetails check = (CheckSumDetails) obj;
 				list.add(check.getCheckSum());
