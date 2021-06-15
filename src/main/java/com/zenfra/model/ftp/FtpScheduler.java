@@ -190,6 +190,32 @@ public class FtpScheduler {
 				+ time + ", timeZone=" + timeZone + "]";
 	}
 
+	public FtpScheduler() {
+	
+	}
+
+	public FtpScheduler(long id, @NotBlank(message = "fileNameSettingsId must not be empty") String fileNameSettingsId,
+			String type, String schedulerCorn, @NotBlank(message = "timeSlot must not be empty") String timeSlot,
+			boolean isActive, String tenantId, @NotBlank(message = "siteKey must not be empty") String siteKey,
+			@NotBlank(message = "userId must not be empty") String userId, JSONArray notificationEmail,
+			JSONArray selectedDay, String selectedDate, String time, String timeZone) {
+		super();
+		this.id = id;
+		this.fileNameSettingsId = fileNameSettingsId;
+		this.type = type;
+		this.schedulerCorn = schedulerCorn;
+		this.timeSlot = timeSlot;
+		this.isActive = isActive;
+		this.tenantId = tenantId;
+		this.siteKey = siteKey;
+		this.userId = userId;
+		this.notificationEmail = notificationEmail;
+		this.selectedDay = selectedDay;
+		this.selectedDate = selectedDate;
+		this.time = time;
+		this.timeZone = timeZone;
+	}
+
 	
 
 	

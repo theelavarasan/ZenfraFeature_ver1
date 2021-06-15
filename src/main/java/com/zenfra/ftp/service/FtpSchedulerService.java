@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +106,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		}
 	}
 
+	
 	public Object runFtpSchedulerFiles(FtpScheduler s) {
 		ProcessingStatus status=new ProcessingStatus();
 		JSONObject email=new JSONObject();
@@ -126,7 +129,13 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 				process.sentEmailFTP(email);
 				*/
-			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
+			//FileNameSettingsService settingsService=new FileNameSettingsService();
+			System.out.println("s.getFileNameSettingsId()::"+s.getFileNameSettingsId());
+			
+			String getFileNameSettings="select * from file_name_settings_model where file_name_settings_id='"+s.getFileNameSettingsId()+"'";
+			
+			FileNameSettingsModel settings =(FileNameSettingsModel) getObjectByQueryNew(getFileNameSettings, FileNameSettingsModel.class) ;//settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
+			System.out.println("settings::"+settings.toString());
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
 				
 			email.put("FTPname", server.getFtpName());				
