@@ -1701,7 +1701,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
              if(!taskListServers.isEmpty()) {
             	 String serverNames = String.join(",", taskListServers
  			            .stream()
- 			            .map(name -> ("'" + name + "'"))
+ 			            .map(name -> ("'" + name.toLowerCase() + "'"))
  			            .collect(Collectors.toList()));
             	 deviceType =  " lcase(aws.`Server Name`) in ("+serverNames+")";
              }
