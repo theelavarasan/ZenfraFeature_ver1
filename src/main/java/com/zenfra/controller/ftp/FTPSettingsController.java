@@ -229,7 +229,7 @@ public class FTPSettingsController {
 	public List<FileWithPath> getFiles(@RequestParam("siteKey") String siteKey, @RequestParam("path") String path,
 			@RequestParam("connectionName") String connectionName) {
 		try {
-		List<FileWithPath> connectionRes = service.getFiles(siteKey, path, connectionName);
+		List<FileWithPath> connectionRes = null;//service.getFiles(siteKey, path, connectionName);
 
 			return connectionRes;
 		} catch (Exception e) {

@@ -10,6 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
@@ -324,7 +325,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 	public boolean copyStatus(List<String> existCheckSums, String checkSum, String serverId, String fileName,String sitekey) {
 
 		try {
-
+			CommonFunctions functions=new CommonFunctions();
 			System.out.println("checkSum::" + checkSum);
 			if (existCheckSums != null && existCheckSums.contains(checkSum)) {
 				return true;
@@ -334,7 +335,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			String query="INSERT INTO check_sum_details(check_sum_id, check_sum, client_ftp_server_id, file_name, site_key) VALUES (':check_sum_id', ':check_sum', ':client_ftp_server_id', ':file_name', ':site_key');";
 				query=query.replace(":check_sum_id", functions.generateRandomId()).replace(":check_sum", checkSum).replace(":client_ftp_server_id", serverId).replace(":file_name", fileName).replace(":site_key", sitekey);
 			System.out.println("CheckSum query::"+query);
-				updateQuery(query);			
+			excuteByUpdateQueryNew(query);			
 			return false;
 
 		} catch (Exception e) {
@@ -347,10 +348,12 @@ public class FTPClientConfiguration extends CommonEntityManager {
 	public List<String> getCheckSumDetails(String sitekey) {
 		List<String> list = new ArrayList<String>();
 		try {
-			List<Object> objList = getEntityListByColumn("select * from check_sum_details where site_key='"+sitekey+"'", CheckSumDetails.class);
-			for (Object obj : objList) {
-				CheckSumDetails check = (CheckSumDetails) obj;
-				list.add(check.getCheckSum());
+			String query="select * from check_sum_details where site_key='"+sitekey+"'";
+			
+			List<Map<String,Object>> map=getListObjectsByQueryNew(query);
+			//List<Object> objList = getEntityListByColumn("select * from check_sum_details where site_key='"+sitekey+"'", CheckSumDetails.class);
+			for (Map<String,Object> obj : map) {				
+				list.add(obj.get("check_sum").toString());
 			}
 
 		} catch (Exception e) {
