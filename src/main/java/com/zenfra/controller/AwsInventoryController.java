@@ -214,14 +214,13 @@ public class AwsInventoryController {
 			
 			AwsInventory aws=getAwsInventoryByDataId(data_id);
 			ProcessingStatus status=new ProcessingStatus();
-				status.setId(common.generateRandomId());
+				status.setProcessing_id(common.generateRandomId());
 				status.setFile("AWS");
 				status.setLogType("AWS");
 				status.setUserId(userId);
-				status.setDataId(rid);
 				status.setSiteKey(siteKey);
 				status.setTenantId(tenantId);
-				status.setDataId(aws.getData_id());
+				status.setProcessDataId(aws.getData_id());
 				status.setProcessingType("aws");
 				status.setStatus("Processing");
 			serivce.saveProcess(status);
