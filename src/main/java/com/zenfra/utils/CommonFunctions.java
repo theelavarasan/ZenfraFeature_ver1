@@ -341,8 +341,8 @@ public class CommonFunctions {
 				String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));
 		          response= restTemplate
-		                 .exchange("http://localhost:8080"+"/parsing/rest/api/excute-aws-call", HttpMethod.POST, request, String.class);	
-		       //DBUtils.getParsingServerIP()
+		                 .exchange(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-call", HttpMethod.POST, request, String.class);	
+		       
 		        return response.getBody();
 			} catch (Exception e) {
 				return e.getMessage();
