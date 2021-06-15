@@ -6,19 +6,15 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-
+import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@Repository
-@Transactional
 public abstract class CommonEntityManager extends JdbcCommonOperations {
 
 	@PersistenceContext
-	EntityManager entityManager;
+	private  EntityManager entityManager;
 
 	public Object findEntityById(Class c, String id) {
 		Object obj = new Object();
@@ -36,9 +32,9 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 	public Boolean saveEntity(Class c, Object obj) {
 
 		try {
-			entityManager.getTransaction().begin();
-				entityManager.persist(obj);
-			entityManager.getTransaction().commit();
+			
+			entityManager.persist(obj);
+			entityManager.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -50,9 +46,9 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 	public Boolean updateEntity(Class c, Object obj) {
 
 		try {		
-			entityManager.getTransaction().begin();
-				entityManager.merge(obj);
-			entityManager.getTransaction().commit();
+			
+			entityManager.merge(obj);
+			entityManager.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

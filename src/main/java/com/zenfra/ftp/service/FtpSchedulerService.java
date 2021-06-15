@@ -126,18 +126,22 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 				process.sentEmailFTP(email);
 				*/
-			
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
-			
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
-				email.put("FTPname", server.getFtpName());				
+				List<FileWithPath> files=getFilesBased(server,settings);
+			
+			email.put("FTPname", server.getFtpName());				
 				status.setProcessingType("FTP");
-				status.setDataId(String.valueOf(server.getServerId()));
+				status.setProcessing_id(functions.generateRandomId());
 				status.setStartTime(functions.getCurrentDateWithTime());
-				status.setId(functions.generateRandomId());
+				status.setProcessDataId(String.valueOf(server.getServerId()));
 				status.setStatus("Processing");
+				status.setSiteKey(server.getSiteKey());
+				status.setLogCount(String.valueOf(files.size()));
+				status.setPath(server.getServerPath());		
+				status.setEndTime(functions.getCurrentDateWithTime());	
 			process.saveProcess(status);	
-			List<FileWithPath> files=getFilesBased(server,settings);			
+						
 			System.out.println("FileWithPath size::"+files.size());
 			
 			String token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
@@ -163,14 +167,14 @@ public class FtpSchedulerService extends CommonEntityManager{
 			status.setStatus("Completed");
 			status.setFile(fileList.toJSONString());
 			status.setLogCount(String.valueOf(fileList.size()));
-			status.setEndTime(functions.getCurrentDateWithTime());
-			status.setPath(server.getServerPath());
+			status.setEndTime(functions.getCurrentDateWithTime());			
 			process.updateMerge(status);
 			//process.sentEmailFTP(email);
 			return files;
 		} catch (Exception e) {
 			//email.put("Notes", "Unable to parse file.Don't worry admin look in to this.");
 			//process.sentEmailFTP(email);
+			status.setEndTime(functions.getCurrentDateWithTime());	
 			status.setStatus("Failed");
 			status.setResponse(e.getMessage());
 			process.updateMerge(status);			

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.zenfra.ftp.service.FtpSchedulerService;
 import com.zenfra.model.ftp.FtpScheduler;
+import com.zenfra.utils.CommonFunctions;
 
 @Service
 @Configuration 
@@ -24,6 +25,8 @@ public class ScheduleTaskService {
 	
 //	/https://thebackendguy.com/spring-schedule-tasks-or-cron-jobs-dynamically/#:~:text=Spring%20provides%20Task%20Scheduler%20API,different%20methods%20to%20schedule%20task.
 	
+	@Autowired
+	CommonFunctions  functions;
 	
 	@Autowired
 	FtpSchedulerService ftpSchedulerService;
@@ -69,6 +72,11 @@ public class ScheduleTaskService {
 			
 				for(FtpScheduler s:list) {
 					SchedulerThread r = new SchedulerThread(s);
+					if (s.getType()!=null && s.getType().equalsIgnoreCase("hour")) {
+						String corn = "0 minutes current/hour * * ?";
+						s.setSchedulerCorn(corn.replace("hour", s.getTime()).replace("current", functions.getCurrentHour()).replace("minutes", functions.getCurrentMinutes()));
+					}
+					
 					addTaskToScheduler(s.getId(), r, s.getSchedulerCorn());
 					System.out.println("--------corn added----"+s.getType()+":"+s.getSchedulerCorn());
 				}
