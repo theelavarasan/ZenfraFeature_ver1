@@ -1873,9 +1873,22 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									
 									 Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json"); 
 					   	        	 dataset.createOrReplaceTempView("tmpView");
-					   	        	 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-					   		         dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
-					   		         //dataset.cache();									
+					   	        	 dataset = sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+					   	        	//following three conditions only applied for windows logs. windows only following 3 fields, other logs should have column with empty
+					   	        	 if(!Arrays.toString(dataset.columns()).contains("Logical Processor Count")) {
+					   	        		dataset = dataset.withColumn("Logical Processor Count", lit(""));
+					   	        	 }
+									 if(!Arrays.toString(dataset.columns()).contains("DB Service")) {
+										 dataset = dataset.withColumn("DB Service", lit(""));			   	        		 
+														   	        	 }
+									 if(!Arrays.toString(dataset.columns()).contains("Processor Name")) {
+										 dataset =  dataset.withColumn("Processor Name", lit("")); 
+									  }
+					   	        	
+					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
+					   		         //dataset.cache();			
+					   		    
+					   		        dataset.printSchema();
 								 
 					        } catch (Exception ex) {
 					            ex.printStackTrace();
