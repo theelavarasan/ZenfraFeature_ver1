@@ -12,7 +12,7 @@ public class CheckSumDetails {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Id
 	@Column(name = "check_sum_id")
-	private long data_id;
+	private String data_id;
 	
 	private String fileName;
 	
@@ -22,13 +22,19 @@ public class CheckSumDetails {
 	
 	private String siteKey;
 
-	public long getData_id() {
+	
+
+	public String getData_id() {
 		return data_id;
 	}
 
-	public void setData_id(long data_id) {
+
+
+	public void setData_id(String data_id) {
 		this.data_id = data_id;
 	}
+
+	
 
 	public String getFileName() {
 		return fileName;

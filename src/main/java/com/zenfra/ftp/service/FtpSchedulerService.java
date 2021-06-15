@@ -132,12 +132,13 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 			email.put("FTPname", server.getFtpName());				
 				status.setProcessingType("FTP");
-				status.setProcessing_id(String.valueOf(server.getServerId()));
+				status.setProcessing_id(functions.generateRandomId());
 				status.setStartTime(functions.getCurrentDateWithTime());
-				status.setProcessDataId(functions.generateRandomId());
+				status.setProcessDataId(String.valueOf(server.getServerId()));
 				status.setStatus("Processing");
 				status.setSiteKey(server.getSiteKey());
 				status.setLogCount(String.valueOf(files.size()));
+				status.setPath(server.getServerPath());				
 			process.saveProcess(status);	
 						
 			System.out.println("FileWithPath size::"+files.size());
@@ -165,8 +166,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			status.setStatus("Completed");
 			status.setFile(fileList.toJSONString());
 			status.setLogCount(String.valueOf(fileList.size()));
-			status.setEndTime(functions.getCurrentDateWithTime());
-			status.setPath(server.getServerPath());
+			status.setEndTime(functions.getCurrentDateWithTime());			
 			process.updateMerge(status);
 			//process.sentEmailFTP(email);
 			return files;

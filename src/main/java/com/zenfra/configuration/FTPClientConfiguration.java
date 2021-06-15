@@ -16,6 +16,7 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPCommand;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.spark.sql.functions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,10 +25,14 @@ import com.zenfra.model.ftp.CheckSumDetails;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
+import com.zenfra.utils.CommonFunctions;
 
 @Component
 public class FTPClientConfiguration extends CommonEntityManager {
 
+		@Autowired
+		CommonFunctions functions;
+	
 	public static FTPClient loginClient(FTPServerModel server) {
 
 		try {
@@ -255,7 +260,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 						chkSumFTP = getFileChecksum(file1);
 						file1.delete();
 						ftpClient.completePendingCommand();
-						if (copyStatus(existCheckSums, chkSumFTP, server.getServerId(), aFile.getName())) {
+						if (copyStatus(existCheckSums, chkSumFTP, server.getServerId(), aFile.getName(),server.getSiteKey())) {
 							continue;
 						}
 
@@ -321,7 +326,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		return sb.toString();
 	}
 
-	public boolean copyStatus(List<String> existCheckSums, String checkSum, String serverId, String fileName) {
+	public boolean copyStatus(List<String> existCheckSums, String checkSum, String serverId, String fileName,String sitekey) {
 
 		try {
 
@@ -329,14 +334,11 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			if (existCheckSums != null && existCheckSums.contains(checkSum)) {
 				return true;
 			}
-
+	
 			
-			CheckSumDetails checksum = new CheckSumDetails();
-			checksum.setClientFtpServerId(serverId);
-			checksum.setFileName(fileName);
-			checksum.setCheckSum(checkSum);
-			saveEntity(CheckSumDetails.class, checksum);
-
+			String query="INSERT INTO check_sum_details(check_sum_id, check_sum, client_ftp_server_id, file_name, site_key) VALUES (':check_sum_id', ':check_sum', ':client_ftp_server_id', ':file_name', ':site_key');";
+				query=query.replace(":check_sum_id", functions.generateRandomId()).replace(":check_sum", checkSum).replace(":client_ftp_server_id", serverId).replace(":file_name", fileName).replace(":site_key", sitekey);
+			updateQuery(query);			
 			return false;
 
 		} catch (Exception e) {
