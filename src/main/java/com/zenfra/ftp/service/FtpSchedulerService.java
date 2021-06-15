@@ -244,12 +244,13 @@ public class FtpSchedulerService extends CommonEntityManager{
          builder.append("&isReparse=");	
          builder.append(URLEncoder.encode("false",StandardCharsets.UTF_8.toString()));
          	
-     	new Thread(new Runnable() {
+         Runnable myrunnable = new Thread(){
 	        public void run(){
 	        	CallFTPParseAPI(restTemplate, builder, token); 
 		     }
-	    }).start();
+	    };
          
+	    new Thread(myrunnable).start();
          return builder.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -302,6 +303,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 						.exchange(uri, HttpMethod.GET, requestParse, String.class);
 	
 		} catch (Unauthorized e) {
+			e.printStackTrace();
 			token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 			CallFTPParseAPI(restTemplate, builder, token);
 		}catch (Exception e) {
