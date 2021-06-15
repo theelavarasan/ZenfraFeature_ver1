@@ -338,7 +338,8 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			
 			String query="INSERT INTO check_sum_details(check_sum_id, check_sum, client_ftp_server_id, file_name, site_key) VALUES (':check_sum_id', ':check_sum', ':client_ftp_server_id', ':file_name', ':site_key');";
 				query=query.replace(":check_sum_id", functions.generateRandomId()).replace(":check_sum", checkSum).replace(":client_ftp_server_id", serverId).replace(":file_name", fileName).replace(":site_key", sitekey);
-			updateQuery(query);			
+			System.out.println("CheckSum query::"+query);
+				updateQuery(query);			
 			return false;
 
 		} catch (Exception e) {
