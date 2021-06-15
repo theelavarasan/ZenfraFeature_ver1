@@ -1886,9 +1886,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									  }
 					   	        	
 					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
-					   		         //dataset.cache();			
+					   		         dataset.cache();			
 					   		    
-					   		        dataset.printSchema();
+					   		      //  dataset.printSchema();
 								 
 					        } catch (Exception ex) {
 					            ex.printStackTrace();
@@ -1941,7 +1941,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                    " awsPricing2.Memory and awsPricing.vCPU = awsPricing2.vCPU and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData" +
 				                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
 				            dataCheck.createOrReplaceGlobalTempView("awsReport");				            
-				            
+				            dataCheck.cache();
 				        } catch (Exception ex) {
 				            ex.printStackTrace();
 				        }
@@ -1980,7 +1980,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                    " when localDiscoveryDF.OS like '%SUSE%' then 'SUSE' when localDiscoveryDF.OS like '%Linux%' OR localDiscoveryDF.OS like '%CentOS%' then 'Linux'" +
 				                    " when localDiscoveryDF.OS like '%Windows%' then 'Windows' else localDiscoveryDF.`Server Type` end))) report ) reportData " +
 				                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
-				            dataCheck.createOrReplaceGlobalTempView("azureReport");				          
+				            dataCheck.createOrReplaceGlobalTempView("azureReport");		
+				            dataCheck.cache();
 				            
 				        } catch (Exception ex) {
 				            ex.printStackTrace();
@@ -2029,7 +2030,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                    " cast(localDiscoveryDF.Memory as int) end)) report ) reportData " +
 				                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
 				            dataCheck.createOrReplaceGlobalTempView("googleReport");				           
-				            
+				            dataCheck.cache();
 				        } catch (Exception ex) {
 				            ex.printStackTrace();
 				        }
@@ -2061,6 +2062,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
 				                if (dataCount > 0) {
 				                    dataCheck.createOrReplaceGlobalTempView("eoleosDataDF");
+				                    dataCheck.cache();
 				                }
 				            }
 				        } catch (Exception ex) {
@@ -2092,6 +2094,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
 				                if (dataCount > 0) {
 				                    dataCheck.createOrReplaceGlobalTempView("eolHWData");
+				                    dataCheck.cache();
 				                }
 				            }
 				        } catch (Exception ex) {

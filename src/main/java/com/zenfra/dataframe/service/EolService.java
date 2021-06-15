@@ -49,6 +49,7 @@ public class EolService {
             	eoleosDataSet.createOrReplaceTempView("eolDataDFTmp");
             	eoleosDataSet = sparkSession.sql("select os_type, os_version, end_of_life_cycle, end_of_extended_support from eolDataDFTmp");
                 eoleosDataSet.createOrReplaceGlobalTempView("eolDataDF");
+                eoleosDataSet.cache();
                // eoleosDataSet.show();
             }
         } catch (Exception ex) {
@@ -79,7 +80,7 @@ public class EolService {
 			            	eoleosDataSet.createOrReplaceTempView("eolHWDataDFTmp");
 			            	eoleosDataSet = sparkSession.sql("select vendor, model, end_of_life_cycle, end_of_extended_support, source_link from eolHWDataDFTmp");
 			                eoleosDataSet.createOrReplaceGlobalTempView("eolHWDataDF");
-			               // eoleosDataSet.show();
+			                eoleosDataSet.cache();
 			            }           
 		        } catch (Exception ex) {
 		            logger.error("Exception in generating dataframe for EOL/EOS HW data", ex);
@@ -99,7 +100,7 @@ public class EolService {
                     .option("header", "true").option("inferschema", false)
                     .load(commonPath+"/Dataframe/data/AWS EC2 Pricing - US East Ohio.csv");
             awsPriceDataSet.createOrReplaceGlobalTempView("awsPricingDF");
-          
+            awsPriceDataSet.cache();
         } catch (Exception ex) {
             logger.error("Exception in getAzurePricing", ex);
         }
@@ -131,7 +132,8 @@ public class EolService {
                     "join AzurePricing c on c.InstanceType=az.InstanceType and c.Type='1yr' and c.OperatingSystem = az.OperatingSystem " +
                     "where az.Region = 'US East' and az.Type = 'OnDemand' and az.OperatingSystem is not null and az.InstanceType is not NULL " +
                     "group by az.OperatingSystem,az.InstanceType,az.VCPUs,az.Memory");
-            dataCheck.createOrReplaceGlobalTempView("azurePricingDF");            
+            dataCheck.createOrReplaceGlobalTempView("azurePricingDF"); 
+            dataCheck.cache();
             System.out.println("-----azurePriceDataSet----------- " + dataCheck.count());
         } catch (Exception ex) {
         	ex.printStackTrace();
@@ -153,6 +155,8 @@ public class EolService {
                     .load(commonPath+"/Dataframe/data/Google_Pricing_Data.csv");
 
             googlePriceDataSet.createOrReplaceGlobalTempView("googlePricingDF");
+            googlePriceDataSet.cache(); 
+           
         } catch (Exception ex) {
             logger.error("Exception in generating dataframe for Google Pricing ", ex);
         }
