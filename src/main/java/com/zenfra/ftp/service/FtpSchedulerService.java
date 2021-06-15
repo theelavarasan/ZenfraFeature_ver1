@@ -138,7 +138,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 				status.setStatus("Processing");
 				status.setSiteKey(server.getSiteKey());
 				status.setLogCount(String.valueOf(files.size()));
-				status.setPath(server.getServerPath());				
+				status.setPath(server.getServerPath());		
+				status.setEndTime(functions.getCurrentDateWithTime());	
 			process.saveProcess(status);	
 						
 			System.out.println("FileWithPath size::"+files.size());
