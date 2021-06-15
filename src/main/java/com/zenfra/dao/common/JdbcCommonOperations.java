@@ -64,7 +64,7 @@ public abstract class JdbcCommonOperations {
 	public int updateQuery(String query) {
 		int responce = 0;
 		try {
-
+			
 			responce = jdbc.update(query);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -111,6 +111,22 @@ public abstract class JdbcCommonOperations {
 		}
 		return obj;
 	}
+	
+	
+	
+	public Object getObjectByQueryNew(String query,Class c) {
+		Object obj=null;
+			try {
+				JdbcTemplate jdbc=new JdbcTemplate();
+					//jdbc.setDataSource(dataSource);
+				obj = jdbc.queryForObject(query, c);
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return obj;
+		}
+	
 	
 	public List<Map<String, Object>> getObjectFromQuery(String query) {
 		List<Map<String, Object>> obj = new ArrayList<>();

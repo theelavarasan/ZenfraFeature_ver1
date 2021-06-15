@@ -315,7 +315,7 @@ public class CommonFunctions {
 			try {
 				        
 				 System.out.println("Start get token");
-				MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
+			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 			      body.add("userName", username);
 			      body.add("password", password);
 			  	      
@@ -342,7 +342,7 @@ public class CommonFunctions {
 				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));
 		          response= restTemplate
 		                 .exchange(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-call", HttpMethod.POST, request, String.class);	
-		       //DBUtils.getParsingServerIP()
+		       
 		        return response.getBody();
 			} catch (Exception e) {
 				return e.getMessage();

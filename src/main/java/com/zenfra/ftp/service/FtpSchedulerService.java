@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +106,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		}
 	}
 
+	
 	public Object runFtpSchedulerFiles(FtpScheduler s) {
 		ProcessingStatus status=new ProcessingStatus();
 		JSONObject email=new JSONObject();
@@ -126,21 +129,30 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 				process.sentEmailFTP(email);
 				*/
-			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
-			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
-				List<FileWithPath> files=getFilesBased(server,settings);
+			//FileNameSettingsService settingsService=new FileNameSettingsService();
+			System.out.println("s.getFileNameSettingsId()::"+s.getFileNameSettingsId());
 			
+			String getFileNameSettings="select * from file_name_settings_model where file_name_settings_id='"+s.getFileNameSettingsId()+"'";
+			
+			FileNameSettingsModel settings =(FileNameSettingsModel) getObjectByQueryNew(getFileNameSettings, FileNameSettingsModel.class) ;//settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
+			System.out.println("settings::"+settings.toString());
+			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
+				
 			email.put("FTPname", server.getFtpName());				
 				status.setProcessingType("FTP");
 				status.setProcessing_id(functions.generateRandomId());
 				status.setStartTime(functions.getCurrentDateWithTime());
 				status.setProcessDataId(String.valueOf(server.getServerId()));
-				status.setStatus("Processing");
-				status.setSiteKey(server.getSiteKey());
-				status.setLogCount(String.valueOf(files.size()));
+				status.setStatus("Scheduler start");
+				status.setSiteKey(server.getSiteKey());				
 				status.setPath(server.getServerPath());		
 				status.setEndTime(functions.getCurrentDateWithTime());	
 			process.saveProcess(status);	
+			List<FileWithPath> files=getFilesBased(server,settings);
+				status.setLogCount(String.valueOf(files.size()));
+				status.setStatus("File Processing");
+				process.updateMerge(status);	
+				
 						
 			System.out.println("FileWithPath size::"+files.size());
 			
@@ -172,6 +184,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			//process.sentEmailFTP(email);
 			return files;
 		} catch (Exception e) {
+			e.printStackTrace();
 			//email.put("Notes", "Unable to parse file.Don't worry admin look in to this.");
 			//process.sentEmailFTP(email);
 			status.setEndTime(functions.getCurrentDateWithTime());	
