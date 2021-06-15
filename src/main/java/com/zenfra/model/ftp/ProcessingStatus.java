@@ -14,7 +14,7 @@ public class ProcessingStatus {
 
 	@Id
 	@Column(name = "processing_id")
-	private String id;
+	private String processing_id;
 	
 	
 	private String file;
@@ -31,7 +31,7 @@ public class ProcessingStatus {
 	
 	private String response;
 
-	private String dataId;
+	private String processDataId;
 	
 	
 	private String status;
@@ -49,14 +49,6 @@ public class ProcessingStatus {
 	private JSONArray fileList;
 	
 	private String logCount;
-	
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	public String getFile() {
 		return file;
@@ -116,12 +108,14 @@ public class ProcessingStatus {
 
 	
 
-	public String getDataId() {
-		return dataId;
+	
+
+	public String getProcessDataId() {
+		return processDataId;
 	}
 
-	public void setDataId(String dataId) {
-		this.dataId = dataId;
+	public void setProcessDataId(String processDataId) {
+		this.processDataId = processDataId;
 	}
 
 	public String getStatus() {
@@ -140,11 +134,13 @@ public class ProcessingStatus {
 		this.processingType = processingType;
 	}
 
-	@Override
-	public String toString() {
-		return "ProcessingStatus [id=" + id + ", file=" + file + ", siteKey=" + siteKey + ", tenantId=" + tenantId
-				+ ", logType=" + logType + ", userId=" + userId + ", path=" + path + ", response=" + response
-				+ ", dataId=" + dataId + ", status=" + status + ", processingType=" + processingType + "]";
+
+	public String getProcessing_id() {
+		return processing_id;
+	}
+
+	public void setProcessing_id(String processing_id) {
+		this.processing_id = processing_id;
 	}
 
 	public String getStartTime() {

@@ -126,18 +126,20 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 				process.sentEmailFTP(email);
 				*/
-			
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
-			
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
-				email.put("FTPname", server.getFtpName());				
+				List<FileWithPath> files=getFilesBased(server,settings);
+			
+			email.put("FTPname", server.getFtpName());				
 				status.setProcessingType("FTP");
-				status.setDataId(String.valueOf(server.getServerId()));
+				status.setProcessing_id(String.valueOf(server.getServerId()));
 				status.setStartTime(functions.getCurrentDateWithTime());
-				status.setId(functions.generateRandomId());
+				status.setProcessDataId(functions.generateRandomId());
 				status.setStatus("Processing");
+				status.setSiteKey(server.getSiteKey());
+				status.setLogCount(String.valueOf(files.size()));
 			process.saveProcess(status);	
-			List<FileWithPath> files=getFilesBased(server,settings);			
+						
 			System.out.println("FileWithPath size::"+files.size());
 			
 			String token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);

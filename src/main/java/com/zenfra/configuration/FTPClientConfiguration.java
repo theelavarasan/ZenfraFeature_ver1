@@ -100,29 +100,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			fileList = getAllFilesFromPath(server, path, existCheckSums);
 
 			System.out.println("file read END");
-			// ftpClient.enterLocalPassiveMode();
-			// ftpClient.changeWorkingDirectory(path);
-			// FTPFile[] files = ftpClient.listFiles();
-			// String chkSumFTP = null;
-
-			/*
-			 * 
-			 * for (FTPFile file : files) { if(file.getName().equalsIgnoreCase(".") ||
-			 * file.getName().equalsIgnoreCase("..")) { continue; } String details =
-			 * file.getName(); System.out.println("Stream path::"+path + "/" + details);
-			 * InputStream iStream=ftpClient.retrieveFileStream(path + "/" + details);
-			 * if(iStream!=null) { File file1 =File.createTempFile("tmp", null);
-			 * FileUtils.copyInputStreamToFile(iStream, file1); iStream.close(); chkSumFTP
-			 * =getFileChecksum(file1); file1.delete();
-			 * if(copyStatus(existCheckSums,chkSumFTP,server.getServerId(),file.getName()))
-			 * { continue; }
-			 * 
-			 * ftpClient.completePendingCommand(); } FileWithPath path1 = new
-			 * FileWithPath(); path1.setPath(path + "/" + details); path1.setName(details);
-			 * path1.setCheckSum(chkSumFTP); fileList.add(path1);
-			 * 
-			 * }
-			 */
+			
 			ftpClient.logout();
 			ftpClient.disconnect();
 			System.out.println("End iStream FTP" + path);

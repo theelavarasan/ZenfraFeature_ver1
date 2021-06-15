@@ -19,6 +19,8 @@ public class CheckSumDetails {
 	private String checkSum;
 	
 	private String clientFtpServerId;
+	
+	private String siteKey;
 
 	public long getData_id() {
 		return data_id;
@@ -50,6 +52,14 @@ public class CheckSumDetails {
 
 	public void setClientFtpServerId(String clientFtpServerId) {
 		this.clientFtpServerId = clientFtpServerId;
+	}
+
+	public String getSiteKey() {
+		return siteKey;
+	}
+
+	public void setSiteKey(String siteKey) {
+		this.siteKey = siteKey;
 	}
 	
 	
