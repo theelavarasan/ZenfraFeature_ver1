@@ -136,13 +136,14 @@ public class FileNameSettingsService extends CommonEntityManager{
 
 		List<FileWithPath> filesFillter = new ArrayList<FileWithPath>();
 		try {
+			CommonFunctions functions=new CommonFunctions();
 			FTPClientService clientService=new FTPClientService();
 			List<FileWithPath> files = clientService.getFiles(settings.getSiteKey(), server.getServerPath(), settings.getFtpName(),server);
 			String toPath=functions.getDate();
 			ObjectMapper map=new ObjectMapper();
 			List<String> addedFileNames=new ArrayList<String>();
 				addedFileNames.add("dummyvalue");//do not remove
-;			for (FileWithPath f : files) {
+			for (FileWithPath f : files) {
 			
 				 String patternVal = null;
 				 String logType = null;		

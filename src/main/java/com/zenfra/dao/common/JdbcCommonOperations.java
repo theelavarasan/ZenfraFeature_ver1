@@ -162,7 +162,7 @@ public abstract class JdbcCommonOperations {
 				JdbcTemplate jdbc=new JdbcTemplate();
 					jdbc.setDataSource(d);
 					obj1 = jdbc.update(query);		
-				
+				jdbc.getDataSource().getConnection().close();
 					
 			} catch (Exception e) {
 				e.printStackTrace();
