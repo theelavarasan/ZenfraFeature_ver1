@@ -118,12 +118,12 @@ public class FTPClientService {
 
 		}
 	  
-		public List<FileWithPath> getFiles(String siteKey, String path, String connectionName) {
+		public List<FileWithPath> getFiles(String siteKey, String path, String connectionName,FTPServerModel server) {
 
 			List<FileWithPath> listFilesFromPath=new ArrayList<FileWithPath>();
 			try {
-
-				FTPServerModel server = repo.findBySiteKey(siteKey, connectionName);
+				FTPClientConfiguration fTPClientConfiguration=new FTPClientConfiguration();
+				//FTPServerModel server = repo.findBySiteKey(siteKey, connectionName);
 				if(server.getServerPath() != null) {
 			        	listFilesFromPath = fTPClientConfiguration.getFilesFromPath( server,server.getServerPath());
 			        }

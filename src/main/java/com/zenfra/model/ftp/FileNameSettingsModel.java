@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 
 import org.json.simple.JSONArray;
@@ -30,7 +31,9 @@ public class FileNameSettingsModel implements Serializable{
 	
 	@NotBlank(message = "siteKey must not be empty")
 	private  String siteKey;
-	private JSONArray pattern;
+	
+	private String patternString;
+	
 	private boolean isActive;
 	
 	@NotBlank(message = "ftpName must not be empty")
@@ -38,6 +41,9 @@ public class FileNameSettingsModel implements Serializable{
 	
 	@JsonProperty(access = Access.WRITE_ONLY)
 	private String toPath;
+	
+	
+	private JSONArray pattern;
 	
 	
 	public String getToPath() {
@@ -93,6 +99,12 @@ public class FileNameSettingsModel implements Serializable{
 		return "FileNameSettingsModel [fileNameSettingId=" + fileNameSettingId + ", userId=" + userId + ", ipAddress="
 				+ ipAddress + ", siteKey=" + siteKey + ", pattern=" + pattern + ", isActive=" + isActive + ", ftpName="
 				+ ftpName + ", toPath=" + toPath + "]";
+	}
+	public String getPatternString() {
+		return patternString;
+	}
+	public void setPatternString(String patternString) {
+		this.patternString = patternString;
 	}
 	
 	

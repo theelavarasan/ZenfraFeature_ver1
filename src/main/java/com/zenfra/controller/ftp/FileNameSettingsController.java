@@ -64,9 +64,11 @@ public class FileNameSettingsController {
 				System.out.println("enter new");
 				String fileNameSettingId = UUID.randomUUID().toString();
 				fileNameSettings.setFileNameSettingId(fileNameSettingId);
-				fileNameSettings.setActive(true);				
+				fileNameSettings.setActive(true);	
+				fileNameSettings.setPatternString(fileNameSettings.getPattern().toJSONString());
 				service.saveFileNameSettings(fileNameSettings);			
 			}else {
+				exist.setPatternString(fileNameSettings.getPattern().toJSONString());
 				System.out.println("enter exist");
 				BeanUtils.copyProperties(fileNameSettings, exist, NullAwareBeanUtilsBean.getNullPropertyNames(fileNameSettings));
 				System.out.println(exist.toString());
@@ -151,7 +153,7 @@ public class FileNameSettingsController {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		
 		try {
-			List<FileWithPath> files = ftpservice.getFiles(siteKey, null, serverUsername);
+			List<FileWithPath> files =null;// ftpservice.getFiles(siteKey, null, serverUsername);
 			
 			List<FileUploadStatus> status = service.moveFilesByPattern(siteKey, serverUsername,files);
 			response.setjData(status);

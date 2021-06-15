@@ -1,17 +1,24 @@
 package com.zenfra.dao.common;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+
+import com.zenfra.model.ftp.FileNameSettingsModel;
+import com.zenfra.utils.DBUtils;
 
 @Component
 public abstract class JdbcCommonOperations {
@@ -114,18 +121,79 @@ public abstract class JdbcCommonOperations {
 	
 	
 	
-	public Object getObjectByQueryNew(String query,Class c) {
-		Object obj=null;
+	public Map<String, Object> getObjectByQueryNew(String query) {
+		Map<String, Object> obj=new HashMap<String, Object>();
+		List<Map<String, Object>> obj1 = new ArrayList<>();
 			try {
+				System.out.println("query::"+query);
+				Map<String, String> data=DBUtils.getPostgres();
+				DataSource d=	DataSourceBuilder
+                .create()
+                .url(data.get("url"))
+                .username(data.get("userName"))
+                .password(data.get("password"))
+                .driverClassName("org.postgresql.Driver")
+                .build();
 				JdbcTemplate jdbc=new JdbcTemplate();
-					//jdbc.setDataSource(dataSource);
-				obj = jdbc.queryForObject(query, c);
+					jdbc.setDataSource(d);
+					obj1 = jdbc.queryForList(query);					
+				jdbc.getDataSource().getConnection().close();	
+				System.out.println(obj1);
+				obj=obj1.get(0)!=null ? obj1.get(0) : new HashMap<String, Object>();
 				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			return obj;
 		}
+	
+	public int excuteByUpdateQueryNew(String query) {
+		int obj1=0;	
+		try {
+				System.out.println("query::"+query);
+				Map<String, String> data=DBUtils.getPostgres();
+				DataSource d=	DataSourceBuilder
+                .create()
+                .url(data.get("url"))
+                .username(data.get("userName"))
+                .password(data.get("password"))
+                .driverClassName("org.postgresql.Driver")
+                .build();
+				JdbcTemplate jdbc=new JdbcTemplate();
+					jdbc.setDataSource(d);
+					obj1 = jdbc.update(query);		
+				
+					
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return obj1;
+		}
+	
+	
+	public List<Map<String, Object>> getListObjectsByQueryNew(String query) {
+		List<Map<String, Object>> obj1 = new ArrayList<>();
+			try {
+				System.out.println("query::"+query);
+				Map<String, String> data=DBUtils.getPostgres();
+				DataSource d=	DataSourceBuilder
+                .create()
+                .url(data.get("url"))
+                .username(data.get("userName"))
+                .password(data.get("password"))
+                .driverClassName("org.postgresql.Driver")
+                .build();
+				JdbcTemplate jdbc=new JdbcTemplate();
+					jdbc.setDataSource(d);
+					obj1 = jdbc.queryForList(query);					
+				jdbc.getDataSource().getConnection().close();	
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return obj1;
+		}
+	
 	
 	
 	public List<Map<String, Object>> getObjectFromQuery(String query) {

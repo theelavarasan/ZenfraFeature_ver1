@@ -100,7 +100,7 @@ public class FileNameSettingsService extends CommonEntityManager{
 			List<FileNameSettingsModel>  settings= getsaveFileNameSettingsList(siteKey, connectionName);
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(siteKey, connectionName);
 
-			List<FileWithPath> files = clientService.getFiles(siteKey, server.getServerPath(), connectionName);
+			List<FileWithPath> files =null;// clientService.getFiles(siteKey, server.getServerPath(), connectionName);
 
 			for (FileWithPath f : files) {
 
@@ -136,8 +136,8 @@ public class FileNameSettingsService extends CommonEntityManager{
 
 		List<FileWithPath> filesFillter = new ArrayList<FileWithPath>();
 		try {
-			
-			List<FileWithPath> files = clientService.getFiles(settings.getSiteKey(), server.getServerPath(), settings.getFtpName());
+			FTPClientService clientService=new FTPClientService();
+			List<FileWithPath> files = clientService.getFiles(settings.getSiteKey(), server.getServerPath(), settings.getFtpName(),server);
 			String toPath=functions.getDate();
 			ObjectMapper map=new ObjectMapper();
 			List<String> addedFileNames=new ArrayList<String>();
