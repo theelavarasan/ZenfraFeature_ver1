@@ -175,6 +175,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			//process.sentEmailFTP(email);
 			return files;
 		} catch (Exception e) {
+			e.printStackTrace();
 			//email.put("Notes", "Unable to parse file.Don't worry admin look in to this.");
 			//process.sentEmailFTP(email);
 			status.setEndTime(functions.getCurrentDateWithTime());	
