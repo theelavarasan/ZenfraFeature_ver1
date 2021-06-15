@@ -128,19 +128,22 @@ public class FtpSchedulerService extends CommonEntityManager{
 				*/
 			FileNameSettingsModel settings = settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
 			FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
-				List<FileWithPath> files=getFilesBased(server,settings);
-			
+				
 			email.put("FTPname", server.getFtpName());				
 				status.setProcessingType("FTP");
 				status.setProcessing_id(functions.generateRandomId());
 				status.setStartTime(functions.getCurrentDateWithTime());
 				status.setProcessDataId(String.valueOf(server.getServerId()));
-				status.setStatus("Processing");
-				status.setSiteKey(server.getSiteKey());
-				status.setLogCount(String.valueOf(files.size()));
+				status.setStatus("Scheduler start");
+				status.setSiteKey(server.getSiteKey());				
 				status.setPath(server.getServerPath());		
 				status.setEndTime(functions.getCurrentDateWithTime());	
 			process.saveProcess(status);	
+			List<FileWithPath> files=getFilesBased(server,settings);
+				status.setLogCount(String.valueOf(files.size()));
+				status.setStatus("File Processing");
+				process.updateMerge(status);	
+				
 						
 			System.out.println("FileWithPath size::"+files.size());
 			

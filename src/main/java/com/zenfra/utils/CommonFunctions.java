@@ -315,7 +315,7 @@ public class CommonFunctions {
 			try {
 				        
 				 System.out.println("Start get token");
-				MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
+			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 			      body.add("userName", username);
 			      body.add("password", password);
 			  	      
