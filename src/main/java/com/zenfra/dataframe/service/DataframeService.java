@@ -1558,23 +1558,26 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		        try {
 		            JSONObject timeZoneMetricsObject = new JSONObject();
 		            List<Map<String, Object>> resultMap = new ArrayList<>();
-		            if (reportName.equalsIgnoreCase("capacity")) {
-		                String query = "select column_name from report_capacity_columns where lower(device_type)= '"+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
-		                
-		                resultMap = favouriteDao_v2.getJsonarray(query);
+		            if(reportName != null && !reportName.isEmpty()) {
+		            	 if (reportName.equalsIgnoreCase("capacity")) {
+				                String query = "select column_name from report_capacity_columns where lower(device_type)= '"+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
+				                
+				                resultMap = favouriteDao_v2.getJsonarray(query);
 
-		                
-		            } else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
-		            	  String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'";
-		                
-		                resultMap = favouriteDao_v2.getJsonarray(query);
+				                
+				            } else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
+				            	  String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'";
+				                
+				                resultMap = favouriteDao_v2.getJsonarray(query);
 
-		                
-		            } else {
-		                String query = "select column_name from report_columns where lower(report_name) = '"+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
-		                        + "' and is_size_metrics = '1'";
+				                
+				            } else {
+				                String query = "select column_name from report_columns where lower(report_name) = '"+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
+				                        + "' and is_size_metrics = '1'";
 
-		                resultMap = favouriteDao_v2.getJsonarray(query);
+				                resultMap = favouriteDao_v2.getJsonarray(query);
+				            }
+				           
 		            }
 		           
 		            JSONArray capacityMetricsColumns = new JSONArray();
@@ -1790,7 +1793,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                  
                logger.info("getReport Details Ends");
                
-               request.setStartRow(1);
+               request.setStartRow(0);
                request.setEndRow((int)dataCheck.count());
                rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
     	        groupKeys = request.getGroupKeys();
@@ -1870,9 +1873,22 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									
 									 Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json"); 
 					   	        	 dataset.createOrReplaceTempView("tmpView");
-					   	        	 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-					   		         dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
-					   		         //dataset.cache();									
+					   	        	 dataset = sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+					   	        	//following three conditions only applied for windows logs. windows only following 3 fields, other logs should have column with empty
+					   	        	 if(!Arrays.toString(dataset.columns()).contains("Logical Processor Count")) {
+					   	        		dataset = dataset.withColumn("Logical Processor Count", lit(""));
+					   	        	 }
+									 if(!Arrays.toString(dataset.columns()).contains("DB Service")) {
+										 dataset = dataset.withColumn("DB Service", lit(""));			   	        		 
+														   	        	 }
+									 if(!Arrays.toString(dataset.columns()).contains("Processor Name")) {
+										 dataset =  dataset.withColumn("Processor Name", lit("")); 
+									  }
+					   	        	
+					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
+					   		         //dataset.cache();			
+					   		    
+					   		        dataset.printSchema();
 								 
 					        } catch (Exception ex) {
 					            ex.printStackTrace();

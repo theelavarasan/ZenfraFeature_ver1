@@ -43,7 +43,7 @@ public class FileNameSettingsService extends CommonEntityManager{
 	
 	public String saveFileNameSettings(FileNameSettingsModel settings) {
 		try {
-
+		
 			repo.save(settings);
 			return "Saved!";
 		} catch (Exception e) {
@@ -52,6 +52,16 @@ public class FileNameSettingsService extends CommonEntityManager{
 		}
 	}
 
+	public String saveFileNameSettingsNewObect(FileNameSettingsModel settings) {
+		try {
+				
+			repo.save(settings);
+			return "Saved!";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return e.getMessage();
+		}
+	}
 	public FileNameSettingsModel getsaveFileNameSettings(String siteKey, String connectionName) {
 
 		try {
@@ -74,6 +84,7 @@ public class FileNameSettingsService extends CommonEntityManager{
 	public FileNameSettingsModel getFileNameSettingsById(String id) {
 
 		try {
+			System.out.println("get id by id");
 			return repo.findByid(id);
 		} catch (Exception e) {
 			e.printStackTrace();
