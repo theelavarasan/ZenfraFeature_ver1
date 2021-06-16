@@ -79,12 +79,17 @@ public class FTPSettingsController {
 			response.setjData(functions.convertEntityToJsonObject(ftpServer));
 			response.setResponseDescription("Saved!");
 			
+			FileNameSettingsModel fileName=new FileNameSettingsModel();
 			
 			String deafultString="[{\"namePattern\":\"*SunOS*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*EMCRPT*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*_Linux_*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*RVTools*\",\"logType\":\"VMWARE\"},{\"namePattern\":\"*3PAR*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*Support*\",\"logType\":\"BROCADE\"},{\"namePattern\":\"*PURE*\",\"logType\":\"PURE\"},{\"namePattern\":\"*ntnx*\",\"logType\":\"NUTANIX\"},{\"namePattern\":\"*treme*\",\"logType\":\"XTREMIO\"},{\"namePattern\":\"*max*\",\"logType\":\"VMAX\"},{\"namePattern\":\"*Splore*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*AIX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*Linux*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*HPUX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*VNXCellera*\",\"logType\":\"VNXFILE\"},{\"namePattern\":\"*vplex*\",\"logType\":\"VPLEX\"},{\"namePattern\":\"*HDS*\",\"logType\":\"HDS\"},{\"namePattern\":\"*netapp*\",\"logType\":\"NETAPP\"},{\"namePattern\":\"*vnx*\",\"logType\":\"VNX\"},{\"namePattern\":\"*isilon*\",\"logType\":\"ISILON\"},{\"namePattern\":\"*cisco*\",\"logType\":\"CISCO\"},{\"namePattern\":\"*test*\",\"logType\":\"AUTO\"}]";
+				FileNameSettingsModel model=fileService.getFileNameSettingsById("dc01e099-e8a5-413a-be30-f86f5ad9b474-default");
+					if(model!=null) {
+						fileName.setToPath(model.getToPath().replace(":site_key_value", ftpServer.getSiteKey()));
+						deafultString=model.getPatternString();
+					}
 			ObjectMapper map=new ObjectMapper();
 			
 			JSONArray arr=map.readValue(deafultString, JSONArray.class);
-			FileNameSettingsModel fileName=new FileNameSettingsModel();
 			System.out.println(arr);
 				String fileNameId = UUID.randomUUID().toString();
 					fileName.setFileNameSettingId(fileNameId);
@@ -93,9 +98,11 @@ public class FTPSettingsController {
 					fileName.setIpAddress(ftpServer.getIpAddress());
 					fileName.setSiteKey(ftpServer.getSiteKey());
 					fileName.setUserId(ftpServer.getUserId());
-					fileName.setToPath("/opt/ZENfra/ZenfraFiles/"+ftpServer.getSiteKey()+"/UploadedLogs");
+					//fileName.setToPath("/opt/ZENfra/ZenfraFiles/"+ftpServer.getSiteKey()+"/UploadedLogs");
 					fileName.setPattern(arr);
+					fileName.setPatternString(arr.toJSONString());
 					fileService.saveEntity(FileNameSettingsModel.class, fileName);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
@@ -232,6 +239,22 @@ public class FTPSettingsController {
 		List<FileWithPath> connectionRes = null;//service.getFiles(siteKey, path, connectionName);
 
 			return connectionRes;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	
+	@GetMapping("/default-file-name-pattern")
+	public ResponseModel_v2 getFilesNamePatterns(@RequestParam String fileNameSettingsId) {
+		ResponseModel_v2 response=new ResponseModel_v2();
+		try {
+			FileNameSettingsModel model=fileService.getFileNameSettingsById("dc01e099-e8a5-413a-be30-f86f5ad9b474-default");
+			response.setjData(model);
+			response.setResponseCode(HttpStatus.OK);
+			response.setResponseDescription("Data retived");
+			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
