@@ -518,13 +518,10 @@ public class DataframeService{
 	                .collectAsList();
 
 	        // calculate last row
-	        long lastRow = endRow >= rowCount ? rowCount : -1;
-	       
-	        JSONObject metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
-	        
+	        long lastRow = endRow >= rowCount ? rowCount : -1;	        
 	       
 	        
-	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count(), metrics);
+	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count());
 	    }
 
 	    private List<String> getSecondaryColumns(Dataset<Row> df) {
