@@ -1566,7 +1566,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 				                
 				            } else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
-				            	  String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'";
+				            	  String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
 				                
 				                resultMap = favouriteDao_v2.getJsonarray(query);
 
@@ -1731,7 +1731,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                          " lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
                          " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
                          " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
-                         " aws.`HBA Speed`,aws.`Number of Ports`," +
+                         " aws.`HBA Speed`,aws.`Number of Ports`, aws.Host, " +
                          " round((round(aws.`AWS On Demand Price`,2) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS On Demand Price`," +
                          " round((round(aws.`AWS 3 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 3 Year Price`," +
                          " round((round(aws.`AWS 1 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 1 Year Price`," +
@@ -1861,7 +1861,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									 
 									dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
 											.format("org.apache.spark.sql.json")
-											.mode(SaveMode.Overwrite).save(f.getPath());
+											.mode(SaveMode.Overwrite).save(f.getPath());									
+									
 									dataframeBySiteKey.persist();
 									
 									
@@ -1902,7 +1903,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		 public void getAWSPricing() {
 				        try {
 				            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
-				                    " select report.log_date,report.`vCPU`, report.site_key, report.`Server Type`, report.`Server Name`, report.`OS Name`,report.`OS Version`, report.`Server Type`, report.`Server Model`," +
+				                    " select report.Host, report.log_date,report.`vCPU`, report.site_key, report.`Server Type`, report.`Server Name`, report.`OS Name`,report.`OS Version`, report.`Server Type`, report.`Server Model`," +
 				                    " report.`Memory` as `Memory`, (case when report.`Total Size` is null then 0 else report.`Total Size` end) as `Total Size`, report.`Number of Processors`, report.`Logical Processor Count`, " +
 				                    " report.`CPU GHz`, report.`Processor Name`, report.`Number of Cores` as `Number of Cores`, report.`DB Service`, report.`HBA Speed`," +
 				                    " report.`Number of Ports`, (report.`PricePerUnit` * 730) as `AWS On Demand Price`," +
@@ -1923,7 +1924,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                    " ,concat('Memory: ',awsPricing2.Memory),concat('Storage: ',awsPricing2.Storage),concat('Network Performance: ',awsPricing2.`Network Performance`)) as `AWS Specs`" +
 				                    " , (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then " +
 				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then " +
-				                    " localDiscoveryDF.`Number of Processors` else 0 end) as `vCPU`, (case when localDiscoveryDF.`Memory` is null then 0 else cast(localDiscoveryDF.`Memory` as int) end) as `MemorySize`, awsPricing2.PricePerUnit as `PricePerUnit`,awsPricing2.`Operating System` as `OperatingSystem`" +
+				                    " localDiscoveryDF.`Number of Processors` else 0 end) as `vCPU`, (case when localDiscoveryDF.`Memory` is null then 0 else cast(localDiscoveryDF.`Memory` as int) end) as `MemorySize`, awsPricing2.PricePerUnit as `PricePerUnit`,awsPricing2.`Operating System` as `OperatingSystem`, localDiscoveryDF.Host" +
 				                    " FROM global_temp.localDiscoveryTemp localDiscoveryDF" +
 				                    " join (Select localDiscoveryDF1.site_key, localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
 				                    " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
@@ -2023,7 +2024,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                    " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key" +
 				                    " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where " +
 				                    " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) >= " +
-				                    " (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then" +
+				                    " (case when localDiscoveryDF.`Number of Processors` is not null then" +
 				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Number of Processors` is not null then" +
 				                    " localDiscoveryDF.`Logical Processor Count` else 0 end) and " +
 				                    " cast(googlePricing.Memory as float) >= (case when localDiscoveryDF.Memory is null then 0 else " +
