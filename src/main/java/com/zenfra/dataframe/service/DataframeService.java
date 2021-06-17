@@ -1861,7 +1861,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									 
 									dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
 											.format("org.apache.spark.sql.json")
-											.mode(SaveMode.Overwrite).save(f.getPath());
+											.mode(SaveMode.Overwrite).save(f.getPath());									
+									
 									dataframeBySiteKey.persist();
 									
 									
@@ -2023,7 +2024,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                    " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key" +
 				                    " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where " +
 				                    " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) >= " +
-				                    " (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then" +
+				                    " (case when localDiscoveryDF.`Number of Processors` is not null then" +
 				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Number of Processors` is not null then" +
 				                    " localDiscoveryDF.`Logical Processor Count` else 0 end) and " +
 				                    " cast(googlePricing.Memory as float) >= (case when localDiscoveryDF.Memory is null then 0 else " +
