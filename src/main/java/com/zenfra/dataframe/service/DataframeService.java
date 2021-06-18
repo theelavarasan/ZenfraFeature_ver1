@@ -1692,10 +1692,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
            
              if (deviceType.equalsIgnoreCase("All")) {
             	 deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
-            	 discoveryFilterqry = " lower(source_type) in ('windows','linux', 'vmware')";
+            	 discoveryFilterqry = " lcase(source_type) in ('windows','linux', 'vmware')";
              } else {
             	 deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
-            	 discoveryFilterqry = " lower(source_type)='" + deviceType.toLowerCase() + "'";
+            	 discoveryFilterqry = " lcase(source_type)='" + deviceType.toLowerCase() + "'";
              }
              
              if(!taskListServers.isEmpty()) {
@@ -1704,7 +1704,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
  			            .map(name -> ("'" + name.toLowerCase() + "'"))
  			            .collect(Collectors.toList()));
             	 deviceType =  " lcase(aws.`Server Name`) in ("+serverNames+")";
-            	 discoveryFilterqry = " lower(server_name) in ("+serverNames+")";
+            	 discoveryFilterqry = " lcase(server_name) in ("+serverNames+")";
              }
              
              System.out.println("----------------------deviceTypeCondition--------------------------" + deviceType);
