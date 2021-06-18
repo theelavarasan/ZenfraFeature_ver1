@@ -529,7 +529,7 @@ public class CommonFunctions {
 			try {
 
 				 URI uri = URI.create(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-data-call"+builder);
-				System.out.println("URl::"+Constants.current_url+"/parsing/rest/api/excute-aws-data-call"+uri);
+				System.out.println("URl::"+uri);
 				//String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 				 HttpEntity<Object> request = new HttpEntity<>(createHeaders(token));
 		          response= restTemplate
