@@ -13,13 +13,14 @@ public class CheckSumDetails {
 	
 	private String fileName;
 	
-	private String checkSum;
 	
 	private String clientFtpServerId;
 	
 	private String siteKey;
 
+	private String fileSize;
 	
+	private String createDate;
 
 	public String getData_id() {
 		return data_id;
@@ -41,13 +42,7 @@ public class CheckSumDetails {
 		this.fileName = fileName;
 	}
 
-	public String getCheckSum() {
-		return checkSum;
-	}
-
-	public void setCheckSum(String checkSum) {
-		this.checkSum = checkSum;
-	}
+	
 
 	public String getClientFtpServerId() {
 		return clientFtpServerId;
@@ -63,6 +58,30 @@ public class CheckSumDetails {
 
 	public void setSiteKey(String siteKey) {
 		this.siteKey = siteKey;
+	}
+
+
+
+	public String getFileSize() {
+		return fileSize;
+	}
+
+
+
+	public void setFileSize(String fileSize) {
+		this.fileSize = fileSize;
+	}
+
+
+
+	public String getCreateDate() {
+		return createDate;
+	}
+
+
+
+	public void setCreateDate(String createDate) {
+		this.createDate = createDate;
 	}
 	
 	
