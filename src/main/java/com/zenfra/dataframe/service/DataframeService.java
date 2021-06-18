@@ -1823,6 +1823,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				            sparkSession.sqlContext().clearCache();
 
 				            getLocalDiscovery(siteKey, discoveryFilterqry);
+				            
+				            try {
+				            	sparkSession.sqlContext().sql("select * from global_temp.localDiscoveryTemp"+siteKey);
+							} catch (Exception e) {
+								 getLocalDiscovery(siteKey, discoveryFilterqry);
+							}
+				            
 				            getAWSPricing();
 				            getAzurePricing();
 				            getGooglePricing();
@@ -1839,7 +1846,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		 private void getLocalDiscovery(String siteKey, String discoveryFilterqry) {			
 					       
 					        try {			        	
-							
+					        	sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp"+siteKey);
 								Map<String, String> options = new HashMap<String, String>();
 								options.put("url", dbUrl);						
 								options.put("dbtable", "local_discovery");						
@@ -1851,21 +1858,16 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 								try {
 									Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
 											"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
-								// dataframeBySiteKey.createOrReplaceGlobalTempView("localDiscoveryTemp");						 
-									String path = commonPath + File.separator + "cloud_cost" + File.separator + siteKey;
-								//String filePathSrc = "E:\\Optimization\\";
+								   String path = commonPath + File.separator + "cloud_cost" + File.separator + siteKey;
 									File f = new File(path);
+									
 									if (!f.exists()) {
 										f.mkdir();
-									}
-													
+									}			
 									 
 									dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
 											.format("org.apache.spark.sql.json")
-											.mode(SaveMode.Overwrite).save(f.getPath());									
-									
-									dataframeBySiteKey.persist();
-									
+											.mode(SaveMode.Overwrite).save(f.getPath());
 									
 									File[] files = new File(path).listFiles();
 									if (files != null) {
@@ -1891,7 +1893,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 										 dataset =  dataset.withColumn("Host", lit("")); 
 									  }
 					   	        	
-					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
+					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"+siteKey); 
 					   		         dataset.cache();			
 					   		    
 					   		      //  dataset.printSchema();
@@ -1900,7 +1902,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					            ex.printStackTrace();
 					        }
 					        } catch (Exception e) {
-					        	
+					        	e.printStackTrace();
 					        }
 				}
 
