@@ -84,6 +84,7 @@ public class FTPSettingsController {
 			String deafultString="[{\"namePattern\":\"*SunOS*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*EMCRPT*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*_Linux_*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*RVTools*\",\"logType\":\"VMWARE\"},{\"namePattern\":\"*3PAR*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*Support*\",\"logType\":\"BROCADE\"},{\"namePattern\":\"*PURE*\",\"logType\":\"PURE\"},{\"namePattern\":\"*ntnx*\",\"logType\":\"NUTANIX\"},{\"namePattern\":\"*treme*\",\"logType\":\"XTREMIO\"},{\"namePattern\":\"*max*\",\"logType\":\"VMAX\"},{\"namePattern\":\"*Splore*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*AIX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*Linux*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*HPUX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*VNXCellera*\",\"logType\":\"VNXFILE\"},{\"namePattern\":\"*vplex*\",\"logType\":\"VPLEX\"},{\"namePattern\":\"*HDS*\",\"logType\":\"HDS\"},{\"namePattern\":\"*netapp*\",\"logType\":\"NETAPP\"},{\"namePattern\":\"*vnx*\",\"logType\":\"VNX\"},{\"namePattern\":\"*isilon*\",\"logType\":\"ISILON\"},{\"namePattern\":\"*cisco*\",\"logType\":\"CISCO\"},{\"namePattern\":\"*test*\",\"logType\":\"AUTO\"}]";
 				FileNameSettingsModel model=fileService.getFileNameSettingsById("dc01e099-e8a5-413a-be30-f86f5ad9b474-default");
 					if(model!=null) {
+						System.out.println("Get default file name settings");
 						fileName.setToPath(model.getToPath().replace(":site_key_value", ftpServer.getSiteKey()));
 						deafultString=model.getPatternString();
 					}
