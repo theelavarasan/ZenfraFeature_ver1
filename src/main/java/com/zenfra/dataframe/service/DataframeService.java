@@ -1667,6 +1667,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 String reportBy = request.getReportType();			
 			 JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
 			  
+			 String discoveryFilterqry ="";
 			
 			   List<String> columnHeaders = new ArrayList<>();
 			   if(headers != null && headers.size() > 0) {
@@ -1691,8 +1692,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
            
              if (deviceType.equalsIgnoreCase("All")) {
             	 deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
+            	 discoveryFilterqry = " lower(source_type) in ('windows','linux', 'vmware')";
              } else {
             	 deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
+            	 discoveryFilterqry = " lower(source_type)='" + deviceType.toLowerCase() + "'";
              }
              
              if(!taskListServers.isEmpty()) {
@@ -1701,6 +1704,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
  			            .map(name -> ("'" + name.toLowerCase() + "'"))
  			            .collect(Collectors.toList()));
             	 deviceType =  " lcase(aws.`Server Name`) in ("+serverNames+")";
+            	 discoveryFilterqry = " lower(server_name) in ("+serverNames+")";
              }
              
              System.out.println("----------------------deviceTypeCondition--------------------------" + deviceType);
@@ -1708,7 +1712,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
              Dataset<Row> dataCheck = null;
           
              try {
-                 constructReport(siteKey);
+                 constructReport(siteKey, discoveryFilterqry);
 
                  int dataCount = getEOLEOSCount(siteKey);
 
@@ -1813,12 +1817,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		
 		
 
-		 private void constructReport(String siteKey) {
+		 private void constructReport(String siteKey, String discoveryFilterqry) {
 				        logger.info("ConstructReport Starts");
 				        try {
 				            sparkSession.sqlContext().clearCache();
 
-				            getLocalDiscovery(siteKey);
+				            getLocalDiscovery(siteKey, discoveryFilterqry);
 				            getAWSPricing();
 				            getAzurePricing();
 				            getGooglePricing();
@@ -1832,7 +1836,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 
 
-		 private void getLocalDiscovery(String siteKey) {			
+		 private void getLocalDiscovery(String siteKey, String discoveryFilterqry) {			
 					       
 					        try {			        	
 							
@@ -1841,7 +1845,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 								options.put("dbtable", "local_discovery");						
 								
 								sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
-								Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
+								Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and " + discoveryFilterqry);
 								Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");				
 								
 								try {
@@ -1878,7 +1882,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					   	        	 }
 									 if(!Arrays.toString(dataset.columns()).contains("DB Service")) {
 										 dataset = dataset.withColumn("DB Service", lit(""));			   	        		 
-														   	        	 }
+										}
 									 if(!Arrays.toString(dataset.columns()).contains("Processor Name")) {
 										 dataset =  dataset.withColumn("Processor Name", lit("")); 
 									  }
