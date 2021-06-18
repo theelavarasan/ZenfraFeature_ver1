@@ -184,8 +184,8 @@ public class AwsInventoryController {
 		try {
 			
 			
-			//String token=request.getHeader("Authorization");
-			String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
+			String token=request.getHeader("Authorization");
+			//String token="Bearer "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com", "Aravind@123");
 			System.out.println(token);
 			
 		
