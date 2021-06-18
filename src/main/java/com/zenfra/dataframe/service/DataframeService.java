@@ -1882,6 +1882,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									 if(!Arrays.toString(dataset.columns()).contains("Processor Name")) {
 										 dataset =  dataset.withColumn("Processor Name", lit("")); 
 									  }
+									 
+									 if(!Arrays.toString(dataset.columns()).contains("Host")) {
+										 dataset =  dataset.withColumn("Host", lit("")); 
+									  }
 					   	        	
 					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
 					   		         dataset.cache();			
