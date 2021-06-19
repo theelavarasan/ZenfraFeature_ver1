@@ -1805,7 +1805,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        isPivotMode = request.isPivotMode();
     	        isGrouping = rowGroups.size() > groupKeys.size();
     	        
-    	        for(String col : columnHeaders) {
+    	    
+    	        for(String col : columnHeaders) {    	        	
     	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
       		  		      .when(col(col).equalTo(null),"N/A")
       		  		      .otherwise(col(col)));
@@ -1828,15 +1829,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				        logger.info("ConstructReport Starts");
 				        try {
 				            sparkSession.sqlContext().clearCache();
-
-				            getLocalDiscovery(siteKey, discoveryFilterqry);
-				            
-				            try {
-				            	sparkSession.sqlContext().sql("select * from global_temp.localDiscoveryTemp"+siteKey);
-							} catch (Exception e) {
-								 getLocalDiscovery(siteKey, discoveryFilterqry);
-							}
-				            
+				            getLocalDiscovery(siteKey, discoveryFilterqry);				            
 				            getAWSPricing();
 				            getAzurePricing();
 				            getGooglePricing();
@@ -1872,7 +1865,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 										f.mkdir();
 									}			
 									 
-									dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
+									dataframeBySiteKey.coalesce(1).write().option("escape", "").option("quotes", "").option("ignoreNullFields", false).option("ignoreLeadingWhiteSpace", true)
 											.format("org.apache.spark.sql.json")
 											.mode(SaveMode.Overwrite).save(f.getPath());
 									
@@ -1882,7 +1875,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									}
 									
 									
-									 Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json"); 
+									 Dataset<Row> dataset = sparkSession.read().option("ignoreLeadingWhiteSpace", true).json(f.getPath() + File.separator + "*.json"); 
 					   	        	 dataset.createOrReplaceTempView("tmpView");
 					   	        	 dataset = sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
 					   	        	//following three conditions only applied for windows logs. windows only following 3 fields, other logs should have column with empty
