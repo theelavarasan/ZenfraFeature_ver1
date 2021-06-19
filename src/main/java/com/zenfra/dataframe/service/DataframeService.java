@@ -1865,7 +1865,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 										f.mkdir();
 									}			
 									 
-									dataframeBySiteKey.coalesce(1).write().option("escape", "").option("quotes", "").option("ignoreNullFields", false).option("ignoreLeadingWhiteSpace", true)
+									dataframeBySiteKey.write().option("ignoreNullFields", false)
 											.format("org.apache.spark.sql.json")
 											.mode(SaveMode.Overwrite).save(f.getPath());
 									
@@ -1875,7 +1875,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									}
 									
 									
-									 Dataset<Row> dataset = sparkSession.read().option("ignoreLeadingWhiteSpace", true).json(f.getPath() + File.separator + "*.json"); 
+									 Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json"); 
 					   	        	 dataset.createOrReplaceTempView("tmpView");
 					   	        	 dataset = sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
 					   	        	//following three conditions only applied for windows logs. windows only following 3 fields, other logs should have column with empty
