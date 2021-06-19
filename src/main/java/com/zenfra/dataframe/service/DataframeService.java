@@ -1694,8 +1694,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
             	 deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
             	 discoveryFilterqry = " lcase(source_type) in ('windows','linux', 'vmware')";
              } else {
-            	 deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
             	 discoveryFilterqry = " lcase(source_type)='" + deviceType.toLowerCase() + "'";
+            	 deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
              }
              
              if(!taskListServers.isEmpty()) {
