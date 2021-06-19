@@ -1846,7 +1846,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		 private void getLocalDiscovery(String siteKey, String discoveryFilterqry) {			
 					       
 					        try {			        	
-					        	sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp"+siteKey);
+					        	sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
 								Map<String, String> options = new HashMap<String, String>();
 								options.put("url", dbUrl);						
 								options.put("dbtable", "local_discovery");						
@@ -1893,7 +1893,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 										 dataset =  dataset.withColumn("Host", lit("")); 
 									  }
 					   	        	
-					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"+siteKey); 
+					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
 					   		         dataset.cache();			
 					   		    
 					   		      //  dataset.printSchema();
