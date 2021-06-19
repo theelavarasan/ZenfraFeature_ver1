@@ -1804,6 +1804,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        sortModel = request.getSortModel();
     	        isPivotMode = request.isPivotMode();
     	        isGrouping = rowGroups.size() > groupKeys.size();
+    	        
+    	        for(String col : columnHeaders) {
+    	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
+      		  		      .when(col(col).equalTo(null),"N/A")
+      		  		      .otherwise(col(col)));
+    	        }
+    	    
                 return paginate(dataCheck, request);
                  
              } catch (Exception ex) {
