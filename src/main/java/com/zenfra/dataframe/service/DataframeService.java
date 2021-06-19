@@ -1808,7 +1808,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	    
     	        for(String col : columnHeaders) {    	        	
     	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
-      		  		      .when(col(col).equalTo(null),"N/A")
+      		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
       		  		      .otherwise(col(col)));
     	        }
     	    
