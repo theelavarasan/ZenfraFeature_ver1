@@ -348,7 +348,7 @@ public class AwsInventoryController {
 		 RestTemplate restTemplate=new RestTemplate();
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
           responce= restTemplate
-                 .exchange(Constants.current_url+"/parsing/upload", HttpMethod.POST, request, String.class);	
+                 .exchange(DBUtils.getParsingServerIP()+"/parsing/upload", HttpMethod.POST, request, String.class);	
 			
         
           System.out.println("End insertLogUploadTable..... ");
