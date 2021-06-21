@@ -518,13 +518,10 @@ public class DataframeService{
 	                .collectAsList();
 
 	        // calculate last row
-	        long lastRow = endRow >= rowCount ? rowCount : -1;
-	       
-	        JSONObject metrics = getUnitConvertDetails(request.getAnalyticstype(), request.getSourceType());
-	        
+	        long lastRow = endRow >= rowCount ? rowCount : -1;	        
 	       
 	        
-	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count(), metrics);
+	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count());
 	    }
 
 	    private List<String> getSecondaryColumns(Dataset<Row> df) {
@@ -1670,6 +1667,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 String reportBy = request.getReportType();			
 			 JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
 			  
+			 String discoveryFilterqry ="";
 			
 			   List<String> columnHeaders = new ArrayList<>();
 			   if(headers != null && headers.size() > 0) {
@@ -1694,7 +1692,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
            
              if (deviceType.equalsIgnoreCase("All")) {
             	 deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
+            	 discoveryFilterqry = " lcase(source_type) in ('windows','linux', 'vmware')";
              } else {
+            	 discoveryFilterqry = " lcase(source_type)='" + deviceType.toLowerCase() + "'";
             	 deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
              }
              
@@ -1704,6 +1704,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
  			            .map(name -> ("'" + name.toLowerCase() + "'"))
  			            .collect(Collectors.toList()));
             	 deviceType =  " lcase(aws.`Server Name`) in ("+serverNames+")";
+            	 discoveryFilterqry = " lcase(server_name) in ("+serverNames+")";
              }
              
              System.out.println("----------------------deviceTypeCondition--------------------------" + deviceType);
@@ -1711,7 +1712,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
              Dataset<Row> dataCheck = null;
           
              try {
-                 constructReport(siteKey);
+                 constructReport(siteKey, discoveryFilterqry);
 
                  int dataCount = getEOLEOSCount(siteKey);
 
@@ -1803,6 +1804,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        sortModel = request.getSortModel();
     	        isPivotMode = request.isPivotMode();
     	        isGrouping = rowGroups.size() > groupKeys.size();
+    	        
+    	    
+    	        for(String col : columnHeaders) {    	        	
+    	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
+      		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
+      		  		      .otherwise(col(col)));
+    	        }
+    	    
                 return paginate(dataCheck, request);
                  
              } catch (Exception ex) {
@@ -1816,12 +1825,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		
 		
 
-		 private void constructReport(String siteKey) {
+		 private void constructReport(String siteKey, String discoveryFilterqry) {
 				        logger.info("ConstructReport Starts");
 				        try {
 				            sparkSession.sqlContext().clearCache();
-
-				            getLocalDiscovery(siteKey);
+				            getLocalDiscovery(siteKey, discoveryFilterqry);				            
 				            getAWSPricing();
 				            getAzurePricing();
 				            getGooglePricing();
@@ -1835,36 +1843,31 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 
 
-		 private void getLocalDiscovery(String siteKey) {			
+		 private void getLocalDiscovery(String siteKey, String discoveryFilterqry) {			
 					       
 					        try {			        	
-							
+					        	sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
 								Map<String, String> options = new HashMap<String, String>();
 								options.put("url", dbUrl);						
 								options.put("dbtable", "local_discovery");						
 								
 								sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
-								Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
+								Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and " + discoveryFilterqry);
 								Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");				
 								
 								try {
 									Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
 											"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
-								// dataframeBySiteKey.createOrReplaceGlobalTempView("localDiscoveryTemp");						 
-									String path = commonPath + File.separator + "cloud_cost" + File.separator + siteKey;
-								//String filePathSrc = "E:\\Optimization\\";
+								   String path = commonPath + File.separator + "cloud_cost" + File.separator + siteKey;
 									File f = new File(path);
+									
 									if (!f.exists()) {
 										f.mkdir();
-									}
-													
+									}			
 									 
-									dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
+									dataframeBySiteKey.write().option("ignoreNullFields", false)
 											.format("org.apache.spark.sql.json")
-											.mode(SaveMode.Overwrite).save(f.getPath());									
-									
-									dataframeBySiteKey.persist();
-									
+											.mode(SaveMode.Overwrite).save(f.getPath());
 									
 									File[] files = new File(path).listFiles();
 									if (files != null) {
@@ -1881,9 +1884,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					   	        	 }
 									 if(!Arrays.toString(dataset.columns()).contains("DB Service")) {
 										 dataset = dataset.withColumn("DB Service", lit(""));			   	        		 
-														   	        	 }
+										}
 									 if(!Arrays.toString(dataset.columns()).contains("Processor Name")) {
 										 dataset =  dataset.withColumn("Processor Name", lit("")); 
+									  }
+									 
+									 if(!Arrays.toString(dataset.columns()).contains("Host")) {
+										 dataset =  dataset.withColumn("Host", lit("")); 
 									  }
 					   	        	
 					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
@@ -1895,7 +1902,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					            ex.printStackTrace();
 					        }
 					        } catch (Exception e) {
-					        	
+					        	e.printStackTrace();
 					        }
 				}
 

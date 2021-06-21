@@ -1,6 +1,9 @@
 package com.zenfra.controller;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -58,16 +61,17 @@ public class AwsInventoryController {
 	ProcessService serivce;
 	
 	@PostMapping
-	public ResponseModel_v2 saveAws(@RequestBody AwsInventory aws){
+	public ResponseModel_v2 saveAws(@RequestBody AwsInventory aws,HttpServletRequest request){
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
+			String token=request.getHeader("Authorization");
 			AwsInventory awsExist=getAwsInventoryBySiteKey(aws.getSitekey());
 				if(awsExist!=null && awsExist.getSitekey()!=null) {
 					aws.setSecret_access_key(aesEncrypt.decrypt(awsExist.getSecret_access_key()));					
 				}
 			ObjectMapper map=new ObjectMapper();
 			String lastFourKey=aws.getSecret_access_key().substring(aws.getSecret_access_key().length() - 4 ); 
-			String connection=checkConnection(aws.getAccess_key_id(), aws.getSecret_access_key());
+			String connection=checkConnection(aws.getAccess_key_id(), aws.getSecret_access_key(),token);
 			System.out.println("Con::"+connection);
 			
 			if(connection.isEmpty() || connection.contains("SignatureDoesNotMatch") || connection.contains("exception") || connection.isEmpty() || (connection.contains("fail") || connection.contains("InvalidClientTokenId"))) {
@@ -187,7 +191,6 @@ public class AwsInventoryController {
 		
 			Object insert=insertLogUploadTable(siteKey, tenantId, userId, token,"Processing");
 			
-			
 			ObjectMapper map=new ObjectMapper();
 			
 			JSONObject resJson=map.convertValue(insert, JSONObject.class);
@@ -228,13 +231,12 @@ public class AwsInventoryController {
 			String sha256hex = aesEncrypt.decrypt(aws.getSecret_access_key());
 			if(aws!=null) {	
 				
-					new Thread(new Runnable() {
+				  Runnable myrunnable = new Thread(){
 				        public void run(){
 				        	callAwsScript(sha256hex,aws.getAccess_key_id(),siteKey,userId,token,status, rid); 
 					     }
-				    }).start();
-					
-				
+				    };			         
+				    new Thread(myrunnable).start();
 				model.setResponseCode(HttpStatus.OK);			
 			}else {
 				model.setResponseCode(HttpStatus.NOT_FOUND);
@@ -270,9 +272,17 @@ public class AwsInventoryController {
 		 	request.put("aws_type", "call aws script");
 		 	request.put("rid", rid);
 		 	
-		Object responseRest=common.updateLogFile(request);
+		 	StringBuilder builder = new StringBuilder();
+	         builder.append("?cmd=");	
+	         builder.append(URLEncoder.encode(cmd,StandardCharsets.UTF_8.toString()));
+	         builder.append("&rid=");	
+	         builder.append(URLEncoder.encode(rid,StandardCharsets.UTF_8.toString()));
+	         
+	        
+		Object responseRest=common.callAwsScriptAPI(builder.toString(),token);
 			status.setResponse(rid+"~"+response+"~"+responseRest!=null && !responseRest.toString().isEmpty() ? responseRest.toString() : "unable to update logupload API");
 			status.setStatus("complete");
+			System.out.println("responseRest::"+responseRest.toString());
 			serivce.updateMerge(status);
 		} catch (Exception e) {
 			e.printStackTrace();	
@@ -286,7 +296,7 @@ public class AwsInventoryController {
 	}
 
 
-	public String checkConnection(String access_id,String secret_key) {
+	public String checkConnection(String access_id,String secret_key,String token) {
 		
 		//Map<String, String> map=DBUtils.getPostgres();
 		String response="";
@@ -300,7 +310,7 @@ public class AwsInventoryController {
 			 	request.put("aws_type", "testconnection");
 			 	request.put("rid", "");
 			 	
-			 	response=common.updateLogFile(request).toString();
+			 	response=common.updateLogFile(request,token).toString();
 			
 			    System.out.println("checkConnection script response::"+response);
 		} catch (Exception e) {

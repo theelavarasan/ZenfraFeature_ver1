@@ -75,7 +75,11 @@ public class ReportService {
 	        JSONObject resultObject = new JSONObject();
 	        resultObject.put("headerInfo", result);
 	        resultObject.put("report_label", report_label);
-	        resultObject.put("report_name", report_name);	        
+	        resultObject.put("report_name", report_name);	
+	      
+	        JSONObject metrics =  dataframeService.getUnitConvertDetails(reportName, deviceType);
+	        resultObject.put("unit_conv_details", metrics);	
+	        
 		return resultObject.toString();
 	}
 

@@ -94,6 +94,7 @@ public class ZKConstants {
 	public static String parsingServerPort="parsingServerPort";
 	public static String aws_data_script_path="aws_data_script_path";
 	public static String aws_test_connection_path="aws_test_connection_path";
+	public static String parsingServerProtocol="parsingServerProtocol";
 	
 
 	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE="ftp_file_complete_mail_template";

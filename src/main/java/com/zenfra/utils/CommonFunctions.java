@@ -1,5 +1,6 @@
 package com.zenfra.utils;
 
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -335,11 +336,11 @@ public class CommonFunctions {
 			return token.toString().replace("\"", "");
 	 }
 	 
-		public Object updateLogFile(JSONObject json) {
+		public Object updateLogFile(JSONObject json,String token) {
 			 ResponseEntity<String> response=null;
 			 System.out.println(DBUtils.getParsingServerIP());
 			try {
-				String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+				//String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));
 		          response= restTemplate
 		                 .exchange(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-call", HttpMethod.POST, request, String.class);	
@@ -349,6 +350,8 @@ public class CommonFunctions {
 				return e.getMessage();
 		}
 		}
+		
+		
 		
 		 HttpHeaders createHeaders(String token){
 		        return new HttpHeaders() {{
@@ -518,4 +521,23 @@ public class CommonFunctions {
 			}
 			 return minutes;
 		 }
+		 
+		 
+		 public Object callAwsScriptAPI(String builder,String token) {
+			 ResponseEntity<String> response=null;
+			 System.out.println(DBUtils.getParsingServerIP());
+			try {
+
+				 URI uri = URI.create(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-data-call"+builder);
+				System.out.println("URl::"+uri);
+				//String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+				 HttpEntity<Object> request = new HttpEntity<>(createHeaders(token));
+		          response= restTemplate
+		                 .exchange(uri, HttpMethod.GET, request, String.class);	
+		       //DBUtils.getParsingServerIP()+
+		        return response.getBody();
+			} catch (Exception e) {
+				return e.getMessage();
+		}
+		}
 }
