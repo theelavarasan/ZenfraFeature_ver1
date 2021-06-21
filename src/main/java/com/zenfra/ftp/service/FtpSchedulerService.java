@@ -129,8 +129,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 				email.put("resetUrl", "uat.zenfra.co");
 				email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
 			
-				process.sentEmailFTP(email);
-				*/
+				process.sentEmailFTP(email);*/
+				
 			FileNameSettingsService settingsService=new FileNameSettingsService();
 			System.out.println("s.getFileNameSettingsId()::"+s.getFileNameSettingsId());
 			
@@ -195,16 +195,16 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 			String token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 			
-			
+			List<String> parseUrls=new ArrayList<String>();
 			
 			for(FileWithPath file:files) {
 				//file.setPath(settings.getToPath()+"/"+file.getName());
 				System.out.println("Token::"+token);			
 				System.out.println("Final::"+file.getPath());
-				String url="";				
-				 url=callParsing(file.getLogType(), settings.getUserId(),
+				String url=callParsing(file.getLogType(), settings.getUserId(),
 							settings.getSiteKey(), s.getTenantId(), file.getName(), token,
 							file.getPath(),s.getId());		
+				 parseUrls.add(url);
 				fileList.put(file.getPath()+"/"+file.getName(),url);
 			}	
 			
@@ -217,11 +217,25 @@ public class FtpSchedulerService extends CommonEntityManager{
 			String processUpdateLast="UPDATE processing_status SET file=':file',end_time=':end_time'  status=':status' WHERE processing_id=':processing_id';";
 				processUpdateLast=processUpdateLast.replace(":file", fileList.toJSONString()).replace(":end_time", functions.getCurrentDateWithTime())
 								.replace(":status", "Completed").replace(":processing_id", status.getProcessing_id());
-			status.setStatus("Completed");
+			status.setStatus("Parsing Completed");
 			status.setFile(fileList.toJSONString());
 			status.setLogCount(String.valueOf(fileList.size()));
 			status.setEndTime(functions.getCurrentDateWithTime());			
 			//process.updateMerge(status);
+			
+			RestTemplate restTemplate=new RestTemplate();
+			for(String parse:parseUrls) {
+			 Runnable myrunnable = new Thread(){
+		        public void run(){
+		        	CallFTPParseAPI(restTemplate, parse, token);
+			     }
+		    };
+	         
+		    new Thread(myrunnable).start();
+			}
+			
+			
+			
 			//process.sentEmailFTP(email);
 			return files;
 		} catch (Exception e) {
@@ -301,13 +315,13 @@ public class FtpSchedulerService extends CommonEntityManager{
          builder.append("&isReparse=");	
          builder.append(URLEncoder.encode("false",StandardCharsets.UTF_8.toString()));
          	
-         Runnable myrunnable = new Thread(){
+        /* Runnable myrunnable = new Thread(){
 	        public void run(){
-	        	CallFTPParseAPI(restTemplate, builder, token); 
+	        	CallFTPParseAPI(restTemplate, builder, token);
 		     }
 	    };
          
-	    new Thread(myrunnable).start();
+	    new Thread(myrunnable).start();*/
          return builder.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -348,7 +362,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 	 
 	 
 	
-	 public void CallFTPParseAPI(RestTemplate restTemplate,StringBuilder builder,String token) {
+	 public void CallFTPParseAPI(RestTemplate restTemplate,String builder,String token) {
 		 
 		 try {
 			
