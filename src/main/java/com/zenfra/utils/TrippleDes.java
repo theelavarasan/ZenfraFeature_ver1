@@ -12,7 +12,6 @@ import org.apache.commons.codec.binary.Base64;
 public class TrippleDes {
 
 
-
 	private static final String UNICODE_FORMAT = "UTF8";
 	public static final String DESEDE_ENCRYPTION_SCHEME = "DESede";
 	private static KeySpec ks;
@@ -60,6 +59,7 @@ public class TrippleDes {
 		}
 		return decryptedText;
 	}
-
-
+	public static void main(String[] args) {
+		System.out.println(decrypt("4YnXcIeoxYl6TGsXjasU5qHrJwxlJrqnwDXfrHAavPCNY//T3xWJrA=="));
+	}
 }

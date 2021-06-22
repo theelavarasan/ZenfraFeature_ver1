@@ -112,24 +112,18 @@ public class FtpSchedulerService extends CommonEntityManager{
 		CommonFunctions functions=new CommonFunctions();
 		ObjectMapper mapper=new ObjectMapper();
 		try {
-			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
+			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.toString());
 			JSONObject fileList=new JSONObject();
-			Users user=userService.getUserByUserId(s.getUserId());	
+			Map<String,Object> userMap=getObjectByQueryNew("select * from user_temp where user_id='"+s.getUserId()+"'") ;
 			List<String> l=new ArrayList<String>();
-				l.add(TrippleDes.decrypt(user.getEmail()));
+				l.add(TrippleDes.decrypt(userMap.get("email").toString()));
 				l.add("aravind.krishnasamy@virtualtechgurus.com");
-			 System.out.println(user.toString());
-					fileList.put("test","test");
-				email.put("mailFrom", user.getEmail());
-				//email.put("mailTo", functions.convertJsonArrayToList(s.getNotificationEmail()));
+				email.put("mailFrom", userMap.get("email").toString() );
 				email.put("mailTo", l);
 				email.put("subject", "FTP File Parsing trigger mail");
-				email.put("firstName", user.getFirst_name());
+				email.put("firstName", userMap.get("first_name").toString());
 				email.put("Time", functions.getCurrentDateWithTime());
-				email.put("resetUrl", "uat.zenfra.co");
-				email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
-			
-				process.sentEmailFTP(email);
+				email.put("Notes","FTP file parsing started");
 				
 			FileNameSettingsService settingsService=new FileNameSettingsService();
 			System.out.println("s.getFileNameSettingsId()::"+s.getFileNameSettingsId());			
@@ -205,8 +199,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 				fileList.put("file","No files");
 			}
 			email.put("Time", functions.getCurrentDateWithTime());
-			email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
-			
+			email.put("FileList", fileList.keySet().toString());
+			process.sentEmailFTP(email);			
 			String processUpdateLast="UPDATE processing_status SET file=':file',end_time=':end_time'  status=':status' WHERE processing_id=':processing_id';";
 				processUpdateLast=processUpdateLast.replace(":file", fileList.toJSONString()).replace(":end_time", functions.getCurrentDateWithTime())
 								.replace(":status", "Parsing call triggered").replace(":processing_id", status.getProcessing_id());
@@ -215,9 +209,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 			RestTemplate restTemplate=new RestTemplate();
 			for(String parse:parseUrls) {
 			 Runnable myrunnable = new Thread(){
-		        public void run(){
-		        	CallFTPParseAPI(restTemplate, parse, token);
-			     }
+	        public void run(){
+	        	CallFTPParseAPI(restTemplate, parse, token);			     }
 		    };
 	         
 		    new Thread(myrunnable).start();
