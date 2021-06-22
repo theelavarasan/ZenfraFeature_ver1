@@ -1791,7 +1791,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                              "lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
                              " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
                              " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
-                             " aws.`HBA Speed`,aws.`Number of Ports`," +
+                             " aws.`HBA Speed`,aws.`Number of Ports`, aws.Host," +
                              " round((round(aws.`AWS On Demand Price`,2) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS On Demand Price`," +
                              " round((round(aws.`AWS 3 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 3 Year Price`," +
                              " round((round(aws.`AWS 1 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 1 Year Price`," +
@@ -1836,6 +1836,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        isGrouping = rowGroups.size() > groupKeys.size();
     	        
     	    
+    	        System.out.println("---------columnHeaders----" + columnHeaders);
+    	        
     	        for(String col : columnHeaders) {    	        	
     	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
       		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
