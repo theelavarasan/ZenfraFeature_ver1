@@ -337,8 +337,8 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			System.out.println("start check sum function");
 			CommonFunctions functions=new CommonFunctions();
 			if (currentMap != null && existMap.containsKey(currentMap.get("fileName")) &&
-					!(existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize")) &&  existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))  ) {			
-				
+					(existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize")) &&  existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))  ) {			
+				System.out.println("check test");
 			return true;
 			}
 			
@@ -369,15 +369,16 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			
 			List<Map<String,Object>> map=getListObjectsByQueryNew(query);
 			//List<Object> objList = getEntityListByColumn("select * from check_sum_details where site_key='"+sitekey+"'", CheckSumDetails.class);
+		
 			for (Map<String,Object> obj : map) {				
 				//list.add(obj.get("check_sum").toString());
-				Map<String,List<String>> temp=new HashMap<String, List<String>>();
 					List<String> temList=new ArrayList<String>();
 						temList.add(obj.get("file_size")!=null ? obj.get("file_size").toString() : "");
 						temList.add(obj.get("create_date")!=null ? obj.get("create_date").toString() : "");
-				temp.put(obj.get("file_name")!=null ? obj.get("file_name").toString() : "", temList);
+			list.put(obj.get("file_name")!=null ? obj.get("file_name").toString() : "", temList);
 			}
 
+			System.out.println("Exist checksum::"+list);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
