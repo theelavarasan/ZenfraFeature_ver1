@@ -383,7 +383,6 @@ public class CommonFunctions {
 				 RestTemplate restTemplate=new RestTemplate();
 				 System.out.println("email object"+partObj);
 				 	
-				 
 				 	HttpHeaders headers = new HttpHeaders();
 			        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 			        headers.setContentType(MediaType.APPLICATION_JSON);
