@@ -50,7 +50,7 @@ public class FavouriteApiService_v2 {
 			JSONObject obj = new JSONObject();
  
 			if(reportName.equalsIgnoreCase("migrationreport")) {
-				reportName="'discovery','compatability','migration-method'";
+				reportName="'migrationreport','discovery','compatability','migration-method'";
 			}else {
 				reportName="'"+reportName+"'";
 			}
