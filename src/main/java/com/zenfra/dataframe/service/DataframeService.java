@@ -734,9 +734,35 @@ public class DataframeService{
 	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
 	                        " ) ld where ld.my_rank = 1";
 	        	 
+	        	 if(request.getAnalyticstype()!= null && request.getAnalyticstype().equalsIgnoreCase("Migration Method")) {
+	        		  List<String> taskListServers = new ArrayList<>();
+	     			 if(request.getProjectId() != null && !request.getProjectId().isEmpty()) {
+	     				 List<Map<String, Object>> resultMap = favouriteDao_v2.getJsonarray("select server_name from tasklist where project_id='"+request.getProjectId()+"'");
+	     				 if(resultMap != null && !resultMap.isEmpty()) {
+	     					 for(Map<String, Object> map : resultMap) {
+	     						 taskListServers.add((String) map.get("server_name"));
+	     					 }
+	     				 }
+	     			 }	                
+	                  
+	                  if(!taskListServers.isEmpty()) {
+	                 	 String serverNames = String.join(",", taskListServers
+	      			            .stream()
+	      			            .map(name -> ("'" + name.toLowerCase() + "'"))
+	      			            .collect(Collectors.toList()));
+	                 	 
+	                 	sql = "select * from (" +
+		                        " select ldView.*" +osdata + hwdata+
+		                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
+		                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
+		                        " ) ld where lower(ld.sever_name_col) in ("+serverNames+") and ld.my_rank = 1";
+	                 	
+	                  }
+	        	 }
+	        	 
 	        	 dataset = sparkSession.sql(sql).toDF(); 
 	        	 
-	        	 if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
+	        	/* if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
 	        		  hwJoin = "";
 		              hwdata = "";
 		              osJoin = "";
@@ -748,7 +774,7 @@ public class DataframeService{
 		                        " ) ld where ld.my_rank = 1";
 		        	 
 		        	 dataset = sparkSession.sql(sqlDf).toDF(); 
-	        	 }
+	        	 }*/
 	        	 
 	        
 	        // dataset.printSchema();

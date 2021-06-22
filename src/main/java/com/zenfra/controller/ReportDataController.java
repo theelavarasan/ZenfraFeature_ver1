@@ -76,7 +76,7 @@ public class ReportDataController {
 	    public ResponseEntity<String> getReportData(@RequestBody ServerSideGetRowsRequest request) { 		
 		  		 
 		  try {
-			  if(request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery")) {
+			  if(request.getAnalyticstype() != null && (request.getAnalyticstype().equalsIgnoreCase("Discovery") || request.getAnalyticstype().equalsIgnoreCase("Migration Method"))) {
 				  DataResult data = dataframeService.getReportData(request);
 		      		 if(data != null) {
 		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
