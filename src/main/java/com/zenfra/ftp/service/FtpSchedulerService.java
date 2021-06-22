@@ -110,15 +110,17 @@ public class FtpSchedulerService extends CommonEntityManager{
 	
 	public Object runFtpSchedulerFiles(FtpScheduler s) {
 		ProcessingStatus status=new ProcessingStatus();
+		ProcessService process=new ProcessService();
 		JSONObject email=new JSONObject();
 		CommonFunctions functions=new CommonFunctions();
 		ObjectMapper mapper=new ObjectMapper();
 		try {
 			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
 			JSONObject fileList=new JSONObject();
-			/*List<String> l=new ArrayList<String>();
-				l.add("aravind.krishnasamy@virtualtechgurus.com");
+			List<String> l=new ArrayList<String>();
+				l.add("aravindkumark1997@gmail.com");
 			Users user=userService.getUserByUserId(s.getUserId());		
+			 System.out.println(user.toString());
 					fileList.put("test","test");
 				email.put("mailFrom", user.getEmail());
 				//email.put("mailTo", functions.convertJsonArrayToList(s.getNotificationEmail()));
@@ -129,11 +131,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 				email.put("resetUrl", "uat.zenfra.co");
 				email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
 			
-				process.sentEmailFTP(email);*/
+				process.sentEmailFTP(email);
 				
 			FileNameSettingsService settingsService=new FileNameSettingsService();
-			System.out.println("s.getFileNameSettingsId()::"+s.getFileNameSettingsId());
-			
+			System.out.println("s.getFileNameSettingsId()::"+s.getFileNameSettingsId());			
 			
 			String getFileNameSettings="select * from file_name_settings_model where file_name_setting_id='"+s.getFileNameSettingsId()+"'";
 			FileNameSettingsModel settings=new FileNameSettingsModel();
@@ -151,7 +152,6 @@ public class FtpSchedulerService extends CommonEntityManager{
 				
 			System.out.println("settings::"+settings.toString());
 			String serverQuery="select * from ftpserver_model  where site_key='"+settings.getSiteKey()+"' and ftp_name='"+settings.getFtpName()+"'";
-			//FTPServerModel server = clientService.getFtpConnectionBySiteKey(settings.getSiteKey(), settings.getFtpName());
 			Map<String,Object> serverMap=getObjectByQueryNew(serverQuery) ;//settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
 			FTPServerModel server =new FTPServerModel();
 				if(server!=null) {
@@ -182,14 +182,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 						.replace(":process_data_id", String.valueOf(server.getServerId())).replace(":processing_type", "FTP").replace(":site_key", server.getSiteKey())
 						.replace(":start_time",functions.getCurrentDateWithTime()).replace(":status", "Scheduler start").replace(":tenant_id","").replace(":user_id", server.getUserId());
 			excuteByUpdateQueryNew(processQuery);
-			//process.saveProcess(status);	
 			List<FileWithPath> files=settingsService.getFilesByPattern(server,settings);
 			String processUpdate="UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
 				processUpdate=processUpdate.replace(":log_count", String.valueOf(files.size())).replace(":status", "File Processing");
-				status.setLogCount(String.valueOf(files.size()));
-				status.setStatus("File Processing");
-				//process.updateMerge(status);	
-				
+			excuteByUpdateQueryNew(processUpdate);	
 						
 			System.out.println("FileWithPath size::"+files.size());
 			
@@ -211,17 +207,13 @@ public class FtpSchedulerService extends CommonEntityManager{
 			if(fileList.isEmpty() || fileList==null) {
 				fileList.put("file","No files");
 			}
-			//email.put("Time", functions.getCurrentDateWithTime());
-			//email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
+			email.put("Time", functions.getCurrentDateWithTime());
+			email.put("FileList", fileList.toJSONString().replace("\"", "").replace("[", "").replace("]", ""));
 			
 			String processUpdateLast="UPDATE processing_status SET file=':file',end_time=':end_time'  status=':status' WHERE processing_id=':processing_id';";
 				processUpdateLast=processUpdateLast.replace(":file", fileList.toJSONString()).replace(":end_time", functions.getCurrentDateWithTime())
-								.replace(":status", "Completed").replace(":processing_id", status.getProcessing_id());
-			status.setStatus("Parsing Completed");
-			status.setFile(fileList.toJSONString());
-			status.setLogCount(String.valueOf(fileList.size()));
-			status.setEndTime(functions.getCurrentDateWithTime());			
-			//process.updateMerge(status);
+								.replace(":status", "Parsing call triggered").replace(":processing_id", status.getProcessing_id());
+				excuteByUpdateQueryNew(processUpdateLast);
 			
 			RestTemplate restTemplate=new RestTemplate();
 			for(String parse:parseUrls) {
@@ -233,22 +225,19 @@ public class FtpSchedulerService extends CommonEntityManager{
 	         
 		    new Thread(myrunnable).start();
 			}
-			
-			
-			
-			//process.sentEmailFTP(email);
+			process.sentEmailFTP(email);
 			return files;
 		} catch (Exception e) {
 			e.printStackTrace();
-			//email.put("Notes", "Unable to parse file.Don't worry admin look in to this.");
-			//process.sentEmailFTP(email);
+			email.put("Notes", "Unable to parse file.Don't worry admin look in to this.");
+			process.sentEmailFTP(email);
 			String processUpdateLast="UPDATE processing_status SET response=':response',end_time=':end_time'  status=':status' WHERE processing_id=':processing_id';";
 			processUpdateLast=processUpdateLast.replace(":response", e.getMessage()).replace(":end_time", functions.getCurrentDateWithTime())
 							.replace(":status", "Failed").replace(":processing_id", status.getProcessing_id());
 			status.setEndTime(functions.getCurrentDateWithTime());	
 			status.setStatus("Failed");
 			status.setResponse(e.getMessage());
-			//process.updateMerge(status);			
+			excuteByUpdateQueryNew(processUpdateLast);	
 			return status;
 		}
 	}
