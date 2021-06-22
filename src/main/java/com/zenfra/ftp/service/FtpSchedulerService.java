@@ -173,7 +173,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 			String processQuery="INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id');";
 			
-			processQuery=processQuery.replace(":processing_id", functions.generateRandomId())
+			processQuery=processQuery.replace(":processing_id", status.getProcessing_id())
 						.replace(":end_time", functions.getCurrentDateWithTime()).replace(":log_count", "0").replace(":path", server.getServerPath())
 						.replace(":process_data_id", String.valueOf(server.getServerId())).replace(":processing_type", "FTP").replace(":site_key", server.getSiteKey())
 						.replace(":start_time",functions.getCurrentDateWithTime()).replace(":status", "Scheduler start").replace(":tenant_id","").replace(":user_id", server.getUserId());
@@ -188,8 +188,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 			String token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 			
 			List<String> parseUrls=new ArrayList<String>();
-			String emailFileList=null;
-			String updateFiles=null;
+			String emailFileList="";
+			String updateFiles="";
 			for(FileWithPath file:files) {
 				System.out.println("Token::"+token);			
 				System.out.println("Final::"+file.getPath());
@@ -207,7 +207,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			email.put("Time", functions.getCurrentDateWithTime());
 			email.put("FileList", emailFileList);
 			process.sentEmailFTP(email);			
-			String processUpdateLast="UPDATE processing_status SET file=':file',end_time=':end_time'  status=':status' WHERE processing_id=':processing_id';";
+			String processUpdateLast="UPDATE processing_status SET file=':file',end_time=':end_time',status=':status' WHERE processing_id=':processing_id';";
 				processUpdateLast=processUpdateLast.replace(":file",updateFiles).replace(":end_time", functions.getCurrentDateWithTime())
 								.replace(":status", "Parsing call triggered").replace(":processing_id", status.getProcessing_id());
 				excuteByUpdateQueryNew(processUpdateLast);
