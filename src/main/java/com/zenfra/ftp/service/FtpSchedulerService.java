@@ -290,8 +290,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		
 		if(rid==null && rid.isEmpty()) {
 			return "invalid rid";
-		}
-		
+		}		
 
 		StringBuilder builder = new StringBuilder(Constants.current_url+"/parsing/parse");
          builder.append("?rid=");	
