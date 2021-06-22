@@ -200,17 +200,19 @@ public class FtpSchedulerService extends CommonEntityManager{
 				 emailFileList+="<li>"+file.getName()+"</li>";
 				 updateFiles+=updateFiles+","+file.getName();
 			}	
-			
+			String statusFtp="Parsing call triggered";
 			if(emailFileList.isEmpty() || emailFileList==null) {
 				emailFileList="No files";
+				statusFtp="No files to trigger";
 			}
 			email.put("Time", functions.getCurrentDateWithTime());
 			email.put("FileList", emailFileList);
-			process.sentEmailFTP(email);			
 			String processUpdateLast="UPDATE processing_status SET file=':file',end_time=':end_time',status=':status' WHERE processing_id=':processing_id';";
 				processUpdateLast=processUpdateLast.replace(":file",updateFiles).replace(":end_time", functions.getCurrentDateWithTime())
-								.replace(":status", "Parsing call triggered").replace(":processing_id", status.getProcessing_id());
+								.replace(":status", statusFtp).replace(":processing_id", status.getProcessing_id());
 				excuteByUpdateQueryNew(processUpdateLast);
+			process.sentEmailFTP(email);			
+				
 			System.out.println("parseUrls::"+parseUrls);
 			RestTemplate restTemplate=new RestTemplate();
 			for(String parse:parseUrls) {
@@ -222,7 +224,6 @@ public class FtpSchedulerService extends CommonEntityManager{
 			         
 				    new Thread(myrunnable).start();
 			}
-			process.sentEmailFTP(email);
 			return files;
 		} catch (Exception e) {
 			e.printStackTrace();
