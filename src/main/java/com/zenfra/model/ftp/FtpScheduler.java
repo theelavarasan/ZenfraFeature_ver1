@@ -67,6 +67,10 @@ public class FtpScheduler {
 	private String timeZone;
 	
 	
+	@Column
+	private String emailString;
+	
+	
 	public long getId() {
 		return id;
 	}
@@ -181,43 +185,15 @@ public class FtpScheduler {
 		this.timeZone = timeZone;
 	}
 
-	@Override
-	public String toString() {
-		return "FtpScheduler [id=" + id + ", fileNameSettingsId=" + fileNameSettingsId + ", type=" + type
-				+ ", schedulerCorn=" + schedulerCorn + ", timeSlot=" + timeSlot + ", isActive=" + isActive
-				+ ", tenantId=" + tenantId + ", siteKey=" + siteKey + ", userId=" + userId + ", notificationEmail="
-				+ notificationEmail + ", selectedDay=" + selectedDay + ", selectedDate=" + selectedDate + ", time="
-				+ time + ", timeZone=" + timeZone + "]";
+	public String getEmailString() {
+		return emailString;
 	}
 
-	public FtpScheduler() {
-	
-	}
-
-	public FtpScheduler(long id, @NotBlank(message = "fileNameSettingsId must not be empty") String fileNameSettingsId,
-			String type, String schedulerCorn, @NotBlank(message = "timeSlot must not be empty") String timeSlot,
-			boolean isActive, String tenantId, @NotBlank(message = "siteKey must not be empty") String siteKey,
-			@NotBlank(message = "userId must not be empty") String userId, JSONArray notificationEmail,
-			JSONArray selectedDay, String selectedDate, String time, String timeZone) {
-		super();
-		this.id = id;
-		this.fileNameSettingsId = fileNameSettingsId;
-		this.type = type;
-		this.schedulerCorn = schedulerCorn;
-		this.timeSlot = timeSlot;
-		this.isActive = isActive;
-		this.tenantId = tenantId;
-		this.siteKey = siteKey;
-		this.userId = userId;
-		this.notificationEmail = notificationEmail;
-		this.selectedDay = selectedDay;
-		this.selectedDate = selectedDate;
-		this.time = time;
-		this.timeZone = timeZone;
+	public void setEmailString(String emailString) {
+		this.emailString = emailString;
 	}
 
 	
-
 	
 	
 	
