@@ -1674,7 +1674,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				   for(Object o : headers){
 					    if ( o instanceof JSONObject ) {
 					    	String col = (String) ((JSONObject) o).get("actualName");
-					    	columnHeaders.add(col);
+					    	String dataType = (String) ((JSONObject) o).get("dataType");
+					    	if(dataType.equalsIgnoreCase("String")) {
+					    		columnHeaders.add(col);
+					    	}
+					    	
 					    }
 					}
 			   }
