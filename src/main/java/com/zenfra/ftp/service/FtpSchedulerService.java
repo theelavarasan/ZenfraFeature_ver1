@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,17 +16,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException.Unauthorized;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.configuration.AESEncryptionDecryption;
-import com.zenfra.configuration.FTPClientConfiguration;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
 import com.zenfra.model.Users;
@@ -41,6 +37,7 @@ import com.zenfra.service.ProcessService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Constants;
+import com.zenfra.utils.TrippleDes;
 
 @Service
 public class FtpSchedulerService extends CommonEntityManager{
@@ -117,9 +114,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 		try {
 			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.getFileNameSettingsId());
 			JSONObject fileList=new JSONObject();
+			Users user=userService.getUserByUserId(s.getUserId());	
 			List<String> l=new ArrayList<String>();
-				l.add("aravindkumark1997@gmail.com");
-			Users user=userService.getUserByUserId(s.getUserId());		
+				l.add(TrippleDes.decrypt(user.getEmail()));
+				l.add("aravind.krishnasamy@virtualtechgurus.com");
 			 System.out.println(user.toString());
 					fileList.put("test","test");
 				email.put("mailFrom", user.getEmail());
@@ -194,7 +192,6 @@ public class FtpSchedulerService extends CommonEntityManager{
 			List<String> parseUrls=new ArrayList<String>();
 			
 			for(FileWithPath file:files) {
-				//file.setPath(settings.getToPath()+"/"+file.getName());
 				System.out.println("Token::"+token);			
 				System.out.println("Final::"+file.getPath());
 				String url=callParsing(file.getLogType(), settings.getUserId(),
