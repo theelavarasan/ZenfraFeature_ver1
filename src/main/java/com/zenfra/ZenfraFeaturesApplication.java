@@ -11,9 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.client.RestTemplate;
 
 import com.zenfra.dataframe.service.DataframeService;
@@ -38,10 +35,6 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	}
 
 	
-	@Bean
-	public TaskExecutor taskExecutor() {
-	    return new SimpleAsyncTaskExecutor(); // Or use another one of your liking
-	}
 
 	   @Override
 	   protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
@@ -95,12 +88,11 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 		    
-		   //dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
-	    	//eolService.getEOLEOSData();
-	    	//eolService.getEOLEOSHW();
-	    	//eolService.getGooglePricing();
-	    	//eolService.getAzurePricing();
-	    	//eolService.getAWSPricing();
+		    dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
+	    	
+		    eolService.getGooglePricing();
+	    	eolService.getAzurePricing();
+	    	eolService.getAWSPricing();
 	    	
 	    }
 	   
