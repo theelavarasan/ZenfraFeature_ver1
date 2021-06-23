@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.util.TimeZone;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
@@ -205,7 +206,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 				emailFileList="No files";
 				statusFtp="No files to trigger";
 			}
-			email.put("Time", functions.getCurrentDateWithTime());
+			email.put("Time", functions.getCurrentDateWithTime()+" "+TimeZone.getDefault().getDisplayName());
 			email.put("FileList", emailFileList);
 			String processUpdateLast="UPDATE processing_status SET file=':file',end_time=':end_time',status=':status' WHERE processing_id=':processing_id';";
 				processUpdateLast=processUpdateLast.replace(":file",updateFiles).replace(":end_time", functions.getCurrentDateWithTime())
