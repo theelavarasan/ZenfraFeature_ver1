@@ -84,7 +84,7 @@ public class ProcessService {
 	                partObj.put("mailSubject",map.get("subject"));
 	                JSONObject modelJ = new JSONObject();
 	                	modelJ.put("firstName", map.get("firstName"));
-	                	modelJ.put("FTPname", "test");
+	                	modelJ.put("FTPname", map.get("FTPname"));
 	                	modelJ.put("Time", map.get("Time"));
 	                	modelJ.put("FileList", map.get("FileList"));
 	                	modelJ.put("resetUrl", "");
