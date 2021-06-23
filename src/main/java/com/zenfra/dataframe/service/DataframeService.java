@@ -693,22 +693,18 @@ public class DataframeService{
 	                String osJoin = "";
 	                String osdata = "";
 	        	
-	                System.out.println("----------->>>>>>>>>osCount>>>>>>>>>>>>>--------------" + osCount);
+	              
 	                
 	        	if(osCount > 0) {	 
 	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Type"::equals) && dataset.first().fieldIndex("Server Type") != -1) {
 	        			 Dataset<Row> eolos = sparkSession.sql("select * from global_temp.eolDataDF where lower(os_type)='"+source_type+"'");  // where lower(`Server Name`)="+source_type
 		        		 eolos.createOrReplaceTempView("eolos");
-		        		 
-		        		  System.out.println("----------->>>>>>>>>eolos.count()>>>>>>>>>>>>>--------------" + eolos.count());
 		        		  
 		        		 if(eolos.count() > 0) { 
 		        			 
 		        			 osJoin = " left join eolos eol on lcase(eol.os_name)=lcase(ldView.OS) where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.OS)";   //  where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.actual_os_type)
 		                     osdata = ",eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`";
-			        		 
-		                     System.out.println("----------->>>>>>>>>eolos.count()>>>>>>>>>>>>>--------------" + eolos.count());
-		                     
+			        		 		                     
 		 	        		/*String eosQuery = "Select * from ( Select ldView.* ,eol.end_of_life_cycle as `End Of Life - OS` ,eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp."+viewName+" ldView left join eolos eol on lcase(eol.os_type)=lcase(ldView.actual_os_type) where lcase(eol.os_version)=lcase(ldView.`OS Version`) )";
 		 	        		Dataset<Row> datasetTmp =  sparkSession.sql(eosQuery);
 		 	        		 System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>--------------" + datasetTmp.count());
