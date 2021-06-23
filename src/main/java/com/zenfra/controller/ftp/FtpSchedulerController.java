@@ -76,7 +76,7 @@ public class FtpSchedulerController {
 			}
 			System.out.println(ftpScheduler.getSchedulerCorn());
 			ftpScheduler.setActive(true);
-			
+			ftpScheduler.setEmailString(ftpScheduler.getNotificationEmail().toJSONString());
 			System.out.println(ftpScheduler.toString());
 			long id = schedulerService.saveFtpScheduler(ftpScheduler);
 

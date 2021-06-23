@@ -69,7 +69,7 @@ public class ProcessService {
 
 	public void sentEmailFTP(JSONObject map) {
 		try {
-			
+			CommonFunctions common=new CommonFunctions();
 			Map<String,String> values=DBUtils.getEmailURL();
 			System.out.println("map::"+map);
 			System.out.println("values::"+values);
@@ -83,14 +83,17 @@ public class ProcessService {
 	                partObj.put("mailBcc", new ArrayList<>());
 	                partObj.put("mailSubject",map.get("subject"));
 	                JSONObject modelJ = new JSONObject();
-	                	modelJ.put("FirstName", map.get("firstName"));
-	                	modelJ.put("FTPname", map.get("FTPname"));
+	                	modelJ.put("firstName", map.get("firstName"));
+	                	modelJ.put("FTPname", "test");
 	                	modelJ.put("Time", map.get("Time"));
 	                	modelJ.put("FileList", map.get("FileList"));
-	                	modelJ.put("resetUrl", map.get("resetUrl"));
+	                	modelJ.put("resetUrl", "");
+	                	modelJ.put("Notes",  map.get("Notes"));
+	                	System.out.println("modelJ::"+modelJ);
 	            partObj.put("model", modelJ);
-	            //common.sentEmail(partObj,values.get("host_name"));
-	            common.sentEmail(partObj,"uat.zenfra.co:8080");
+	            
+	            String hostName=DBUtils.getServerUrl();
+	            common.sentEmail(partObj,hostName);
 			
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -137,8 +137,8 @@ public class ReportService {
 		JSONObject reportDataObj =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
 		JSONArray chartData = chartService.getMigarationReport(siteKey, userId, reportName);
 		reportDataObj.put("chart", chartData);
-		JSONObject unitMetrics = dataframeService.getUnitConvertDetails(reportName, "");
-		reportDataObj.put("unit_conv_details", unitMetrics);
+		//JSONObject unitMetrics = dataframeService.getUnitConvertDetails(reportName, "");
+		//reportDataObj.put("unit_conv_details", unitMetrics);
 		return reportDataObj;
 	}
 	
@@ -177,6 +177,7 @@ public class ReportService {
             } else if (reportName.trim().equalsIgnoreCase("compatibility")) {
                 JSONArray columnsNameArray = new JSONArray();
                 columnsNameArray.add("Host Name");
+                columnsNameArray.add("Host_Host Name");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                 }
@@ -187,6 +188,7 @@ public class ReportService {
                 columnsNameArray.add("vCenter");
                 columnsNameArray.add("VM");
                 columnsNameArray.add("Host Name");
+                columnsNameArray.add("Host_Host Name");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                 }

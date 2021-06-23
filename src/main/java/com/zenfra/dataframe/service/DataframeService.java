@@ -734,9 +734,35 @@ public class DataframeService{
 	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
 	                        " ) ld where ld.my_rank = 1";
 	        	 
+	        	 if(request.getAnalyticstype()!= null && request.getAnalyticstype().equalsIgnoreCase("Migration Method")) {
+	        		  List<String> taskListServers = new ArrayList<>();
+	     			 if(request.getProjectId() != null && !request.getProjectId().isEmpty()) {
+	     				 List<Map<String, Object>> resultMap = favouriteDao_v2.getJsonarray("select server_name from tasklist where project_id='"+request.getProjectId()+"'");
+	     				 if(resultMap != null && !resultMap.isEmpty()) {
+	     					 for(Map<String, Object> map : resultMap) {
+	     						 taskListServers.add((String) map.get("server_name"));
+	     					 }
+	     				 }
+	     			 }	                
+	                  
+	                  if(!taskListServers.isEmpty()) {
+	                 	 String serverNames = String.join(",", taskListServers
+	      			            .stream()
+	      			            .map(name -> ("'" + name.toLowerCase() + "'"))
+	      			            .collect(Collectors.toList()));
+	                 	 
+	                 	sql = "select * from (" +
+		                        " select ldView.*" +osdata + hwdata+
+		                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
+		                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
+		                        " ) ld where lower(ld.sever_name_col) in ("+serverNames+") and ld.my_rank = 1";
+	                 	
+	                  }
+	        	 }
+	        	 
 	        	 dataset = sparkSession.sql(sql).toDF(); 
 	        	 
-	        	 if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
+	        	/* if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
 	        		  hwJoin = "";
 		              hwdata = "";
 		              osJoin = "";
@@ -748,7 +774,7 @@ public class DataframeService{
 		                        " ) ld where ld.my_rank = 1";
 		        	 
 		        	 dataset = sparkSession.sql(sqlDf).toDF(); 
-	        	 }
+	        	 }*/
 	        	 
 	        
 	        // dataset.printSchema();
@@ -1674,7 +1700,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				   for(Object o : headers){
 					    if ( o instanceof JSONObject ) {
 					    	String col = (String) ((JSONObject) o).get("actualName");
-					    	columnHeaders.add(col);
+					    	String dataType = (String) ((JSONObject) o).get("dataType");
+					    	if(dataType.equalsIgnoreCase("String")) {
+					    		columnHeaders.add(col);
+					    	}
+					    	
 					    }
 					}
 			   }
@@ -1761,7 +1791,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                              "lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
                              " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
                              " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
-                             " aws.`HBA Speed`,aws.`Number of Ports`," +
+                             " aws.`HBA Speed`,aws.`Number of Ports`, aws.Host," +
                              " round((round(aws.`AWS On Demand Price`,2) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS On Demand Price`," +
                              " round((round(aws.`AWS 3 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 3 Year Price`," +
                              " round((round(aws.`AWS 1 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 1 Year Price`," +
@@ -1806,6 +1836,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        isGrouping = rowGroups.size() > groupKeys.size();
     	        
     	    
+    	        System.out.println("---------columnHeaders----" + columnHeaders);
+    	        
     	        for(String col : columnHeaders) {    	        	
     	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
       		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")

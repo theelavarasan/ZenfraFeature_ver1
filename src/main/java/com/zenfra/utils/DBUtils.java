@@ -107,7 +107,7 @@ public class DBUtils {
 		try {
 			ZookeeperConnection zkConnection = new ZookeeperConnection();
 			ZKModel.zkData = zkConnection.getZKData();
-				url=ZKModel.getProperty(ZKConstants.parsingServerProtocol)+"://" +ZKModel.getProperty( ZKConstants.parsing_server_ip)+":"+ZKModel.getProperty(ZKConstants.parsingServerPort);;
+				url=ZKModel.getProperty(ZKConstants.parsingServerProtocol)+"://" +ZKModel.getProperty( ZKConstants.parsing_server_ip)+":"+ZKModel.getProperty(ZKConstants.parsingServerPort);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		

@@ -380,15 +380,14 @@ public class CommonFunctions {
 			 
 			 boolean isSuccess = false;
 			 try {
-				 
+				 RestTemplate restTemplate=new RestTemplate();
 				 System.out.println("email object"+partObj);
 				 	
 				 	HttpHeaders headers = new HttpHeaders();
 			        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 			        headers.setContentType(MediaType.APPLICATION_JSON);
 			        HttpEntity<JSONObject> requestEntity = new HttpEntity<JSONObject>(partObj, headers);
-			        //String resetLink = DBUtils.getEmailURL().get("mail_url").replaceAll("<HOSTNAME>", hostName);
-			        String resetLink="http://uat.zenfra.co:8080/mailservice/mail/send";
+			        String resetLink =hostName+"/mailservice/mail/send";
 			       ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
 			        if (uri != null && uri.getBody() != null) {
 			            if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
