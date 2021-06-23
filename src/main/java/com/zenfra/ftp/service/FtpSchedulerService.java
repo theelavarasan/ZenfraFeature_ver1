@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.util.TimeZone;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
@@ -124,7 +125,6 @@ public class FtpSchedulerService extends CommonEntityManager{
 					l.add("aravind.krishnasamy@virtualtechgurus.com");
 				email.put("mailFrom", userMap.get("email").toString() );
 				email.put("mailTo", l);
-				email.put("subject", "FTP -"+s.getFileNameSettingsId()+"Scheduler has ran Successfully");
 				email.put("firstName", userMap.get("first_name").toString());
 				email.put("Time", functions.getCurrentDateWithTime());
 				email.put("Notes","FTP file parsing started");
@@ -161,7 +161,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 					server.setSiteKey(serverMap.get("site_key").toString());
 					server.setUserId(serverMap.get("user_id").toString());
 				}
-			email.put("FTPname", server.getFtpName());				
+				email.put("subject", "FTP -"+ server.getFtpName()+" Scheduler has ran Successfully");
+				email.put("FTPname", server.getFtpName());				
 				status.setProcessingType("FTP");
 				status.setProcessing_id(functions.generateRandomId());
 				status.setStartTime(functions.getCurrentDateWithTime());
@@ -205,7 +206,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 				emailFileList="No files";
 				statusFtp="No files to trigger";
 			}
-			email.put("Time", functions.getCurrentDateWithTime());
+			email.put("Time", functions.getCurrentDateWithTime()+" "+TimeZone.getDefault().getDisplayName());
 			email.put("FileList", emailFileList);
 			String processUpdateLast="UPDATE processing_status SET file=':file',end_time=':end_time',status=':status' WHERE processing_id=':processing_id';";
 				processUpdateLast=processUpdateLast.replace(":file",updateFiles).replace(":end_time", functions.getCurrentDateWithTime())
@@ -272,7 +273,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		      body.add("tenantId", tenantId);
 		      body.add("uploadAndProcess", true);
 			  
-		 
+		 System.out.println("Params::"+body);
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders("Bearer "+token));
 		 ResponseEntity<String> response= restTemplate
                  //.exchange("http://localhost:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);
@@ -290,8 +291,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		
 		if(rid==null && rid.isEmpty()) {
 			return "invalid rid";
-		}
-		
+		}		
 
 		StringBuilder builder = new StringBuilder(Constants.current_url+"/parsing/parse");
          builder.append("?rid=");	
@@ -303,13 +303,7 @@ public class FtpSchedulerService extends CommonEntityManager{
          builder.append("&isReparse=");	
          builder.append(URLEncoder.encode("false",StandardCharsets.UTF_8.toString()));
          	
-        /* Runnable myrunnable = new Thread(){
-	        public void run(){
-	        	CallFTPParseAPI(restTemplate, builder, token);
-		     }
-	    };
-         
-	    new Thread(myrunnable).start();*/
+       
          return builder.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
