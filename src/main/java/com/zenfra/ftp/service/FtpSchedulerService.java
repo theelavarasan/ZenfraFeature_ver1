@@ -38,6 +38,7 @@ import com.zenfra.service.ProcessService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Constants;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.TrippleDes;
 
 @Service
@@ -212,7 +213,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 				processUpdateLast=processUpdateLast.replace(":file",updateFiles).replace(":end_time", functions.getCurrentDateWithTime())
 								.replace(":status", statusFtp).replace(":processing_id", status.getProcessing_id());
 				excuteByUpdateQueryNew(processUpdateLast);
-			process.sentEmailFTP(email);			
+			process.sentEmailFTP(email);	
 				
 			System.out.println("parseUrls::"+parseUrls);
 			RestTemplate restTemplate=new RestTemplate();
@@ -261,7 +262,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 			RestTemplate restTemplate=new RestTemplate();
 			System.out.println("Enter Parsing.....");
-						
+			String parsingURL=DBUtils.getParsingServerIP();
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 		      body.add("parseFilePath", folderPath);
 		      body.add("parseFileName", fileName);
@@ -277,7 +278,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders("Bearer "+token));
 		 ResponseEntity<String> response= restTemplate
                  //.exchange("http://localhost:8080/usermanagment/rest/ftpScheduler", HttpMethod.POST, request, String.class);
-        		  .exchange(Constants.current_url+"/parsing/upload", HttpMethod.POST, request, String.class);
+        		  .exchange(parsingURL+"/parsing/upload", HttpMethod.POST, request, String.class);
 		 ObjectMapper mapper = new ObjectMapper();
          JsonNode root = mapper.readTree(response.getBody());
          
@@ -293,7 +294,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			return "invalid rid";
 		}		
 
-		StringBuilder builder = new StringBuilder(Constants.current_url+"/parsing/parse");
+		StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");
          builder.append("?rid=");	
          builder.append(URLEncoder.encode(rid,StandardCharsets.UTF_8.toString()));
          builder.append("&logType=");	
