@@ -47,7 +47,7 @@ public class EolService {
             count = eoleosDataSet.count();
             if (count > 0) {
             	eoleosDataSet.createOrReplaceTempView("eolDataDFTmp");
-            	eoleosDataSet = sparkSession.sql("select os_type, os_version, end_of_life_cycle, end_of_extended_support from eolDataDFTmp");
+            	eoleosDataSet = sparkSession.sql("select os_type, os_version, os_name, end_of_life_cycle, end_of_extended_support from eolDataDFTmp");
                 eoleosDataSet.createOrReplaceGlobalTempView("eolDataDF");
                 eoleosDataSet.cache();
                // eoleosDataSet.show();
