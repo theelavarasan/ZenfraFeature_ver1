@@ -240,9 +240,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 							email.put("FileList", "<li>"+parse+"</li>");
 							email.put("subject", "FTP -"+s.getFileNameSettingsId()+"Scheduler has Failed");
 							email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
-							process.sentEmailFTP(email);		}				        	
-			        	}
-				    };
+							process.sentEmailFTP(email);		
+						}				        	
+			        }
+				  };
 				    
 				    n.setUncaughtExceptionHandler(h);n.start();				    
 				  
