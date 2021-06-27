@@ -1890,20 +1890,22 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					   	        	 dataset.createOrReplaceTempView("tmpView");
 					   	        	 dataset = sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
 					   	        	//following three conditions only applied for windows logs. windows only following 3 fields, other logs should have column with empty
-					   	        	 if(!Arrays.toString(dataset.columns()).contains("Logical Processor Count")) {
+					   	        	
+					   	        	 List<String> columns = Arrays.asList(dataset.columns());
+					   	        	 if(!columns.contains("Logical Processor Count")) {
 					   	        		dataset = dataset.withColumn("Logical Processor Count", lit(""));
 					   	        	 }
-									 if(!Arrays.toString(dataset.columns()).contains("DB Service")) {
+									 if(!columns.contains("DB Service")) {
 										 dataset = dataset.withColumn("DB Service", lit(""));			   	        		 
 										}
-									 if(!Arrays.toString(dataset.columns()).contains("Processor Name")) {
+									 if(!columns.contains("Processor Name")) {
 										 dataset =  dataset.withColumn("Processor Name", lit("")); 
 									  }
 									 dataset.printSchema();
 									 
 									 System.out.println("------------>>>>---------- " + Arrays.toString(dataset.columns()));
 									 
-									 if(!Arrays.toString(dataset.columns()).contains("Host")) {
+									 if(!columns.contains("Host")) {
 										 dataset =  dataset.withColumn("Host", lit("")); 
 									  }
 					   	        	
