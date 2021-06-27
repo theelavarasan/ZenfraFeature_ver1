@@ -1719,9 +1719,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
                  int dataCount = getEOLEOSCount(siteKey);
 
-                 int eolHwcount = getEOLEHWCount(siteKey);
+                 int eolHwcount = getEOLEHWCount(siteKey);               
                
-                 System.out.println("---------------------eolHwcount------------------" + eolHwcount);
                  String hwJoin = "";
                  String hwdata = ",'' as `End Of Life - HW`,'' as `End Of Extended Support - HW`";
                  if (eolHwcount != 0) {
@@ -1784,16 +1783,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                              " left join global_temp.googleReport google on google.`Server Name` = aws.`Server Name` " +
                              " " + hwJoin + " " +
                              " where aws.site_key='" + siteKey  + "' and "+ deviceType +" order by aws.`Server Name` asc) ld where ld.my_rank = 1";
-                 }
-
+                 }                
                  
-               System.out.println("----------cloud cost sql-------" + sql);
-                
-                 
-               dataCheck = sparkSession.sql(sql).toDF();
-                 
-               System.out.println("---------cloud cost data count-------" + dataCheck.count());
-               dataCheck.show();
+               dataCheck = sparkSession.sql(sql).toDF();             
                  
                logger.info("getReport Details Ends");
                
@@ -1806,10 +1798,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        filterModel = request.getFilterModel();
     	        sortModel = request.getSortModel();
     	        isPivotMode = request.isPivotMode();
-    	        isGrouping = rowGroups.size() > groupKeys.size();
-    	        
-    	    
-    	        System.out.println("---------columnHeaders----" + columnHeaders);
+    	        isGrouping = rowGroups.size() > groupKeys.size();    	      
     	        
     	        for(String col : columnHeaders) {    	        	
     	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
