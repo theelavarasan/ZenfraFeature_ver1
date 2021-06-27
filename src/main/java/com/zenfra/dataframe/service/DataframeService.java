@@ -693,7 +693,9 @@ public class DataframeService{
 	                String osJoin = "";
 	                String osdata = "";
 	        	
-	              
+	             
+	                System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>---0----------"  + Arrays.asList(dataset.columns()));
+	                
 	                
 	        	if(osCount > 0) {	 
 	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Type"::equals) && dataset.first().fieldIndex("Server Type") != -1) {
@@ -720,7 +722,7 @@ public class DataframeService{
 	        			 
 	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on (concat(eolHw.vendor,' ',eolHw.model))= ldView.`Server Model`";
 	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";
-	                     
+	                     System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>----1----------" );
 	     	        	/*String hwModel =  dataset.first().getAs("Server Model");
 	        		 Dataset<Row> eolhw = sparkSession.sql("select end_of_life_cycle as `End Of Life - HW`, end_of_extended_support as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
 		        	 if(eolhw.count() > 0) {		        	
@@ -740,6 +742,8 @@ public class DataframeService{
 	        	 
 	        	 dataset = sparkSession.sql(sql).toDF(); 
 	        	 
+	        	 System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>---2----------"  + dataset.count());
+	        	 
 	        	 if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
 	        		  hwJoin = "";
 		              hwdata = "";
@@ -754,7 +758,7 @@ public class DataframeService{
 		        	 dataset = sparkSession.sql(sqlDf).toDF(); 
 	        	 }
 	        	 
-	        
+	        	 System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>---3----------"  + dataset.count());
 	        // dataset.printSchema();
 	         
 	         //------------------------------------------------------//
