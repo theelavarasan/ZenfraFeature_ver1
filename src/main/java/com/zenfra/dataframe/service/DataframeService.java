@@ -1721,7 +1721,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
                  int eolHwcount = getEOLEHWCount(siteKey);
                
-
+                 System.out.println("---------------------eolHwcount------------------" + eolHwcount);
                  String hwJoin = "";
                  String hwdata = ",'' as `End Of Life - HW`,'' as `End Of Extended Support - HW`";
                  if (eolHwcount != 0) {
@@ -2101,14 +2101,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                        " join (Select localDiscoveryDF1.site_key,localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
 				                        " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
 				                        " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key) report" +
-				                        " left join global_temp.eolHWDataDF eol on lcase(concat(eol.vendor,' ',eol.model)) = lcase(localDiscoveryDF.`Server Model`)" +
+				                        " left join global_temp.eolHWDataDF eol on lcase(concat(eol.vendor,' ',eol.model)) = lcase(report.`Server Model`)" +
 				                        " where report.site_key='" + siteKey + "'";
 
 				                Dataset<Row> dataCheck = sparkSession.sql(sql).toDF();
 				                
 				                dataCheck.printSchema();
-				                
-				                dataCheck.show();
+				              
 
 				                dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
 				                if (dataCount > 0) {

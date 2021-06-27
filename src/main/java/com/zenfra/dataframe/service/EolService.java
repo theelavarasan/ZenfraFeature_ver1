@@ -81,8 +81,12 @@ public class EolService {
 			            	eoleosDataSet = sparkSession.sql("select vendor, model, end_of_life_cycle, end_of_extended_support, source_link from eolHWDataDFTmp");
 			                eoleosDataSet.createOrReplaceGlobalTempView("eolHWDataDF");
 			                eoleosDataSet.cache();
+			                System.out.println("-----------<<>>>>------------------------");
+			                eoleosDataSet.show();
+			                eoleosDataSet.printSchema();
 			            }           
 		        } catch (Exception ex) {
+		        	e.printStackTrace();
 		            logger.error("Exception in generating dataframe for EOL/EOS HW data", ex);
 		        }
 		}
