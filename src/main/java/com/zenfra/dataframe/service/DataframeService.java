@@ -1899,6 +1899,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									 if(!Arrays.toString(dataset.columns()).contains("Processor Name")) {
 										 dataset =  dataset.withColumn("Processor Name", lit("")); 
 									  }
+									 dataset.printSchema();
+									 
+									 System.out.println("------------>>>>---------- " + Arrays.toString(dataset.columns()));
 									 
 									 if(!Arrays.toString(dataset.columns()).contains("Host")) {
 										 dataset =  dataset.withColumn("Host", lit("")); 
@@ -1907,6 +1910,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
 					   		         dataset.cache();			
 					   		    
+					   		 	 dataset.printSchema();
 					   		      //  dataset.printSchema();
 								 
 					        } catch (Exception ex) {
