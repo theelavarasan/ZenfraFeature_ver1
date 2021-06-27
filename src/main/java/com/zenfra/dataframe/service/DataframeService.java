@@ -2105,6 +2105,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                        " where report.site_key='" + siteKey + "'";
 
 				                Dataset<Row> dataCheck = sparkSession.sql(sql).toDF();
+				                
+				                dataCheck.printSchema();
+				                
+				                dataCheck.show();
 
 				                dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
 				                if (dataCount > 0) {
