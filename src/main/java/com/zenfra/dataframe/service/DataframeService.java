@@ -740,7 +740,7 @@ public class DataframeService{
 	        	 
 	        	 dataset = sparkSession.sql(sql).toDF(); 
 	        	 
-	        	/* if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
+	        	 if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
 	        		  hwJoin = "";
 		              hwdata = "";
 		              osJoin = "";
@@ -752,7 +752,7 @@ public class DataframeService{
 		                        " ) ld where ld.my_rank = 1";
 		        	 
 		        	 dataset = sparkSession.sql(sqlDf).toDF(); 
-	        	 }*/
+	        	 }
 	        	 
 	        
 	        // dataset.printSchema();
@@ -1908,6 +1908,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					   	        	
 					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
 					   		         dataset.cache();	
+					   		         
+					   		      dataset.printSchema();
 					   		 	
 					        } catch (Exception ex) {
 					            ex.printStackTrace();
