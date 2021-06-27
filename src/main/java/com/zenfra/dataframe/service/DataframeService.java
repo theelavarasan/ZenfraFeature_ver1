@@ -737,31 +737,6 @@ public class DataframeService{
 	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
 	                        " ) ld where ld.my_rank = 1";
 	        	 
-	        	 if(request.getAnalyticstype()!= null && request.getAnalyticstype().equalsIgnoreCase("Migration Method")) {
-	        		  List<String> taskListServers = new ArrayList<>();
-	     			 if(request.getProjectId() != null && !request.getProjectId().isEmpty()) {
-	     				 List<Map<String, Object>> resultMap = favouriteDao_v2.getJsonarray("select server_name from tasklist where project_id='"+request.getProjectId()+"'");
-	     				 if(resultMap != null && !resultMap.isEmpty()) {
-	     					 for(Map<String, Object> map : resultMap) {
-	     						 taskListServers.add((String) map.get("server_name"));
-	     					 }
-	     				 }
-	     			 }	                
-	                  
-	                  if(!taskListServers.isEmpty()) {
-	                 	 String serverNames = String.join(",", taskListServers
-	      			            .stream()
-	      			            .map(name -> ("'" + name.toLowerCase() + "'"))
-	      			            .collect(Collectors.toList()));
-	                 	 
-	                 	sql = "select * from (" +
-		                        " select ldView.*" +osdata + hwdata+
-		                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
-		                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
-		                        " ) ld where lower(ld.sever_name_col) in ("+serverNames+") and ld.my_rank = 1";
-	                 	
-	                  }
-	        	 }
 	        	 
 	        	 dataset = sparkSession.sql(sql).toDF(); 
 	        	 
@@ -837,6 +812,7 @@ public class DataframeService{
 	        results =  results.drop(actualHeadets.stream().toArray(String[]::new)); */
 	        return paginate(results, request);
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.error("Exception occured while fetching local discoverydata from DF{}", e.getMessage(), e);
 		}
 	         
@@ -2129,7 +2105,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                        " join (Select localDiscoveryDF1.site_key,localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
 				                        " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
 				                        " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key) report" +
-				                        " left join global_temp.eolHWDataDF eol on lcase(concat(eol.vendor,' ',eol.model)) = lcase(report.`Server Model`)" +
+				                        " left join global_temp.eolHWDataDF eol on lcase(concat(eol.vendor,' ',eol.model)) = lcase(localDiscoveryDF.`Server Model`)" +
 				                        " where report.site_key='" + siteKey + "'";
 
 				                Dataset<Row> dataCheck = sparkSession.sql(sql).toDF();
