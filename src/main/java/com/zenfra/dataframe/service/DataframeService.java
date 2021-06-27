@@ -691,10 +691,7 @@ public class DataframeService{
 	                String hwJoin = "";
 	                String hwdata = "";
 	                String osJoin = "";
-	                String osdata = "";
-	        	
-	             
-	                System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>---0----------"  + Arrays.asList(dataset.columns()));
+	                String osdata = "";	                
 	                
 	                
 	        	if(osCount > 0) {	 
@@ -703,8 +700,7 @@ public class DataframeService{
 		        		 eolos.createOrReplaceTempView("eolos");
 		        		 eolos.show();
 		        		  
-		        		 if(eolos.count() > 0) { 
-		        			  System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>----111----------" );
+		        		 if(eolos.count() > 0) { 		        			
 		        			 osJoin = " left join global_temp.eolDataDF eol on lcase(eol.os_name)=lcase(ldView.OS) where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.OS)";   //  where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.actual_os_type)
 		                     osdata = ",eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`";
 			        		 		                     
@@ -722,8 +718,7 @@ public class DataframeService{
 	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Model"::equals) && dataset.first().fieldIndex("Server Model") != -1) {
 	        			 
 	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on (concat(eolHw.vendor,' ',eolHw.model))= ldView.`Server Model`";
-	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";
-	                     System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>----1----------" );
+	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";	                  
 	     	        	/*String hwModel =  dataset.first().getAs("Server Model");
 	        		 Dataset<Row> eolhw = sparkSession.sql("select end_of_life_cycle as `End Of Life - HW`, end_of_extended_support as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
 		        	 if(eolhw.count() > 0) {		        	
@@ -738,14 +733,10 @@ public class DataframeService{
 	                        " select ldView.*" +osdata + hwdata+
 	                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
 	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
-	                        " ) ld where ld.my_rank = 1";
-	        	 
-	        	  System.out.println("----------->>>>>>>>>sql>>>>>>>>>>>>>----111----------" + sql );
-	        	  
+	                        " ) ld where ld.my_rank = 1";	        	  
 	        	 
 	        	 dataset = sparkSession.sql(sql).toDF(); 
-	        	 
-	        	 System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>---2----------"  + dataset.count());
+	        
 	        	 
 	        	 if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
 	        		  hwJoin = "";
@@ -760,11 +751,7 @@ public class DataframeService{
 		        	 
 		        	 dataset = sparkSession.sql(sqlDf).toDF(); 
 	        	 }
-	        	 
-	        	 System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>---3----------"  + dataset.count());
-	        // dataset.printSchema();
-	         
-	         //------------------------------------------------------//
+	        	
 	         
 	         actualColumnNames = Arrays.asList(dataset.columns());	
 	         Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
@@ -1738,7 +1725,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                  String hwJoin = "";
                  String hwdata = ",'' as `End Of Life - HW`,'' as `End Of Extended Support - HW`";
                  if (eolHwcount != 0) {
-                     hwJoin = "left join global_temp.eolHWData eolHw on eolHw.`Server Name` = aws.`Server Name`";
+                     hwJoin = "left join global_temp.eolHWData eolHw on lcase(eolHw.`Server Name`) = lcase(aws.`Server Name`)";
                      hwdata = ",eolHw.`End Of Life - HW`,eolHw.`End Of Extended Support - HW`";
                  }
 
