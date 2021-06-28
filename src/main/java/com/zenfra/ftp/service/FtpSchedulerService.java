@@ -127,14 +127,14 @@ public class FtpSchedulerService extends CommonEntityManager{
 			}
 			Map<String,Object> userMap=getObjectByQueryNew("select * from user_temp where user_id='"+s.getUserId()+"'") ;
 					l.add("aravind.krishnasamy@virtualtechgurus.com");
-				email.put("mailFrom", userMap.get("email").toString() );
+				email.put("mailFrom", userMap.get("email").toString());
 				email.put("mailTo", l);
 				email.put("firstName", userMap.get("first_name").toString());
-				email.put("Time", functions.getCurrentDateWithTime());
+				//email.put("Time", functions.getCurrentDateWithTime());
 				email.put("Notes","File processing initiated");
 				
 			FileNameSettingsService settingsService=new FileNameSettingsService();
-			System.out.println("s.getFileNameSettingsId()::"+s.getFileNameSettingsId());			
+				System.out.println("s.getFileNameSettingsId()::"+s.getFileNameSettingsId());			
 			
 			String getFileNameSettings="select * from file_name_settings_model where file_name_setting_id='"+s.getFileNameSettingsId()+"'";
 			FileNameSettingsModel settings=new FileNameSettingsModel();
@@ -216,19 +216,37 @@ public class FtpSchedulerService extends CommonEntityManager{
 				processUpdateLast=processUpdateLast.replace(":file",updateFiles).replace(":end_time", functions.getCurrentDateWithTime())
 								.replace(":status", statusFtp).replace(":processing_id", status.getProcessing_id());
 				excuteByUpdateQueryNew(processUpdateLast);
-			process.sentEmailFTP(email);	
+			process.sentEmailFTP(email);
 				
 			System.out.println("parseUrls::"+parseUrls);
 			RestTemplate restTemplate=new RestTemplate();
-			for(String parse:parseUrls.keySet()) {
-					 Runnable myrunnable = new Thread(){
+			for(String parse:parseUrls.keySet()) {	
+				  passFileList+="<li>"+parse+"</li>";
+				  
+				Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
+				    @Override
+				    public void uncaughtException(Thread th, Throwable ex) {
+				    	email.put("FileList", "<li>"+parse+"</li>");
+						email.put("subject", "FTP -"+s.getFileNameSettingsId()+"Scheduler has Failed");
+						email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
+						process.sentEmailFTP(email);						
+				    }
+				};
+				Thread n = new Thread(){
 			        public void run(){
-			        	CallFTPParseAPI(restTemplate, parseUrls.get(parse), token);				        	
-			        	}
-				    };
-			         
-				    new Thread(myrunnable).start();
-				    passFileList+="<li>"+parse+"</li>";
+			        	try {
+			        		CallFTPParseAPI(restTemplate, parseUrls.get(parse), token);
+						} catch (Exception e) {
+							email.put("FileList", "<li>"+parse+"</li>");
+							email.put("subject", "FTP -"+s.getFileNameSettingsId()+"Scheduler has Failed");
+							email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
+							process.sentEmailFTP(email);		
+						}				        	
+			        }
+				  };
+				    
+				    n.setUncaughtExceptionHandler(h);n.start();				    
+				  
 			}
 			return files;
 		} catch (Exception e) {
