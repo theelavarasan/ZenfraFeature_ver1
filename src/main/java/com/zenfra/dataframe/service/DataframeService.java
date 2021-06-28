@@ -691,18 +691,17 @@ public class DataframeService{
 	                String hwJoin = "";
 	                String hwdata = "";
 	                String osJoin = "";
-	                String osdata = "";
-	        	
-	              
+	                String osdata = "";	                
+	                
 	                
 	        	if(osCount > 0) {	 
 	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Type"::equals) && dataset.first().fieldIndex("Server Type") != -1) {
 	        			 Dataset<Row> eolos = sparkSession.sql("select * from global_temp.eolDataDF where lower(os_type)='"+source_type+"'");  // where lower(`Server Name`)="+source_type
 		        		 eolos.createOrReplaceTempView("eolos");
+		        		 eolos.show();
 		        		  
-		        		 if(eolos.count() > 0) { 
-		        			 
-		        			 osJoin = " left join eolos eol on lcase(eol.os_name)=lcase(ldView.OS) where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.OS)";   //  where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.actual_os_type)
+		        		 if(eolos.count() > 0) { 		        			
+		        			 osJoin = " left join global_temp.eolDataDF eol on lcase(eol.os_name)=lcase(ldView.OS) where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.OS)";   //  where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.actual_os_type)
 		                     osdata = ",eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`";
 			        		 		                     
 		 	        		/*String eosQuery = "Select * from ( Select ldView.* ,eol.end_of_life_cycle as `End Of Life - OS` ,eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp."+viewName+" ldView left join eolos eol on lcase(eol.os_type)=lcase(ldView.actual_os_type) where lcase(eol.os_version)=lcase(ldView.`OS Version`) )";
@@ -719,8 +718,7 @@ public class DataframeService{
 	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Model"::equals) && dataset.first().fieldIndex("Server Model") != -1) {
 	        			 
 	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on (concat(eolHw.vendor,' ',eolHw.model))= ldView.`Server Model`";
-	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";
-	                     
+	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";	                  
 	     	        	/*String hwModel =  dataset.first().getAs("Server Model");
 	        		 Dataset<Row> eolhw = sparkSession.sql("select end_of_life_cycle as `End Of Life - HW`, end_of_extended_support as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
 		        	 if(eolhw.count() > 0) {		        	
@@ -735,37 +733,12 @@ public class DataframeService{
 	                        " select ldView.*" +osdata + hwdata+
 	                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
 	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
-	                        " ) ld where ld.my_rank = 1";
-	        	 
-	        	 if(request.getAnalyticstype()!= null && request.getAnalyticstype().equalsIgnoreCase("Migration Method")) {
-	        		  List<String> taskListServers = new ArrayList<>();
-	     			 if(request.getProjectId() != null && !request.getProjectId().isEmpty()) {
-	     				 List<Map<String, Object>> resultMap = favouriteDao_v2.getJsonarray("select server_name from tasklist where project_id='"+request.getProjectId()+"'");
-	     				 if(resultMap != null && !resultMap.isEmpty()) {
-	     					 for(Map<String, Object> map : resultMap) {
-	     						 taskListServers.add((String) map.get("server_name"));
-	     					 }
-	     				 }
-	     			 }	                
-	                  
-	                  if(!taskListServers.isEmpty()) {
-	                 	 String serverNames = String.join(",", taskListServers
-	      			            .stream()
-	      			            .map(name -> ("'" + name.toLowerCase() + "'"))
-	      			            .collect(Collectors.toList()));
-	                 	 
-	                 	sql = "select * from (" +
-		                        " select ldView.*" +osdata + hwdata+
-		                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
-		                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
-		                        " ) ld where lower(ld.sever_name_col) in ("+serverNames+") and ld.my_rank = 1";
-	                 	
-	                  }
-	        	 }
+	                        " ) ld where ld.my_rank = 1";	        	  
 	        	 
 	        	 dataset = sparkSession.sql(sql).toDF(); 
+	        
 	        	 
-	        	/* if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
+	        	 if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
 	        		  hwJoin = "";
 		              hwdata = "";
 		              osJoin = "";
@@ -777,12 +750,8 @@ public class DataframeService{
 		                        " ) ld where ld.my_rank = 1";
 		        	 
 		        	 dataset = sparkSession.sql(sqlDf).toDF(); 
-	        	 }*/
-	        	 
-	        
-	        // dataset.printSchema();
-	         
-	         //------------------------------------------------------//
+	        	 }
+	        	
 	         
 	         actualColumnNames = Arrays.asList(dataset.columns());	
 	         Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
@@ -837,6 +806,7 @@ public class DataframeService{
 	        results =  results.drop(actualHeadets.stream().toArray(String[]::new)); */
 	        return paginate(results, request);
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.error("Exception occured while fetching local discoverydata from DF{}", e.getMessage(), e);
 		}
 	         
@@ -1749,13 +1719,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
                  int dataCount = getEOLEOSCount(siteKey);
 
-                 int eolHwcount = getEOLEHWCount(siteKey);
+                 int eolHwcount = getEOLEHWCount(siteKey);               
                
-
                  String hwJoin = "";
                  String hwdata = ",'' as `End Of Life - HW`,'' as `End Of Extended Support - HW`";
                  if (eolHwcount != 0) {
-                     hwJoin = "left join global_temp.eolHWData eolHw on eolHw.`Server Name` = aws.`Server Name`";
+                     hwJoin = "left join global_temp.eolHWData eolHw on lcase(eolHw.`Server Name`) = lcase(aws.`Server Name`)";
                      hwdata = ",eolHw.`End Of Life - HW`,eolHw.`End Of Extended Support - HW`";
                  }
 
@@ -1814,16 +1783,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                              " left join global_temp.googleReport google on google.`Server Name` = aws.`Server Name` " +
                              " " + hwJoin + " " +
                              " where aws.site_key='" + siteKey  + "' and "+ deviceType +" order by aws.`Server Name` asc) ld where ld.my_rank = 1";
-                 }
-
+                 }                
                  
-               System.out.println("----------cloud cost sql-------" + sql);
-                
-                 
-               dataCheck = sparkSession.sql(sql).toDF();
-                 
-               System.out.println("---------cloud cost data count-------" + dataCheck.count());
-               dataCheck.show();
+               dataCheck = sparkSession.sql(sql).toDF();             
                  
                logger.info("getReport Details Ends");
                
@@ -1836,10 +1798,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        filterModel = request.getFilterModel();
     	        sortModel = request.getSortModel();
     	        isPivotMode = request.isPivotMode();
-    	        isGrouping = rowGroups.size() > groupKeys.size();
-    	        
-    	    
-    	        System.out.println("---------columnHeaders----" + columnHeaders);
+    	        isGrouping = rowGroups.size() > groupKeys.size();    	      
     	        
     	        for(String col : columnHeaders) {    	        	
     	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
@@ -1914,25 +1873,27 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					   	        	 dataset.createOrReplaceTempView("tmpView");
 					   	        	 dataset = sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
 					   	        	//following three conditions only applied for windows logs. windows only following 3 fields, other logs should have column with empty
-					   	        	 if(!Arrays.toString(dataset.columns()).contains("Logical Processor Count")) {
+					   	        	
+					   	        	 List<String> columns = Arrays.asList(dataset.columns());
+					   	        	 if(!columns.contains("Logical Processor Count")) {
 					   	        		dataset = dataset.withColumn("Logical Processor Count", lit(""));
 					   	        	 }
-									 if(!Arrays.toString(dataset.columns()).contains("DB Service")) {
+									 if(!columns.contains("DB Service")) {
 										 dataset = dataset.withColumn("DB Service", lit(""));			   	        		 
 										}
-									 if(!Arrays.toString(dataset.columns()).contains("Processor Name")) {
+									 if(!columns.contains("Processor Name")) {
 										 dataset =  dataset.withColumn("Processor Name", lit("")); 
 									  }
 									 
-									 if(!Arrays.toString(dataset.columns()).contains("Host")) {
+									 if(!columns.contains("Host")) {
 										 dataset =  dataset.withColumn("Host", lit("")); 
 									  }
 					   	        	
 					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
-					   		         dataset.cache();			
-					   		    
-					   		      //  dataset.printSchema();
-								 
+					   		         dataset.cache();	
+					   		         
+					   		      dataset.printSchema();
+					   		 	
 					        } catch (Exception ex) {
 					            ex.printStackTrace();
 					        }
@@ -2133,6 +2094,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                        " where report.site_key='" + siteKey + "'";
 
 				                Dataset<Row> dataCheck = sparkSession.sql(sql).toDF();
+				                
+				                dataCheck.printSchema();
+				              
 
 				                dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
 				                if (dataCount > 0) {
