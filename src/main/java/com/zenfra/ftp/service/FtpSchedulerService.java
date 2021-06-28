@@ -130,7 +130,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 				email.put("mailFrom", userMap.get("email").toString());
 				email.put("mailTo", l);
 				email.put("firstName", userMap.get("first_name").toString());
-				email.put("Time", functions.getCurrentDateWithTime());
+				//email.put("Time", functions.getCurrentDateWithTime());
 				email.put("Notes","File processing initiated");
 				
 			FileNameSettingsService settingsService=new FileNameSettingsService();
