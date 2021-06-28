@@ -83,6 +83,7 @@ public class EolService {
 			                eoleosDataSet.cache();
 			            }           
 		        } catch (Exception ex) {
+		        	e.printStackTrace();
 		            logger.error("Exception in generating dataframe for EOL/EOS HW data", ex);
 		        }
 		}
