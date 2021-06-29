@@ -6,24 +6,36 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
+import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.utils.DBUtils;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 
 @Component
 public class AwsInventoryPostgresConnection {
 
 	
+	
 
-	public Connection getPostConnection() {
+	
+	public static HikariDataSource dataSource = null;
+	
+	static {
 		Map<String, String> data=DBUtils.getPostgres();
-		try {
-			Class.forName("org.postgresql.Driver");
-			Connection connection = DriverManager.getConnection("jdbc:postgresql://"+data.get("aws_db_url")+":"+data.get("aws_db_port")+"/aws_inventory", data.get("userName"),data.get("password"));
-			return connection;
-		} catch(Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName(ZKModel.getProperty(ZKConstants.POSTGRES_DRIVER_CLASS_NAME));
+        config.setJdbcUrl(data.get("aws_jdbc_url"));
+        config.setUsername(data.get("userName"));
+        config.setPassword(data.get("password"));
+        config.addDataSourceProperty("minimumIdle", ZKModel.getProperty(ZKConstants.PG_MIN_IDLE_TIMEOUT));
+        config.addDataSourceProperty("maximumPoolSize", ZKModel.getProperty(ZKConstants.PG_MAX_POOL_SIZE));
+ 
+        dataSource = new HikariDataSource(config);
+    }
+
 	
 
 	

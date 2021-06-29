@@ -48,9 +48,6 @@ import com.zenfra.utils.DBUtils;
 public class AwsInventoryController {
 	
 	@Autowired
-	AwsInventoryPostgresConnection post;
-	
-	@Autowired
 	CommonFunctions common;
 	
 	@Autowired
@@ -100,7 +97,7 @@ public class AwsInventoryController {
 					.replace(":created_date_value", aws.getCreated_date()).replace(":updated_date_value", aws.getUpdated_date()).replace(":lastFourKey_value", lastFourKey);
 			
 			System.out.println("query::"+query);
-			Connection conn =post.getPostConnection();
+			Connection conn =AwsInventoryPostgresConnection.dataSource.getConnection();
 			Statement stmt = conn.createStatement();
 				stmt.executeUpdate(query);			
 				responseModel.setResponseDescription("Done");
@@ -125,7 +122,7 @@ public class AwsInventoryController {
 			String query="select * from aws_cloud_credentials where sitekey=':sitekey_value'";
 			query=query.replace(":sitekey_value", sitekey);//.replace(":access_key_id", accountid);
 			System.out.println(query);
-		   Connection conn =post.getPostConnection();
+		   Connection conn =AwsInventoryPostgresConnection.dataSource.getConnection();
 		   Statement stmt = conn.createStatement();			
 	       ResultSet rs = stmt.executeQuery(query);
 		List<AwsInventory> list=new ArrayList<AwsInventory>();
@@ -377,7 +374,7 @@ public class AwsInventoryController {
 			 String query="select * from aws_cloud_credentials where data_id=':data_id_value'";
 				query=query.replace(":data_id_value", data_id);
 				System.out.println(query);
-			   Connection conn =post.getPostConnection();
+			   Connection conn =AwsInventoryPostgresConnection.dataSource.getConnection();
 			   Statement stmt = conn.createStatement();			
 		       ResultSet rs = stmt.executeQuery(query);
 		       ObjectMapper map=new ObjectMapper();
@@ -406,7 +403,7 @@ public class AwsInventoryController {
 		 try {String query="select * from aws_cloud_credentials where sitekey=':sitekey_value'";
 			query=query.replace(":sitekey_value", siteKey);
 			System.out.println(query);
-		   Connection conn =post.getPostConnection();
+		   Connection conn =AwsInventoryPostgresConnection.dataSource.getConnection();
 		   Statement stmt = conn.createStatement();			
 	       ResultSet rs = stmt.executeQuery(query);
 	       List<AwsInventory> list=new ArrayList<AwsInventory>();
