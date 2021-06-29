@@ -717,7 +717,7 @@ public class DataframeService{
 	        	 if(hwCount > 0) {
 	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Model"::equals) && dataset.first().fieldIndex("Server Model") != -1) {
 	        			 
-	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on (concat(eolHw.vendor,' ',eolHw.model))= ldView.`Server Model`";
+	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', ''))";
 	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";	                  
 	     	        	/*String hwModel =  dataset.first().getAs("Server Model");
 	        		 Dataset<Row> eolhw = sparkSession.sql("select end_of_life_cycle as `End Of Life - HW`, end_of_extended_support as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
@@ -1807,10 +1807,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        }
     	        
     	        if(!taskListServers.isEmpty()) { //add server~ for task list call
-    	        	dataCheck.withColumnRenamed("End Of Life - HW", "server~End Of Life - HW");
-    	        	dataCheck.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW");
-    	        	dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
-    	        	dataCheck.withColumnRenamed("End Of Extended Support - OS", "server~End Of Extended Support - OS");
+    	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - HW", "server~End Of Life - HW");
+    	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW");
+    	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
+    	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - OS", "server~End Of Extended Support - OS");
     	        }
     	    
                 return paginate(dataCheck, request);
