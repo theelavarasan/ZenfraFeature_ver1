@@ -1805,6 +1805,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
       		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
       		  		      .otherwise(col(col)));
     	        }
+    	        
+    	        if(!taskListServers.isEmpty()) { //add server~ for task list call
+    	        	dataCheck.withColumnRenamed("End Of Life - HW", "server~End Of Life - HW");
+    	        	dataCheck.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW");
+    	        	dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
+    	        	dataCheck.withColumnRenamed("End Of Extended Support - OS", "server~End Of Extended Support - OS");
+    	        }
     	    
                 return paginate(dataCheck, request);
                  
