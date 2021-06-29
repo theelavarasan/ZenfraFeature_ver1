@@ -99,5 +99,11 @@ public class ZKConstants {
 
 	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE="ftp_file_complete_mail_template";
 	public static String MAIL_SERVICE_URL="mailServiceUrl";
+	
+	public static String POSTGRES_DRIVER_CLASS_NAME="pg_driver_class_name";
+	public static String PG_MIN_IDLE_TIMEOUT="pg_min_idle_timeout";
+	public static String PG_MAX_POOL_SIZE="pg_max_pool_size";
+	public static String AWS_TABLE_JDBC_URL="postgresurl_aws_db";
+	
 
 }
