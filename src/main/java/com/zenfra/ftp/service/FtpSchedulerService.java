@@ -116,6 +116,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		ObjectMapper mapper=new ObjectMapper();
 		Map<String,String> parseUrls=new HashMap<String, String>();
 		String passFileList="";
+		FTPServerModel server =new FTPServerModel();
 		try {
 			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.toString());
 			List<String> l=new ArrayList<String>();			
@@ -153,7 +154,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			System.out.println("settings::"+settings.toString());
 			String serverQuery="select * from ftpserver_model  where site_key='"+settings.getSiteKey()+"' and ftp_name='"+settings.getFtpName()+"'";
 			Map<String,Object> serverMap=getObjectByQueryNew(serverQuery) ;//settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
-			FTPServerModel server =new FTPServerModel();
+			
 				if(server!=null) {
 					server.setFtpName(serverMap.get("ftp_name").toString());
 					server.setIpAddress(serverMap.get("ip_address").toString());
@@ -227,7 +228,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 				    @Override
 				    public void uncaughtException(Thread th, Throwable ex) {
 				    	email.put("FileList", "<li>"+parse+"</li>");
-						email.put("subject", "FTP -"+s.getFileNameSettingsId()+"Scheduler has Failed");
+						email.put("subject", "FTP -"+server.getFtpName()+" Scheduler has Failed");
 						email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
 						process.sentEmailFTP(email);						
 				    }
@@ -238,7 +239,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			        		CallFTPParseAPI(restTemplate, parseUrls.get(parse), token);
 						} catch (Exception e) {
 							email.put("FileList", "<li>"+parse+"</li>");
-							email.put("subject", "FTP -"+s.getFileNameSettingsId()+"Scheduler has Failed");
+							email.put("subject", "FTP -"+server.getFtpName()+" Scheduler has Failed");
 							email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
 							process.sentEmailFTP(email);		
 						}				        	
@@ -252,7 +253,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		} catch (Exception e) {
 			e.printStackTrace();
 			email.put("FileList", passFileList);
-			email.put("subject", "FTP -"+s.getFileNameSettingsId()+"Scheduler has Failed");
+			email.put("subject", "FTP -"+server.getFtpName()+" Scheduler has Failed");
 			email.put("Notes", "Unable to process the files. Don't worry, Admin will check. The above listed files are successfully processed.");
 			process.sentEmailFTP(email);
 			String processUpdateLast="UPDATE processing_status SET response=':response',end_time=':end_time'  status=':status' WHERE processing_id=':processing_id';";

@@ -161,6 +161,10 @@ public class FTPSettingsController {
 				response.setResponseMessage("Sent valid object");
 			
 			}
+			if(ftpServer.getServerPath()!=null && !ftpServer.getServerPath().startsWith("/")) {
+				ftpServer.setServerPath("/"+ftpServer.getServerPath());
+			}
+			
 			ftpServer.setUpdate_by(userId);
 			ftpServer.setUpdated_time(functions.getCurrentDateWithTime());
 			service.saveFtpServer(ftpServer);
