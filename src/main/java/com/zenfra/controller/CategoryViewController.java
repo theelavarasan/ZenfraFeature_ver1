@@ -2,6 +2,8 @@ package com.zenfra.controller;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.json.simple.JSONArray;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.model.CategoryView;
 import com.zenfra.model.ResponseModel_v2;
+import com.zenfra.model.Users;
 import com.zenfra.service.CategoryViewService;
+import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
@@ -31,9 +35,12 @@ public class CategoryViewController {
 
 	@Autowired
 	CommonFunctions functions;
+	
+	@Autowired
+	UserService userService;
 
 	@PostMapping
-	public ResponseEntity<?> saveCategoryView(@RequestBody CategoryView view) {
+	public ResponseEntity<?> saveCategoryView(@Valid @RequestBody CategoryView view) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
@@ -42,12 +49,19 @@ public class CategoryViewController {
 			view.setCreatedTime(functions.getCurrentDateWithTime());
 			view.setCategoryId(functions.generateRandomId());
 			
-			
+			if(view.getSiteKey()==null) {
+				responseModel.setResponseMessage("Validation Error!");
+				responseModel.setResponseDescription("Category not inserted:: Please sent valid site key");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+				return ResponseEntity.ok(responseModel);
+			}
 
 			view.setUpdatedBy(view.getUserId());
 			view.setUpdatedTime(functions.getCurrentDateWithTime());
 
 			if (categoryService.saveCategoryView(view)) {
+				Users user=userService.getUserByUserId(view.getUserId());
+				view.setUpdatedBy(user.getFirst_name()+" "+user.getLast_name());
 				responseModel.setjData(functions.convertEntityToJsonObject(view));
 				responseModel.setResponseDescription("Category Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
@@ -82,8 +96,8 @@ public class CategoryViewController {
 			}
 			BeanUtils.copyProperties(view, viewExit, NullAwareBeanUtilsBean.getNullPropertyNames(view));	
 			viewExit.setActive(true);
-			view.setUpdatedBy(view.getAuthUserId());
-			view.setUpdatedTime(functions.getCurrentDateWithTime());			
+			viewExit.setUpdatedBy(view.getAuthUserId());
+			viewExit.setUpdatedTime(functions.getCurrentDateWithTime());			
 			
 		
 			if (categoryService.saveCategoryView(viewExit)) {

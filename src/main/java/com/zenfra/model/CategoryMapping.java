@@ -1,13 +1,5 @@
 package com.zenfra.model;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
 public class CategoryMapping {
 
 	
@@ -15,7 +7,7 @@ public class CategoryMapping {
 	
 	private String id;
 	
-	private String category_list;
+	private String category;
 
 	public String getId() {
 		return id;
@@ -25,15 +17,12 @@ public class CategoryMapping {
 		this.id = id;
 	}
 
-	public String getCategory_list() {
-		return category_list;
+	public String getCategory() {
+		return category;
 	}
 
-	public void setCategory_list(String category_list) {
-		this.category_list = category_list;
+	public void setCategory(String category) {
+		this.category = category;
 	}
-	
-	
-	
 	
 }

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.JsonArray;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.ResponseModel;
@@ -45,7 +46,7 @@ public class FavouriteController_v2 {
 	@Autowired
 	CategoryMappingService catService;
 
-	@PostMapping("/get-all-favourite-v2-temp")
+	@PostMapping("/get-all-favourite")
 	public ResponseEntity<?> getFavouriteView(@RequestParam(name = "authUserId", required = false) String userId,
 			@RequestParam(name = "siteKey") String siteKey,
 			@RequestParam(name = "reportName", required = false) String reportName,
@@ -84,20 +85,23 @@ public class FavouriteController_v2 {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				return ResponseEntity.ok(responseModel);
 			}
-			
-			favouriteModel.setIsActive(true);
-			favouriteModel.setCreatedTime(functions.getCurrentDateWithTime());
 			favouriteModel.setFavouriteId(functions.generateRandomId());
+			if(favouriteModel.getReportName().equalsIgnoreCase("project-summary")) {
+				favouriteModel.setReportLabel(favouriteModel.getFavouriteId());
+			}
+			favouriteModel.setIsActive(true);
+			favouriteModel.setCreatedTime(functions.getCurrentDateWithTime());			
 			favouriteModel.setUpdatedBy(favouriteModel.getCreatedBy());
 			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
 			
 
 			if (service.saveFavouriteView(favouriteModel) == 1) {	
+				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
+				favouriteModel.setCategoryColumns(catService.getCategoryLabelById(favouriteModel.getFavouriteId()));
 				favouriteModel.setCreatedBy((user.getFirst_name()+" "+user.getLast_name()));				
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
-				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
 			} else {
 				responseModel.setResponseDescription("Favourite not inserted ");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -131,10 +135,13 @@ public class FavouriteController_v2 {
 			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
 
 			if (service.updateFavouriteView(favouriteModel.getAuthUserId(), favouriteModel) == 1) {
+				catService.deleteCategoryMappingFavouriteIdOrChartId(favouriteModel.getFavouriteId());
+				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
+				favouriteModel.setCategoryColumns(catService.getCategoryLabelById(favouriteModel.getFavouriteId()));
 				responseModel.setResponseCode(HttpStatus.OK);
 				responseModel.setjData(functions.convertEntityToJsonObject(favouriteModel));
 				responseModel.setResponseDescription("FavouriteView Successfully updated");
-				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
+			
 			} else {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				responseModel.setResponseDescription("Favourite Id not found ");
@@ -234,9 +241,7 @@ public class FavouriteController_v2 {
 			responseModel.setValidation(service.checkfavouriteName(userId, siteKey, favouriteName, reportName));
 			responseModel.setResponseMessage("Success");
 			responseModel.setResponseCode(HttpStatus.OK);
-			responseModel
-					.setResponseDescription("FavouriteView " + favouriteName + " already available for the " + siteKey);
-
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseMessage("Failed");

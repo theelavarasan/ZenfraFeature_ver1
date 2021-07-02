@@ -1,18 +1,27 @@
 package com.zenfra.controller;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,7 +30,9 @@ import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.dataframe.util.ZenfraConstants;
+import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
+import com.zenfra.utils.DBUtils;
 
 
 @CrossOrigin(origins = "*")
@@ -34,6 +45,12 @@ public class ReportDataController {
 	
 	@Autowired
 	ReportService reportService;
+	
+	@Autowired
+	FavouriteApiService_v2 favouriteApiService_v2;
+	
+	@Autowired
+	SparkSession sparkSession;
 	
 
 	@GetMapping("createLocalDiscoveryDF")
@@ -56,20 +73,41 @@ public class ReportDataController {
 	 */
 	 
 	 @PostMapping("getReportData")
-	    public ResponseEntity<String> getRows(@RequestBody ServerSideGetRowsRequest request) { 		
-		  
+	    public ResponseEntity<String> getReportData(@RequestBody ServerSideGetRowsRequest request) { 		
+		  		 
 		  try {
-	      		 DataResult data = dataframeService.getReportData(request);
-	      		 if(data != null) {
-	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
-	      		 }
+			  if(request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") ) {
+				  DataResult data = dataframeService.getReportData(request);
+		      		 if(data != null) {
+		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+		      		 }
+			  } else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {				
+				  /*JSONArray data = reportService.getCloudCostData(request);
+				  
+		      		 if(data != null) {	
+		      			JSONObject resultData = new JSONObject();
+		      			resultData.put("data", data);
+		      			resultData.put("lastRow", data.size());
+		      			resultData.put("totalCount", data.size());
+		      			return new ResponseEntity<>(resultData.toString(), HttpStatus.OK);
+		      		 }
+		      		 */
+				  
+				  DataResult data = dataframeService.getOptimizationReport(request);
+				  if(data != null) {
+		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+		      		 }
+			  }
+	      		
 	 	        
 			} catch (Exception e) {
+				e.printStackTrace();
 				System.out.println("Not able to fecth report {}"+ e);
 			}   	
 	    	JSONArray emptyArray = new JSONArray();
 	      	 return new ResponseEntity<>(emptyArray.toJSONString(), HttpStatus.OK);
 	    }
+	 
 	 
 	 @PostMapping("saveLocalDiscoveryDF")
 	    public ResponseEntity<String> saveLocalDiscoveryDF(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestBody JSONObject localDiscoveryData) { 	     
@@ -78,7 +116,12 @@ public class ReportDataController {
 		  try {	      		 
 	      		 if(localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty() && sourceType != null && !sourceType.isEmpty()) {
 	      			 String result = "Success";	      			 			
-	      			result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	      			
+	      			//result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
+	      			result = dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
+	      			
+	      			//verify default fav is present or not
+	      			//favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
+	      			
 	      			return new ResponseEntity<>(result, HttpStatus.OK);
 	      		 } else {
 	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 
@@ -91,35 +134,64 @@ public class ReportDataController {
 	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
 	    }
 	 
-	 /*RequestMapping(method = RequestMethod.POST, value = "getReportHeader")
-	    public ResponseEntity<String> getReportHeader(@RequestParam("reportType") String reportType, @RequestParam("deviceType") String deviceType, @RequestParam("reportBy") String reportBy) { 	     
-		  
-		  try {	      		 
-	      		 if(reportType != null && !reportType.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
-	      			DataResult columnHeaders = dataframeService.getReportHeader(reportType, deviceType, reportBy);
-	      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(columnHeaders), HttpStatus.OK);
-	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
+	  @PostMapping("saveDefaultFavView")
+	    public ResponseEntity<String> testfav(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) { 	     
+		  System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : " + siteKey + " : "+userId);
+		 
+		  try {	
+			/*
+			 * if(sourceType != null && (sourceType.equalsIgnoreCase("LINUX") ||
+			 * sourceType.equalsIgnoreCase("WINDOWS") ||
+			 * sourceType.equalsIgnoreCase("VMWARE"))) {
+			 * reportService.refreshCloudCostViews(); }
+			 */
+			  		
+			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
+	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
+	      			
+	      			return new ResponseEntity<>("", HttpStatus.OK);
+	      		
 	      		
 			} catch (Exception e) {
-				System.out.println("Not able to get report headers {}"+ e);
+				System.out.println("Not able to save local discovery in dataframe {}"+ e);
 			}   	
 	    	
 	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
-	    } */
-	 
+	    }
 	 
 	 @PostMapping("getReportHeader")
-	    public ResponseEntity<String> getReportHeader(@RequestParam("reportType") String reportName, @RequestParam("ostype") String deviceType, @RequestParam("reportBy") String reportBy, @RequestParam("siteKey") String siteKey, @RequestParam("reportList") String reportList) { 	     
-		  
-		  try {	      		 
-	      		 if(reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
-	      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList);
-	      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
-	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
+	    public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) { 
+		
+		  try {	    
+			  String reportName = "";
+			  String deviceType = "";
+			  String reportBy = "";
+			  String siteKey = "";
+			  String reportList = "";
+			  if(request.getReportType().equalsIgnoreCase("discovery")) {
+				  reportName = request.getReportType();
+				  deviceType = request.getOstype();
+				  reportBy = request.getReportBy();
+				  siteKey = request.getSiteKey();
+				  reportList = request.getReportList();
+			  } else if(request.getReportType().equalsIgnoreCase("optimization")){
+				   reportName = request.getReportType();
+				   deviceType = "All";
+				   reportBy = request.getReportType();
+				   siteKey = request.getSiteKey();
+				   reportList = request.getReportList();
+			  }
+			  
+				if(reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
+		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList, request.getCategory());
+		      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
+		        }  else {
+	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		
+	      	    }
+	      		 
 	      		
 			} catch (Exception e) {
+				
 				System.out.println("Not able to get report headers {}"+ e);
 			}   	
 	    	
@@ -146,23 +218,6 @@ public class ReportDataController {
 	    }
 	 
 	 
-	/* @RequestMapping(method = RequestMethod.POST, value = "getSublinkList")
-	    public ResponseEntity<String> getReportHeader(@RequestParam("deviceType") String deviceType, @RequestParam("reportType") String reportType) { 	     
-		  
-		  try {	      		 
-	      		 if(reportType != null && !reportType.isEmpty() && deviceType != null && !deviceType.isEmpty()) {
-	      			//JSONObject sublinkData = dataframeService.getSubReportList(reportType, deviceType);
-	      			return new ResponseEntity<>("", HttpStatus.OK);
-	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
-	      		
-			} catch (Exception e) {
-				System.out.println("Not able to get sublink data {}"+ e);
-			}   	
-	    	
-	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
-	    }
-	  */
 	 
 	 @GetMapping("/getAllSublinkData")
 	    public ResponseEntity<?> getAllSublinkData() {	    	 
@@ -177,5 +232,6 @@ public class ReportDataController {
 	          return ResponseEntity.ok(resultObject);
 	          
 	    }
+	
 	 
 }

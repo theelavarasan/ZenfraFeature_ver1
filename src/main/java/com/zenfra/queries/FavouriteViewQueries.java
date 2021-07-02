@@ -17,7 +17,7 @@ public class FavouriteViewQueries {
 	
 	private String selectByFavouriteId;
 	
-	private String categorySave;
+	
 
 	public String getGetFavView() {
 		return getFavView;
@@ -44,13 +44,7 @@ public class FavouriteViewQueries {
 	}
 
 	
-	public String getCategorySave() {
-		return categorySave;
-	}
-
-	public void setCategorySave(String categorySave) {
-		this.categorySave = categorySave;
-	}
+	
 
 	public String getUpdateCreatedByNotEqualsUserIdUserAccessUpdate() {
 		return updateCreatedByNotEqualsUserIdUserAccessUpdate;

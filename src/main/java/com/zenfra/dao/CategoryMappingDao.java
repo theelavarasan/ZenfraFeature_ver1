@@ -30,13 +30,25 @@ public class CategoryMappingDao extends CommonEntityManager{
 	try {
 		
 		String query=data.categoryMappingQueries().getSave()
-				.replace(":id", cate.getId()).replace(":category_list", cate.getCategory_list());
+				.replace(":id", cate.getId()).replace(":category_list", cate.getCategory());
 		
 		updateQuery(query);
 		
 	} catch (Exception e) {
 		e.printStackTrace();
 	}
+	}
+
+	public boolean deleteCategoryMapping(String id) {
+		try {
+			
+			String query=data.categoryMappingQueries()
+					.getDeleteCategoryMappingFavouriteIdOrChartId().replace(":id", id);
+			updateQuery(query);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
 	}
 
 }

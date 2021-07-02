@@ -48,7 +48,8 @@ public class DataframeUtil {
 	        return "{" +
 	                "\"data\": [" + String.join(",", result.getData()) + "], " +
 	                "\"lastRow\":" + result.getLastRow() + ", " +
-	                "\"totalCount\": " + result.getTotalRecord() + "" +	                
+	                "\"totalCount\": " + result.getTotalRecord()  +	  
+				/* "\"unit_conv_details\": " + result.getUnit_conv_details() + "" + */
 	                "}";
 	    }
 	 
@@ -138,12 +139,12 @@ public class DataframeUtil {
 			        if (file.isDirectory()) {
 			        	formatJsonFile(file.listFiles());
 			        } else {
-			           
+			        	 
 			            if(file.getPath().endsWith(".crc")) {		            
 			            	 file.delete();
 			            } else if (file.getPath().endsWith(".json")) {
 			            	
-			            	  System.out.println("-------------file------>>-------------------" + file.getAbsolutePath());
+			            	
 			            	  
 			            	Path path = Paths.get(file.getAbsolutePath());
 					   	     Stream <String> lines = Files.lines(path);

@@ -76,7 +76,7 @@ public class Users {
 	private String created_time;
 	
 	
-	@Column(name="pin_status")
+	@Column(name="pin_status", nullable = false, columnDefinition = "boolean default false")
 	private boolean pin_status;
 	
 	

@@ -1,13 +1,20 @@
 package com.zenfra;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
 //@SpringBootTest
 class ZenfraFeaturesApplicationTests {
 
-	//@Test
-	void contextLoads() {
+	public static void main(String a[]) {
+		
+		int i = 1;
+		if(i == 1) {
+			i =2;
+		} else if (i == 2) {
+			i = 3;			
+		} else {
+			i = 5;
+		}
+		System.out.println (i);
+		
 	}
-
+	
 }

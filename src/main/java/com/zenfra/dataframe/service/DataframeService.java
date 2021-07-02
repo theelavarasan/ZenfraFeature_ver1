@@ -11,10 +11,8 @@ import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -22,16 +20,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -51,16 +47,14 @@ import org.apache.spark.sql.types.StructType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
 import com.zenfra.dataframe.filter.ColumnFilter;
 import com.zenfra.dataframe.filter.NumberColumnFilter;
@@ -72,7 +66,10 @@ import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.dataframe.util.ZenfraConstants;
-import com.zenfra.service.ReportService;
+import com.zenfra.utils.DBUtils;
+
+import scala.collection.JavaConverters;
+import scala.collection.Seq;
 
 
 @Repository
@@ -93,12 +90,13 @@ public class DataframeService{
 
 	private static DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	
+	JSONParser parser = new JSONParser();
 
 	 @Autowired
 	 SparkSession sparkSession;
-	 
-	 @Value("${db.url}")
-	 private String dbUrl;
+	
+	 //@Value("${db.url}")
+	// private String dbUrl;
 	 
 	 @Value("${zenfra.path}")
 	 private String commonPath;
@@ -106,9 +104,21 @@ public class DataframeService{
 	 @Value("${zenfra.permisssion}")
 	 private String fileOwnerGroupName;
 	 
+	 @Autowired
+	 EolService eolService;
+	 
 	 
 	 @Autowired
 	 private ReportDao reportDao;
+	 
+	 @Autowired
+	 private FavouriteDao_v2 favouriteDao_v2;
+	 
+	
+	 
+	
+	 
+	 private String dbUrl = DBUtils.getPostgres().get("dbUrl");
 	
 	 //---------------------SSRM Code-----------------------------------//
 
@@ -508,7 +518,8 @@ public class DataframeService{
 	                .collectAsList();
 
 	        // calculate last row
-	        long lastRow = endRow >= rowCount ? rowCount : -1;		       
+	        long lastRow = endRow >= rowCount ? rowCount : -1;	        
+	       
 	        
 	        return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count());
 	    }
@@ -566,9 +577,9 @@ public class DataframeService{
 
 	 //---------------------SSRM Code-----------------------------------//
 	
-	public String createDataframeForLocalDiscovery(String tableName) {   
-		
-		logger.info("create dataframe for local discovery table");		
+	public String createDataframeForLocalDiscovery(String tableName) {   		
+	
+		logger.info("create dataframe for local discovery table" );		
 		try {
 			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
 		
@@ -625,10 +636,24 @@ public class DataframeService{
 		
 	
 	
-	 public DataResult getReportData(ServerSideGetRowsRequest request) {	    	
-		
+	 public DataResult getReportData(ServerSideGetRowsRequest request) {	    
+		 
+		 
 		 String siteKey = request.getSiteKey();
          String source_type = request.getSourceType().toLowerCase();
+        
+       
+ 		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
+ 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+ 		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("vmware") && request.getReportBy().toLowerCase().contains("host"))) {
+ 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+ 		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("nutanix") && request.getReportBy().toLowerCase().contains("host"))) {
+ 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+ 		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("nutanix") && request.getReportBy().toLowerCase().equalsIgnoreCase("vm"))) {
+ 			source_type = source_type + "-" + "guest";
+ 		} 		
+ 		
+ 		
          
 		 boolean isDiscoveryDataInView = false;
 		 Dataset<Row> dataset = null;
@@ -637,8 +662,7 @@ public class DataframeService{
 		 try {
 			 dataset = sparkSession.sql("select * from global_temp."+viewName);
 			 dataset.cache();
-			 isDiscoveryDataInView = true;
-			 System.out.println("-------orginal data count--------" + dataset.count());
+			 isDiscoveryDataInView = true;			
 		} catch (Exception e) {
 			System.out.println("---------View Not exists--------");
 		} 
@@ -646,16 +670,88 @@ public class DataframeService{
 		 try {	       
 			 isDiscoveryDataInView = false;
 	         if(!isDiscoveryDataInView) {
+	        	 File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type);
+	        	 if(!verifyDataframePath.exists()) {
+	        		 createDataframeOnTheFly(siteKey, source_type);
+	        	 }
 	        	 String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
 	        	 dataset = sparkSession.read().json(filePath); 	 
 	        	 dataset.createOrReplaceTempView("tmpView");
 	        	 dataset =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
-	        	 System.out.println("-------new data count--------" + dataset.count());
 	        	 dataset.createOrReplaceGlobalTempView(viewName); 
 		         dataset.cache();
 	         }		        
 	         
+	         //---------------------EOL EOS---------------------------//	     
 	        
+	        	 int osCount = eolService.getEOLEOSData();
+	        	 int hwCount = eolService.getEOLEOSHW();
+	        	 
+	       
+	                String hwJoin = "";
+	                String hwdata = "";
+	                String osJoin = "";
+	                String osdata = "";	                
+	                
+	                
+	        	if(osCount > 0) {	 
+	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Type"::equals) && dataset.first().fieldIndex("Server Type") != -1) {
+	        			 Dataset<Row> eolos = sparkSession.sql("select * from global_temp.eolDataDF where lower(os_type)='"+source_type+"'");  // where lower(`Server Name`)="+source_type
+		        		 eolos.createOrReplaceTempView("eolos");
+		        		 eolos.show();
+		        		  
+		        		 if(eolos.count() > 0) { 		        			
+		        			 osJoin = " left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";   // where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`)
+		                     osdata = ",eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`";
+			        		 		                     
+		 	        		/*String eosQuery = "Select * from ( Select ldView.* ,eol.end_of_life_cycle as `End Of Life - OS` ,eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp."+viewName+" ldView left join eolos eol on lcase(eol.os_type)=lcase(ldView.actual_os_type) where lcase(eol.os_version)=lcase(ldView.`OS Version`) )";
+		 	        		Dataset<Row> datasetTmp =  sparkSession.sql(eosQuery);
+		 	        		 System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>--------------" + datasetTmp.count());
+		 	        		datasetTmp.show(); */
+				        	
+				         }
+	        		 }
+	        		 
+	        	}
+	        	
+	        	 if(hwCount > 0) {
+	        		 if(Arrays.stream(dataset.columns()).anyMatch("Server Model"::equals) && dataset.first().fieldIndex("Server Model") != -1) {
+	        			 
+	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', ''))";
+	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";	                  
+	     	        	/*String hwModel =  dataset.first().getAs("Server Model");
+	        		 Dataset<Row> eolhw = sparkSession.sql("select end_of_life_cycle as `End Of Life - HW`, end_of_extended_support as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
+		        	 if(eolhw.count() > 0) {		        	
+			        	 dataset = dataset.join(eolhw);
+			         } */
+	        	 }
+	        	 }
+	        	
+	        	//sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+	        	 
+	        	 String sql = "select * from (" +
+	                        " select ldView.*" +osdata + hwdata+
+	                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
+	                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
+	                        " ) ld where ld.my_rank = 1";	        	  
+	        	 
+	        	 dataset = sparkSession.sql(sql).toDF(); 
+	        
+	        	 
+	        	 if((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
+	        		  hwJoin = "";
+		              hwdata = "";
+		              osJoin = "";
+		              osdata = "";
+	        		 String sqlDf = "select * from (" +
+		                        " select ldView.*" +osdata + hwdata+
+		                        " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank" +
+		                        " from global_temp."+viewName+" ldView" + hwJoin + osJoin +
+		                        " ) ld where ld.my_rank = 1";
+		        	 
+		        	 dataset = sparkSession.sql(sqlDf).toDF(); 
+	        	 }
+	        	
 	         
 	         actualColumnNames = Arrays.asList(dataset.columns());	
 	         Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
@@ -685,20 +781,32 @@ public class DataframeService{
 	        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	        
 	        //results.printSchema();	 	
 	        
-	        results = results.dropDuplicates();
+	        results = results.dropDuplicates();	        
+
+	        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", request.getSourceType().toLowerCase(), "Discovery", siteKey);	    	
+	    	
+	    	List<String> columns = Arrays.asList(results.columns());
+	    	
+            for(String column : numericalHeaders) {                        	
+            	if(columns.contains(column)) { 
+            		results = results.withColumn(column, results.col(column).cast("float"));
+            	}
+            	
+            }
 	        
-	       /* List<String> numericalHeaders = reportService.getReportNumericalHeaders("Discovery", source_type, "Discovery", siteKey);
-	        if(!numericalHeaders.isEmpty()) {
-	        	numericalHeaders.stream().forEach((c) -> System.out.println(c));
-	        } */
+            if(source_type.equalsIgnoreCase("vmware-host")) { 
+            	results = results.withColumn("Server Type", lit("vmware-host"));
+            }
+
 	       
-	        /*List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
+	       /* List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
 	        List<String> actualHeadets = new ArrayList<>();
 	        actualHeadets.addAll(Arrays.asList(results.columns()));	      
 	        actualHeadets.removeAll(headers);	       
-	        results =  results.drop(actualHeadets.stream().toArray(String[]::new));*/
+	        results =  results.drop(actualHeadets.stream().toArray(String[]::new)); */
 	        return paginate(results, request);
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.error("Exception occured while fetching local discoverydata from DF{}", e.getMessage(), e);
 		}
 	         
@@ -706,6 +814,61 @@ public class DataframeService{
 		 return null;
 	    } 	   
 	 
+	 public List<String> getReportNumericalHeaders(String reportName, String source_type, String reportBy, String siteKey) {
+			// TODO Auto-generated method stub
+			return reportDao.getReportNumericalHeaders(reportName, source_type, reportBy, siteKey);
+		}
+
+	 
+private void createDataframeOnTheFly(String siteKey, String source_type) {
+	try {
+		source_type = source_type.toLowerCase();
+		String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+		
+		Map<String, String> options = new HashMap<String, String>();
+		options.put("url", dbUrl);
+		options.put("dbtable", "(select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and lower(source_type)='"+source_type+"') as foo");
+		
+		@SuppressWarnings("deprecation")
+		Dataset<Row> localDiscoveryDF = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
+		localDiscoveryDF.show();
+		Dataset<Row> dataframeBySiteKey = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
+		
+		
+		File f = new File(path + siteKey);
+		if (!f.exists()) {
+			f.mkdir();
+		}
+		
+		dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
+				.partitionBy("site_key", "source_type").format("org.apache.spark.sql.json")
+				.mode(SaveMode.Overwrite).save(f.getPath());
+		
+		 String viewName = siteKey+"_"+source_type.toLowerCase();
+		 viewName = viewName.replaceAll("-", "");
+		 
+		// remove double quotes from json file
+					File[] files = new File(path).listFiles();
+					if (files != null) {
+						DataframeUtil.formatJsonFile(files);
+					}
+		 
+		 String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
+		 dataframeBySiteKey = sparkSession.read().json(filePath); 	 
+		 dataframeBySiteKey.createOrReplaceTempView("tmpView");
+		 dataframeBySiteKey =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
+		 dataframeBySiteKey.createOrReplaceGlobalTempView(viewName); 
+		 dataframeBySiteKey.cache();
+		 System.out.println("------------dataframeBySiteKey-------------------" + dataframeBySiteKey.count());
+         
+	} catch (Exception e) {
+		e.printStackTrace();
+		logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(), e);
+	}
+		
+	}
+
+
 	 
 	 private List<SortModel> formatSortModel(List<SortModel> sortModels) {
 		 List<SortModel> sortModel = new ArrayList<>();
@@ -1282,5 +1445,679 @@ public class DataframeService{
 			 }
 			 return resultArray;
 		}
+		
+	
+		public String recreateLocalDiscovery(String siteKey, String sourceType) {
+			String result = "";
+			try {
+				sourceType = sourceType.toLowerCase();
+				
+				Map<String, String> options = new HashMap<String, String>();
+				options.put("url", dbUrl);				
+				options.put("dbtable", "local_discovery");				
+				
+				sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
+				
+				boolean isMultipleSourceType = false;
+				if(sourceType.contains("hyper") || sourceType.contains("vmware") || sourceType.contains("nutanix")) {
+					isMultipleSourceType = true;
+				} 
+				
+				if(!isMultipleSourceType) {
+					reinitiateDiscoveryDataframe(siteKey, sourceType);
+				} else {
+					if(sourceType.contains("hyper")) {
+						reinitiateDiscoveryDataframe(siteKey, "hyper-v-host");
+						reinitiateDiscoveryDataframe(siteKey, "hyper-v-vm");
+					} else if(sourceType.contains("vmware")) {
+						reinitiateDiscoveryDataframe(siteKey,"vmware");
+						reinitiateDiscoveryDataframe(siteKey, "vmware-host");
+					}  else if(sourceType.contains("nutanix")) {
+						reinitiateDiscoveryDataframe(siteKey,"nutanix-guest");
+						reinitiateDiscoveryDataframe(siteKey, "nutanix-host");
+					} else {
+						reinitiateDiscoveryDataframe(siteKey, sourceType);
+					}
+				}
+				
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return result;
+		}	
+		
+
+		private void reinitiateDiscoveryDataframe(String siteKey, String sourceType) {
+			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+			Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
+			
+			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");				
+			
+			try {
+				Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
+						"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and LOWER(source_type)='"+sourceType+"'");
+				
+				 String filePathSrc = commonPath +  File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator;
+				File f = new File(filePathSrc);
+				if (!f.exists()) {
+					f.mkdir();
+				}
+				
+				dataframeBySiteKey.show();
+				
+				dataframeBySiteKey = dataframeBySiteKey.drop("site_key").drop("source_type");	
+				 
+				dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
+						.format("org.apache.spark.sql.json")
+						.mode(SaveMode.Overwrite).save(f.getPath());
+				dataframeBySiteKey.unpersist();
+				
+				// remove double quotes from json file
+				File[] files = new File(filePathSrc).listFiles();
+				if (files != null) {
+					DataframeUtil.formatJsonFile(files);
+				}
+				
+				for(File file : files) {
+					
+		            String filePath =  file.getAbsolutePath();
+		            if(filePath.endsWith(".json")) {			            	
+		   	         	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator + "*.json";
+		   	         	String viewName = siteKey+"_"+sourceType.toLowerCase();
+		   	         	viewName = viewName.replaceAll("-", "");
+		   	       
+		   	      try {			   	    	 
+		   	        	 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
+		   	        	 dataset.createOrReplaceTempView("tmpView");
+		   	        	 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+		   		         dataset.createOrReplaceGlobalTempView(viewName); 
+		   		         dataset.cache();
+		   		 	 System.out.println("---------View created-------- :: " + viewName);
+	        		} catch (Exception e) {
+	        			e.printStackTrace();
+	        			 System.out.println("---------Not able to create View-------- :: " + viewName);
+	        		}  
+		            	
+		            }
+		        
+				}
+		}  catch (Exception e) {
+			logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(), e);
+		}
+ }
+		
+		
+		 public JSONObject getUnitConvertDetails(String reportName, String deviceType) {
+		        logger.info("GetUnitConvertDetails Begins");
+		        JSONObject resultJSONObject = new JSONObject();
+		        try {
+		            JSONObject timeZoneMetricsObject = new JSONObject();
+		            List<Map<String, Object>> resultMap = new ArrayList<>();
+		            if(reportName != null && !reportName.isEmpty()) {
+		            	 if (reportName.equalsIgnoreCase("capacity")) {
+				                String query = "select column_name from report_capacity_columns where lower(device_type)= '"+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
+				                
+				                resultMap = favouriteDao_v2.getJsonarray(query);
+
+				                
+				            } else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
+				            	  String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
+				                
+				                resultMap = favouriteDao_v2.getJsonarray(query);
+
+				                
+				            } else {
+				                String query = "select column_name from report_columns where lower(report_name) = '"+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
+				                        + "' and is_size_metrics = '1'";
+
+				                resultMap = favouriteDao_v2.getJsonarray(query);
+				            }
+				           
+		            }
+		           
+		            JSONArray capacityMetricsColumns = new JSONArray();
+		            JSONObject capacityMetricsColumnObject = new JSONObject();
+		            for(Map<String, Object> list : resultMap) {
+		            	for (Map.Entry<String,Object> entry : list.entrySet()) {			                                
+			                    capacityMetricsColumns.add(entry.getValue());
+			            }
+		            }		           
+		            
+		            capacityMetricsColumnObject.put("column", capacityMetricsColumns);
+		            capacityMetricsColumnObject.put("metrics_in", "Gb");
+		            resultJSONObject.put("capacity_metrics", capacityMetricsColumnObject);
+		            resultJSONObject.put("timezone_metrics", timeZoneMetricsObject);
+		        } catch (Exception ex) {
+		            logger.error("Exception in GetUnitConvertDetails ", ex);
+		        }
+		        logger.info("GetUnitConvertDetails Ends");		       
+		        return resultJSONObject;
+		    }
+
+
+
+		public DataResult getCloudCostData(ServerSideGetRowsRequest request) {
+			 Dataset<Row> dataset = null;
+			try {
+				String siteKey = request.getSiteKey();
+				String deviceType = request.getDeviceType();
+				
+				 String viewName = siteKey+"_"+deviceType.toLowerCase();
+				 viewName = viewName.replaceAll("-", "")+"_opt";
+				
+				 boolean isDiscoveryDataInView = false;
+				 try {
+					 dataset = sparkSession.sql("select * from global_temp."+viewName);
+					 dataset.cache();
+					 isDiscoveryDataInView = true;			
+				} catch (Exception e) {
+					
+				} 
+				 
+				 if(!isDiscoveryDataInView) {
+					 Map<String, String> options = new HashMap<String, String>();
+						options.put("url", dbUrl);						
+						options.put("dbtable", "mview_aws_cost_report");						
+						sparkSession.sqlContext().load("jdbc", options).registerTempTable("mview_aws_cost_report"); 
+						dataset = sparkSession.sql("select * from mview_aws_cost_report where site_key='"+ siteKey + "'");
+						dataset.createOrReplaceGlobalTempView(viewName); 
+						dataset.cache();					
+				 }
+				 
+				   
+				 
+			} catch (Exception e) {
+				e.printStackTrace();
+			}		
+			
+			dataset = DataframeUtil.renameDataFrameColumn(dataset, "data_temp_", "");
+			
+			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+	        groupKeys = request.getGroupKeys();
+	        valueColumns = request.getValueCols();
+	        pivotColumns = request.getPivotCols();
+	        filterModel = request.getFilterModel();
+	        sortModel = request.getSortModel();
+	        isPivotMode = request.isPivotMode();
+	        isGrouping = rowGroups.size() > groupKeys.size();	        
+	       
+	        rowGroups =  formatInputColumnNames(rowGroups);
+	        groupKeys =  formatInputColumnNames(groupKeys);
+	        sortModel =  formatSortModel(sortModel);
+	        request.setStartRow(1);
+	        request.setEndRow((int)dataset.count());
+	        
+	        dataset.show();
+	        
+	        return paginate(dataset, request);
+		}
+
+
+
+		public DataResult getOptimizationReport(ServerSideGetRowsRequest request) {
+			 
+			 String siteKey = request.getSiteKey();
+	         String deviceType = request.getDeviceType();
+	        	         
+	         
+	         String reportName = request.getReportType();
+			 String deviceTypeHeder = "All";
+			 String reportBy = request.getReportType();			
+			 JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+			  
+			 String discoveryFilterqry ="";
+			
+			   List<String> columnHeaders = new ArrayList<>();
+			   if(headers != null && headers.size() > 0) {
+				   for(Object o : headers){
+					    if ( o instanceof JSONObject ) {
+					    	String col = (String) ((JSONObject) o).get("actualName");
+					    	String dataType = (String) ((JSONObject) o).get("dataType");
+					    	if(dataType.equalsIgnoreCase("String")) {
+					    		columnHeaders.add(col);
+					    	}
+					    	
+					    }
+					}
+			   }
+			   
+			   List<String> taskListServers = new ArrayList<>();
+			 if(request.getProjectId() != null && !request.getProjectId().isEmpty()) {
+				 List<Map<String, Object>> resultMap = favouriteDao_v2.getJsonarray("select server_name from tasklist where project_id='"+request.getProjectId()+"'");
+				 if(resultMap != null && !resultMap.isEmpty()) {
+					 for(Map<String, Object> map : resultMap) {
+						 taskListServers.add((String) map.get("server_name"));
+					 }
+				 }
+			 }
+	        
+           
+             if (deviceType.equalsIgnoreCase("All")) {
+            	 deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
+            	 discoveryFilterqry = " lcase(source_type) in ('windows','linux', 'vmware')";
+             } else {
+            	 discoveryFilterqry = " lcase(source_type)='" + deviceType.toLowerCase() + "'";
+            	 deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
+             }
+             
+             if(!taskListServers.isEmpty()) {
+            	 String serverNames = String.join(",", taskListServers
+ 			            .stream()
+ 			            .map(name -> ("'" + name.toLowerCase() + "'"))
+ 			            .collect(Collectors.toList()));
+            	 deviceType =  " lcase(aws.`Server Name`) in ("+serverNames+")";
+            	 discoveryFilterqry = " lcase(server_name) in ("+serverNames+")";
+             }
+             
+             System.out.println("----------------------deviceTypeCondition--------------------------" + deviceType);
+             
+             Dataset<Row> dataCheck = null;
+          
+             try {
+                 constructReport(siteKey, discoveryFilterqry);
+
+                 int dataCount = getEOLEOSCount(siteKey);
+
+                 int eolHwcount = getEOLEHWCount(siteKey);               
+               
+                 String hwJoin = "";
+                 String hwdata = ",'' as `End Of Life - HW`,'' as `End Of Extended Support - HW`";
+                 if (eolHwcount != 0) {
+                     hwJoin = "left join global_temp.eolHWData eolHw on lcase(eolHw.`Server Name`) = lcase(aws.`Server Name`)";
+                     hwdata = ",eolHw.`End Of Life - HW`,eolHw.`End Of Extended Support - HW`";
+                 }
+
+                 String sql = "select * from (" +
+                         " select " +
+                         " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank," +
+                         " lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
+                         " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
+                         " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
+                         " aws.`HBA Speed`,aws.`Number of Ports`, aws.Host, " +
+                         " round((round(aws.`AWS On Demand Price`,2) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS On Demand Price`," +
+                         " round((round(aws.`AWS 3 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 3 Year Price`," +
+                         " round((round(aws.`AWS 1 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 1 Year Price`," +
+                         " aws.`AWS Instance Type`,aws.`AWS Region`,aws.`AWS Specs`," +
+                         " round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`," +
+                         " round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`," +
+                         " round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`," +
+                         " azure.`Azure Instance Type`,azure.`Azure Specs`," +
+                         " google.`Google Instance Type`, " +
+                         " google.`Google On Demand Price`," +
+                         " google.`Google 1 Year Price`," +
+                         " google.`Google 3 Year Price`," +
+                         " aws.`OS Version`, eol.`End Of Life - OS`,eol.`End Of Extended Support - OS`" +
+                         " " + hwdata + " " +
+                         " from global_temp.awsReport aws " +
+                         " left join global_temp.eoleosDataDF eol on eol.`Server Name`=aws.`Server Name` " +
+                         " left join global_temp.azureReport azure on azure.`Server Name` = aws.`Server Name`" +
+                         " left join global_temp.googleReport google on google.`Server Name` = aws.`Server Name` " +
+                         " " + hwJoin + " " +
+                         " where aws.site_key='" + siteKey + "' and "+ deviceType +" order by aws.`Server Name` asc) ld where ld.my_rank = 1";
+
+                 if (dataCount == 0) {
+                     sql = "select * from (" +
+                             " select " +
+                             " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank," +
+                             "lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
+                             " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
+                             " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
+                             " aws.`HBA Speed`,aws.`Number of Ports`, aws.Host," +
+                             " round((round(aws.`AWS On Demand Price`,2) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS On Demand Price`," +
+                             " round((round(aws.`AWS 3 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 3 Year Price`," +
+                             " round((round(aws.`AWS 1 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 1 Year Price`," +
+                             " aws.`AWS Instance Type`,aws.`AWS Region`,aws.`AWS Specs`," +
+                             " round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`," +
+                             " round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`," +
+                             " round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`," +
+                             " azure.`Azure Instance Type`,azure.`Azure Specs`," +
+                             " google.`Google Instance Type`, " +
+                             " google.`Google On Demand Price`," +
+                             " google.`Google 1 Year Price`," +
+                             " google.`Google 3 Year Price`," +
+                             " aws.`OS Version`, '' as `End Of Life - OS`,'' as `End Of Extended Support - OS`" +
+                             " " + hwdata + " " +
+                             " from global_temp.awsReport aws " +
+                             " left join global_temp.azureReport azure on azure.`Server Name` = aws.`Server Name`" +
+                             " left join global_temp.googleReport google on google.`Server Name` = aws.`Server Name` " +
+                             " " + hwJoin + " " +
+                             " where aws.site_key='" + siteKey  + "' and "+ deviceType +" order by aws.`Server Name` asc) ld where ld.my_rank = 1";
+                 }                
+                 
+               dataCheck = sparkSession.sql(sql).toDF();             
+                 
+               logger.info("getReport Details Ends");
+               
+               request.setStartRow(0);
+               request.setEndRow((int)dataCheck.count());
+               rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+    	        groupKeys = request.getGroupKeys();
+    	        valueColumns = request.getValueCols();
+    	        pivotColumns = request.getPivotCols();
+    	        filterModel = request.getFilterModel();
+    	        sortModel = request.getSortModel();
+    	        isPivotMode = request.isPivotMode();
+    	        isGrouping = rowGroups.size() > groupKeys.size();    	      
+    	        
+    	        for(String col : columnHeaders) {    	        	
+    	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
+      		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
+      		  		      .otherwise(col(col)));
+    	        }
+    	        
+    	        if(!taskListServers.isEmpty()) { //add server~ for task list call
+    	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - HW", "server~End Of Life - HW");
+    	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW");
+    	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
+    	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - OS", "server~End Of Extended Support - OS");
+    	        }
+    	    
+                return paginate(dataCheck, request);
+                 
+             } catch (Exception ex) {
+                 logger.error("Exception in getReport ", ex);
+                // ex.printStackTrace();
+             }
+             
+             dataCheck = sparkSession.emptyDataFrame();
+             return paginate(dataCheck, request);
+		}
+		
+		
+
+		 private void constructReport(String siteKey, String discoveryFilterqry) {
+				        logger.info("ConstructReport Starts");
+				        try {
+				            sparkSession.sqlContext().clearCache();
+				            getLocalDiscovery(siteKey, discoveryFilterqry);				            
+				            getAWSPricing();
+				            getAzurePricing();
+				            getGooglePricing();
+				           
+				        } catch (Exception ex) {
+				            logger.error("Exception in ConstructReport", ex);
+				            ex.printStackTrace();
+				        }
+				        logger.info("ConstructReport Ends");
+				    }
+
+
+
+		 private void getLocalDiscovery(String siteKey, String discoveryFilterqry) {			
+					       
+					        try {			        	
+					        	sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
+								Map<String, String> options = new HashMap<String, String>();
+								options.put("url", dbUrl);						
+								options.put("dbtable", "local_discovery");						
+								
+								sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
+								Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and " + discoveryFilterqry);
+								Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");				
+								
+								try {
+									Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
+											"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
+								   String path = commonPath + File.separator + "cloud_cost" + File.separator + siteKey;
+									File f = new File(path);
+									
+									if (!f.exists()) {
+										f.mkdir();
+									}			
+									 
+									dataframeBySiteKey.write().option("ignoreNullFields", false)
+											.format("org.apache.spark.sql.json")
+											.mode(SaveMode.Overwrite).save(f.getPath());
+									
+									File[] files = new File(path).listFiles();
+									if (files != null) {
+										DataframeUtil.formatJsonFile(files);
+									}
+									
+									
+									 Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json"); 
+					   	        	 dataset.createOrReplaceTempView("tmpView");
+					   	        	 dataset = sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+					   	        	//following three conditions only applied for windows logs. windows only following 3 fields, other logs should have column with empty
+					   	        	
+					   	        	 List<String> columns = Arrays.asList(dataset.columns());
+					   	        	 if(!columns.contains("Logical Processor Count")) {
+					   	        		dataset = dataset.withColumn("Logical Processor Count", lit(""));
+					   	        	 }
+									 if(!columns.contains("DB Service")) {
+										 dataset = dataset.withColumn("DB Service", lit(""));			   	        		 
+										}
+									 if(!columns.contains("Processor Name")) {
+										 dataset =  dataset.withColumn("Processor Name", lit("")); 
+									  }
+									 
+									 if(!columns.contains("Host")) {
+										 dataset =  dataset.withColumn("Host", lit("")); 
+									  }
+					   	        	
+					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
+					   		         dataset.cache();	
+					   		         
+					   		      dataset.printSchema();
+					   		 	
+					        } catch (Exception ex) {
+					            ex.printStackTrace();
+					        }
+					        } catch (Exception e) {
+					        	e.printStackTrace();
+					        }
+				}
+
+
+		 public void getAWSPricing() {
+				        try {
+				            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
+				                    " select report.Host, report.log_date,report.`vCPU`, report.site_key, report.`Server Type`, report.`Server Name`, report.`OS Name`,report.`OS Version`, report.`Server Type`, report.`Server Model`," +
+				                    " report.`Memory` as `Memory`, (case when report.`Total Size` is null then 0 else report.`Total Size` end) as `Total Size`, report.`Number of Processors`, report.`Logical Processor Count`, " +
+				                    " report.`CPU GHz`, report.`Processor Name`, report.`Number of Cores` as `Number of Cores`, report.`DB Service`, report.`HBA Speed`," +
+				                    " report.`Number of Ports`, (report.`PricePerUnit` * 730) as `AWS On Demand Price`," +
+				                    " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`, " +
+				                    " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`, " +
+				                    " report.`AWS Instance Type`,report.`AWS Region`,report.`AWS Specs`," +
+				                    " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`PricePerUnit` as float) asc) as my_rank" +
+				                    " from (SELECT localDiscoveryDF.log_date,localDiscoveryDF.site_key, localDiscoveryDF.`Server Type`, localDiscoveryDF.`Server Name` , localDiscoveryDF.`Server Type` ," +
+				                    " localDiscoveryDF.OS as `OS Name`,localDiscoveryDF.`OS Version`,localDiscoveryDF.`Server Model` ," +
+				                    " cast(localDiscoveryDF.`Logical Processor Count` as int) as `Logical Processor Count`,cast(localDiscoveryDF.`Number of Processors` as int) as `Number of Processors`," +
+				                    " cast(localDiscoveryDF.`Memory` as int) as `Memory`, round(localDiscoveryDF.`Total Size`,2) as `Total Size`, " +
+				                    " cast(localDiscoveryDF.`CPU GHz` as int) as `CPU GHz`, localDiscoveryDF.`Processor Name`, " +
+				                    " cast(localDiscoveryDF.`Number of Cores` as int) as `Number of Cores`," +
+				                    " localDiscoveryDF.`DB Service`, localDiscoveryDF.`HBA Speed`, cast(localDiscoveryDF.`Number of Ports` as int) as `Number of Ports`," +
+				                    " awsPricing2.`Instance Type` as `AWS Instance Type`, awsPricing2.Location as `AWS Region`" +
+				                    " ,concat_ws(',', concat('Processor: ',awsPricing2.`Physical Processor`),concat('vCPU: ',awsPricing2.vCPU)" +
+				                    " ,concat('Clock Speed: ',awsPricing2.`Clock Speed`),concat('Processor Architecture: ',awsPricing2.`Processor Architecture`)" +
+				                    " ,concat('Memory: ',awsPricing2.Memory),concat('Storage: ',awsPricing2.Storage),concat('Network Performance: ',awsPricing2.`Network Performance`)) as `AWS Specs`" +
+				                    " , (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then " +
+				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then " +
+				                    " localDiscoveryDF.`Number of Processors` else 0 end) as `vCPU`, (case when localDiscoveryDF.`Memory` is null then 0 else cast(localDiscoveryDF.`Memory` as int) end) as `MemorySize`, awsPricing2.PricePerUnit as `PricePerUnit`,awsPricing2.`Operating System` as `OperatingSystem`, localDiscoveryDF.Host" +
+				                    " FROM global_temp.localDiscoveryTemp localDiscoveryDF" +
+				                    " join (Select localDiscoveryDF1.site_key, localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
+				                    " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
+				                    " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key" +
+				                    " left join (select `Operating System`,Memory,min(PricePerUnit) as pricePerUnit, vCPU,TermType from global_temp.awsPricingDF where `License Model`='No License required'" +
+				                    " and Location='US East (Ohio)' and Tenancy <> 'Host' and (`Product Family` = 'Compute Instance (bare metal)' or `Product Family` = 'Compute Instance') and cast(PricePerUnit as float) > 0 group by `Operating System`,Memory,vCPU,TermType) awsPricing on" +
+				                    " lcase(awsPricing.`Operating System`) = lcase((case when localDiscoveryDF.OS like '%Red Hat%' then 'RHEL'" +
+				                    " when localDiscoveryDF.OS like '%SUSE%' then 'SUSE' when localDiscoveryDF.OS like '%Linux%' OR localDiscoveryDF.OS like '%CentOS%' then 'Linux'" +
+				                    " when localDiscoveryDF.OS like '%Windows%' then 'Windows' else localDiscoveryDF.`Server Type` end)) and" +
+				                    " awsPricing.Memory >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
+				                    " and awsPricing.vCPU >= (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then " +
+				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then " +
+				                    " localDiscoveryDF.`Logical Processor Count` else 0 end)" +
+				                    " left join global_temp.awsPricingDF awsPricing2 on awsPricing2.`Operating System` = awsPricing.`Operating System` and awsPricing2.PricePerUnit = awsPricing.pricePerUnit and awsPricing.Memory = " +
+				                    " awsPricing2.Memory and awsPricing.vCPU = awsPricing2.vCPU and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData" +
+				                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
+				            dataCheck.createOrReplaceGlobalTempView("awsReport");				            
+				            dataCheck.cache();
+				        } catch (Exception ex) {
+				            ex.printStackTrace();
+				        }
+				    }
+
+		 public void getAzurePricing() {
+				        try {
+				            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
+				                    " select report.log_date,report.`vCPU`, report.site_key, " +
+				                    " report.`Server Name`, report.`Server Name`, report.`OS Name`,report.`OS Version`, report.`Server Type`, report.`Server Model`," +
+				                    " report.`Memory` as `Memory`, (case when report.`Total Size` is null then 0 else report.`Total Size` end) as `Total Size`," +
+				                    " report.`Number of Processors`, report.`Logical Processor Count`, " +
+				                    " report.`CPU GHz`, report.`Processor Name`, report.`Number of Cores` as `Number of Cores`, report.`DB Service`, report.`HBA Speed`," +
+				                    " report.`Number of Ports`,report.`Azure On Demand Price`,report.`Azure 3 Year Price`, report.`Azure 1 Year Price`, report.`Azure Instance Type`, report.`Azure Specs`, " +
+				                    " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`Azure On Demand Price` as float) asc) as my_rank" +
+				                    " from (SELECT localDiscoveryDF.log_date,localDiscoveryDF.site_key, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Type`," +
+				                    " localDiscoveryDF.OS as `OS Name`,localDiscoveryDF.`OS Version`,localDiscoveryDF.`Server Model`," +
+				                    " localDiscoveryDF.`Logical Processor Count`,localDiscoveryDF.`Number of Processors`," +
+				                    " cast(localDiscoveryDF.`Memory` as int) as `Memory`, round(localDiscoveryDF.`Total Size`,2) as `Total Size`, " +
+				                    " cast(localDiscoveryDF.`CPU GHz` as int) as `CPU GHz`, localDiscoveryDF.`Processor Name`, " +
+				                    " cast(localDiscoveryDF.`Number of Cores` as int) as `Number of Cores`," +
+				                    " localDiscoveryDF.`DB Service`, localDiscoveryDF.`HBA Speed`, cast(localDiscoveryDF.`Number of Ports` as int) as `Number of Ports`," +
+				                    " round(azurePricingDF.demandPrice,2) as `Azure On Demand Price`," +
+				                    " round(azurePricingDF.3YrPrice,2) as `Azure 3 Year Price`," +
+				                    " round(azurePricingDF.1YrPrice,2) as `Azure 1 Year Price`," +
+				                    " azurePricingDF.InstanceType as `Azure Instance Type`,azurePricingDF.`Azure Specs`," +
+				                    " (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then " +
+				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then " +
+				                    " localDiscoveryDF.`Logical Processor Count` else 0 end) as `vCPU`" +
+				                    " FROM global_temp.localDiscoveryTemp localDiscoveryDF" +
+				                    " left join global_temp.azurePricingDF azurePricingDF on azurePricingDF.VCPUs >= (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then" +
+				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then" +
+				                    " localDiscoveryDF.`Logical Processor Count` else 0 end)" +
+				                    " and azurePricingDF.Memory >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end) and" +
+				                    " lcase(azurePricingDF.OperatingSystem) = lcase((case when localDiscoveryDF.OS like '%Red Hat%' then 'RHEL' " +
+				                    " when localDiscoveryDF.OS like '%SUSE%' then 'SUSE' when localDiscoveryDF.OS like '%Linux%' OR localDiscoveryDF.OS like '%CentOS%' then 'Linux'" +
+				                    " when localDiscoveryDF.OS like '%Windows%' then 'Windows' else localDiscoveryDF.`Server Type` end))) report ) reportData " +
+				                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
+				            dataCheck.createOrReplaceGlobalTempView("azureReport");		
+				            dataCheck.cache();
+				            
+				        } catch (Exception ex) {
+				            ex.printStackTrace();
+				        }
+				    }
+
+		 public void getGooglePricing() {
+				        try {
+				            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
+				                    " select report.log_date,report.`vCPU`, report.site_key, " +
+				                    " report.`Server Name`, report.`Server Name`, report.`OS Name`,report.`OS Version`, report.`Server Type`, report.`Server Model`," +
+				                    " report.`Memory` as `Memory`, (case when report.`Total Size` is null then 0 else report.`Total Size` end) as `Total Size`," +
+				                    " report.`Number of Processors`, report.`Logical Processor Count`, " +
+				                    " report.`CPU GHz`, report.`Processor Name`, report.`Number of Cores` as `Number of Cores`, report.`DB Service`, report.`HBA Speed`," +
+				                    " report.`Number of Ports`," +
+				                    " report.`Google Instance Type`,report.`Google On Demand Price`,report.`Google 1 Year Price`,report.`Google 3 Year Price`," +
+				                    " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`Google On Demand Price` as float) asc) as my_rank" +
+				                    " from (SELECT localDiscoveryDF.log_date,localDiscoveryDF.site_key, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Type`," +
+				                    " localDiscoveryDF.OS as `OS Name`,localDiscoveryDF.`OS Version`,localDiscoveryDF.`Server Model`," +
+				                    " cast(localDiscoveryDF.`Logical Processor Count` as int) as `Logical Processor Count`,cast(localDiscoveryDF.`Number of Processors` as int) as `Number of Processors`," +
+				                    " cast(localDiscoveryDF.Memory as int) as `Memory`, round(localDiscoveryDF.`Total Size`,2) as `Total Size`, " +
+				                    " cast(localDiscoveryDF.`CPU GHz` as int) as `CPU GHz`, localDiscoveryDF.`Processor Name` as `Processor Name`, " +
+				                    " cast(localDiscoveryDF.`Number of Cores` as int) as `Number of Cores`," +
+				                    " localDiscoveryDF.`DB Service` as `DB Service`, localDiscoveryDF.`HBA Speed` as `HBA Speed`, cast(localDiscoveryDF.`Number of Ports` as int) as `Number of Ports`," +
+				                    " localDiscoveryDF.`Logical Processor Count` as `vCPU`," +
+				                    " googlePricing.InstanceType as `Google Instance Type`," +
+				                    " round(googlePricing.pricePerUnit*730 + " +
+				                    " ((case when localDiscoveryDF.`Total Size` is null then 0 else localDiscoveryDF.`Total Size` end) * 0.08) + " +
+				                    " (case when localDiscoveryDF.OS like '%Windows%' then 67.16  when localDiscoveryDF.OS like '%Red Hat%' then 43.8 else 0  end),2) as `Google On Demand Price`," +
+				                    " round(googlePricing.1YrPrice*730 + " +
+				                    " ((case when localDiscoveryDF.`Total Size` is null then 0 else localDiscoveryDF.`Total Size` end) * 0.05) + " +
+				                    " (case when localDiscoveryDF.OS like '%Windows%' then 67.16  when localDiscoveryDF.OS like '%Red Hat%' then 43.8 else 0  end),2) as `Google 1 Year Price`," +
+				                    " round(googlePricing.3YrPrice*730 + " +
+				                    " ((case when localDiscoveryDF.`Total Size` is null then 0 else localDiscoveryDF.`Total Size` end) * 0.04) + " +
+				                    " (case when localDiscoveryDF.OS like '%Windows%' then 67.16  when localDiscoveryDF.OS like '%Red Hat%' then 43.8 else 0  end),2) as `Google 3 Year Price`" +
+				                    " FROM global_temp.localDiscoveryTemp localDiscoveryDF " +
+				                    " join (Select localDiscoveryDF1.site_key,localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
+				                    " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
+				                    " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key" +
+				                    " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where " +
+				                    " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) >= " +
+				                    " (case when localDiscoveryDF.`Number of Processors` is not null then" +
+				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Number of Processors` is not null then" +
+				                    " localDiscoveryDF.`Logical Processor Count` else 0 end) and " +
+				                    " cast(googlePricing.Memory as float) >= (case when localDiscoveryDF.Memory is null then 0 else " +
+				                    " cast(localDiscoveryDF.Memory as int) end)) report ) reportData " +
+				                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
+				            dataCheck.createOrReplaceGlobalTempView("googleReport");				           
+				            dataCheck.cache();
+				        } catch (Exception ex) {
+				            ex.printStackTrace();
+				        }
+				    }
+				    
+				    
+				    private int getEOLEOSCount(String siteKey) {
+				        logger.info("Construct EOL/EOS Dataframe Begins");
+				        int dataCount = 0;
+				        try {
+				            int count = eolService.getEOLEOSData();
+
+				            if (count != 0) {
+				                String sql = " select report.source_id, report.site_key, report.`Server Name`,report.`Server Type`,report.`OS Name`,report.`OS Version`, " +
+				                        " eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`" +
+				                        " from (select localDiscoveryDF.source_id,localDiscoveryDF.site_key, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Type`," +
+				                        " localDiscoveryDF.OS as `OS Name`,localDiscoveryDF.`OS Version`" +
+				                        " FROM global_temp.localDiscoveryTemp localDiscoveryDF" +
+				                        " join (Select localDiscoveryDF1.site_key,localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
+				                        " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
+				                        " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key) report" +
+				                        " left join global_temp.eolDataDF eol on eol.os_type=report.`Server Type` and replace(trim(report.`OS Name`),'(R)' ' ') like concat('%',trim(eol.os_type),'%')" +
+				                        //" and trim(report.`OS Version`) like concat('%',trim(eol.osversion),'%') " +
+				                        " and trim(report.`OS Version`) = trim(eol.os_version) " +
+				                        " where report.site_key='" + siteKey + "'";
+
+				                Dataset<Row> dataCheck = sparkSession.sql(sql).toDF();
+
+				                dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
+				                if (dataCount > 0) {
+				                    dataCheck.createOrReplaceGlobalTempView("eoleosDataDF");
+				                    dataCheck.cache();
+				                }
+				            }
+				        } catch (Exception ex) {
+				            logger.error("Exception in generating dataframe for EOL/EOS OS data", ex);
+				        }
+				        logger.info("Construct EOL/EOS Dataframe Ends");
+				        return dataCount;
+				    }
+
+				    private int getEOLEHWCount(String siteKey) {
+				        logger.info("Construct EOL/EOS - HW Dataframe Begins");
+				        int dataCount = 0;
+				        try {
+				            int count = eolService.getEOLEOSHW();
+				            if (count > 0) {
+				                String sql = "select report.source_id, report.site_key, report.`Server Name`,report.`Server Model`, " +
+				                        " eol.end_of_life_cycle as `End Of Life - HW`,eol.end_of_extended_support as `End Of Extended Support - HW`" +
+				                        " from (select localDiscoveryDF.source_id,localDiscoveryDF.site_key, localDiscoveryDF.`Server Name`," +
+				                        " localDiscoveryDF.`Server Model`" +
+				                        " FROM global_temp.localDiscoveryTemp localDiscoveryDF" +
+				                        " join (Select localDiscoveryDF1.site_key,localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
+				                        " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
+				                        " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key) report" +
+				                        " left join global_temp.eolHWDataDF eol on lcase(concat(eol.vendor,' ',eol.model)) = lcase(report.`Server Model`)" +
+				                        " where report.site_key='" + siteKey + "'";
+
+				                Dataset<Row> dataCheck = sparkSession.sql(sql).toDF();
+				                
+				                dataCheck.printSchema();
+				              
+
+				                dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
+				                if (dataCount > 0) {
+				                    dataCheck.createOrReplaceGlobalTempView("eolHWData");
+				                    dataCheck.cache();
+				                }
+				            }
+				        } catch (Exception ex) {
+				            logger.error("Exception in generating dataframe for EOL/EOS - HW data", ex);
+				        }
+				        logger.info("Construct EOL/EOS - HW Dataframe Ends");
+				        return dataCount;
+				    }
+							
+					
 	    
 }

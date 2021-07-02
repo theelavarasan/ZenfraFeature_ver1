@@ -52,6 +52,7 @@ public class ChartService {
 				response=chartDao.saveEntity(ChartModel_v2.class, chart);
 			}
 			
+			
 		} catch (Exception e) {
 			e.printStackTrace();			
 		}
@@ -109,6 +110,7 @@ public class ChartService {
 			mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
 			object=chartDao.getMigarationReport(siteKey,userId,reportName);
 			for(Map<String,Object> s:object) {
+				
 				output.add(functions.convertGetMigarationReport(s));
 			}
 			
@@ -118,5 +120,18 @@ public class ChartService {
 			
 		}
 		return output;
+	}
+	
+	
+	public Boolean eveitEntity(ChartModel_v2 chart) {
+		try {
+			
+			chartDao.eveitEntity(chart);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+		}
+		return true;
 	}
 }

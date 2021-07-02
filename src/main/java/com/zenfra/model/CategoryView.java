@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.validation.constraints.NotBlank;
 
 import lombok.Data;
 
@@ -17,12 +18,15 @@ public class CategoryView {
 	@Column(name = "category_id")
 	private String categoryId;
 
+	@NotBlank(message = "categoryName must not be empty")
 	@Column(name = "category_name")
 	private String categoryName;
 	
+	@NotBlank(message = "siteKey must not be empty")
 	@Column(name = "site_key")
 	private String siteKey;
 	
+	@NotBlank(message = "userId must not be empty")
 	@Column(name = "user_id")
 	private String userId;
 

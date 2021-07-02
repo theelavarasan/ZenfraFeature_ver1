@@ -11,32 +11,30 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
 
 import com.zenfra.dataframe.service.DataframeService;
-
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import com.zenfra.dataframe.service.EolService;
+import com.zenfra.model.ZKModel;
+import com.zenfra.utils.ZookeeperConnection;
 
 @SpringBootApplication
-@EnableSwagger2
 public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 
 	
 	@Autowired
 	DataframeService dataframeService;
 	
+	
+	
+	@Autowired
+	EolService eolService;
+	
 	public static void main(String[] args) {
 		SpringApplication.run(ZenfraFeaturesApplication.class, args);
 	}
 
-	 @Bean
-	   public Docket productApi() {
-	      return new Docket(DocumentationType.SWAGGER_2).select()
-	         .apis(RequestHandlerSelectors.basePackage("com.zenfra")).build();
-	   }
-	 
+	
 
 	   @Override
 	   protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
@@ -78,10 +76,31 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	                .config("spark.executor.heartbeatInterval", "1000s")
 	                .config("spark.sql.sources.partitionOverwriteMode", "dynamic")
 	                .getOrCreate();
-	    }
+	    }	
 	    
-	    @PostConstruct
-	    public void createDataframeView() {
-	    	dataframeService.createDataframeGlobalView();
+	   	    
+	   @PostConstruct
+	    public void createDataframeView() {		
+		   ZookeeperConnection zkConnection = new ZookeeperConnection();
+		    try {
+				ZKModel.zkData = zkConnection.getZKData();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 		    
+		    dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
+	    	
+		    eolService.getGooglePricing();
+	    	eolService.getAzurePricing();
+	    	eolService.getAWSPricing();
+	    	
 	    }
+	   
+	   @Bean
+	   public RestTemplate restTemplate() {
+	       return new RestTemplate();
+	   }
+	   
+	 
+	  
 }

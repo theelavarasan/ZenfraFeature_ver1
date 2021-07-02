@@ -1,27 +1,52 @@
 package com.zenfra.utils;
 
+import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.UUID;
-
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.model.FavouriteModel;
+import com.zenfra.model.ftp.FtpScheduler;
 
 @Component
 public class CommonFunctions {
 
+
+	@Autowired
+	RestTemplate restTemplate;
+	
 	public Map<String, Object> getFavViewCheckNull(Map<String, Object> row) {
 
 		try {
@@ -29,35 +54,35 @@ public class CommonFunctions {
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
 
-			if (row.get("filterProperty") != null) {
+			if (row.get("filterProperty") != null &&  !row.get("filterProperty").equals("[]")) {
 				row.put("filterProperty", (JSONArray) parser
 						.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("filterProperty", new JSONArray());
 			}
 
-			if (row.get("categoryList") != null) {
+			if (row.get("categoryList") != null &&  !row.get("categoryList").equals("[]")) {
 				row.put("categoryList", (JSONArray) parser
 						.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("categoryList", new JSONArray());
 			}
-			if (row.get("siteAccessList") != null) {
+			if (row.get("siteAccessList") != null && !row.get("siteAccessList").equals("[]")) {
 				row.put("siteAccessList", (JSONArray) parser
 						.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("siteAccessList", new JSONArray());
 			}
-			/*if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]") ) {
-				System.out.println(row.get("groupedColumns"));
+			if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]") ) {
+
 				row.put("groupedColumns", (JSONArray) parser
 						.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
 				row.put("groupedColumns", new JSONArray());
-			}*/
+			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 
 		}
 		return row;
@@ -115,12 +140,14 @@ public class CommonFunctions {
 		}
 		return query;
 
+
 	}
 
 	public JSONObject convertGetMigarationReport(Map<String, Object> map) {
 
 		JSONObject obj = new JSONObject();
 		ObjectMapper mapper = new ObjectMapper();
+		JSONParser parser = new JSONParser();
 		mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
 		try {
 
@@ -132,10 +159,11 @@ public class CommonFunctions {
 				map.put("siteAccessList",
 						map.get("siteAccessList").toString().replace("{", "").replace("}", "").split(","));
 			}
-			if(map.containsKey("categoryList")&&map.get("categoryList")!=null) {
-				map.put("categoryList",
-						map.get("categoryList").toString().replace("{", "").replace("}", "").split(","));
-
+			if (map.get("categoryList") != null &&  !map.get("categoryList").equals("[]")) {
+				map.put("categoryList", (JSONArray) parser
+						.parse(map.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
+			} else {
+				map.put("categoryList", new JSONArray());
 			}
 		
 			obj = mapper.convertValue(map, JSONObject.class);
@@ -160,7 +188,26 @@ public class CommonFunctions {
 	}
 
 
+	public JSONArray formatJsonArrayr(Object object) {
+		JSONArray jsonArray = new JSONArray();
+		JSONParser jsonParser = new JSONParser();
+		if(object != null) {
+			String str = object.toString();
+			str = str.replaceAll("\\\\","");
+			try {
+				if(!str.isEmpty()) {
+					jsonArray  = (JSONArray) jsonParser.parse(str);
+				}
+				
+			} catch (ParseException e) {				
+				e.printStackTrace();
+			}
+		
+		}
+		return jsonArray;
+	}
 	
+
 	public JSONObject getValueFromString(JSONObject obj) {
 		try {
 
@@ -177,6 +224,7 @@ public class CommonFunctions {
 		}
 
 	}
+	
 
 	public JSONArray convertStringToJsonArray(Object value) {
 		JSONArray arr = new JSONArray();
@@ -190,7 +238,6 @@ public class CommonFunctions {
 		}
 		return arr;
 	}
-
 	
 	
 	public JSONArray convertObjectToJsonArray(Object object) {
@@ -216,23 +263,280 @@ public class CommonFunctions {
 		return jsonArray;
 	}
 
+	public String getUpdateFavQuery(FavouriteModel favouriteModel) {
+		String query="";
+		try {
+			ObjectMapper map = new ObjectMapper();
+			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
+			String site_access_list=map.convertValue(favouriteModel.getSiteAccessList(), JSONArray.class).toJSONString();
+			JSONArray category_list=map.convertValue(favouriteModel.getCategoryList(), JSONArray.class);
+			
+			
+			
+			if(favouriteModel.getCategoryColumns()!=null) {
+				query=query+", category_list='"+category_list.toJSONString()+"'";
+			}
+			if(favouriteModel.getUserAccessList()!=null && !favouriteModel.getUserAccessList().isEmpty()) {
+				query=query+", user_access_list='" + user + "'";
+			}
+			if(favouriteModel.getFavouriteName()!=null) {
+				query=query+", favourite_name='" + favouriteModel.getFavouriteName()+"'";
+			}
+			
+			if(favouriteModel.getSiteAccessList()!=null && !favouriteModel.getSiteAccessList().isEmpty()) {
+				query=query+", site_access_list='"+ site_access_list + "'";
+			}
+			
+			if(favouriteModel.getReportName()!=null) {
+				query=query+", report_name='"+ favouriteModel.getReportName() + "'";
+			}
+			if(favouriteModel.getReportLabel()!=null) {
+				query=query+", report_label='"+ favouriteModel.getReportLabel() + "'";
+			}
+			if(favouriteModel.getGroupedColumns()!=null && !favouriteModel.getGroupedColumns().isEmpty()) {
+				query=query+", grouped_columns='"+ favouriteModel.getGroupedColumns().toJSONString() + "'";
+			}
+			if(favouriteModel.getFilterProperty()!=null && !favouriteModel.getFilterProperty().isEmpty()) {
+				query=query+", filter_property='"+ favouriteModel.getFilterProperty().toJSONString() + "'";
+			}
+			if(favouriteModel.getGroupByPeriod()!=null && !favouriteModel.getGroupByPeriod().isEmpty()) {
+				query=query+", group_by_period='"+ favouriteModel.getGroupByPeriod() + "'";
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return query;
+	}
 
-	public JSONArray formatJsonArrayr(Object object) {
-		JSONArray jsonArray = new JSONArray();
-		JSONParser jsonParser = new JSONParser();
-		if(object != null) {
-			String str = object.toString();
-			str = str.replaceAll("\\\\","");
+	 public String getZenfraToken(String username,String password) {
+		 
+		  Object token=null;
 			try {
-				if(!str.isEmpty()) {
-					jsonArray  = (JSONArray) jsonParser.parse(str);
-				}
-				
-			} catch (ParseException e) {				
+				        
+				 System.out.println("Start get token");
+			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
+			      body.add("userName", username);
+			      body.add("password", password);
+			  	      
+			 RestTemplate restTemplate=new RestTemplate();
+			 HttpEntity<Object> request = new HttpEntity<>(body);
+			 ResponseEntity<String> response= restTemplate
+	                 //.exchange("http://localhost:8080/usermanagment/auth/login", HttpMethod.POST, request, String.class);
+	        		  .exchange(Constants.current_url+"/UserManagement/auth/login", HttpMethod.POST, request, String.class);
+			 System.out.println(Constants.current_url);
+			 ObjectMapper mapper = new ObjectMapper();
+	         JsonNode root = mapper.readTree(response.getBody());		
+	         token=root.get("jData").get("AccessToken");
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		
+			
+			return token.toString().replace("\"", "");
+	 }
+	 
+		public Object updateLogFile(JSONObject json,String token) {
+			 ResponseEntity<String> response=null;
+			 System.out.println(DBUtils.getParsingServerIP());
+			try {
+				//String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+				 HttpEntity<Object> request = new HttpEntity<>(json.toString(),createHeaders(token));
+		          response= restTemplate
+		                 .exchange(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-call", HttpMethod.POST, request, String.class);	
+		       
+		        return response.getBody();
+			} catch (Exception e) {
+				return e.getMessage();
 		}
-		return jsonArray;
-	}
+		}
+		
+		
+		
+		 HttpHeaders createHeaders(String token){
+		        return new HttpHeaders() {{
+		        	if(token!=null) {
+		        		  set( "Authorization", token );
+		        	}		            
+		            setContentType(MediaType.APPLICATION_JSON);
+		        }};
+		    }
+		 
+		 public String getDate() {
+			 String formattedDate="";
+			 try {
+				 LocalDateTime myDateObj = LocalDateTime.now();
+				    System.out.println("Before formatting: " + myDateObj);
+				    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
+				    formattedDate = myDateObj.format(myFormatObj);
+				    System.out.println("After formatting: " + formattedDate);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 return  formattedDate;
+		 }
+		 
+		 public boolean sentEmail(JSONObject partObj,String hostName) {
+			 
+			 boolean isSuccess = false;
+			 try {
+				 RestTemplate restTemplate=new RestTemplate();
+				 System.out.println("email object"+partObj);
+				 	
+				 	HttpHeaders headers = new HttpHeaders();
+			        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+			        headers.setContentType(MediaType.APPLICATION_JSON);
+			        HttpEntity<JSONObject> requestEntity = new HttpEntity<JSONObject>(partObj, headers);
+			        String resetLink =hostName+"/mailservice/mail/send";
+			       ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
+			        if (uri != null && uri.getBody() != null) {
+			            if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
+			                isSuccess = true;
+			            } else {
+			                isSuccess = false;
+			            }
+			        } else {
+			        	isSuccess = true;
+			        }
+			      System.out.println("Mail response::"+isSuccess);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 
+			return isSuccess; 
+		 }
+		 
+
+	 public List<Object> convertJsonArrayToList(JSONArray arr){
+			List<Object> list = new ArrayList<Object>();     
+			 try {				
+				 for (int i=0; i<arr.size(); i++) {
+					    list.add( arr.get(i) );
+					}
+				 list.add("aravind.krishnasamy@virtualtechgurus.com");
+			} catch (Exception e) {
+				return list;
+			}
+			 System.out.println(list);
+			 return list;
+		 }
+		 
+		 public static String convertTimeZone(String inputTimeZone,String timeSlot) {
+			 String hour="0";
+			 try {
+				 	
+				 String[] arr=timeSlot.replace(" ", "").split("-");
+				 String[] split=arr[0].split("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
+				 int time=Integer.valueOf(split[0]);
+				 String clock=split[1];
+				 String DATE_FORMAT = "dd-M-yyyy hh:mm:ss a";
+				 SimpleDateFormat parseFormat = new SimpleDateFormat("hh:mm a");		     
+				 Date date = parseFormat.parse(time+":00 "+clock);
+				 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+				 //String inputTimeZone = "UTC";
+				 String outputTimeZone = TimeZone.getDefault().getID();				
+				 //String dateInString = "10-06-2021 10:00:00 AM";
+				 LocalDateTime myDateObj = LocalDate.now().atTime(date.getHours(), 0);
+				 
+				 String formattedDate = myDateObj.format(formatter);
+				 //System.out.println(formattedDate);			 
+				 LocalDateTime ldt = LocalDateTime.parse(formattedDate, DateTimeFormatter.ofPattern(DATE_FORMAT));
+				 TimeZone inputDateWithZone = TimeZone.getTimeZone(inputTimeZone);
+				 ZonedDateTime inputTimeWithTimeZone = ldt.atZone(inputDateWithZone.toZoneId());
+				 ZonedDateTime utcTime = inputTimeWithTimeZone.withZoneSameInstant(ZoneId.of(outputTimeZone));
+				 //System.out.println(formatter.format(inputTimeWithTimeZone));
+				 //System.out.println(formatter.format(utcTime));
+				// System.out.println(" convert hour--------- " + utcTime.getHour());
+				 hour=String.valueOf(utcTime.getHour());
+	        
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 
+			 return hour;
+		 }
+		 
+		 
+		 public String getCorn(FtpScheduler ftpScheduler) {
+			 String corn="";
+			 try {
+				 String timseslot = ftpScheduler.getTimeSlot().replace(" ", "").replaceAll("[a-zA-Z]", "");
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			return corn;
+		 }
+		 
+		 public static void main(String[] args) {
+			 System.out.println(convertTimeZone("UTC", "12 AM - 12 AM IST"));
+			 //CommonFunctions f=new CommonFunctions();
+			 //	f.logout("Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ6MEVqMlhRWGZSc3NranlMR2g3UXFkbkp2TVRaRkRVQXE2diswdTBBV1NMbjBXUUhHbmpXbkE9PSIsInNjb3BlcyI6W3siYXV0aG9yaXR5IjoiUk9MRV9BRE1JTiJ9XSwiaXNzIjoiaHR0cDovL3plbmZyYS5jb20iLCJpYXQiOjE2MjMzMjUxNzh9.xg33ygz9pAIwIAAK7iu96dS-vYekVlYWSQ_bgjGzPUo");
+		 }
+		 
+		 public  String logout(String token) {
+			 try {
+				  RestTemplate restTemplate=new RestTemplate();
+				 // token=token.replace("Bearer ","");
+					 HttpEntity<Object> request = new HttpEntity<>(null,createHeaders(null));
+			        ResponseEntity<String> response= restTemplate
+			                 .exchange(Constants.current_url+"UserManagement/auth/logout?token="+token, HttpMethod.POST, request, String.class);	
+			        
+			        System.out.println(response.getBody());
+				 
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 return "logout";
+		 }
+		 
+		 
+		 
+		 public String getCurrentHour() {
+			 String hour="*";
+			 try {
+				 Date dt = new Date();
+			      SimpleDateFormat dateFormat;
+			      dateFormat = new SimpleDateFormat("kk:mm:ss");
+			      hour=dateFormat.format(dt).split(":")[0];
+			
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 return hour;
+		 }
+		 
+		 public String getCurrentMinutes() {
+			 String minutes="*";
+			 try {
+				 Date dt = new Date();
+			      SimpleDateFormat dateFormat;
+			      dateFormat = new SimpleDateFormat("kk:mm:ss");
+			      minutes=String.valueOf((Integer.valueOf(dateFormat.format(dt).split(":")[1])+1));
+			
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 return minutes;
+		 }
+		 
+		 
+		 public Object callAwsScriptAPI(String builder,String token) {
+			 ResponseEntity<String> response=null;
+			 System.out.println(DBUtils.getParsingServerIP());
+			try {
+
+				 URI uri = URI.create(DBUtils.getParsingServerIP()+"/parsing/rest/api/excute-aws-data-call"+builder);
+				System.out.println("URl::"+uri);
+				//String token="Bearer "+getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+				 HttpEntity<Object> request = new HttpEntity<>(createHeaders(token));
+		          response= restTemplate
+		                 .exchange(uri, HttpMethod.GET, request, String.class);	
+		       //DBUtils.getParsingServerIP()+
+		        return response.getBody();
+			} catch (Exception e) {
+				return e.getMessage();
+		}
+		}
 }

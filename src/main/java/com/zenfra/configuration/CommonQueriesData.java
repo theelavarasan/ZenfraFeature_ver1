@@ -11,6 +11,7 @@ import com.zenfra.queries.CategoryViewQueries;
 import com.zenfra.queries.ChartQueries;
 import com.zenfra.queries.DashBoardChartsDetailsQueries;
 import com.zenfra.queries.DashBoardChartsQueries;
+import com.zenfra.queries.DashboardQueries;
 import com.zenfra.queries.FavouriteOrderQueries;
 import com.zenfra.queries.FavouriteViewQueries;
 import com.zenfra.queries.ReportQueries;
@@ -76,6 +77,12 @@ public class CommonQueriesData {
 	      return new CategoryMappingQueries();
 	 }
 	 
+	 
+	 @Bean
+	 @ConfigurationProperties("dashboard")
+	 public DashboardQueries dashboardQueries() {
+	      return new DashboardQueries();
+	 }
 	
 	
 

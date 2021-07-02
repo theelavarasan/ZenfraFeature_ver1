@@ -1,7 +1,7 @@
 package com.zenfra.service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +24,9 @@ public class CategoryViewService {
 	
 	@Autowired
 	CommonFunctions functions;
+	
+	@Autowired
+	UserService userSerice;
 	
 	public CategoryView getCategoryView(String id) {
 		CategoryView obj = null;
@@ -58,9 +61,14 @@ public class CategoryViewService {
 			String query=queries.categoryViewQueries().getGetCategoryViewBySiteKey().replace(":site_key",siteKey);
 			
 			List<Object> list=dao.getEntityListByColumn(query, CategoryView.class);
-			
+			Map<String,String> userList=userSerice.getUserNames();
 			 for(Object obj:list) {
-				 arr.add(functions.convertEntityToJsonObject(obj));
+				
+				 CategoryView view=(CategoryView)obj;
+				 //System.out.println("report::"+view.getReportBy());
+				 //System.out.println("updateBY::"+view.getUpdatedBy());
+				 	view.setUpdatedBy(userList.get(view.getUpdatedBy()));
+				 arr.add(functions.convertEntityToJsonObject(view));
 			 }
 		} catch (Exception e) {
 			e.printStackTrace();

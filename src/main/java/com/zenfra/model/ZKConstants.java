@@ -2,6 +2,7 @@ package com.zenfra.model;
 
 public class ZKConstants {
 	
+	public static String CLOUD_PYTHON="/opt/ZENfra/repo/cloud-inventory-collectors/aws/authentication.py";
 	public static String SERVER = "server";
 	public static String PORT = "port";
 	public static String DEFAULT_PATH = "defaultPath";
@@ -68,6 +69,7 @@ public class ZKConstants {
 	
 	
 	
+	
 	public static String TASKLIST_DEFAULT_FIELDS = "taskDefaultFields";
 	public static String CRCOLUMNNAMES = "CR_Columnnames";
 	public static String CRDevice = "CR_Device";
@@ -80,4 +82,28 @@ public class ZKConstants {
 	public static String APP_SERVER_IP = "appServerIP";
 	public static String APP_SERVER_PORT = "appServerPort";
 	public static String COMPATIBILITY_COlUMNS = "compatibility_columns";
+	
+	public static String POSTGRES_URL = "postgresurl";
+	public static String POSTGRES_USER = "postgres_user";
+	public static String POSTGRES_PWD = "postgres_pwd";
+	public static String ZENFR_FEATURES_CONTEXT_PATH = "zenfra-features";
+	public static String pg_db_url="pg_db_url";
+	public static String pg_db_port="pg_db_port";
+
+	public static String parsing_server_ip="parsingServerIP";
+	public static String parsingServerPort="parsingServerPort";
+	public static String aws_data_script_path="aws_data_script_path";
+	public static String aws_test_connection_path="aws_test_connection_path";
+	public static String parsingServerProtocol="parsingServerProtocol";
+	
+
+	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE="ftp_file_complete_mail_template";
+	public static String MAIL_SERVICE_URL="mailServiceUrl";
+	
+	public static String POSTGRES_DRIVER_CLASS_NAME="pg_driver_class_name";
+	public static String PG_MIN_IDLE_TIMEOUT="pg_min_idle_timeout";
+	public static String PG_MAX_POOL_SIZE="pg_max_pool_size";
+	public static String AWS_TABLE_JDBC_URL="postgresurl_aws_db";
+	
+
 }

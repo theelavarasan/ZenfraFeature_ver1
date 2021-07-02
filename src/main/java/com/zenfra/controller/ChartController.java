@@ -32,50 +32,47 @@ import com.zenfra.utils.NullAwareBeanUtilsBean;
 @RequestMapping("/rest/chart")
 public class ChartController {
 
-	
-	
-	
 	@Autowired
 	CommonFunctions functions;
-	
-	
+
 	@Autowired
 	ChartService chartService;
-	
+
 	@Autowired
 	CategoryMappingService mapService;
-	
+
 	@PostMapping
 	public ResponseEntity<?> createChartConfig(@RequestBody ChartModel_v2 chartModel) {
-		
+
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
-		try 
-		{
+		try {
 			System.out.println(chartModel.getUserId());
-				
-			
-			
-			if(chartModel.getChartId()==null || chartModel.getChartId().trim().isEmpty()) {
-				chartModel.setCreatedTime(functions.getCurrentDateWithTime());		
+
+			if (chartModel.getChartId() == null || chartModel.getChartId().trim().isEmpty()) {
+				chartModel.setCreatedTime(functions.getCurrentDateWithTime());
 				chartModel.setChartId(functions.generateRandomId());
+				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
 				chartModel.setActive(true);
-			}else {
-				
+			
+			} else {
+
 				chartModel.setActive(true);
-				chartModel.setUpdateTime(functions.getCurrentDateWithTime());				
+				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
 			}
 			responseModel.setResponseMessage("Success");
-			if(chartService.saveChart(chartModel)) {				
+			if (chartService.saveChart(chartModel)) {
 				responseModel.setjData(functions.convertEntityToJsonObject(chartModel));
 				responseModel.setResponseDescription("Chart Successfully saved");
 				responseModel.setResponseCode(HttpStatus.OK);
+				mapService.deleteCategoryMappingFavouriteIdOrChartId(chartModel.getChartId());
+
 				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
-			}else {
+			} else {
 				responseModel.setResponseDescription("Chart not saved");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-			
-		} catch(Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
@@ -84,42 +81,41 @@ public class ChartController {
 		} finally {
 			return ResponseEntity.ok(responseModel);
 		}
-		
-		
-		
+
 	}
-	
+
 	@PostMapping("/put")
 	public ResponseEntity<?> updateChartConfig(@RequestBody ChartModel_v2 chartModel) {
-		
+
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
-		try 
-		{
-			
+		try {
+
 			responseModel.setResponseMessage("Success");
-			ChartModel_v2 chartExit=chartService.getChartByChartId(chartModel.getChartId());
-			
-			if(chartExit==null) {
+			ChartModel_v2 chartExit = chartService.getChartByChartId(chartModel.getChartId());
+
+			if (chartExit == null) {
 				responseModel.setResponseDescription("Chart not found");
 				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
 				return ResponseEntity.ok(responseModel);
 			}
-			BeanUtils.copyProperties(chartModel, chartExit, NullAwareBeanUtilsBean.getNullPropertyNames(chartModel));	
+			BeanUtils.copyProperties(chartModel, chartExit, NullAwareBeanUtilsBean.getNullPropertyNames(chartModel));
 			chartExit.setActive(true);
-			chartExit.setUpdateTime(functions.getCurrentDateWithTime());				
-			
-			
-			if(chartService.saveChart(chartExit)) {				
+			chartExit.setUpdateTime(functions.getCurrentDateWithTime());
+
+			if (chartService.saveChart(chartExit)) {
 				responseModel.setjData(functions.convertEntityToJsonObject(chartExit));
 				responseModel.setResponseDescription("Chart Successfully saved");
 				responseModel.setResponseCode(HttpStatus.OK);
-				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
-			}else {
+				if(chartModel.getCategoryList()!=null && !chartModel.getCategoryList().isEmpty()) {
+					mapService.deleteCategoryMappingFavouriteIdOrChartId(chartModel.getChartId());
+					mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
+				}
+			} else {
 				responseModel.setResponseDescription("Chart not saved");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-			
-		} catch(Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
@@ -128,117 +124,112 @@ public class ChartController {
 		} finally {
 			return ResponseEntity.ok(responseModel);
 		}
-		
-		
-		
+
 	}
-	
+
 	@GetMapping("/{chartId}")
-	public ResponseEntity<?> getChartByChartId(@PathVariable String chartId){
-		
+	public ResponseEntity<?> getChartByChartId(@PathVariable String chartId) {
+
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			
-			ChartModel_v2 chart=chartService.getChartByChartId(chartId);
+
+			ChartModel_v2 chart = chartService.getChartByChartId(chartId);
 			responseModel.setResponseMessage("Success");
-			if(chart!=null) {
+			if (chart != null) {
 				responseModel.setjData(functions.convertEntityToJsonObject(chart));
 				responseModel.setResponseDescription("Chart Successfully Retrieved");
 				responseModel.setResponseCode(HttpStatus.OK);
-			}else {
+			} else {
 				responseModel.setResponseDescription("Chart not Retrieved");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		responseModel.setResponseMessage("Failed");
-		responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
-		responseModel.setResponseDescription(e.getMessage());
 
-		} finally {
-			return ResponseEntity.ok(responseModel);
-		}
-	}
-	
-	
-	@GetMapping("/user/{userId}")
-	public ResponseEntity<?> getChartByUserId(@PathVariable String userId){
-		
-		ResponseModel_v2 responseModel = new ResponseModel_v2();
-		try {
-			
-			List<ChartModel_v2> chart=chartService.getChartByUserId(userId);
-			responseModel.setResponseMessage("Success");
-			if(chart!=null) {
-				responseModel.setjData(chart);
-				responseModel.setResponseDescription("Chart Successfully Retrieved");
-				responseModel.setResponseCode(HttpStatus.OK);
-			}else {
-				responseModel.setResponseDescription("Chart not Retrieved ");
-				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		responseModel.setResponseMessage("Failed");
-		responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
-		responseModel.setResponseDescription(e.getMessage());
-
-		} finally {
-			return ResponseEntity.ok(responseModel);
-		}
-	}
-	
-	
-	@PostMapping("/delete")
-	public ResponseEntity<?> delelteChartByChartId(@RequestParam String chartId){
-		
-		ResponseModel_v2 responseModel = new ResponseModel_v2();
-		try {
-			responseModel.setResponseMessage("Success");			
-			ChartModel_v2 chart=chartService.getChartByChartId(chartId);
-				if(chart==null || chart.getChartId().isEmpty()) {					
-					responseModel.setResponseDescription("Chart not found ");
-					responseModel.setResponseCode(HttpStatus.NOT_FOUND);			
-					return ResponseEntity.ok(responseModel);
-				}		
-			
-				chart.setActive(false);
-			if(chartService.deleteChartByObject(chart)) {
-				//responseModel.setjData(functions.convertEntityToJsonObject(chartService.getChartByChartId(chartId)));
-				responseModel.setResponseDescription("Chart Successfully deleted");
-				responseModel.setResponseCode(HttpStatus.OK);
-			}else {
-				responseModel.setResponseDescription("Chart not deleted");
-				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
-			responseModel.setResponseDescription(e.getMessage());			
-		}finally {
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
 			return ResponseEntity.ok(responseModel);
 		}
 	}
-	
 
-	@PostMapping("/create-chart-details")
-	public ResponseEntity<?> createChartDetails(@RequestAttribute(name = "authUserId", required = false) String userId, @RequestBody ChartDetailsModel chartDetailsModel){
-		
+	@GetMapping("/user/{userId}")
+	public ResponseEntity<?> getChartByUserId(@PathVariable String userId) {
+
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			ChartModel_v2 chart=chartService.getChartByChartId(chartDetailsModel.getChartId());
-					chart.setChartDetails(chartDetailsModel.getChartDetails());
-			
-					
-			if(chartService.saveChart(chart)) {				
+
+			List<ChartModel_v2> chart = chartService.getChartByUserId(userId);
+			responseModel.setResponseMessage("Success");
+			if (chart != null) {
+				responseModel.setjData(chart);
+				responseModel.setResponseDescription("Chart Successfully Retrieved");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseDescription("Chart not Retrieved ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+	}
+
+	@PostMapping("/delete")
+	public ResponseEntity<?> delelteChartByChartId(@RequestParam String chartId) {
+
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			responseModel.setResponseMessage("Success");
+			ChartModel_v2 chart = chartService.getChartByChartId(chartId);
+			if (chart == null || chart.getChartId().isEmpty()) {
+				responseModel.setResponseDescription("Chart not found ");
+				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
+				return ResponseEntity.ok(responseModel);
+			}
+
+			chart.setActive(false);
+			if (chartService.deleteChartByObject(chart)) {
+				// responseModel.setjData(functions.convertEntityToJsonObject(chartService.getChartByChartId(chartId)));
+				responseModel.setResponseDescription("Chart Successfully deleted");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseDescription("Chart not deleted");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
+			responseModel.setResponseDescription(e.getMessage());
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+	}
+
+	@PostMapping("/create-chart-details")
+	public ResponseEntity<?> createChartDetails(@RequestAttribute(name = "authUserId", required = false) String userId,
+			@RequestBody ChartDetailsModel chartDetailsModel) {
+
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			ChartModel_v2 chart = chartService.getChartByChartId(chartDetailsModel.getChartId());
+			chart.setChartDetails(chartDetailsModel.getChartDetails());
+
+			if (chartService.saveChart(chart)) {
 				responseModel.setjData(functions.convertEntityToJsonObject(chart));
 				responseModel.setResponseDescription("Chart Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
-			}else {
+			} else {
 				responseModel.setResponseDescription("Chart not Retrieved ");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
@@ -247,34 +238,31 @@ public class ChartController {
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			responseModel.setResponseDescription(e.getMessage());
-			
-		}finally {
+
+		} finally {
 			return ResponseEntity.ok(responseModel);
 		}
-		
+
 	}
-	
-	
+
 	@GetMapping("/report")
-	public ResponseEntity<?> getMigarationReport(@RequestParam String siteKey,
-			@RequestParam String reportName,@RequestParam String userId){
-		
+	public ResponseEntity<?> getMigarationReport(@RequestParam String siteKey, @RequestParam String reportName,
+			@RequestParam String userId) {
+
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 			responseModel.setResponseMessage("Success");
-			JSONArray responce=chartService.getMigarationReport(siteKey,userId,reportName);
-		
-		if(responce!=null) {				
+			JSONArray responce = chartService.getMigarationReport(siteKey, userId, reportName);
+
+			if (responce != null) {
 				responseModel.setjData(responce);
 				responseModel.setResponseDescription("Chart Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
-			}else {
+			} else {
 				responseModel.setResponseDescription("Chart not Retrieved ");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-				
-			
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseMessage("Failed");
@@ -284,6 +272,6 @@ public class ChartController {
 		} finally {
 			return ResponseEntity.ok(responseModel);
 		}
-		
+
 	}
 }
