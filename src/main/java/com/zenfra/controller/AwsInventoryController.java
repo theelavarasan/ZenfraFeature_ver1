@@ -1,7 +1,6 @@
 package com.zenfra.controller;
 
 import java.io.File;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -104,6 +103,7 @@ public class AwsInventoryController {
 				responseModel.setResponseCode(HttpStatus.OK);
 			stmt.close();
 			conn.close();
+			AwsInventoryPostgresConnection.dataSource.getConnection().close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -146,6 +146,7 @@ public class AwsInventoryController {
 			
 			stmt.close();
 			conn.close();
+			AwsInventoryPostgresConnection.dataSource.getConnection().close();
 		model.setjData(list);			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -378,8 +379,7 @@ public class AwsInventoryController {
 			   Statement stmt = conn.createStatement();			
 		       ResultSet rs = stmt.executeQuery(query);
 		       ObjectMapper map=new ObjectMapper();
-		   	
-		       while(rs.next()){
+		   	   while(rs.next()){
 		    	    aws.setLastFourKey( rs.getString("lastFourKey")!=null ? rs.getString("lastFourKey").toString() : " " );
 		    	   	aws.setAccess_key_id( rs.getString("access_key_id")!=null ? rs.getString("access_key_id").toString() : " " );
 		    	  	aws.setSecret_access_key(rs.getString("secret_access_key")!=null ? rs.getString("secret_access_key").toString() : " ");
@@ -390,6 +390,7 @@ public class AwsInventoryController {
 		       }
 		 		stmt.close();
 				conn.close();
+				AwsInventoryPostgresConnection.dataSource.getConnection().close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -422,6 +423,7 @@ public class AwsInventoryController {
 			
 			stmt.close();
 			conn.close();
+			AwsInventoryPostgresConnection.dataSource.getConnection().close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
