@@ -103,7 +103,7 @@ public class AwsInventoryController {
 				responseModel.setResponseCode(HttpStatus.OK);
 			stmt.close();
 			conn.close();
-			AwsInventoryPostgresConnection.dataSource.getConnection().close();
+			AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -146,7 +146,7 @@ public class AwsInventoryController {
 			
 			stmt.close();
 			conn.close();
-			AwsInventoryPostgresConnection.dataSource.getConnection().close();
+			AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
 		model.setjData(list);			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -390,7 +390,7 @@ public class AwsInventoryController {
 		       }
 		 		stmt.close();
 				conn.close();
-				AwsInventoryPostgresConnection.dataSource.getConnection().close();
+				AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -423,7 +423,7 @@ public class AwsInventoryController {
 			
 			stmt.close();
 			conn.close();
-			AwsInventoryPostgresConnection.dataSource.getConnection().close();
+			AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
