@@ -117,6 +117,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		Map<String,String> parseUrls=new HashMap<String, String>();
 		String passFileList="";
 		FTPServerModel server =new FTPServerModel();
+		final List<FileWithPath> files=new ArrayList<>();
 		try {
 			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.toString());
 			List<String> l=new ArrayList<String>();			
@@ -127,7 +128,6 @@ public class FtpSchedulerService extends CommonEntityManager{
 					}
 			}
 			Map<String,Object> userMap=getObjectByQueryNew("select * from user_temp where user_id='"+s.getUserId()+"'") ;
-					l.add("aravind.krishnasamy@virtualtechgurus.com");
 				email.put("mailFrom", userMap.get("email").toString());
 				email.put("mailTo", l);
 				email.put("firstName", userMap.get("first_name").toString());
@@ -184,7 +184,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 						.replace(":process_data_id", String.valueOf(server.getServerId())).replace(":processing_type", "FTP").replace(":site_key", server.getSiteKey())
 						.replace(":start_time",functions.getCurrentDateWithTime()).replace(":status", "Scheduler started").replace(":tenant_id","").replace(":user_id", server.getUserId());
 			excuteByUpdateQueryNew(processQuery);
-			List<FileWithPath> files=settingsService.getFilesByPattern(server,settings);
+			files.addAll(settingsService.getFilesByPattern(server,settings));
 			String processUpdate="UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
 				processUpdate=processUpdate.replace(":log_count", String.valueOf(files.size())).replace(":status", "Retrieving files").replace(":processing_id", status.getProcessing_id());
 			excuteByUpdateQueryNew(processUpdate);	
@@ -217,7 +217,11 @@ public class FtpSchedulerService extends CommonEntityManager{
 				processUpdateLast=processUpdateLast.replace(":file",updateFiles).replace(":end_time", functions.getCurrentDateWithTime())
 								.replace(":status", statusFtp).replace(":processing_id", status.getProcessing_id());
 				excuteByUpdateQueryNew(processUpdateLast);
-			process.sentEmailFTP(email);
+			
+				if(files.size()>0) {
+					process.sentEmailFTP(email);
+				}
+			
 				
 			System.out.println("parseUrls::"+parseUrls);
 			RestTemplate restTemplate=new RestTemplate();
@@ -230,7 +234,9 @@ public class FtpSchedulerService extends CommonEntityManager{
 				    	email.put("FileList", "<li>"+parse+"</li>");
 						email.put("subject", "FTP -"+server.getFtpName()+" Scheduler has Failed");
 						email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
-						process.sentEmailFTP(email);						
+						if(files.size()>0) {
+							process.sentEmailFTP(email);
+						}
 				    }
 				};
 				Thread n = new Thread(){
@@ -241,7 +247,9 @@ public class FtpSchedulerService extends CommonEntityManager{
 							email.put("FileList", "<li>"+parse+"</li>");
 							email.put("subject", "FTP -"+server.getFtpName()+" Scheduler has Failed");
 							email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
-							process.sentEmailFTP(email);		
+							if(files.size()>0) {
+								process.sentEmailFTP(email);
+							}	
 						}				        	
 			        }
 				  };
@@ -255,7 +263,9 @@ public class FtpSchedulerService extends CommonEntityManager{
 			email.put("FileList", passFileList);
 			email.put("subject", "FTP -"+server.getFtpName()+" Scheduler has Failed");
 			email.put("Notes", "Unable to process the files. Don't worry, Admin will check. The above listed files are successfully processed.");
-			process.sentEmailFTP(email);
+			if(files.size()>0) {
+				process.sentEmailFTP(email);
+			}
 			String processUpdateLast="UPDATE processing_status SET response=':response',end_time=':end_time'  status=':status' WHERE processing_id=':processing_id';";
 			processUpdateLast=processUpdateLast.replace(":response", e.getMessage()).replace(":end_time", functions.getCurrentDateWithTime())
 							.replace(":status", "Failed").replace(":processing_id", status.getProcessing_id());
