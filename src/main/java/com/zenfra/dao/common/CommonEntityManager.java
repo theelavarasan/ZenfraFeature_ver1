@@ -79,6 +79,7 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		return obj;
 	}
 	
+	@Transactional
 	public boolean deleteByEntity(Object obj) {
 
 		try {
