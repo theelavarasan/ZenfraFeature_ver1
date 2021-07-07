@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -108,7 +109,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 	}
 
 	
-	public Object runFtpSchedulerFiles(FtpScheduler s) {
+	public Object runFtpSchedulerFiles(FtpScheduler s) throws SQLException {
 		ProcessingStatus status=new ProcessingStatus();
 		ProcessService process=new ProcessService();
 		JSONObject email=new JSONObject();
