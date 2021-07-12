@@ -7,11 +7,15 @@ import org.springframework.stereotype.Component;
 
 import com.zenfra.Interface.IDao;
 import com.zenfra.Interface.IGenericDao;
+import com.zenfra.ftp.repo.LogFileDetailsRepo;
 import com.zenfra.model.LogFileDetails;
 
 @Component
 public class LogFileDetailsDao implements IDao<LogFileDetails>{
 
+	
+	@Autowired
+	LogFileDetailsRepo logRepo;
 	
 	IGenericDao<LogFileDetails> dao;
 	
@@ -97,6 +101,18 @@ public class LogFileDetailsDao implements IDao<LogFileDetails>{
 		
 	}
 
+	
+	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logIds){				
+		try {
+			return logRepo.findByLogIdIn(logIds);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+
+	
 	
 	
 }
