@@ -62,6 +62,14 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 		return logDao.findOne(id);
 	}
 	
-	
+
+	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logIds){				
+		try {
+			return logDao.getLogFileDetailsByLogids(logIds);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 }
