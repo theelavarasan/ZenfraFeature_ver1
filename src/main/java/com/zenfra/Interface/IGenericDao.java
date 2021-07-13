@@ -5,6 +5,9 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public interface IGenericDao<T extends Serializable> {
 
 	T findOne(final long id);

@@ -1,14 +1,7 @@
 package com.zenfra.controller;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,12 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ResponseModel_v2;
-import com.zenfra.service.LogFileDetailsService;
+import com.zenfra.model.SiteModel;
+import com.zenfra.service.SiteService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
@@ -37,27 +29,33 @@ import io.swagger.annotations.ApiResponse;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/log-file")
-@Api(value="Log file details", description="Log file details table Operations")
+@RequestMapping("/api/site")
+@Api(value="Site", description="Site details table Operations")
 @Validated
-public class LogFileDetailsController {
+public class SiteController {
 
 	@Autowired
-	LogFileDetailsService service;
-	
+	SiteService service;
 	
 	
 	@Autowired
 	CommonFunctions functions;
 	
 	@PostMapping
-	@ApiOperation(value="Saved Log File Details ")
+	@ApiOperation(value="Saved site Details ")
 	@ApiResponse(code = 201, message = "Successfully created")	
-	public ResponseEntity<ResponseModel_v2> saveLogFileDetails(@Valid @RequestBody LogFileDetails logFileDetails){
+	public ResponseEntity<ResponseModel_v2> saveSiteDetails(@Valid @RequestBody SiteModel site){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
-			logFileDetails.setLogId(functions.generateRandomId());
-			response.setjData(service.save(logFileDetails));
+			site.setSiteDataId(functions.generateRandomId());
+			site.setTenantId(functions.generateRandomId());
+			site.setSiteKey(functions.generateRandomId());
+			site.setCreateTime(functions.getCurrentDateWithTime());
+			site.setUpdatedTime(functions.getCurrentDateWithTime());
+			site.setCreateBy(site.getUserId());
+			site.setUpdatedBy(site.getUserId());
+			site.setColumnOrderValue(site.getColumnOrder().toString());
+			response.setjData(service.save(site));
 			response.setResponseCode(HttpStatus.CREATED);
 			response.setStatusCode(HttpStatus.CREATED.value());
 			response.setResponseDescription("Successfully created");
@@ -72,9 +70,9 @@ public class LogFileDetailsController {
 	
 	
 	@GetMapping
-	@ApiOperation(value="Get all log file details")
+	@ApiOperation(value="Get all site details")
 	@ApiResponse(code = 200, message = "Successfully retrieved")	
-	public ResponseEntity<ResponseModel_v2> getALlLogFileDetails(){
+	public ResponseEntity<ResponseModel_v2> getAllSiteDetails(){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			response.setjData(service.findAll());
@@ -89,14 +87,13 @@ public class LogFileDetailsController {
 		}
 	}
 	
-	@GetMapping("/{logId}")
-	@ApiOperation(value="Get log file details by id")
+	@GetMapping("/{siteId}")
+	@ApiOperation(value="Get site details by id")
 	@ApiResponse(code = 201, message = "Successfully retrieved")	
-	public ResponseEntity<ResponseModel_v2> getLogFileDetailsByLogId(
-			@NotEmpty(message ="logId must be not empty") @PathVariable String logId){
+	public ResponseEntity<ResponseModel_v2> getSiteById(@PathVariable String siteId){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
-			response.setjData(service.findOne(logId));
+			response.setjData(service.findOne(siteId));
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully retrieved");
@@ -110,23 +107,24 @@ public class LogFileDetailsController {
 	
 	
 	@PutMapping
-	@ApiOperation(value="Update Log File Details by log id")
+	@ApiOperation(value="Update Site Details by site id")
 	@ApiResponse(code = 201, message = "Successfully updated")	
-	public ResponseEntity<ResponseModel_v2> updateLogFileDetailsByLogId(@RequestBody LogFileDetails logFileDetails){
+	public ResponseEntity<ResponseModel_v2> updateLogFileDetailsByLogId(@RequestBody SiteModel site){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			
-			LogFileDetails logFileDetailsExist=service.findOne(logFileDetails.getLogId());
+			SiteModel siteExist=service.findOne(site.getSiteDataId());
 			
-			if(logFileDetailsExist==null) {
-				response.setResponseDescription("LogFileDetails details not exist");
+			if(siteExist==null) {
+				response.setResponseDescription("Site details not exist");
 				response.setResponseMessage("Please sent valid params");	
 				response.setResponseCode(HttpStatus.NOT_FOUND);	
 				return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
 			
 			}
-			BeanUtils.copyProperties(logFileDetails, logFileDetailsExist, NullAwareBeanUtilsBean.getNullPropertyNames(logFileDetails));
-			response.setjData(service.update(logFileDetailsExist));
+			BeanUtils.copyProperties(site, siteExist, NullAwareBeanUtilsBean.getNullPropertyNames(site));
+			siteExist.setColumnOrderValue(siteExist.getColumnOrder().toString());			
+			response.setjData(service.update(siteExist));
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully retrieved");
@@ -138,16 +136,16 @@ public class LogFileDetailsController {
 		}
 	}
 	
-	@DeleteMapping("/{logId}")
-	@ApiOperation(value="Delete Log File Details by log id")
-	@ApiResponse(code = 201, message = "Successfully deleted")	
-	public ResponseEntity<ResponseModel_v2> deleteLogFileDetailsByLogId(@NotEmpty(message = "logId must be not empty") @PathVariable String logId){
+	@DeleteMapping("/{siteId}")
+	@ApiOperation(value="Delete Site Details by log id")
+	@ApiResponse(code = 201, message = "Successfully created")	
+	public ResponseEntity<ResponseModel_v2> deleteLogFileDetailsByLogId(@PathVariable String siteId){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
-			service.deleteById(logId);
+			service.deleteById(siteId);
 			response.setResponseDescription("Successfully deleted");
 			response.setResponseMessage("Successfully deleted");	
 			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
@@ -157,32 +155,9 @@ public class LogFileDetailsController {
 		}
 	}
 	
+	
+	
 
 	
-	@GetMapping("/get-log-status")
-	@ApiOperation(value="Get Log File processing status by array of log ids")
-	@ApiResponse(code = 200, message = "Successfully retrived")
-	public ResponseEntity<ResponseModel_v2> getLogFileProcessingStatus(
-			@NotEmpty(message = "LogId's must be not empty") @RequestParam String logIds){
-		ResponseModel_v2 response=new ResponseModel_v2();
-		try {			
-			
-			JSONParser parser = new JSONParser();
-			JSONArray rid = (JSONArray) parser.parse(logIds);
-
-			Stream<String> ss = rid.stream().map (json->json.toString ());
-	        List<String> logId = ss.collect (Collectors.toList ());
-	        
-			response.setResponseCode(HttpStatus.OK);
-			response.setStatusCode(HttpStatus.OK.value());
-			response.setjData(service.getLogFileDetailsByLogids(logId));
-			response.setResponseDescription("Successfully deleted");
-			response.setResponseMessage("Successfully deleted");	
-			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.EXPECTATION_FAILED);
-		}
-	}
 	
 }
