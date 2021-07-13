@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -19,24 +20,13 @@ import com.zenfra.utils.DBUtils;
 
 @Configuration
 @Component
-//@Profile(value={"dev", "prod","uat","demo"})
+///@Profile(value={"dev", "prod","uat","demo","premigration","local","ai"})
 public class PostgresqlConfiguration {
 
-  Map<String, String> data=DBUtils.getPostgres();
-	@NotNull
-    private String username=data.get("userName");
-	
-    @NotNull
-    private String password=data.get("password");
 
-    @NotNull
-    private String url=data.get("url");
-    
-   
-    private String driver="org.postgresql.Driver";  
 	
-	
-	/*@NotNull
+	/*
+	@NotNull
 	@Value("${db.username}")
     private String username;
 	
@@ -50,17 +40,23 @@ public class PostgresqlConfiguration {
     
     @Value("${db.driver}")
     private String driver;   
-    */
     
+    */
     @Bean
     DataSource loadDataSource() throws SQLException {   
-    	System.out.println(this.url);
+    	Map<String, String> data=DBUtils.zookeeperConfig();
+    	 String username=data.get("userName");
+    	 String password=data.get("password");
+         String url=data.get("url");
+         String driver="org.postgresql.Driver";
+    	
+    	System.out.println("zookeeper data::"+data);
          return DataSourceBuilder
                  .create()
-                 .url(this.url)
-                 .username(this.username)
-                 .password(this.password)
-                 .driverClassName(this.driver)
+                 .url(url)
+                 .username(username)
+                 .password(password)
+                 .driverClassName(driver)
                  .build();
     }
    
