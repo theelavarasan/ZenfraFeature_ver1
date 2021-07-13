@@ -1,8 +1,14 @@
 package com.zenfra.controller;
 
-import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.apache.spark.sql.functions;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.model.LogFileDetails;
@@ -83,7 +90,8 @@ public class LogFileDetailsController {
 	@GetMapping("/{logId}")
 	@ApiOperation(value="Get log file details by id")
 	@ApiResponse(code = 201, message = "Successfully retrieved")	
-	public ResponseEntity<ResponseModel_v2> getLogFileDetailsByLogId(@PathVariable String logId){
+	public ResponseEntity<ResponseModel_v2> getLogFileDetailsByLogId(
+			@NotEmpty(message ="logId must be not empty") @PathVariable String logId){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			response.setjData(service.findOne(logId));
@@ -130,8 +138,8 @@ public class LogFileDetailsController {
 	
 	@DeleteMapping("/{logId}")
 	@ApiOperation(value="Delete Log File Details by log id")
-	@ApiResponse(code = 201, message = "Successfully created")	
-	public ResponseEntity<ResponseModel_v2> deleteLogFileDetailsByLogId(@PathVariable String logId){
+	@ApiResponse(code = 201, message = "Successfully deleted")	
+	public ResponseEntity<ResponseModel_v2> deleteLogFileDetailsByLogId(@NotEmpty(message = "logId must be not empty") @PathVariable String logId){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			
@@ -147,6 +155,32 @@ public class LogFileDetailsController {
 		}
 	}
 	
+
 	
+	@GetMapping("/get-log-status")
+	@ApiOperation(value="Get Log File processing status by array of log ids")
+	@ApiResponse(code = 200, message = "Successfully retrived")
+	public ResponseEntity<ResponseModel_v2> getLogFileProcessingStatus(
+			@NotEmpty(message = "LogId's must be not empty") @RequestParam String logIds){
+		ResponseModel_v2 response=new ResponseModel_v2();
+		try {			
+			
+			JSONParser parser = new JSONParser();
+			JSONArray rid = (JSONArray) parser.parse(logIds);
+
+			Stream<String> ss = rid.stream().map (json->json.toString ());
+	        List<String> logId = ss.collect (Collectors.toList ());
+	        
+			response.setResponseCode(HttpStatus.OK);
+			response.setStatusCode(HttpStatus.OK.value());
+			response.setjData(service.getLogFileDetailsByLogids(logId));
+			response.setResponseDescription("Successfully deleted");
+			response.setResponseMessage("Successfully deleted");	
+			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.EXPECTATION_FAILED);
+		}
+	}
 	
 }
