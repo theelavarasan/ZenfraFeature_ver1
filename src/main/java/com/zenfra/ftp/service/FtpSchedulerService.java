@@ -41,7 +41,6 @@ import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Constants;
 import com.zenfra.utils.DBUtils;
-import com.zenfra.utils.TrippleDes;
 
 @Service
 public class FtpSchedulerService extends CommonEntityManager{
@@ -119,7 +118,8 @@ public class FtpSchedulerService extends CommonEntityManager{
 		String passFileList="";
 		FTPServerModel server =new FTPServerModel();
 		final List<FileWithPath> files=new ArrayList<>();
-		try {
+		Map<String,String> values=DBUtils.getEmailURL();
+		try {			
 			System.out.println("--------------eneter runFtpSchedulerFiles---------"+s.toString());
 			List<String> l=new ArrayList<String>();			
 			if(s.getEmailString()!=null && s.getEmailString()!="[]" ) {
@@ -134,7 +134,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 				email.put("firstName", userMap.get("first_name").toString());
 				//email.put("Time", functions.getCurrentDateWithTime());
 				email.put("Notes","File processing initiated");
-				
+				email.put("ftp_template", values.get("ftp_template_success"));
 			FileNameSettingsService settingsService=new FileNameSettingsService();
 				System.out.println("s.getFileNameSettingsId()::"+s.getFileNameSettingsId());			
 			
@@ -167,7 +167,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 					server.setSiteKey(serverMap.get("site_key").toString());
 					server.setUserId(serverMap.get("user_id").toString());
 				}
-				email.put("subject", "FTP -"+ server.getFtpName()+" Scheduler has ran Successfully");
+				email.put("subject", Constants.ftp_sucess.replace(":ftp_name", server.getFtpName()));
 				email.put("FTPname", server.getFtpName());				
 				status.setProcessingType("FTP");
 				status.setProcessing_id(functions.generateRandomId());
@@ -227,13 +227,13 @@ public class FtpSchedulerService extends CommonEntityManager{
 			System.out.println("parseUrls::"+parseUrls);
 			RestTemplate restTemplate=new RestTemplate();
 			for(String parse:parseUrls.keySet()) {	
-				  passFileList+="<li>"+parse+"</li>";
-				  
+				  passFileList+="<li>"+parse+"</li>";				  
 				Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
 				    @Override
 				    public void uncaughtException(Thread th, Throwable ex) {
+				    	email.put("ftp_template", values.get("ftp_template_partially_processed"));
 				    	email.put("FileList", "<li>"+parse+"</li>");
-						email.put("subject", "FTP -"+server.getFtpName()+" Scheduler has Failed");
+				    	email.put("subject", Constants.ftp_Partially_Processed.replace(":ftp_name", server.getFtpName()));
 						email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
 						if(files.size()>0) {
 							process.sentEmailFTP(email);
@@ -245,8 +245,9 @@ public class FtpSchedulerService extends CommonEntityManager{
 			        	try {
 			        		CallFTPParseAPI(restTemplate, parseUrls.get(parse), token);
 						} catch (Exception e) {
+							email.put("ftp_template", values.get("ftp_template_partially_processed"));
 							email.put("FileList", "<li>"+parse+"</li>");
-							email.put("subject", "FTP -"+server.getFtpName()+" Scheduler has Failed");
+							email.put("subject", Constants.ftp_Partially_Processed.replace(":ftp_name", server.getFtpName()));
 							email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
 							if(files.size()>0) {
 								process.sentEmailFTP(email);
@@ -261,8 +262,9 @@ public class FtpSchedulerService extends CommonEntityManager{
 			return files;
 		} catch (Exception e) {
 			e.printStackTrace();
+			email.put("ftp_template", values.get("ftp_template_failure"));
 			email.put("FileList", passFileList);
-			email.put("subject", "FTP -"+server.getFtpName()+" Scheduler has Failed");
+			email.put("subject", Constants.ftp_fail.replace(":ftp_name", server.getFtpName()));
 			email.put("Notes", "Unable to process the files. Don't worry, Admin will check. The above listed files are successfully processed.");
 			if(files.size()>0) {
 				process.sentEmailFTP(email);

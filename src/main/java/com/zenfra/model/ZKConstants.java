@@ -97,7 +97,9 @@ public class ZKConstants {
 	public static String parsingServerProtocol="parsingServerProtocol";
 	
 
-	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE="ftp_file_complete_mail_template";
+	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE_SUCCESS="ftp_template_success";
+	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE_FAIL="ftp_template_failure";
+	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE_PARTIALLY_PROCESSED="ftp_template_partially_processed";
 	public static String MAIL_SERVICE_URL="mailServiceUrl";
 
 }
