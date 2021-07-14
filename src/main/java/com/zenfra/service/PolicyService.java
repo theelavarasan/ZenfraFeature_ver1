@@ -25,7 +25,7 @@ public class PolicyService implements IService<PolicyModel>{
 	@Override
 	public PolicyModel findOne(String id) {
 		// TODO Auto-generated method stub
-		return null;
+		return dao.findOne(id);
 	}
 
 	@Override

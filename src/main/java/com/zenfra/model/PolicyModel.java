@@ -9,6 +9,8 @@ import javax.persistence.Transient;
 
 import org.json.simple.JSONArray;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -81,13 +83,15 @@ public class PolicyModel implements Serializable {
 	//@NotBlank(message = "uploadedBy must not be empty")
 	private JSONArray resources;
 	
+	
 	@Column
 	@ApiModelProperty(hidden = true,value = "resources", name = "resources", dataType = "Array", example = "[{'name':'test'},{'name':'check'}]")
 	//@NotBlank(message = "uploadedBy must not be empty")
+	@JsonIgnore
 	private String resourcesString;
 	
 	@Column
-	@ApiModelProperty(hidden = true,value = "description", name = "description", dataType = "String", example = "Data-Upload-Read-only")
+	@ApiModelProperty(value = "description", name = "description", dataType = "String", example = "Data-Upload-Read-only")
 	//@NotBlank(message = "uploadedBy must not be empty")
 	private String description;
 
