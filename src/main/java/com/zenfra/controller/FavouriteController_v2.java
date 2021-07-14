@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -85,6 +86,47 @@ public class FavouriteController_v2 {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				return ResponseEntity.ok(responseModel);
 			}
+			
+			
+			/*for(int i=0;0<favouriteModel.getFilterProperty().size();i++) {
+				JSONObject obj=(JSONObject) favouriteModel.getFilterProperty().get(i);
+				String label=obj.get("label").toString();
+				String label
+				
+				
+				
+			}
+			if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) && reportList.equalsIgnoreCase("Local")) {
+	            label = "Server";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("Local")) {
+	            label = "Storage";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("Local")) {
+	            label = "Switch";
+	        }
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) &&
+	                reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	       
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) &&
+	                reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }*/
+			
 			favouriteModel.setFavouriteId(functions.generateRandomId());
 			if(favouriteModel.getReportName().equalsIgnoreCase("project-summary")) {
 				favouriteModel.setReportLabel(favouriteModel.getFavouriteId());
