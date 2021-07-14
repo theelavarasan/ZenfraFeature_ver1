@@ -1,6 +1,7 @@
 package com.zenfra.controller;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zenfra.model.PolicyModel;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.SiteModel;
+import com.zenfra.service.PolicyService;
 import com.zenfra.service.SiteService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
@@ -29,33 +32,32 @@ import io.swagger.annotations.ApiResponse;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/site")
-@Api(value="Site", description="Site details table Operations")
+@RequestMapping("/api/policy")
+@Api(value="Policy", description="Policy details table Operations")
 @Validated
-public class SiteController {
+public class PolicyController {
+
 
 	@Autowired
-	SiteService service;
+	PolicyService service;
 	
 	
 	@Autowired
 	CommonFunctions functions;
 	
 	@PostMapping
-	@ApiOperation(value="Saved site Details ")
+	@ApiOperation(value="Policy site Details ")
 	@ApiResponse(code = 201, message = "Successfully created")	
-	public ResponseEntity<ResponseModel_v2> saveSiteDetails(@Valid @RequestBody SiteModel site){
+	public ResponseEntity<ResponseModel_v2> saveSiteDetails(@Valid @RequestBody PolicyModel policy){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
-			site.setSiteDataId(functions.generateRandomId());
-			//site.setTenantId(functions.generateRandomId());
-			site.setSiteKey(functions.generateRandomId());
-			site.setCreateTime(functions.getCurrentDateWithTime());
-			site.setUpdatedTime(functions.getCurrentDateWithTime());
-			site.setCreateBy(site.getUserId());
-			site.setUpdatedBy(site.getUserId());
-			site.setColumnOrderValue(site.getColumnOrder().toString());
-			response.setjData(service.save(site));
+			policy.setPolicyDataId(functions.generateRandomId());
+			policy.setCreatedDateTime(functions.getCurrentDateWithTime());
+			policy.setUpdatedDateTime(functions.getCurrentDateWithTime());
+			policy.setCreateBy(policy.getUserId());
+			policy.setUpdateBy(policy.getUserId());
+			policy.setResourcesString(policy.getResources().toJSONString());
+			response.setjData(service.save(policy));
 			response.setResponseCode(HttpStatus.CREATED);
 			response.setStatusCode(HttpStatus.CREATED.value());
 			response.setResponseDescription("Successfully created");
@@ -70,7 +72,7 @@ public class SiteController {
 	
 	
 	@GetMapping
-	@ApiOperation(value="Get all site details")
+	@ApiOperation(value="Get all policy details")
 	@ApiResponse(code = 200, message = "Successfully retrieved")	
 	public ResponseEntity<ResponseModel_v2> getAllSiteDetails(){
 		ResponseModel_v2 response=new ResponseModel_v2();
@@ -87,13 +89,14 @@ public class SiteController {
 		}
 	}
 	
-	@GetMapping("/{siteId}")
-	@ApiOperation(value="Get site details by id")
+	@GetMapping("/{policyId}")
+	@ApiOperation(value="Get policy details by id")
 	@ApiResponse(code = 201, message = "Successfully retrieved")	
-	public ResponseEntity<ResponseModel_v2> getSiteById(@PathVariable String siteId){
+	public ResponseEntity<ResponseModel_v2> getSiteById(
+			@NotEmpty(message = "policyId must not be empty") @PathVariable String policyId){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
-			response.setjData(service.findOne(siteId));
+			response.setjData(service.findOne(policyId));
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully retrieved");
@@ -107,26 +110,24 @@ public class SiteController {
 	
 	
 	@PutMapping
-	@ApiOperation(value="Update Site Details by site id")
+	@ApiOperation(value="Update policy Details by site id")
 	@ApiResponse(code = 201, message = "Successfully updated")	
-	public ResponseEntity<ResponseModel_v2> updateLogFileDetailsByLogId(@RequestBody SiteModel site){
+	public ResponseEntity<ResponseModel_v2> updateLogFileDetailsByLogId(@RequestBody PolicyModel policy){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			
-			SiteModel siteExist=service.findOne(site.getSiteDataId());
+			PolicyModel policyExist=service.findOne(policy.getPolicyDataId());
 			
-			if(siteExist==null) {
-				response.setResponseDescription("Site details not exist");
+			if(policyExist==null) {
+				response.setResponseDescription("Policy details not exist");
 				response.setResponseMessage("Please sent valid params");	
 				response.setResponseCode(HttpStatus.NOT_FOUND);	
 				return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
 			
 			}
-			BeanUtils.copyProperties(site, siteExist, NullAwareBeanUtilsBean.getNullPropertyNames(site));
-			siteExist.setColumnOrderValue(siteExist.getColumnOrder().toString());	
-			siteExist.setUpdatedTime(functions.getCurrentDateWithTime());
-			siteExist.setUpdatedBy(site.getUserId());
-			response.setjData(service.update(siteExist));
+			BeanUtils.copyProperties(policy, policyExist, NullAwareBeanUtilsBean.getNullPropertyNames(policy));
+			policyExist.setResourcesString(policyExist.getResources().toJSONString());			
+			response.setjData(service.update(policyExist));
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully retrieved");
@@ -138,16 +139,16 @@ public class SiteController {
 		}
 	}
 	
-	@DeleteMapping("/{siteId}")
-	@ApiOperation(value="Delete Site Details by log id")
+	@DeleteMapping("/{policyId}")
+	@ApiOperation(value="Delete policy Details by log id")
 	@ApiResponse(code = 201, message = "Successfully created")	
-	public ResponseEntity<ResponseModel_v2> deleteLogFileDetailsByLogId(@PathVariable String siteId){
+	public ResponseEntity<ResponseModel_v2> deleteLogFileDetailsByLogId(@PathVariable String policyId){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
-			service.deleteById(siteId);
+			service.deleteById(policyId);
 			response.setResponseDescription("Successfully deleted");
 			response.setResponseMessage("Successfully deleted");	
 			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
@@ -157,6 +158,9 @@ public class SiteController {
 		}
 	}
 	
+	
+	
+
 	
 	
 

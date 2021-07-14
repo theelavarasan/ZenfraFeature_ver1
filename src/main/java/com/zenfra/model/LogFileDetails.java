@@ -108,7 +108,7 @@ public class LogFileDetails implements Serializable {
 	
 	
 	@Column
-	@ApiModelProperty(value = "masterLogs files", name = "masterLogs", dataType = "String", example = "/opt/zenfra/test.log")
+	@ApiModelProperty(value = "Active status", name = "activ", dataType = "boolean", example = "true")
 	//@NotBlank(message = "Site Key must not be empty")
 	private boolean isActive=true;
 
