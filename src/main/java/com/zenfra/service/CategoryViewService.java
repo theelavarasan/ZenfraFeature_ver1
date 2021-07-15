@@ -115,7 +115,7 @@ public class CategoryViewService {
 		
 		try {
 			
-			List<ChartModel_v2> chart=chartService.getChartByCategoryId(categoryId);
+			List<Object> chart=chartService.getChartByCategoryId(categoryId);
 			if(chart!=null && !chart.isEmpty()) {				
 				return true;
 			}

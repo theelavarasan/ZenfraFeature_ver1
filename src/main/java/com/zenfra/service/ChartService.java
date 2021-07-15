@@ -136,8 +136,13 @@ public class ChartService {
 	}
 
 
-	public List<ChartModel_v2> getChartByCategoryId(String categoryId) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Object> getChartByCategoryId(String categoryId) {
+		try {
+			
+			return chartDao.getChartByCategoryId(categoryId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }
