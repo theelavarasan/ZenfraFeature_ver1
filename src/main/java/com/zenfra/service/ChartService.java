@@ -134,4 +134,10 @@ public class ChartService {
 		}
 		return true;
 	}
+
+
+	public List<ChartModel_v2> getChartByCategoryId(String categoryId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

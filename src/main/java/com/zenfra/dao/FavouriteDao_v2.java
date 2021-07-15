@@ -221,4 +221,16 @@ public Integer updateQuery(Map<String,Object> parameter,String query) {
 		}
 		return tenantId;
 }
+
+
+	public List<Map<String, Object>> getFavouriteList(String query) {
+		List<Map<String, Object>> object=new ArrayList<Map<String,Object>>();
+		try {
+			object=jdbc.queryForList(query);			
+			return object;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

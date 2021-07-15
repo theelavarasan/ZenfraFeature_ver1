@@ -176,11 +176,22 @@ public class CategoryViewController {
 			responseModel.setResponseMessage("Success!");
 			CategoryView view=(CategoryView)categoryService.getCategoryView(categoryId);
 			
+			
 			if(view==null) {
 				responseModel.setResponseDescription("Category not found ");
 				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
 				return ResponseEntity.ok(responseModel);
 			}
+			
+			boolean status=categoryService.getCategoryStatus(categoryId);
+			
+			if(status) {
+				responseModel.setResponseDescription("Category map to chart or favourite view");
+				responseModel.setResponseCode(HttpStatus.CONFLICT);
+				responseModel.setStatusCode(HttpStatus.CONFLICT.value());
+				return ResponseEntity.ok(responseModel);
+			}
+			
 			if (categoryService.deleteCategoryView(view)) {
 				responseModel.setResponseDescription("Category Successfully deleted");
 				responseModel.setResponseCode(HttpStatus.OK);
