@@ -1,5 +1,6 @@
 package com.zenfra.dao.common;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -121,34 +122,39 @@ public abstract class JdbcCommonOperations {
 	
 	
 	
-	public Map<String, Object> getObjectByQueryNew(String query) {
+	public Map<String, Object> getObjectByQueryNew(String query) throws SQLException {
 		Map<String, Object> obj=new HashMap<String, Object>();
 		List<Map<String, Object>> obj1 = new ArrayList<>();
+		DataSource d=null;
+		JdbcTemplate jdbc=new JdbcTemplate();
 			try {
 				System.out.println("query::"+query);
 				Map<String, String> data=DBUtils.getPostgres();
-				DataSource d=	DataSourceBuilder
+				 d=	DataSourceBuilder
                 .create()
                 .url(data.get("url"))
                 .username(data.get("userName"))
                 .password(data.get("password"))
                 .driverClassName("org.postgresql.Driver")
-                .build();
-				JdbcTemplate jdbc=new JdbcTemplate();
+                .build();				
 					jdbc.setDataSource(d);
 					obj1 = jdbc.queryForList(query);					
-				jdbc.getDataSource().getConnection().close();	
+				
 				System.out.println(obj1);
 				obj=obj1.get(0)!=null ? obj1.get(0) : new HashMap<String, Object>();
 				
 			} catch (Exception e) {
 				e.printStackTrace();
+			}finally {
+				jdbc.getDataSource().getConnection().close();
 			}
 			return obj;
 		}
 	
-	public int excuteByUpdateQueryNew(String query) {
+	public int excuteByUpdateQueryNew(String query) throws SQLException {
 		int obj1=0;	
+		JdbcTemplate jdbc=new JdbcTemplate();
+		
 		try {
 				System.out.println("query::"+query);
 				Map<String, String> data=DBUtils.getPostgres();
@@ -159,13 +165,14 @@ public abstract class JdbcCommonOperations {
                 .password(data.get("password"))
                 .driverClassName("org.postgresql.Driver")
                 .build();
-				JdbcTemplate jdbc=new JdbcTemplate();
 					jdbc.setDataSource(d);
 					obj1 = jdbc.update(query);		
 				jdbc.getDataSource().getConnection().close();
 					
 			} catch (Exception e) {
 				e.printStackTrace();
+			}finally {
+				jdbc.getDataSource().getConnection().close();
 			}
 			return obj1;
 		}
