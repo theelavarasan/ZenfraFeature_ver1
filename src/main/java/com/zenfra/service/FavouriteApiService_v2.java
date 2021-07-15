@@ -364,6 +364,17 @@ public class FavouriteApiService_v2 {
 		return responce;
 	}
 
+	
+	public List<Map<String, Object>> getFavouriteList(String catgoryid){
+		List<Map<String, Object>> object=new ArrayList<Map<String,Object>>();
+		try {
+			String query="select * from favourite_view where category_list like '%:catgoryid%'".replace(":catgoryid", catgoryid);
+			object=daoFav.getFavouriteList(query);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return object;
+	}
 
 }
 
