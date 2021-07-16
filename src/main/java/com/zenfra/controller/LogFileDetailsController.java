@@ -145,9 +145,19 @@ public class LogFileDetailsController {
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			
+			LogFileDetails logFileDetailsExist=service.findOne(logId);
+			
+			if(logFileDetailsExist==null) {
+				response.setResponseDescription("LogFileDetails details not exist");
+				response.setResponseMessage("Please sent valid params");	
+				response.setResponseCode(HttpStatus.NOT_FOUND);	
+				return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
+			
+			}
+			logFileDetailsExist.setActive(false);
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
-			service.deleteById(logId);
+			service.update(logFileDetailsExist);
 			response.setResponseDescription("Successfully deleted");
 			response.setResponseMessage("Successfully deleted");	
 			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
@@ -184,5 +194,8 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.EXPECTATION_FAILED);
 		}
 	}
+	
+	
+	
 	
 }

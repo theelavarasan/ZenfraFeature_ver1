@@ -113,9 +113,99 @@ public class LogFileDetails implements Serializable {
 	private boolean isActive=true;
 
 
+	@Column
+	@ApiModelProperty(value = "Parsing Status", name = "parsingStatus", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String parsingStatus;
+	
 	
 
+	@Column
+	@ApiModelProperty(value = "Message Status", name = "message", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String message;
+	
+	@Column
+	@ApiModelProperty(value = "Parsing Start Time", name = "parsingStartTime", dataType = "String", example = "01-01-2021 01:20:22 AM")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String parsingStartTime;
+	
+	
+	@Column
+	@ApiModelProperty(value = "parsedDateTime", name = "parsedDateTime", dataType = "String", example = "01-01-2021 01:20:22 AM")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String parsedDateTime;
+	
+	
+	@Column
+	@ApiModelProperty(value = "CmdStatusParsing", name = "CmdStatusParsing", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String CmdStatusParsing;
+	
+	@Column
+	@ApiModelProperty(value = "CmdStatusInsertion", name = "CmdStatusInsertion", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String CmdStatusInsertion;
 
+	
+	
+	@Column
+	@ApiModelProperty(value = "tempStatus", name = "tempStatus", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String tempStatus;
+
+
+
+	
+
+	public String getTempStatus() {
+		return tempStatus;
+	}
+
+
+	public void setTempStatus(String tempStatus) {
+		this.tempStatus = tempStatus;
+	}
+
+
+	public String getCmdStatusInsertion() {
+		return CmdStatusInsertion;
+	}
+
+
+	public void setCmdStatusInsertion(String cmdStatusInsertion) {
+		CmdStatusInsertion = cmdStatusInsertion;
+	}
+
+
+	public String getCmdStatusParsing() {
+		return CmdStatusParsing;
+	}
+
+
+	public void setCmdStatusParsing(String cmdStatusParsing) {
+		CmdStatusParsing = cmdStatusParsing;
+	}
+
+
+	public String getParsedDateTime() {
+		return parsedDateTime;
+	}
+
+
+	public void setParsedDateTime(String parsedDateTime) {
+		this.parsedDateTime = parsedDateTime;
+	}
+
+
+	public String getParsingStatus() {
+		return parsingStatus;
+	}
+
+
+	public void setParsingStatus(String parsingStatus) {
+		this.parsingStatus = parsingStatus;
+	}
 
 
 	public String getLogId() {
@@ -275,6 +365,26 @@ public class LogFileDetails implements Serializable {
 
 	public void setActive(boolean isActive) {
 		this.isActive = isActive;
+	}
+
+
+	public String getMessage() {
+		return message;
+	}
+
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+
+	public String getParsingStartTime() {
+		return parsingStartTime;
+	}
+
+
+	public void setParsingStartTime(String parsingStartTime) {
+		this.parsingStartTime = parsingStartTime;
 	}
 
 
