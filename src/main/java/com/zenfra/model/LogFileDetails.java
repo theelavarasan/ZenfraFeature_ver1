@@ -388,19 +388,45 @@ public class LogFileDetails implements Serializable {
 	}
 
 
-	@Override
-	public String toString() {
-		return "LogFileDetails [logId=" + logId + ", logType=" + logType + ", uploadedBy=" + uploadedBy + ", siteKey="
-				+ siteKey + ", createdDateTime=" + createdDateTime + ", updatedDateTime=" + updatedDateTime
-				+ ", fileName=" + fileName + ", fileSize=" + fileSize + ", status=" + status + ", response=" + response
-				+ ", tenantId=" + tenantId + ", description=" + description + ", extractedPath=" + extractedPath
-				+ ", uploadedLogs=" + uploadedLogs + ", masterLogs=" + masterLogs + ", isActive=" + isActive + "]";
-	}
+	
 
 
 	public LogFileDetails() {
 		super();
 		// TODO Auto-generated constructor stub
+	}
+
+
+	public LogFileDetails(String logId, @NotBlank(message = "logType must not be empty") String logType,
+			String uploadedBy, @NotBlank(message = "Site Key must not be empty") String siteKey, String createdDateTime,
+			String updatedDateTime, String fileName, String fileSize, String status, String response, String tenantId,
+			String description, String extractedPath, String uploadedLogs, String masterLogs, boolean isActive,
+			String parsingStatus, String message, String parsingStartTime, String parsedDateTime,
+			String cmdStatusParsing, String cmdStatusInsertion, String tempStatus) {
+		super();
+		this.logId = logId;
+		this.logType = logType;
+		this.uploadedBy = uploadedBy;
+		this.siteKey = siteKey;
+		this.createdDateTime = createdDateTime;
+		this.updatedDateTime = updatedDateTime;
+		this.fileName = fileName;
+		this.fileSize = fileSize;
+		this.status = status;
+		this.response = response;
+		this.tenantId = tenantId;
+		this.description = description;
+		this.extractedPath = extractedPath;
+		this.uploadedLogs = uploadedLogs;
+		this.masterLogs = masterLogs;
+		this.isActive = isActive;
+		this.parsingStatus = parsingStatus;
+		this.message = message;
+		this.parsingStartTime = parsingStartTime;
+		this.parsedDateTime = parsedDateTime;
+		CmdStatusParsing = cmdStatusParsing;
+		CmdStatusInsertion = cmdStatusInsertion;
+		this.tempStatus = tempStatus;
 	}
 	
 	

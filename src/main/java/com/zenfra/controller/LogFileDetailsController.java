@@ -96,12 +96,24 @@ public class LogFileDetailsController {
 			@NotEmpty(message ="logId must be not empty") @PathVariable String logId){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
-			response.setjData(service.findOne(logId));
-			response.setResponseCode(HttpStatus.OK);
-			response.setStatusCode(HttpStatus.OK.value());
-			response.setResponseDescription("Successfully retrieved");
-			response.setResponseMessage("Successfully retrieved");	
-			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
+			
+			LogFileDetails logFile=service.findOne(logId);
+			
+			if(logFile!=null && logFile.getActive()) {
+				response.setjData(logFile);
+				response.setResponseCode(HttpStatus.OK);
+				response.setStatusCode(HttpStatus.OK.value());
+				response.setResponseDescription("Successfully retrieved");
+				response.setResponseMessage("Successfully retrieved");	
+				return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
+			}else {
+				response.setResponseCode(HttpStatus.NOT_FOUND);
+				response.setStatusCode(HttpStatus.NOT_FOUND.value());
+				response.setResponseDescription("Successfully retrieved");
+				response.setResponseMessage("Successfully retrieved");	
+				return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.NOT_FOUND);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.EXPECTATION_FAILED);
