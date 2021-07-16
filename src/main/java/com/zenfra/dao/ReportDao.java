@@ -142,7 +142,7 @@ public class ReportDao {
 				result.put("chartLayout", commonFunctions.formatJsonArrayr(rs.get(0).get("chart_layout")));
 				ObjectMapper mapper = new ObjectMapper();			
 				
-				JSONObject health_check = mapper.readValue(rs.get(0).get("health_check").toString(), JSONObject.class);
+				JSONArray health_check = mapper.readValue(rs.get(0).get("health_check").toString(), JSONArray.class);
 				
 				System.out.println("-----------health_check---------" + rs.get(0).get("health_check"));
 				
