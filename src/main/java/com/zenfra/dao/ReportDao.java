@@ -134,14 +134,13 @@ public class ReportDao {
 			params.put("report_name", reportName.toLowerCase());			
 			List<Map<String, Object>> rs = namedJdbc.queryForList(reportQueries.getReportUserCustomData(), params);		
 		
+			
 			if(rs != null && rs.size() > 0) {
 				result.put("groupedColumns", commonFunctions.convertObjectToJsonArray(rs.get(0).get("grouped_columns")));
 				result.put("columnOrder", commonFunctions.convertObjectToJsonArray(rs.get(0).get("columns_visible")));
 				result.put("chartLayout", commonFunctions.formatJsonArrayr(rs.get(0).get("chart_layout")));
-				ObjectMapper mapper = new ObjectMapper();			
-				
-				JSONObject health_check = mapper.readValue(rs.get(0).get("health_check").toString(), JSONObject.class);
-				
+				ObjectMapper mapper = new ObjectMapper();	
+				JSONArray health_check = mapper.readValue(rs.get(0).get("health_check").toString(), JSONArray.class);
 				result.put("health_check", health_check);
 				
 				
