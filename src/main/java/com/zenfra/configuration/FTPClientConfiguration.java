@@ -255,12 +255,12 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					System.out.println("Stream path::" + dirToList + "/" + aFile.getName());
 					//InputStream iStream = ftpClient.retrieveFileStream(dirToList + "/" + aFile.getName());
 					//if (iStream != null) {
-						Map<String,String> map=new HashMap<String, String>();
+						Map<String,Object> map=new HashMap<String, Object>();
 							map.put("serverId", server.getServerId());
 							map.put("fileName", aFile.getName());
 							map.put("siteKey", server.getSiteKey());
 							map.put("fileSize", String.valueOf(aFile.getSize()));
-							map.put("createDate", aFile.getTimestamp().getTime().toLocaleString());
+							map.put("createDate", aFile.getTimestamp().getTime());
 						System.out.println("map::"+map);
 						//File file1 = File.createTempFile("tmp", null);
 						//FileUtils.copyInputStreamToFile(iStream, file1);
@@ -330,7 +330,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		return sb.toString();
 	}
 
-	public boolean copyStatus(Map<String, String> currentMap, Map<String, List<String>> existMap) {
+	public boolean copyStatus(Map<String, Object> currentMap, Map<String, List<String>> existMap) {
 
 		try {
 			
@@ -346,11 +346,11 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			
 			String query="INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
 				query=query.replace(":check_sum_id",functions.generateRandomId())
-						.replace(":file_size", currentMap.get("fileSize"))
-						.replace(":create_date", currentMap.get("createDate"))
-						.replace(":client_ftp_server_id", currentMap.get("serverId"))
-						.replace(":file_name", currentMap.get("fileName"))
-						.replace(":site_key", currentMap.get("siteKey"));
+						.replace(":file_size", currentMap.get("fileSize").toString())
+						.replace(":create_date", currentMap.get("createDate").toString())
+						.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
+						.replace(":file_name", currentMap.get("fileName").toString())
+						.replace(":site_key", currentMap.get("siteKey").toString());
 			System.out.println("CheckSum query::"+query);
 			excuteByUpdateQueryNew(query);			
 			return false;
