@@ -15,6 +15,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,12 +59,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Sets;
+import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
 import com.zenfra.dataframe.filter.ColumnFilter;
 import com.zenfra.dataframe.filter.NumberColumnFilter;
 import com.zenfra.dataframe.filter.SetColumnFilter;
 import com.zenfra.dataframe.filter.TextColumnFilter;
+import com.zenfra.dataframe.request.AwsInstanceData;
 import com.zenfra.dataframe.request.ColumnVO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.request.SortModel;
@@ -1798,7 +1805,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        filterModel = request.getFilterModel();
     	        sortModel = request.getSortModel();
     	        isPivotMode = request.isPivotMode();
-    	        isGrouping = rowGroups.size() > groupKeys.size();    	      
+    	        isGrouping = rowGroups.size() > groupKeys.size();   
+    	        
+    	        List<String> colHeaders = Arrays.asList(dataCheck.columns());
+                Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
+                dataCheck = dataCheck.unionByName(awsInstanceData);
     	        
     	        for(String col : columnHeaders) {    	        	
     	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
@@ -1824,6 +1835,123 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
              return paginate(dataCheck, request);
 		}
 		
+		
+		 private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
+			 Dataset<Row> result = sparkSession.emptyDataFrame();
+			 Connection conn = null;
+			 Statement stmt = null;
+			 if(deviceType.equalsIgnoreCase("All")) {
+				 deviceType = " (lower(img.platformdetails) like '%linux%' or lower(img.platformdetails) like '%windows%' or lower(img.platformdetails) like '%vmware%')";
+			 } else {
+				 deviceType = " lower(img.platformdetails) like '%"+deviceType.toLowerCase()+"%'";
+			 }
+			 try {
+				String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, img.description from ec2_instances i join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey="+siteKey+" and "+ deviceType;// + " group by it.instancetype, it.vcpuinfo, it.memoryinfo";
+				System.out.println("----------------query------------------" + query);
+				conn = AwsInventoryPostgresConnection.dataSource.getConnection();
+				 stmt = conn.createStatement();				 
+				 ResultSet rs = stmt.executeQuery(query);		
+				
+				 List<AwsInstanceData> resultRows = resultSetToList(rs);
+				 Dataset<Row> data = sparkSession.createDataFrame(resultRows, AwsInstanceData.class);				 				 
+				 
+				// Dataset<Row> data = sparkSession.read().format("csv").option("header","true").load("E:\\opt\\aws_inventory1.csv").distinct();
+			
+				
+				 data = data.withColumnRenamed("region", "AWS Region");
+				 data = data.withColumnRenamed("instancetype", "AWS Instance Type");
+				 data = data.withColumnRenamed("memoryinfo", "Memory");
+				 data = data.withColumnRenamed("vcpuinfo", "Number of Cores");
+				 data = data.withColumnRenamed("platformdetails", "Operating Name");
+				 data = data.withColumnRenamed("description", "OS Version");
+				
+				 data.createOrReplaceTempView("awsInstanceDF");				
+				 
+				 try {
+					
+					 Dataset<Row> dataCheck1 = sparkSession.sql("select ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`OS Version`, ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = ai.`Operating Name` and a.PurchaseOption='No Upfront' and a.`Instance Type`= ai.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`,"
+					 		+ "((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = ai.`Operating Name` and a.PurchaseOption='No Upfront' and a.`Instance Type`=ai.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`,"					 		
+					 		+ "(a.`PricePerUnit` * 730) as `AWS On Demand Price`  from awsInstanceDF ai left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)=lower(a.`Instance Type`) and  cast(ai.Memory as int) >= CAST(a.Memory as int) and cast(ai.`Number of Cores` as int) >= CAST(a.vCPU as int) and  a.`License Model`='No License required'  and a.Location='US East (Ohio)' and a.Tenancy <> 'Host' and (a.`Product Family` = 'Compute Instance (bare metal)' or a.`Product Family` = 'Compute Instance')" 
+					 		+ "  ").toDF();  				
+					
+					 List<String> dup = new ArrayList<>();
+					 dup.addAll(Arrays.asList(dataCheck1.columns()));
+					 List<String> original = new ArrayList<>();
+					 original.addAll(columnHeaders);
+					 original.removeAll(dup);
+					 for(String col : original) {
+						 dataCheck1 = dataCheck1.withColumn(col, lit("N/A"));
+					 }
+					
+					 result = dataCheck1.toDF();
+					
+			        } catch (Exception ex) {
+			            ex.printStackTrace();
+			        }
+				 
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					conn.close();
+					AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
+				} catch (Exception e2) {
+					// TODO: handle exception
+				}
+			}
+			return result;
+		}
+
+
+		 private List<AwsInstanceData> resultSetToList(ResultSet rs) throws SQLException {
+			    ResultSetMetaData md = rs.getMetaData();
+			    int columns = md.getColumnCount();
+			    List<AwsInstanceData> rows = new ArrayList<>();
+			    while (rs.next()){
+			        Map<String, String> row = new HashMap<String, String>(columns);
+			        
+			        for(int i = 1; i <= columns; ++i){
+			        	String colName = md.getColumnName(i);
+			        	String value = rs.getString(i);			        
+			        	if(md.getColumnName(i).equals("vcpuinfo")) {
+			        		value = getValueFromJson("DefaultVCpus", rs.getString(i));			        		
+			        	}
+			        	if(md.getColumnName(i).equals("memoryinfo")) {
+			        		value = getValueFromJson("SizeInMiB", rs.getString(i));	
+			        		value = Integer.parseInt(value)/1024 + "";
+			        	}
+			        	if(md.getColumnName(i).equals("platformdetails")) {
+			        		value = rs.getString(i).split("/")[0];			        		
+			        	}
+			            row.put(colName, value);
+			           
+			        }
+			        AwsInstanceData awsInstanceData = new AwsInstanceData(row.get("region"), row.get("instancetype"),row.get("memoryinfo"),row.get("vcpuinfo"),row.get("platformdetails"),row.get("description"));
+			    	//System.out.println("----json----------" +awsInstanceData.toString() );
+			        rows.add(awsInstanceData);
+			    }
+			    return rows;
+			}
+
+		private String getValueFromJson(String key, String jsonString) {
+			try {
+				JSONParser jSONParser = new JSONParser();
+				JSONObject json = (JSONObject) jSONParser.parse(jsonString);
+			
+				if(json.get(key)  instanceof String) {
+					return (String) json.get(key);
+				} else if(json.get(key)  instanceof Long) {
+					Long  rs = (Long) json.get(key);
+					return rs.toString();
+				}
+				return "";
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return "";
+		}
 		
 
 		 private void constructReport(String siteKey, String discoveryFilterqry) {
