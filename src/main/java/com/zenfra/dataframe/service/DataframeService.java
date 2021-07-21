@@ -35,6 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -1864,16 +1865,20 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 data = data.withColumnRenamed("vcpuinfo", "Number of Cores");
 				 data = data.withColumnRenamed("platformdetails", "Operating Name");
 				 data = data.withColumnRenamed("description", "OS Version");
+				 data = data.withColumnRenamed("instanceid", "Server Name");
 				
 				 data.createOrReplaceTempView("awsInstanceDF");				
 				 
 				 try {
 					
-					 Dataset<Row> dataCheck1 = sparkSession.sql("select ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`OS Version`, ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = ai.`Operating Name` and a.PurchaseOption='No Upfront' and a.`Instance Type`= ai.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`,"
+					 Dataset<Row> dataCheck1 = sparkSession.sql("select round(az.demandPrice,2) as `Azure On Demand Price`, round(az.3YrPrice,2) as `Azure 3 Year Price`, round(az.1YrPrice,2) as `Azure 1 Year Price`, az.InstanceType as `Azure Instance Type`,  ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`OS Version`, ai.`Server Name`, ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = ai.`Operating Name` and a.PurchaseOption='No Upfront' and a.`Instance Type`= ai.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`,"
 					 		+ "((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = ai.`Operating Name` and a.PurchaseOption='No Upfront' and a.`Instance Type`=ai.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`,"					 		
 					 		+ "(a.`PricePerUnit` * 730) as `AWS On Demand Price`  from awsInstanceDF ai left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)=lower(a.`Instance Type`) and  cast(ai.Memory as int) >= CAST(a.Memory as int) and cast(ai.`Number of Cores` as int) >= CAST(a.vCPU as int) and  a.`License Model`='No License required'  and a.Location='US East (Ohio)' and a.Tenancy <> 'Host' and (a.`Product Family` = 'Compute Instance (bare metal)' or a.`Product Family` = 'Compute Instance')" 
-					 		+ "  ").toDF();  				
+					 		+ " left join global_temp.azurePricingDF az on cast(ai.Memory as int) >= CAST(az.Memory as int) and cast(ai.`Number of Cores` as int) >= CAST(az.vCPU as int) and ai.`Operating System` = az.`Operating Name` "
+					 		+ "").toDF();  				
 					
+					 // left join global_temp.googlePricingDF g  on cast(ai.Memory as int) >= CAST(g.Memory as int) and cast(ai.`Number of Cores` as int) >= CAST(g.vCPU as int) and ai.`Operating System` = g.`Operating Name` 
+					 
 					 List<String> dup = new ArrayList<>();
 					 dup.addAll(Arrays.asList(dataCheck1.columns()));
 					 List<String> original = new ArrayList<>();
@@ -1882,7 +1887,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					 for(String col : original) {
 						 dataCheck1 = dataCheck1.withColumn(col, lit("N/A"));
 					 }
-					
+					 dataCheck1 = dataCheck1.withColumn("my_rank", lit("N/A"));
 					 result = dataCheck1.toDF();
 					
 			        } catch (Exception ex) {
@@ -1922,7 +1927,16 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			        		value = Integer.parseInt(value)/1024 + "";
 			        	}
 			        	if(md.getColumnName(i).equals("platformdetails")) {
-			        		value = rs.getString(i).split("/")[0];			        		
+			        		value = rs.getString(i);			
+			        		if(StringUtils.containsIgnoreCase(value, "CentOS") || StringUtils.containsIgnoreCase(value, "LINUX")) {
+			        			value = "LINUX";
+			        		}
+			        		if(StringUtils.containsIgnoreCase(value, "SUSE")) {
+			        			value = "SUSE";
+			        		}
+			        		if(StringUtils.containsIgnoreCase(value, "Red")) {
+			        			value = "RHEL";
+			        		}
 			        	}
 			            row.put(colName, value);
 			           
