@@ -35,6 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -1926,7 +1927,16 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			        		value = Integer.parseInt(value)/1024 + "";
 			        	}
 			        	if(md.getColumnName(i).equals("platformdetails")) {
-			        		value = rs.getString(i).split("/")[0];			        		
+			        		value = rs.getString(i);			
+			        		if(StringUtils.containsIgnoreCase(value, "CentOS") || StringUtils.containsIgnoreCase(value, "LINUX")) {
+			        			value = "LINUX";
+			        		}
+			        		if(StringUtils.containsIgnoreCase(value, "SUSE")) {
+			        			value = "SUSE";
+			        		}
+			        		if(StringUtils.containsIgnoreCase(value, "Red")) {
+			        			value = "RHEL";
+			        		}
 			        	}
 			            row.put(colName, value);
 			           
