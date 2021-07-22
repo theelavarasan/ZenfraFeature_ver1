@@ -1,11 +1,14 @@
 package com.zenfra.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
+
+import org.json.simple.JSONObject;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -14,6 +17,11 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel(value = "HealthCheck", description = "HealthCheck table  grid operations")
 public class HealthCheck implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@ApiModelProperty(hidden = true)
 	private String healthCheckId;
@@ -47,17 +55,17 @@ public class HealthCheck implements Serializable {
 	@Column
 	@ApiModelProperty(value = "reportCondition", name = "reportCondition", dataType = "String", example = "")
 	@NotBlank(message = "reportCondition must not be empty")
-	private String reportCondition;
+	private List<JSONObject> reportCondition;
 	
 	@Column
 	@ApiModelProperty(value = "siteAccessList", name = "siteAccessList", dataType = "String", example = "")
 	@NotBlank(message = "siteAccessList must not be empty")
-	private String siteAccessList;
+	private List<String> siteAccessList;
 	
 	@Column
 	@ApiModelProperty(value = "userAccessList", name = "userAccessList", dataType = "String", example = "")
 	@NotBlank(message = "userAccessList must not be empty")
-	private String userAccessList;
+	private List<String> userAccessList;
 
 	public String getHealthCheckId() {
 		return healthCheckId;
@@ -107,29 +115,30 @@ public class HealthCheck implements Serializable {
 		this.reportBy = reportBy;
 	}
 
-	public String getReportCondition() {
+	public List<JSONObject> getReportCondition() {
 		return reportCondition;
 	}
 
-	public void setReportCondition(String reportCondition) {
+	public void setReportCondition(List<JSONObject> reportCondition) {
 		this.reportCondition = reportCondition;
 	}
 
-	public String getSiteAccessList() {
+	public List<String> getSiteAccessList() {
 		return siteAccessList;
 	}
 
-	public void setSiteAccessList(String siteAccessList) {
+	public void setSiteAccessList(List<String> siteAccessList) {
 		this.siteAccessList = siteAccessList;
 	}
 
-	public String getUserAccessList() {
+	public List<String> getUserAccessList() {
 		return userAccessList;
 	}
 
-	public void setUserAccessList(String userAccessList) {
+	public void setUserAccessList(List<String> userAccessList) {
 		this.userAccessList = userAccessList;
 	}
+
 	
 	
 	
