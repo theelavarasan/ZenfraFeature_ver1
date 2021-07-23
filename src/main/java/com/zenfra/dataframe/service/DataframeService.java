@@ -1822,6 +1822,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        }
     	        
     	        if(!taskListServers.isEmpty()) { //add server~ for task list call
+    	        	
+    	        	List<String> allServers = dataCheck.select("Server Name").as(Encoders.STRING()).collectAsList();
+    	        	System.out.println("----------taskListServers----------------" + taskListServers);
+    	        	taskListServers.removeAll(allServers);
+    	        	System.out.println("----------taskListServers----------------" + taskListServers);
+    	        	dataCheck.printSchema();
+    	        	
+    	        	Dataset<Row> nonOptDataset = getNonOptDatasetData(siteKey, taskListServers);
+    	        	if(nonOptDataset != null) {
+    	        		dataCheck = dataCheck.unionByName(nonOptDataset);
+    	        	}
+    	        	
+    	        	
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - HW", "server~End Of Life - HW");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
@@ -1834,8 +1847,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
         	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
           		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
           		  		      .otherwise(col(col)));
-        	        }
-        	        */
+        	        }.*/
+        	        
     	        	
     	        }
     	    
@@ -1851,7 +1864,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		}
 		
 		
-		 private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
+		 private Dataset<Row> getNonOptDatasetData(String siteKey, List<String> taskListServers) {
+			 Dataset<Row> data = sparkSession.sql("select * from global_temp.localDiscoveryTemp where lower(server_name) in ("+String.join(",", taskListServers)+")");
+			return null;
+		}
+
+
+
+		private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
 			 Dataset<Row> result = sparkSession.emptyDataFrame();
 			 Connection conn = null;
 			 Statement stmt = null;

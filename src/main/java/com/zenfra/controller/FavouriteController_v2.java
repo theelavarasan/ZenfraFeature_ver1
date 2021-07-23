@@ -458,5 +458,18 @@ public class FavouriteController_v2 {
 
 	}
 	
+	@PostMapping("/healthCheckValidate")
+	public JSONArray getHealthCheckNames(@RequestParam("siteKey") String siteKey) {
+
+		JSONArray responseArray = new JSONArray();
+		try {			
+			responseArray = healthCheckService.getHealthCheckNames(siteKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		} return responseArray;
+
+	}
+	
 
 }

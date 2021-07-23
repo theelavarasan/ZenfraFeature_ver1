@@ -97,12 +97,30 @@ public class HealthCheckService {
 		JSONArray resultArray = new JSONArray();
 		try {
 			List<Object> resultList = healthCheckDao.getEntityListByColumn("select * from health_check where site_key='"+siteKey+"'", HealthCheck.class);
-			System.out.println("--------resultList---------- " + resultList.size());
 			if(resultList != null && !resultList.isEmpty()) {
 				for(Object obj : resultList) {
 					if(obj instanceof HealthCheck) {
 						JSONObject response = convertEntityToModel((HealthCheck) obj);
 						resultArray.add(response);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+	}
+
+
+	public JSONArray getHealthCheckNames(String siteKey) {
+		JSONArray resultArray = new JSONArray();
+		try {
+			List<Object> resultList = healthCheckDao.getEntityListByColumn("select health_check_name from health_check where site_key='"+siteKey+"'", HealthCheck.class);
+			if(resultList != null && !resultList.isEmpty()) {
+				for(Object obj : resultList) {
+					if(obj instanceof String) {						
+						resultArray.add((String)obj);
 					}
 				}
 			}
