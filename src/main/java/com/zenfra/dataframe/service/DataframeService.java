@@ -1677,6 +1677,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 String discoveryFilterqry ="";
 			
 			   List<String> columnHeaders = new ArrayList<>();
+			   List<String> numberColumnHeaders = new ArrayList<>();
 			   if(headers != null && headers.size() > 0) {
 				   for(Object o : headers){
 					    if ( o instanceof JSONObject ) {
@@ -1684,6 +1685,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					    	String dataType = (String) ((JSONObject) o).get("dataType");
 					    	if(dataType.equalsIgnoreCase("String")) {
 					    		columnHeaders.add(col);
+					    	} else {
+					    		numberColumnHeaders.add(col);
 					    	}
 					    	
 					    }
@@ -1808,9 +1811,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        isPivotMode = request.isPivotMode();
     	        isGrouping = rowGroups.size() > groupKeys.size();   
     	        
-    	        List<String> colHeaders = Arrays.asList(dataCheck.columns());
-                Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
-                dataCheck = dataCheck.unionByName(awsInstanceData);
+    	        //List<String> colHeaders = Arrays.asList(dataCheck.columns());
+                //Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
+                //dataCheck = dataCheck.unionByName(awsInstanceData);
     	        
     	        for(String col : columnHeaders) {    	        	
     	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
@@ -1823,6 +1826,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - OS", "server~End Of Extended Support - OS");
+    	        
+    	        	for(String col : numberColumnHeaders) {    	        	
+        	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
+          		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
+          		  		      .otherwise(col(col)));
+        	        }
+    	        	
     	        }
     	    
                 return paginate(dataCheck, request);
