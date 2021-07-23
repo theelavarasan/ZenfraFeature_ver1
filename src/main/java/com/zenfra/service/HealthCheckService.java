@@ -83,7 +83,7 @@ public class HealthCheckService {
 			String s =  healthCheck.getReportCondition();		
 			System.out.println("-------s----------" + s);
 		
-			s = s.replaceAll("\\", "");
+			s = s.replace("\\", "");
 					System.out.println("-------s----------" + s);
 			response.put("reportCondition",  s);
 		} catch (Exception e) {
