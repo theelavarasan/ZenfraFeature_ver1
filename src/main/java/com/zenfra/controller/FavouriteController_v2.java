@@ -430,5 +430,33 @@ public class FavouriteController_v2 {
 
 	}
 	
+	@PostMapping("/getHealthCheckList")
+	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey) {
+
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			
+			JSONArray healthcheckList = healthCheckService.getAllHealthCheck(siteKey);
+
+			if (!healthcheckList.isEmpty()) {
+				responseModel.setjData(healthcheckList);
+				responseModel.setResponseDescription("HealthCheck Successfully retrieved by sitekey ");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseDescription("No data found ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+
+	}
+	
 
 }
