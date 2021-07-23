@@ -81,8 +81,12 @@ public class HealthCheckService {
 		response.put("reportBy", healthCheck.getReportBy());
 		try {
 			ObjectMapper mapper=new ObjectMapper();			
-			String s =  new ObjectMapper().readTree(healthCheck.getReportCondition().trim()).toString();			
-			response.put("reportCondition",  s.replaceAll("\"[", "[").replace("]\"", "]").replaceAll("\\\"{", "{").replace("}\\\"", "}").replaceAll("\\\\\\\"", "\""));
+			String s =  new ObjectMapper().readTree(healthCheck.getReportCondition().trim()).toString();		
+			System.out.println("-------s----------" + s);
+		
+			s = s.replaceAll("\"[", "[").replace("]\"", "]").replaceAll("\\\"{", "{").replace("}\\\"", "}").replaceAll("\\\\\\\"", "\"");
+					System.out.println("-------s----------" + s);
+			response.put("reportCondition",  s);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
