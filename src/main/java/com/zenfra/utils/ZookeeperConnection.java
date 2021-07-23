@@ -93,7 +93,7 @@ public class ZookeeperConnection {
 				zkData.put(children1.get(i), new String(b, ZKConstants.STRING_FORMAT));
 			}
 			
-			System.out.println("zkData: " + zkData);
+			//System.out.println("zkData: " + zkData);
 			
 			return zkData;
 		}

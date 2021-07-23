@@ -50,7 +50,7 @@ public class PostgresqlConfiguration {
          String url=data.get("url");
          String driver="org.postgresql.Driver";
     	
-    	System.out.println("zookeeper data::"+data);
+    	//System.out.println("zookeeper data::"+data);
          return DataSourceBuilder
                  .create()
                  .url(url)
