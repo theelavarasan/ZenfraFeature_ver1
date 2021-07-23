@@ -7,6 +7,7 @@ import java.text.ParseException;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.JsonArray;
@@ -26,6 +28,7 @@ import com.zenfra.model.ChartModel_v2;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.HealthCheck;
+import com.zenfra.model.HealthCheckModel;
 import com.zenfra.model.ResponseModel;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
@@ -34,6 +37,7 @@ import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.HealthCheckService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -308,18 +312,21 @@ public class FavouriteController_v2 {
 	
 	
 	@PostMapping("/saveHealthCheck")
-	public ResponseEntity<?> saveHealthCheck(@RequestBody HealthCheck healthCheck) {
+	public ResponseEntity<?> saveHealthCheck(@RequestBody HealthCheckModel healthCheckModel) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			System.out.println ("--------------healthCheck--------------------" + healthCheck);
+			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel);			
 			HealthCheck healthCheckObj = healthCheckService.saveHealthCheck(healthCheck);
 
+			healthCheckModel.setHealthCheckId(healthCheckObj.getHealthCheckId());
 			if (healthCheckObj != null) {
-				responseModel.setjData(functions.convertEntityToJsonObject(healthCheckObj));
+				responseModel.setResponseMessage("Success");
+				responseModel.setjData(healthCheckModel);
 				responseModel.setResponseDescription("HealthCheck Successfully inserted");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
+				responseModel.setResponseMessage("Error");
 				responseModel.setResponseDescription("HealthCheck not saved ");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
@@ -337,14 +344,14 @@ public class FavouriteController_v2 {
 
 
 	@PostMapping("/getHealthCheck")
-	public ResponseEntity<?> getHealthCheck(@RequestBody HealthCheck healthCheck) {
+	public ResponseEntity<?> getHealthCheck(@RequestParam("healthCheckId") String healthCheckId) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			HealthCheck healthCheckObj = healthCheckService.getHealthCheck(healthCheck);
+			JSONObject healthCheckObj = healthCheckService.getHealthCheck(healthCheckId);
 
 			if (healthCheckObj != null) {
-				responseModel.setjData(functions.convertEntityToJsonObject(healthCheckObj));
+				responseModel.setjData(healthCheckObj);
 				responseModel.setResponseDescription("HealthCheck Successfully Retrieved ");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
@@ -364,14 +371,18 @@ public class FavouriteController_v2 {
 	}
 	
 	@PostMapping("/updateHealthCheck")
-	public ResponseEntity<?> updateHealthCheck(@RequestBody HealthCheck healthCheck) {
+	public ResponseEntity<?> updateHealthCheck(@RequestBody HealthCheckModel healthCheckModel) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			HealthCheck healthCheckObj = healthCheckService.updateHealthCheck(healthCheck);
+			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel);		
+			//HealthCheck existingHealthCheck = healthCheckService.getHealthCheck(healthCheck.getHealthCheckId());
+			//BeanUtils.copyProperties(healthCheck, existingHealthCheck, NullAwareBeanUtilsBean.getNullPropertyNames(healthCheck));
+			
+			JSONObject healthCheckObj = healthCheckService.updateHealthCheck(healthCheck);
 
 			if (healthCheckObj != null) {
-				responseModel.setjData(functions.convertEntityToJsonObject(healthCheckObj));
+				responseModel.setjData(healthCheckObj);
 				responseModel.setResponseDescription("HealthCheck Successfully Updated ");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
@@ -391,14 +402,16 @@ public class FavouriteController_v2 {
 	}
 	
 	@PostMapping("/deleteHealthCheck")
-	public ResponseEntity<?> deleteHealthCheck(@RequestBody HealthCheck healthCheck) {
+	public ResponseEntity<?> deleteHealthCheck(@RequestParam("healthCheckId") String healthCheckId) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
+			HealthCheck healthCheck = new HealthCheck();
+			healthCheck.setHealthCheckId(healthCheckId);
 			boolean healthCheckObj = healthCheckService.deleteHealthCheck(healthCheck);
 
 			if (healthCheckObj) {
-				responseModel.setjData(functions.convertEntityToJsonObject(healthCheckObj));
+				responseModel.setjData(healthCheckObj);
 				responseModel.setResponseDescription("HealthCheck Successfully Deleted ");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {

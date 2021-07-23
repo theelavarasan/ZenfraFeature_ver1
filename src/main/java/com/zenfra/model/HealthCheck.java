@@ -55,17 +55,17 @@ public class HealthCheck implements Serializable {
 	@Column
 	@ApiModelProperty(value = "reportCondition", name = "reportCondition", dataType = "String", example = "")
 	@NotBlank(message = "reportCondition must not be empty")
-	private List<JSONObject> reportCondition;
+	private String reportCondition;
 	
 	@Column
 	@ApiModelProperty(value = "siteAccessList", name = "siteAccessList", dataType = "String", example = "")
 	@NotBlank(message = "siteAccessList must not be empty")
-	private List<String> siteAccessList;
+	private String siteAccessList;
 	
 	@Column
 	@ApiModelProperty(value = "userAccessList", name = "userAccessList", dataType = "String", example = "")
 	@NotBlank(message = "userAccessList must not be empty")
-	private List<String> userAccessList;
+	private String userAccessList;
 
 	public String getHealthCheckId() {
 		return healthCheckId;
@@ -115,30 +115,31 @@ public class HealthCheck implements Serializable {
 		this.reportBy = reportBy;
 	}
 
-	public List<JSONObject> getReportCondition() {
+	public String getReportCondition() {
 		return reportCondition;
 	}
 
-	public void setReportCondition(List<JSONObject> reportCondition) {
+	public void setReportCondition(String reportCondition) {
 		this.reportCondition = reportCondition;
 	}
 
-	public List<String> getSiteAccessList() {
+	public String getSiteAccessList() {
 		return siteAccessList;
 	}
 
-	public void setSiteAccessList(List<String> siteAccessList) {
+	public void setSiteAccessList(String siteAccessList) {
 		this.siteAccessList = siteAccessList;
 	}
 
-	public List<String> getUserAccessList() {
+	public String getUserAccessList() {
 		return userAccessList;
 	}
 
-	public void setUserAccessList(List<String> userAccessList) {
+	public void setUserAccessList(String userAccessList) {
 		this.userAccessList = userAccessList;
 	}
 
+	
 	
 	
 	
