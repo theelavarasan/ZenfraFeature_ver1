@@ -1,10 +1,7 @@
 package com.zenfra.service;
 
-import java.io.IOException;
 import java.util.Arrays;
 
-import org.apache.htrace.fasterxml.jackson.databind.DeserializationFeature;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -81,11 +78,13 @@ public class HealthCheckService {
 		response.put("reportBy", healthCheck.getReportBy());
 		try {
 			String s =  healthCheck.getReportCondition();		
-			System.out.println("-------s----------" + s);
-		
-			s = s.replace("\\", "");
+			System.out.println("-------s----------" + s);		
 					System.out.println("-------s----------" + s);
-			response.put("reportCondition",  s);
+					ObjectMapper mapper = new ObjectMapper();
+					JSONArray actualObj = mapper.readValue(s, JSONArray.class);
+					    
+			response.put("reportCondition",  actualObj);
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
