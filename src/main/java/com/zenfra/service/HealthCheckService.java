@@ -77,14 +77,10 @@ public class HealthCheckService {
 		response.put("reportName", healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
 		try {
-			String s =  healthCheck.getReportCondition();		
-			System.out.println("-------s----------" + s);		
-					System.out.println("-------s----------" + s);
-					ObjectMapper mapper = new ObjectMapper();
-					JSONArray actualObj = mapper.readValue(s, JSONArray.class);
-					    
-			response.put("reportCondition",  actualObj);
-			
+			String s =  healthCheck.getReportCondition();
+			ObjectMapper mapper = new ObjectMapper();
+			JSONArray actualObj = mapper.readValue(s, JSONArray.class);
+			response.put("reportCondition",  actualObj);			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
