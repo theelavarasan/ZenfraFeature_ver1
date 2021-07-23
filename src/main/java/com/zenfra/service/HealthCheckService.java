@@ -84,7 +84,7 @@ public class HealthCheckService {
 			String s =  new ObjectMapper().readTree(healthCheck.getReportCondition().trim()).toString();		
 			System.out.println("-------s----------" + s);
 		
-			s = s.replaceAll("\"[", "[").replace("]\"", "]").replaceAll("\\\"{", "{").replace("}\\\"", "}").replaceAll("\\\\\\\"", "\"");
+			s = s.replaceAll("\\\\", "");
 					System.out.println("-------s----------" + s);
 			response.put("reportCondition",  s);
 		} catch (Exception e) {
