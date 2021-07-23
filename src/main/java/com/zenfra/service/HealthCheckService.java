@@ -80,8 +80,7 @@ public class HealthCheckService {
 		response.put("reportName", healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
 		try {
-			ObjectMapper mapper=new ObjectMapper();			
-			String s =  new ObjectMapper().readTree(healthCheck.getReportCondition().trim()).toString();		
+			String s =  healthCheck.getReportCondition();		
 			System.out.println("-------s----------" + s);
 		
 			s = s.replaceAll("\\\\", "");
