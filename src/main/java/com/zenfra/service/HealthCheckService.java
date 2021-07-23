@@ -8,7 +8,6 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +83,8 @@ public class HealthCheckService {
 			String s =  healthCheck.getReportCondition();		
 			System.out.println("-------s----------" + s);
 		
-			s = JSONValue.escape(s);
+			s = s.replaceAll("\\", "");
+					System.out.println("-------s----------" + s);
 			response.put("reportCondition",  s);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
