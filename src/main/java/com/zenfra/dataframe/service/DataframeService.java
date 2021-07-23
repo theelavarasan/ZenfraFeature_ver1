@@ -1827,11 +1827,15 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - OS", "server~End Of Extended Support - OS");
     	        
-    	        	for(String col : numberColumnHeaders) {    	        	
+    	        	
+    	        	
+    	        	/*for(String col : numberColumnHeaders) {    	   
+    	        		System.out.println("----------numberColumnHeaders----------------" + col);
         	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
           		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
           		  		      .otherwise(col(col)));
         	        }
+        	        */
     	        	
     	        }
     	    
