@@ -49,6 +49,7 @@ public class HealthCheckService {
 
 	public boolean deleteHealthCheck(HealthCheck healthCheck) {
 		// TODO Auto-generated method stub
+		healthCheck = (HealthCheck) healthCheckDao.findEntityById(HealthCheck.class, healthCheck.getHealthCheckId());
 		return healthCheckDao.deleteByEntity(healthCheck);
 	}
 
