@@ -59,12 +59,12 @@ public class HealthCheck implements Serializable {
 	
 	@Column
 	@ApiModelProperty(value = "siteAccessList", name = "siteAccessList", dataType = "String", example = "")
-	@NotBlank(message = "siteAccessList must not be empty")
+	//@NotBlank(message = "siteAccessList must not be empty")
 	private String siteAccessList;
 	
 	@Column
 	@ApiModelProperty(value = "userAccessList", name = "userAccessList", dataType = "String", example = "")
-	@NotBlank(message = "userAccessList must not be empty")
+	//@NotBlank(message = "userAccessList must not be empty")
 	private String userAccessList;
 
 	public String getHealthCheckId() {

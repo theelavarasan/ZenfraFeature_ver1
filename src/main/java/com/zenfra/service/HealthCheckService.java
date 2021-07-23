@@ -1,6 +1,7 @@
 package com.zenfra.service;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
@@ -89,6 +90,27 @@ public class HealthCheckService {
 		response.put("siteAccessList",Arrays.asList(healthCheck.getSiteAccessList()));
 		response.put("userAccessList",Arrays.asList(healthCheck.getUserAccessList()));		
 		return response;
+	}
+
+
+	public JSONArray getAllHealthCheck(String siteKey) {
+		JSONArray resultArray = new JSONArray();
+		try {
+			List<Object> resultList = healthCheckDao.getEntityListByColumn("select * from health_check where site_key='"+siteKey+"'", HealthCheck.class);
+			System.out.println("--------resultList---------- " + resultList.size());
+			if(resultList != null && !resultList.isEmpty()) {
+				for(Object obj : resultList) {
+					if(obj instanceof HealthCheck) {
+						JSONObject response = convertEntityToModel((HealthCheck) obj);
+						resultArray.add(response);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
 	}
 
 }
