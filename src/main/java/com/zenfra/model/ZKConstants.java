@@ -7,7 +7,7 @@ public class ZKConstants {
 	public static String PORT = "port";
 	public static String DEFAULT_PATH = "defaultPath";
 	public static String USER_MANAGEMENT = "UserManagement";
-	public static String ZK_PROPERTIES_FILE_PATH = "C:/Users/Aravind/Documents/opt/config/server.properties";
+	public static String ZK_PROPERTIES_FILE_PATH = "/opt/config/server.properties";
 	public static String STRING_FORMAT = "UTF-8";
 	public static String DATEWISEREPORTROWS = "DateWiseReportRows";
 	public static String PSRWEEKLYREPORTZEROROWS = "PSRWeeklyReportZeroRows";
