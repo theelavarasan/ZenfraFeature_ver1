@@ -1,17 +1,25 @@
 package com.zenfra.service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.zenfra.dao.HealthCheckDao;
 import com.zenfra.model.HealthCheck;
 import com.zenfra.model.HealthCheckModel;
+import com.zenfra.model.ZKConstants;
 import com.zenfra.utils.CommonFunctions;
 
 @Service
@@ -54,7 +62,7 @@ public class HealthCheckService {
 		return healthCheckDao.deleteByEntity(healthCheck);
 	}
 
-	public HealthCheck convertToEntity(HealthCheckModel healthCheckModel) {
+	public HealthCheck convertToEntity(HealthCheckModel healthCheckModel, String type) {
 		HealthCheck healthCheck = new HealthCheck();
 		healthCheck.setHealthCheckId(healthCheckModel.getHealthCheckId());
 		healthCheck.setSiteKey(healthCheckModel.getSiteKey());
@@ -66,7 +74,13 @@ public class HealthCheckService {
 		healthCheck.setSiteAccessList(String.join(",", healthCheckModel.getSiteAccessList()));
 		healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
 		healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); //().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
-		
+		healthCheck.setUserId(healthCheckModel.getAuthUserId());
+		if(type.equalsIgnoreCase("update")) {
+			healthCheck.setCreateBy(healthCheckModel.getAuthUserId());
+			healthCheck.setCreatedDate(new Date());
+		}		
+		healthCheck.setUpdateBy(healthCheckModel.getAuthUserId());
+		healthCheck.setUpdateDate(new Date());
 		return healthCheck;
 	}
 	
@@ -129,6 +143,54 @@ public class HealthCheckService {
 		}
 		
 		return resultArray;
+	}
+	
+	public JSONArray getHeaderListFromV2(String siteKey, String userId) {
+		JSONArray  healthCheckHeader = new JSONArray();
+		try {
+			String protocol = com.zenfra.model.ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+			String host_name = com.zenfra.model.ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+			String port = com.zenfra.model.ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);			
+           
+			
+			System.out.println("------------------------getDiscoveryDataFromSpaprk------------------- "  +  protocol + "://" + host_name + ":" + port + "/ZenfraV2/rest/reports/health-check/headrInfo");
+			
+			JSONObject requestBody = new JSONObject();
+			requestBody.put("siteKey", siteKey);
+			requestBody.put("userId", userId);		
+			
+			org.jsoup.Connection.Response execute = Jsoup.connect(protocol + "://" + host_name + ":" + port + "/ZenfraV2/rest/reports/health-check/headrInfo")
+					  .header("Content-Type", "application/json")
+				        .header("Accept", "application/json")
+				        .followRedirects(true)
+				        .ignoreHttpErrors(true)
+				        .ignoreContentType(true)
+				        .userAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML," +
+				                " like Gecko) Chrome/45.0.2454.4 Safari/537.36")
+				        .method(org.jsoup.Connection.Method.POST)
+				        .data("site_key", siteKey)
+				        .data("userId", userId)
+				        .requestBody( requestBody.toString())
+				        .maxBodySize(1_000_000 * 30) // 30 mb ~
+				        .timeout(0) // infinite timeout
+				        .execute();		
+
+					Document doc =  execute.parse();
+					Element body = doc.body();
+					JSONParser parser = new JSONParser();
+					
+					System.out.println("-----discovery data length--------" + body.text().length());
+					JSONObject headrInfoData = (JSONObject)parser.parse(body.text());				
+					healthCheckHeader = (JSONArray) parser.parse(headrInfoData.toJSONString());						
+					System.out.println("---datacount-----" + healthCheckHeader.size());
+					
+
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return healthCheckHeader;
 	}
 
 }

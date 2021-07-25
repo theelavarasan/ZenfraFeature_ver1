@@ -1,10 +1,14 @@
 package com.zenfra.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.http.HttpStatus;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.parse.model.GridHeader;
 
 public class ResponseModel_v2 implements Serializable{
 	
@@ -19,6 +23,9 @@ public class ResponseModel_v2 implements Serializable{
 	private JSONArray data;
 	private Object jData;
 	private boolean validation;
+	private List<Object> columnOrder;
+	@JsonProperty("headerInfo")
+	private List<GridHeader> headerInfo = null;
 	
 	public String getResponseMessage() {
 		return responseMessage;
@@ -63,6 +70,18 @@ public class ResponseModel_v2 implements Serializable{
 	}
 	public void setStatusCode(int statusCode) {
 		this.statusCode = statusCode;
+	}
+	public List<Object> getColumnOrder() {
+		return columnOrder;
+	}
+	public void setColumnOrder(List<Object> columnOrder) {
+		this.columnOrder = columnOrder;
+	}
+	public List<GridHeader> getHeaderInfo() {
+		return headerInfo;
+	}
+	public void setHeaderInfo(List<GridHeader> headerInfo) {
+		this.headerInfo = headerInfo;
 	}
 	
 	

@@ -7,7 +7,7 @@ public class ZKConstants {
 	public static String PORT = "port";
 	public static String DEFAULT_PATH = "defaultPath";
 	public static String USER_MANAGEMENT = "UserManagement";
-	public static String ZK_PROPERTIES_FILE_PATH = "/opt/config/server.properties";
+	public static String ZK_PROPERTIES_FILE_PATH = "C:/Users/Aravind/Documents/opt/config/server.properties";
 	public static String STRING_FORMAT = "UTF-8";
 	public static String DATEWISEREPORTROWS = "DateWiseReportRows";
 	public static String PSRWEEKLYREPORTZEROROWS = "PSRWeeklyReportZeroRows";
@@ -106,6 +106,12 @@ public class ZKConstants {
 	public static String PG_MIN_IDLE_TIMEOUT="pg_min_idle_timeout";
 	public static String PG_MAX_POOL_SIZE="pg_max_pool_size";
 	public static String AWS_TABLE_JDBC_URL="postgresurl_aws_db";
+	
+	public final static String ERROR = "Error";
+	public final static String SUCCESS = "Success";
+	public final static String PARAMETER_MISSING = "Parameter missing";
+	public static String HEALTHCHECK_COLUMN_ORDER = "HealthCheckColumnOrder";
+	public static String HEADER_LABEL = "headerLabel";
 	
 
 }
