@@ -180,7 +180,7 @@ public class HealthCheckService {
 					Element body = doc.body();
 					JSONParser parser = new JSONParser();
 					
-					System.out.println("-----discovery data length--------" + body.text().length());
+					System.out.println("-----discovery data length--------" + body.text());
 					JSONObject headrInfoData = (JSONObject)parser.parse(body.text());				
 					healthCheckHeader = (JSONArray) parser.parse(headrInfoData.toJSONString());						
 					System.out.println("---datacount-----" + healthCheckHeader.size());
