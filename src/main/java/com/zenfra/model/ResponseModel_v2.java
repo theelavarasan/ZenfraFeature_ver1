@@ -4,11 +4,9 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.parse.model.GridHeader;
 
 public class ResponseModel_v2 implements Serializable{
 	
