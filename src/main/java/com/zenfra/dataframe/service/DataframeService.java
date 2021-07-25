@@ -73,11 +73,8 @@ import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
-import com.zenfra.dataframe.util.ZKConstants;
+import com.zenfra.model.ZKConstants;
 import com.zenfra.utils.DBUtils;
-
-import scala.collection.JavaConverters;
-import scala.collection.Seq;
 
 
 @Repository
