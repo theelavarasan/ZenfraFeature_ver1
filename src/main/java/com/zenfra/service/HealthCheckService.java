@@ -131,7 +131,6 @@ public class HealthCheckService {
 		JSONArray resultArray = new JSONArray();
 		try {
 			List<Object> resultList = healthCheckDao.getEntityListByColumn("select * from health_check where site_key='"+siteKey+"'", HealthCheck.class);
-			System.out.println("------------resultList--------------" + resultList.size());
 			if(resultList != null && !resultList.isEmpty()) {
 				for(Object obj : resultList) {
 					if(obj instanceof HealthCheck) {						
@@ -141,8 +140,7 @@ public class HealthCheckService {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-		System.out.println("------------resultArray--------------" + resultArray);
+		}		
 		return resultArray;
 	}
 	
