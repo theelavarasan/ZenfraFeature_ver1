@@ -433,10 +433,10 @@ public class FavouriteController_v2 {
 			
 			JSONArray healthcheckList = healthCheckService.getAllHealthCheck(siteKey);
 			
-			if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEALTHCHECK_COLUMN_ORDER)) {
-				String siteOrder = com.zenfra.model.ZKModel.getProperty(ZKConstants.HEALTHCHECK_COLUMN_ORDER);
+			//if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEALTHCHECK_COLUMN_ORDER)) {
+				String siteOrder = ZKConstants.HEALTHCHECK_COLUMN_ORDER;
 				responseModel.setColumnOrder(Arrays.asList(siteOrder.split(",")));
-			}			
+			//}			
 			
 			if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {				
 				responseModel.setHeaderInfo(healthCheckService.getHeaderListFromV2(siteKey, userId));
