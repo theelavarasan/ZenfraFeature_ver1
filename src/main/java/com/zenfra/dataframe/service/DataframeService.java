@@ -1818,34 +1818,22 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
       		  		      .otherwise(col(col)));
     	        }
     	        
-    	        if(!taskListServers.isEmpty()) { //add server~ for task list call
-    	        	
-    	        	List<String> allServers = dataCheck.select("Server Name").as(Encoders.STRING()).collectAsList();
-    	        	System.out.println("----------taskListServers----------------" + taskListServers);
-    	        	taskListServers.removeAll(allServers);
-    	        	System.out.println("----------taskListServers----------------" + taskListServers);
+    	        if(!taskListServers.isEmpty()) { //add server~ for task list call    	        	
+    	        	List<String> allServers = dataCheck.select("Server Name").as(Encoders.STRING()).collectAsList();    	        	
+    	        	taskListServers.removeAll(allServers);    	        
     	        	dataCheck.printSchema();
-    	        	
-    	        	Dataset<Row> nonOptDataset = getNonOptDatasetData(siteKey, taskListServers);
-    	        	if(nonOptDataset != null) {
-    	        		dataCheck = dataCheck.unionByName(nonOptDataset);
+    	        	if(taskListServers != null && !taskListServers.isEmpty()) {
+    	        		Dataset<Row> nonOptDataset = getNonOptDatasetData(siteKey, taskListServers);
+        	        	if(nonOptDataset != null) {
+        	        		dataCheck = dataCheck.unionByName(nonOptDataset);
+        	        	}
     	        	}
-    	        	
     	        	
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - HW", "server~End Of Life - HW");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - OS", "server~End Of Extended Support - OS");
     	        
-    	        	
-    	        	
-    	        	/*for(String col : numberColumnHeaders) {    	   
-    	        		System.out.println("----------numberColumnHeaders----------------" + col);
-        	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
-          		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
-          		  		      .otherwise(col(col)));
-        	        }.*/
-        	        
     	        	
     	        }
     	    
@@ -1862,9 +1850,31 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		
 		
 		 private Dataset<Row> getNonOptDatasetData(String siteKey, List<String> taskListServers) {
-			 Dataset<Row> data = sparkSession.sql("select * from global_temp.localDiscoveryTemp where lower(server_name) in ("+String.join(",", taskListServers)+")");
+			 String serverList= "";
+			 serverList = String.join(",", taskListServers
+			            .stream()
+			            .map(server -> ("'" + server + "'"))
+			            .collect(Collectors.toList()));
+			   
+			 Dataset<Row> data = sparkSession.sql("select l.rank as `my_rank`, l.`Server Name`, l.OS as `OS Name`, l.`Server Type`, l.`Server Model`, l.Memory, l.`Total Size`, l.`Number of Processors`, l.`Logical Processor Count`, l.`CPU GHz`, l.`Processor Name`, l.`Number of Cores`, l.`DB Service`, l.`HBA Speed`, l.`Number of Ports`, l.`Host`, 'AWS On Demand Price', 'AWS 3 Year Price', 'AWS 1 Year Price', 'AWS Instance Type', 'AWS Region', 'AWS Specs', 'Azure On Demand Price', 'Azure 3 Year Price', 'Azure 1 Year Price', 'Azure Instance Type', 'Azure Specs', 'Google Instance Type', 'Google On Demand Price', 'Google 1 Year Price', 'Google 3 Year Price', l.`OS Version`, eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life - OS`, eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp.localDiscoveryTemp l  left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(l.`OS Version`) and lcase(eol.os_type)=lcase(l.`Server Type`)  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(l.`Server Model`, ' ', '')) where lower(l.`Server Name`) in ("+serverList+")");
 			 data.printSchema();
-			return null;
+			 data = data.withColumn("AWS On Demand Price", lit("N/A"));
+			 data = data.withColumn("AWS 3 Year Price", lit("N/A"));
+			 data = data.withColumn("AWS 1 Year Price", lit("N/A"));
+			 data = data.withColumn("AWS Instance Type", lit("N/A"));
+			 data = data.withColumn("AWS Region", lit("N/A"));
+			 data = data.withColumn("AWS Specs", lit("N/A"));
+			 data = data.withColumn("Azure On Demand Price", lit("N/A"));
+			 data = data.withColumn("Azure 3 Year Price", lit("N/A"));
+			 data = data.withColumn("Azure 1 Year Price", lit("N/A"));
+			 data = data.withColumn("Azure Instance Type", lit("N/A"));
+			 data = data.withColumn("Azure Specs", lit("N/A"));
+			 data = data.withColumn("Google Instance Type", lit("N/A"));
+			 data = data.withColumn("Google On Demand Price", lit("N/A"));
+			 data = data.withColumn("Google 1 Year Price", lit("N/A"));
+			 data = data.withColumn("Google 3 Year Price", lit("N/A"));
+			
+			return data;
 		}
 
 

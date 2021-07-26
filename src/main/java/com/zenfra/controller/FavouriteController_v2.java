@@ -443,12 +443,14 @@ public class FavouriteController_v2 {
 				responseModel.setColumnOrder(Arrays.asList(siteOrder.split(",")));
 			//}			
 			
-			//if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {				
+			if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {				
 				responseModel.setHeaderInfo(healthCheckService.getHeaderListFromV2(siteKey, userId, token));
-			//}
+			}
 
 			if (!healthcheckList.isEmpty()) {
-				responseModel.setjData(healthcheckList);
+				com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId);				
+				responseModel.setjData(gridData.getData());
+				responseModel.setHeaderInfo(gridData.getHeaderInfo());
 				responseModel.setResponseDescription("HealthCheck Successfully retrieved by sitekey ");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
