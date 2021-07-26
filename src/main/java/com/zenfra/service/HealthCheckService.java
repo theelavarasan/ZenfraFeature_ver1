@@ -268,7 +268,7 @@ public class HealthCheckService {
 			JSONArray healthCheckList = getAllHealthCheck(siteKey);
 			
 			for (int i = 0; i < healthCheckList.size(); i++) {
-				JSONObject jObj = (JSONObject) toRet.get(i);
+				JSONObject jObj = (JSONObject) healthCheckList.get(i);
 				
 				boolean isreadAccess = true;
 				boolean isWriteAccess = false;
