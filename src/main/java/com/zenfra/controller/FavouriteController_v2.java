@@ -429,7 +429,7 @@ public class FavouriteController_v2 {
 	}
 	
 	@PostMapping("/getHealthCheckList")
-	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey, @RequestParam("authUserId") String userId, HttpServletRequest request, HttpServletResponse respone) {
+	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey, @RequestParam(name = "authUserId", required = false) String userId, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
