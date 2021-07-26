@@ -53,9 +53,13 @@ public class HealthCheckService {
 	public JSONObject getHealthCheck(String healthCheckId) {
 		HealthCheck healthCheck= new HealthCheck();
 		healthCheck.setHealthCheckId(healthCheckId);
-		HealthCheck savedObj = (HealthCheck) healthCheckDao.findEntityById(HealthCheck.class, healthCheck.getHealthCheckId());
-		JSONObject healthCheckModel = convertEntityToModel(savedObj);
-		System.out.println("healthCheckModel::"+healthCheckModel);
+		JSONObject healthCheckModel = new JSONObject();
+		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='"+healthCheckId+"' and is_active='true'", HealthCheck.class);
+		if(savedObj != null) {
+			healthCheckModel = convertEntityToModel(savedObj);
+			System.out.println("healthCheckModel::"+healthCheckModel);	
+		}
+		
 		return healthCheckModel;
 	}
 
@@ -69,7 +73,11 @@ public class HealthCheckService {
 	public boolean deleteHealthCheck(HealthCheck healthCheck) {
 		// TODO Auto-generated method stub
 		healthCheck = (HealthCheck) healthCheckDao.findEntityById(HealthCheck.class, healthCheck.getHealthCheckId());
-		return healthCheckDao.deleteByEntity(healthCheck);
+		healthCheck.setActive(false);
+		healthCheck.setUpdateDate(new Date());
+		healthCheck.setUpdateBy(healthCheck.getUserId());
+		healthCheck.setUserId(healthCheck.getUserId());
+		return healthCheckDao.updateEntity(HealthCheck.class, healthCheck);
 	}
 
 	public HealthCheck convertToEntity(HealthCheckModel healthCheckModel, String type) {
@@ -85,6 +93,7 @@ public class HealthCheckService {
 		healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
 		healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); //().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
 		healthCheck.setUserId(healthCheckModel.getAuthUserId());
+		healthCheck.setActive(true);
 		if(type.equalsIgnoreCase("update")) {			
 			healthCheck.setUpdateBy(healthCheckModel.getAuthUserId());
 			healthCheck.setUpdateDate(new Date());
@@ -130,7 +139,7 @@ public class HealthCheckService {
 	public JSONArray getAllHealthCheck(String siteKey) {
 		JSONArray resultArray = new JSONArray();
 		try {
-			List<Object> resultList = healthCheckDao.getEntityListByColumn("select * from health_check where site_key='"+siteKey+"'", HealthCheck.class);
+			List<Object> resultList = healthCheckDao.getEntityListByColumn("select * from health_check where site_key='"+siteKey+"' and is_active='true'", HealthCheck.class);
 			if(resultList != null && !resultList.isEmpty()) {
 				for(Object obj : resultList) {
 					if(obj instanceof HealthCheck) {

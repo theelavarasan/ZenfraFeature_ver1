@@ -110,7 +110,7 @@ public class ZKConstants {
 	public final static String ERROR = "Error";
 	public final static String SUCCESS = "Success";
 	public final static String PARAMETER_MISSING = "Parameter missing";
-	public static String HEALTHCHECK_COLUMN_ORDER = "healthCheckName,componentType,reportName,reportCondition,createdBy,createdTime,updatedBy,updatedTime";
+	public static String HEALTHCHECK_COLUMN_ORDER = "healthCheckName,componentType,reportName,createdBy,createdTime,updatedBy,updatedTime";
 	public static String HEADER_LABEL = "headerLabel";
 	
 

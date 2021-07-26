@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -352,9 +354,10 @@ public class FavouriteController_v2 {
 				responseModel.setjData(healthCheckObj);
 				responseModel.setResponseDescription("HealthCheck Successfully Retrieved ");
 				responseModel.setResponseCode(HttpStatus.OK);
-			} else {
-				responseModel.setResponseDescription("HealthCheck not Retrieved ");
-				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			} else {				
+				responseModel.setjData(new JSONObject());
+				responseModel.setResponseDescription("No data found");
+				responseModel.setResponseCode(HttpStatus.OK);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -385,7 +388,8 @@ public class FavouriteController_v2 {
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
 				responseModel.setResponseDescription("HealthCheck not Updated ");
-				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+				responseModel.setjData(new JSONObject());
+				responseModel.setResponseCode(HttpStatus.OK);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -455,7 +459,9 @@ public class FavouriteController_v2 {
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
 				responseModel.setResponseDescription("No data found ");
-				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+				List<com.zenfra.model.GridHeader> gridHeaderList = new ArrayList<>();
+				responseModel.setHeaderInfo(gridHeaderList);
+				responseModel.setResponseCode(HttpStatus.OK);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

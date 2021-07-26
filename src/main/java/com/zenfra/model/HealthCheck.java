@@ -83,6 +83,9 @@ public class HealthCheck implements Serializable {
 	@Column
 	private Date updateDate;
 	
+	@Column
+	private boolean isActive;
+	
 
 	public String getCreateBy() {
 		return createBy;
@@ -196,8 +199,14 @@ public class HealthCheck implements Serializable {
 		this.userAccessList = userAccessList;
 	}
 
-	
-	
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
 	
 	
 }
