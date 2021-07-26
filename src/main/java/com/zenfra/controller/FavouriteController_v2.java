@@ -443,9 +443,9 @@ public class FavouriteController_v2 {
 				responseModel.setColumnOrder(Arrays.asList(siteOrder.split(",")));
 			//}			
 			
-			//if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {				
+			if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {				
 				responseModel.setHeaderInfo(healthCheckService.getHeaderListFromV2(siteKey, userId, token));
-			//}
+			}
 
 			if (!healthcheckList.isEmpty()) {
 				responseModel.setjData(healthcheckList);
