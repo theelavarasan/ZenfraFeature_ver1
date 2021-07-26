@@ -73,11 +73,8 @@ import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
-import com.zenfra.dataframe.util.ZenfraConstants;
+import com.zenfra.model.ZKConstants;
 import com.zenfra.utils.DBUtils;
-
-import scala.collection.JavaConverters;
-import scala.collection.Seq;
 
 
 @Repository
@@ -634,12 +631,12 @@ public class DataframeService{
 			
 			//boolean fileOwnerChanged = DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
 			
-			return ZenfraConstants.SUCCESS;
+			return ZKConstants.SUCCESS;
 		} catch (Exception exp) {
 			logger.error("Not able to create dataframe {}",  exp.getMessage(), exp);
 		}
 		
-		return ZenfraConstants.ERROR;
+		return ZKConstants.ERROR;
 	}
 		
 	
@@ -982,7 +979,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				        			  sparkSession.sql("REFRESH TABLE global_temp."+viewName);				                 
 				                 System.out.println("----------------Dataframe Append--------------------------------");	
 				                 DataframeUtil.deleteFile(tmpFile);
-				                 result = ZenfraConstants.SUCCESS;				                
+				                 result = ZKConstants.SUCCESS;				                
 				        	} catch(Exception e) {
 				        		e.printStackTrace();
 				        	}
@@ -1032,7 +1029,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							
 							 DataframeUtil.deleteFile(tmpFile);
 							 System.out.println("---------new Dataframe created with new source type-------------- ");
-							 result = ZenfraConstants.SUCCESS;
+							 result = ZKConstants.SUCCESS;
 						} 		        	  
 		         
 		         }
@@ -1138,12 +1135,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				Dataset<Row> headerDF = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
 				headerDF.createOrReplaceGlobalTempView("report_columns");
 				System.out.println("---------------3--------------------");
-				return ZenfraConstants.SUCCESS;
+				return ZKConstants.SUCCESS;
 				 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			return ZenfraConstants.ERROR;
+			return ZKConstants.ERROR;
 		}
 
 
@@ -1203,12 +1200,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 				createDataframeGlobalView();
 				
-				return ZenfraConstants.SUCCESS;
+				return ZKConstants.SUCCESS;
 			} catch (Exception exp) {
 				logger.error("Not able to create dataframe {}",  exp.getMessage(), exp);
 			}
 			
-			return ZenfraConstants.ERROR;
+			return ZKConstants.ERROR;
 			
 		}
 
@@ -1822,6 +1819,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        }
     	        
     	        if(!taskListServers.isEmpty()) { //add server~ for task list call
+    	        	
+    	        	List<String> allServers = dataCheck.select("Server Name").as(Encoders.STRING()).collectAsList();
+    	        	System.out.println("----------taskListServers----------------" + taskListServers);
+    	        	taskListServers.removeAll(allServers);
+    	        	System.out.println("----------taskListServers----------------" + taskListServers);
+    	        	dataCheck.printSchema();
+    	        	
+    	        	Dataset<Row> nonOptDataset = getNonOptDatasetData(siteKey, taskListServers);
+    	        	if(nonOptDataset != null) {
+    	        		dataCheck = dataCheck.unionByName(nonOptDataset);
+    	        	}
+    	        	
+    	        	
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - HW", "server~End Of Life - HW");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
@@ -1834,8 +1844,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
         	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
           		  		      .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
           		  		      .otherwise(col(col)));
-        	        }
-        	        */
+        	        }.*/
+        	        
     	        	
     	        }
     	    
@@ -1851,7 +1861,15 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		}
 		
 		
-		 private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
+		 private Dataset<Row> getNonOptDatasetData(String siteKey, List<String> taskListServers) {
+			 Dataset<Row> data = sparkSession.sql("select * from global_temp.localDiscoveryTemp where lower(server_name) in ("+String.join(",", taskListServers)+")");
+			 data.printSchema();
+			return null;
+		}
+
+
+
+		private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
 			 Dataset<Row> result = sparkSession.emptyDataFrame();
 			 Connection conn = null;
 			 Statement stmt = null;

@@ -1,5 +1,6 @@
 package com.zenfra.model;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -29,6 +30,57 @@ public class HealthCheckModel {
 	private List<String> siteAccessList;	
 	
 	private List<String> userAccessList;
+	
+	private String createBy;
+	
+	private Date createdDate; 
+	
+	private String authUserId;	
+
+	private String updateBy;
+	
+	private Date updateDate;
+	
+	public String getAuthUserId() {
+		return authUserId;
+	}
+
+	public void setAuthUserId(String authUserId) {
+		this.authUserId = authUserId;
+	}
+
+	public String getCreateBy() {
+		return createBy;
+	}
+
+	public void setCreateBy(String createBy) {
+		this.createBy = createBy;
+	}
+
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	public String getUpdateBy() {
+		return updateBy;
+	}
+
+	public void setUpdateBy(String updateBy) {
+		this.updateBy = updateBy;
+	}
+
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
+	}
+
 
 	public String getHealthCheckId() {
 		return healthCheckId;

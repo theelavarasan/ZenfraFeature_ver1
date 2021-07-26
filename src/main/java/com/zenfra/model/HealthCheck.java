@@ -1,6 +1,7 @@
 package com.zenfra.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -66,6 +67,62 @@ public class HealthCheck implements Serializable {
 	@ApiModelProperty(value = "userAccessList", name = "userAccessList", dataType = "String", example = "")
 	//@NotBlank(message = "userAccessList must not be empty")
 	private String userAccessList;
+	
+	@Column
+    private String createBy;
+	
+	@Column
+	private Date createdDate; 
+	
+	@Column
+	private String userId;	
+
+	@Column
+	private String updateBy;
+	
+	@Column
+	private Date updateDate;
+	
+
+	public String getCreateBy() {
+		return createBy;
+	}
+
+	public void setCreateBy(String createBy) {
+		this.createBy = createBy;
+	}
+
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}	
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public String getUpdateBy() {
+		return updateBy;
+	}
+
+	public void setUpdateBy(String updateBy) {
+		this.updateBy = updateBy;
+	}
+
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
+	}
 
 	public String getHealthCheckId() {
 		return healthCheckId;

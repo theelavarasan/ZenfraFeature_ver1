@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.Arrays;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,16 +18,11 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.JsonArray;
-import com.zenfra.model.ChartDetailsModel;
-import com.zenfra.model.ChartModel_v2;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.HealthCheck;
@@ -32,12 +30,12 @@ import com.zenfra.model.HealthCheckModel;
 import com.zenfra.model.ResponseModel;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
+import com.zenfra.model.ZKConstants;
 import com.zenfra.service.CategoryMappingService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.HealthCheckService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
-import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -312,11 +310,11 @@ public class FavouriteController_v2 {
 	
 	
 	@PostMapping("/saveHealthCheck")
-	public ResponseEntity<?> saveHealthCheck(@RequestBody HealthCheckModel healthCheckModel) {
+	public ResponseEntity<?> saveHealthCheck(@RequestBody HealthCheckModel healthCheckModel, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel);			
+			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel, "create");			
 			HealthCheck healthCheckObj = healthCheckService.saveHealthCheck(healthCheck);
 
 			healthCheckModel.setHealthCheckId(healthCheckObj.getHealthCheckId());
@@ -344,7 +342,7 @@ public class FavouriteController_v2 {
 
 
 	@PostMapping("/getHealthCheck")
-	public ResponseEntity<?> getHealthCheck(@RequestParam("healthCheckId") String healthCheckId) {
+	public ResponseEntity<?> getHealthCheck(@RequestParam("healthCheckId") String healthCheckId, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
@@ -371,11 +369,11 @@ public class FavouriteController_v2 {
 	}
 	
 	@PostMapping("/updateHealthCheck")
-	public ResponseEntity<?> updateHealthCheck(@RequestBody HealthCheckModel healthCheckModel) {
+	public ResponseEntity<?> updateHealthCheck(@RequestBody HealthCheckModel healthCheckModel, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel);		
+			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel, "update");		
 			//HealthCheck existingHealthCheck = healthCheckService.getHealthCheck(healthCheck.getHealthCheckId());
 			//BeanUtils.copyProperties(healthCheck, existingHealthCheck, NullAwareBeanUtilsBean.getNullPropertyNames(healthCheck));
 			
@@ -402,7 +400,7 @@ public class FavouriteController_v2 {
 	}
 	
 	@PostMapping("/deleteHealthCheck")
-	public ResponseEntity<?> deleteHealthCheck(@RequestParam("healthCheckId") String healthCheckId) {
+	public ResponseEntity<?> deleteHealthCheck(@RequestParam("healthCheckId") String healthCheckId, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
@@ -431,12 +429,23 @@ public class FavouriteController_v2 {
 	}
 	
 	@PostMapping("/getHealthCheckList")
-	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey) {
+	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey, @RequestParam(name = "authUserId", required = false) String userId, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 			
+			String token=request.getHeader("Authorization");
+			
 			JSONArray healthcheckList = healthCheckService.getAllHealthCheck(siteKey);
+			
+			//if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEALTHCHECK_COLUMN_ORDER)) {
+				String siteOrder = ZKConstants.HEALTHCHECK_COLUMN_ORDER;
+				responseModel.setColumnOrder(Arrays.asList(siteOrder.split(",")));
+			//}			
+			
+			//if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {				
+				responseModel.setHeaderInfo(healthCheckService.getHeaderListFromV2(siteKey, userId, token));
+			//}
 
 			if (!healthcheckList.isEmpty()) {
 				responseModel.setjData(healthcheckList);
@@ -455,6 +464,21 @@ public class FavouriteController_v2 {
 		} finally {
 			return ResponseEntity.ok(responseModel);
 		}
+
+	}
+	
+	
+
+	@PostMapping("/healthCheckValidate")
+	public JSONArray getHealthCheckNames(@RequestParam("siteKey") String siteKey) {
+
+		JSONArray responseArray = new JSONArray();
+		try {			
+			responseArray = healthCheckService.getHealthCheckNames(siteKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		} return responseArray;
 
 	}
 	
