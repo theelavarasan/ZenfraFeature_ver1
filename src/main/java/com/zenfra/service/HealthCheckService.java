@@ -115,7 +115,9 @@ public class HealthCheckService {
 		response.put("userAccessList",Arrays.asList(healthCheck.getUserAccessList()));	
 		response.put("healthCheckId", healthCheck.getHealthCheckId());
 		response.put("createdBy", healthCheck.getCreateBy());
-		response.put("createdDate", healthCheck.getCreatedDate());		
+		response.put("createdDate", healthCheck.getCreatedDate());	
+		response.put("updatedBy", healthCheck.getUpdateBy());
+		response.put("updatedDate", healthCheck.getUpdateDate());	
 		return response;
 	}
 
