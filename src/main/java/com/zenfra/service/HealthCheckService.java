@@ -152,6 +152,9 @@ public class HealthCheckService {
 			String host_name = com.zenfra.model.ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
 			String port = com.zenfra.model.ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);			
            
+			if(userId == null) {
+				userId="";
+			}
 			
 			JSONObject requestBody = new JSONObject();
 			requestBody.put("siteKey", siteKey);
