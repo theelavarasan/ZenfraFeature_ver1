@@ -413,8 +413,8 @@ public class HealthCheckService {
 // convertJSON(ZKModel.getProperty(ZKConstants.DISPLAY_LABLE));
 		try {
 			toReturnHeader.setActualName(key);
-			String dataType = data.getClass().getSimpleName();
-			toReturnHeader.setDataType(dataType);
+			//String dataType = data.getClass().getSimpleName();
+			toReturnHeader.setDataType("String");
 			String displayName = commonFunctions.convertCamelCase(key);
 
 			/*
