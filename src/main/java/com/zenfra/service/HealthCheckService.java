@@ -85,12 +85,16 @@ public class HealthCheckService {
 		healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
 		healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); //().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
 		healthCheck.setUserId(healthCheckModel.getAuthUserId());
-		if(type.equalsIgnoreCase("update")) {
-			healthCheck.setCreateBy(healthCheckModel.getAuthUserId());
-			healthCheck.setCreatedDate(new Date());
-		}		
-		healthCheck.setUpdateBy(healthCheckModel.getAuthUserId());
-		healthCheck.setUpdateDate(new Date());
+		if(type.equalsIgnoreCase("update")) {			
+			healthCheck.setUpdateBy(healthCheckModel.getAuthUserId());
+			healthCheck.setUpdateDate(new Date());
+		} else {			
+				healthCheck.setCreateBy(healthCheckModel.getAuthUserId());
+				healthCheck.setCreatedDate(new Date());
+				healthCheck.setUpdateBy(healthCheckModel.getAuthUserId());
+				healthCheck.setUpdateDate(new Date());
+		}
+		
 		return healthCheck;
 	}
 	
@@ -118,6 +122,7 @@ public class HealthCheckService {
 		response.put("createdDate", healthCheck.getCreatedDate());	
 		response.put("updatedBy", healthCheck.getUpdateBy());
 		response.put("updatedDate", healthCheck.getUpdateDate());	
+		response.put("userId", healthCheck.getUserId());	
 		return response;
 	}
 
@@ -244,7 +249,10 @@ public class HealthCheckService {
 			if(userMap.containsKey(userId))
 			{
 				JSONObject userObj =   userMap.get(userId);
-				isTenantAdmin = (boolean) userObj.get("isTenantAdmin");
+				if(userObj.containsKey("isTenantAdmin")) {
+					isTenantAdmin = (boolean) userObj.get("isTenantAdmin");
+				}
+				
 			}
 			
 			String siteQuery = "select from site";
