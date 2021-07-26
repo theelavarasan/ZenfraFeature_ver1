@@ -21,6 +21,7 @@ import com.zenfra.model.HealthCheck;
 import com.zenfra.model.HealthCheckModel;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.Constants;
 
 @Service
 public class HealthCheckService {
@@ -152,15 +153,19 @@ public class HealthCheckService {
 			String port = com.zenfra.model.ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);			
            
 			
-			System.out.println("------------------------getDiscoveryDataFromSpaprk------------------- "  +  protocol + "://" + host_name + ":" + port + "/ZenfraV2/rest/reports/health-check/headrInfo");
-			
 			JSONObject requestBody = new JSONObject();
 			requestBody.put("siteKey", siteKey);
 			requestBody.put("userId", userId);		
+			String token=commonFunctions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+			
+
+			System.out.println("-----------------healthcheck----------------- "+token+ " : "  +  protocol + "://" + host_name + ":" + port + "/ZenfraV2/rest/reports/health-check/headrInfo");
+			
 			
 			org.jsoup.Connection.Response execute = Jsoup.connect(protocol + "://" + host_name + ":" + port + "/ZenfraV2/rest/reports/health-check/headrInfo")
 					  .header("Content-Type", "application/json")
 				        .header("Accept", "application/json")
+				        .header("Authorization", token)
 				        .followRedirects(true)
 				        .ignoreHttpErrors(true)
 				        .ignoreContentType(true)
