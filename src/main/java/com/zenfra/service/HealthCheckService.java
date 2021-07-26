@@ -155,7 +155,7 @@ public class HealthCheckService {
 			
 			JSONObject requestBody = new JSONObject();
 			requestBody.put("siteKey", siteKey);
-			requestBody.put("userId", userId);		
+			requestBody.put("authUserId", userId);		
 			
 			
 
@@ -172,8 +172,8 @@ public class HealthCheckService {
 				        .userAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML," +
 				                " like Gecko) Chrome/45.0.2454.4 Safari/537.36")
 				        .method(org.jsoup.Connection.Method.POST)
-				        .data("site_key", siteKey)
-				        .data("userId", userId)
+				        .data("siteKey", siteKey)
+				        .data("authUserId", userId)
 				        .requestBody( requestBody.toString())
 				        .maxBodySize(1_000_000 * 30) // 30 mb ~
 				        .timeout(0) // infinite timeout
