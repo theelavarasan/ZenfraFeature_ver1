@@ -145,7 +145,7 @@ public class HealthCheckService {
 		return resultArray;
 	}
 	
-	public JSONArray getHeaderListFromV2(String siteKey, String userId) {
+	public JSONArray getHeaderListFromV2(String siteKey, String userId, String token) {
 		JSONArray  healthCheckHeader = new JSONArray();
 		try {
 			String protocol = com.zenfra.model.ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
@@ -156,7 +156,7 @@ public class HealthCheckService {
 			JSONObject requestBody = new JSONObject();
 			requestBody.put("siteKey", siteKey);
 			requestBody.put("userId", userId);		
-			String token=commonFunctions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+			
 			
 
 			System.out.println("-----------------healthcheck----------------- "+token+ " : "  +  protocol + "://" + host_name + ":" + port + "/ZenfraV2/rest/reports/health-check/headrInfo");

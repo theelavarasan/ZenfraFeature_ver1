@@ -6,6 +6,9 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Arrays;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -307,7 +310,7 @@ public class FavouriteController_v2 {
 	
 	
 	@PostMapping("/saveHealthCheck")
-	public ResponseEntity<?> saveHealthCheck(@RequestBody HealthCheckModel healthCheckModel) {
+	public ResponseEntity<?> saveHealthCheck(@RequestBody HealthCheckModel healthCheckModel, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
@@ -339,7 +342,7 @@ public class FavouriteController_v2 {
 
 
 	@PostMapping("/getHealthCheck")
-	public ResponseEntity<?> getHealthCheck(@RequestParam("healthCheckId") String healthCheckId) {
+	public ResponseEntity<?> getHealthCheck(@RequestParam("healthCheckId") String healthCheckId, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
@@ -366,7 +369,7 @@ public class FavouriteController_v2 {
 	}
 	
 	@PostMapping("/updateHealthCheck")
-	public ResponseEntity<?> updateHealthCheck(@RequestBody HealthCheckModel healthCheckModel) {
+	public ResponseEntity<?> updateHealthCheck(@RequestBody HealthCheckModel healthCheckModel, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
@@ -397,7 +400,7 @@ public class FavouriteController_v2 {
 	}
 	
 	@PostMapping("/deleteHealthCheck")
-	public ResponseEntity<?> deleteHealthCheck(@RequestParam("healthCheckId") String healthCheckId) {
+	public ResponseEntity<?> deleteHealthCheck(@RequestParam("healthCheckId") String healthCheckId, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
@@ -426,10 +429,12 @@ public class FavouriteController_v2 {
 	}
 	
 	@PostMapping("/getHealthCheckList")
-	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey, @RequestParam("authUserId") String userId) {
+	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey, @RequestParam("authUserId") String userId, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
+			
+			String token=request.getHeader("Authorization");
 			
 			JSONArray healthcheckList = healthCheckService.getAllHealthCheck(siteKey);
 			
@@ -439,7 +444,7 @@ public class FavouriteController_v2 {
 			//}			
 			
 			//if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {				
-				responseModel.setHeaderInfo(healthCheckService.getHeaderListFromV2(siteKey, userId));
+				responseModel.setHeaderInfo(healthCheckService.getHeaderListFromV2(siteKey, userId, token));
 			//}
 
 			if (!healthcheckList.isEmpty()) {
