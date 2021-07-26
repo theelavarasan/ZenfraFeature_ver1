@@ -448,7 +448,9 @@ public class FavouriteController_v2 {
 			}
 
 			if (!healthcheckList.isEmpty()) {
-				responseModel.setjData(healthcheckList);
+				com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId);				
+				responseModel.setjData(gridData.getData());
+				responseModel.setHeaderInfo(gridData.getHeaderInfo());
 				responseModel.setResponseDescription("HealthCheck Successfully retrieved by sitekey ");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {

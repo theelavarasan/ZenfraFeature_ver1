@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.apache.commons.lang.WordUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -539,4 +540,15 @@ public class CommonFunctions {
 				return e.getMessage();
 		}
 		}
+		 
+		 public String convertCamelCase(String key) {
+		        try {
+		            final char[] delimiters = {' ', '_'};
+
+		            key = WordUtils.capitalizeFully(key, delimiters);
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        }
+		        return key;
+		    }
 }
