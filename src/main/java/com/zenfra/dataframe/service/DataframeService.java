@@ -1795,18 +1795,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                  
                dataCheck = sparkSession.sql(sql).toDF();             
                  
-               logger.info("getReport Details Ends");
-               
-               request.setStartRow(0);
-               request.setEndRow((int)dataCheck.count());
-               rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
-    	        groupKeys = request.getGroupKeys();
-    	        valueColumns = request.getValueCols();
-    	        pivotColumns = request.getPivotCols();
-    	        filterModel = request.getFilterModel();
-    	        sortModel = request.getSortModel();
-    	        isPivotMode = request.isPivotMode();
-    	        isGrouping = rowGroups.size() > groupKeys.size();   
+              
     	        
     	        //List<String> colHeaders = Arrays.asList(dataCheck.columns());
                 //Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
@@ -1819,12 +1808,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        }
     	        
     	        if(!taskListServers.isEmpty()) { //add server~ for task list call    	        	
-    	        	List<String> allServers = dataCheck.select("Server Name").as(Encoders.STRING()).collectAsList();    	        	
+    	        	List<String> allServers = dataCheck.select("Server Name").as(Encoders.STRING()).collectAsList();    
+    	        	
     	        	taskListServers.removeAll(allServers);    	        
-    	        	dataCheck.printSchema();
+    	        	
     	        	if(taskListServers != null && !taskListServers.isEmpty()) {
     	        		Dataset<Row> nonOptDataset = getNonOptDatasetData(siteKey, taskListServers);
-        	        	if(nonOptDataset != null) {
+    	        		
+        	        	if(nonOptDataset != null && !nonOptDataset.isEmpty()) {
         	        		dataCheck = dataCheck.unionByName(nonOptDataset);
         	        	}
     	        	}
@@ -1836,6 +1827,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        
     	        	
     	        }
+    	        
+    	        logger.info("getReport Details Ends");
+                
+                request.setStartRow(0);
+                request.setEndRow((int)dataCheck.count());
+                rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+     	        groupKeys = request.getGroupKeys();
+     	        valueColumns = request.getValueCols();
+     	        pivotColumns = request.getPivotCols();
+     	        filterModel = request.getFilterModel();
+     	        sortModel = request.getSortModel();
+     	        isPivotMode = request.isPivotMode();
+     	        isGrouping = rowGroups.size() > groupKeys.size();   
     	    
                 return paginate(dataCheck, request);
                  
@@ -1850,31 +1854,38 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		
 		
 		 private Dataset<Row> getNonOptDatasetData(String siteKey, List<String> taskListServers) {
-			 String serverList= "";
-			 serverList = String.join(",", taskListServers
-			            .stream()
-			            .map(server -> ("'" + server + "'"))
-			            .collect(Collectors.toList()));
-			   
-			 Dataset<Row> data = sparkSession.sql("select l.rank as `my_rank`, l.`Server Name`, l.OS as `OS Name`, l.`Server Type`, l.`Server Model`, l.Memory, l.`Total Size`, l.`Number of Processors`, l.`Logical Processor Count`, l.`CPU GHz`, l.`Processor Name`, l.`Number of Cores`, l.`DB Service`, l.`HBA Speed`, l.`Number of Ports`, l.`Host`, 'AWS On Demand Price', 'AWS 3 Year Price', 'AWS 1 Year Price', 'AWS Instance Type', 'AWS Region', 'AWS Specs', 'Azure On Demand Price', 'Azure 3 Year Price', 'Azure 1 Year Price', 'Azure Instance Type', 'Azure Specs', 'Google Instance Type', 'Google On Demand Price', 'Google 1 Year Price', 'Google 3 Year Price', l.`OS Version`, eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life - OS`, eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp.localDiscoveryTemp l  left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(l.`OS Version`) and lcase(eol.os_type)=lcase(l.`Server Type`)  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(l.`Server Model`, ' ', '')) where lower(l.`Server Name`) in ("+serverList+")");
-			 data.printSchema();
-			 data = data.withColumn("AWS On Demand Price", lit("N/A"));
-			 data = data.withColumn("AWS 3 Year Price", lit("N/A"));
-			 data = data.withColumn("AWS 1 Year Price", lit("N/A"));
-			 data = data.withColumn("AWS Instance Type", lit("N/A"));
-			 data = data.withColumn("AWS Region", lit("N/A"));
-			 data = data.withColumn("AWS Specs", lit("N/A"));
-			 data = data.withColumn("Azure On Demand Price", lit("N/A"));
-			 data = data.withColumn("Azure 3 Year Price", lit("N/A"));
-			 data = data.withColumn("Azure 1 Year Price", lit("N/A"));
-			 data = data.withColumn("Azure Instance Type", lit("N/A"));
-			 data = data.withColumn("Azure Specs", lit("N/A"));
-			 data = data.withColumn("Google Instance Type", lit("N/A"));
-			 data = data.withColumn("Google On Demand Price", lit("N/A"));
-			 data = data.withColumn("Google 1 Year Price", lit("N/A"));
-			 data = data.withColumn("Google 3 Year Price", lit("N/A"));
+			 try {
+				 String serverList= "";
+				 serverList = String.join(",", taskListServers
+				            .stream()
+				            .map(server -> ("'" + server.toLowerCase() + "'"))
+				            .collect(Collectors.toList()));
+				   
+				 //, eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life - OS`, eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp.localDiscoveryTemp l  left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(l.`OS Version`) and lcase(eol.os_type)=lcase(l.`Server Type`)  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(l.`Server Model`, ' ', ''))
+				 Dataset<Row> data = sparkSession.sql("select l.rank as `my_rank`, l.`Server Name`, l.OS as `OS Name`, l.`Server Type`, l.`Server Model`, l.Memory, l.`Total Size`, l.`Number of Processors`, l.`Logical Processor Count`, l.`CPU GHz`, l.`Processor Name`, l.`Number of Cores`, l.`DB Service`, l.`HBA Speed`, l.`Number of Ports`, l.`Host`, 'AWS On Demand Price', 'AWS 3 Year Price', 'AWS 1 Year Price', 'AWS Instance Type', 'AWS Region', 'AWS Specs', 'Azure On Demand Price', 'Azure 3 Year Price', 'Azure 1 Year Price', 'Azure Instance Type', 'Azure Specs', 'Google Instance Type', 'Google On Demand Price', 'Google 1 Year Price', 'Google 3 Year Price', l.`OS Version`, eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life - OS`, eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp.localDiscoveryTemp l  left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(l.`OS Version`) and lcase(eol.os_type)=lcase(l.`Server Type`)  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(l.`Server Model`, ' ', '')) where lower(l.`Server Name`) in ("+serverList+")");
+					
+				 data = data.withColumn("AWS On Demand Price", lit("N/A"));
+				 data = data.withColumn("AWS 3 Year Price", lit("N/A"));
+				 data = data.withColumn("AWS 1 Year Price", lit("N/A"));
+				 data = data.withColumn("AWS Instance Type", lit("N/A"));
+				 data = data.withColumn("AWS Region", lit("N/A"));
+				 data = data.withColumn("AWS Specs", lit("N/A"));
+				 data = data.withColumn("Azure On Demand Price", lit("N/A"));
+				 data = data.withColumn("Azure 3 Year Price", lit("N/A"));
+				 data = data.withColumn("Azure 1 Year Price", lit("N/A"));
+				 data = data.withColumn("Azure Instance Type", lit("N/A"));
+				 data = data.withColumn("Azure Specs", lit("N/A"));
+				 data = data.withColumn("Google Instance Type", lit("N/A"));
+				 data = data.withColumn("Google On Demand Price", lit("N/A"));
+				 data = data.withColumn("Google 1 Year Price", lit("N/A"));
+				 data = data.withColumn("Google 3 Year Price", lit("N/A"));				
+				 return data;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 Dataset<Row> df = sparkSession.emptyDataFrame();
+			return df;
 			
-			return data;
 		}
 
 
