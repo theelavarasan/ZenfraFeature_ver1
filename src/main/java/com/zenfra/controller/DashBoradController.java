@@ -367,7 +367,8 @@ public class DashBoradController {
 	
 	@PostMapping("/save-dashboard-chart-details")
 	public ResponseEntity<?> saveDashboardChartDetails(
-			@RequestBody DashboardChartDetails  dash
+			@RequestBody DashboardChartDetails  dash,
+			@RequestParam String authUserId
 			){
 		
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
@@ -390,11 +391,13 @@ public class DashBoradController {
 				if(exitObject!=null) {
 					BeanUtils.copyProperties(dash, exitObject, NullAwareBeanUtilsBean.getNullPropertyNames(dash));
 					exitObject.setActive(true);
+					exitObject.setUpdatedBy(authUserId);
 					dash.setUpdatedTime(functions.getCurrentDateWithTime());
 					exitObject.setChartDetails(dash.getChartDetailsObject().toString());
 					responce=dashService.updateDashboardChartDetails(exitObject);
 				}else {
 					dash.setActive(true);
+					exitObject.setCreatedBy(authUserId);
 					dash.setCreatedTime(functions.getCurrentDateWithTime());
 					dash.setUpdatedTime(functions.getCurrentDateWithTime());
 					dash.setChartDetails(dash.getChartDetailsObject().toString());
