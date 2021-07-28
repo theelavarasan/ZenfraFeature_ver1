@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +39,7 @@ import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.HealthCheckService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -376,9 +378,9 @@ public class FavouriteController_v2 {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel, "update");		
-			//HealthCheck existingHealthCheck = healthCheckService.getHealthCheck(healthCheck.getHealthCheckId());
-			//BeanUtils.copyProperties(healthCheck, existingHealthCheck, NullAwareBeanUtilsBean.getNullPropertyNames(healthCheck));
+			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel, "update");	
+			HealthCheck existingHealthCheck = healthCheckService.getHealthCheckObject(healthCheckModel.getHealthCheckId());	
+			BeanUtils.copyProperties(healthCheck, existingHealthCheck, NullAwareBeanUtilsBean.getNullPropertyNames(healthCheck));
 			
 			JSONObject healthCheckObj = healthCheckService.updateHealthCheck(healthCheck);
 

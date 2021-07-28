@@ -1,5 +1,6 @@
 package com.zenfra.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -41,6 +42,8 @@ public class HealthCheckService {
 	@Autowired
 	SiteService siteService;
 	
+	private SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+	
 	public HealthCheck saveHealthCheck(HealthCheck healthCheck) {
 		healthCheck.setHealthCheckId(commonFunctions.generateRandomId());
 		healthCheckDao.saveEntity(HealthCheck.class, healthCheck);
@@ -62,6 +65,13 @@ public class HealthCheckService {
 		
 		return healthCheckModel;
 	}
+	
+	public HealthCheck getHealthCheckObject(String healthCheckId) {
+		HealthCheck healthCheck= new HealthCheck();
+		healthCheck.setHealthCheckId(healthCheckId);		
+		HealthCheck healthCheckObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='"+healthCheckId+"' and is_active='true'", HealthCheck.class);
+		return healthCheckObj;
+	}
 
 	public JSONObject updateHealthCheck(HealthCheck healthCheck) {
 		healthCheckDao.updateEntity(HealthCheck.class, healthCheck);
@@ -82,6 +92,9 @@ public class HealthCheckService {
 
 	public HealthCheck convertToEntity(HealthCheckModel healthCheckModel, String type) {
 		HealthCheck healthCheck = new HealthCheck();
+		if(type.equalsIgnoreCase("update")) {	
+			healthCheck = getHealthCheckObject(healthCheckModel.getHealthCheckId());
+		}
 		healthCheck.setHealthCheckId(healthCheckModel.getHealthCheckId());
 		healthCheck.setSiteKey(healthCheckModel.getSiteKey());
 		healthCheck.setComponentType(healthCheckModel.getComponentType());
@@ -92,8 +105,8 @@ public class HealthCheckService {
 		healthCheck.setSiteAccessList(String.join(",", healthCheckModel.getSiteAccessList()));
 		healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
 		healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); //().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
-		healthCheck.setUserId(healthCheckModel.getAuthUserId());
 		healthCheck.setActive(true);
+		healthCheck.setUserId(healthCheckModel.getAuthUserId());
 		if(type.equalsIgnoreCase("update")) {			
 			healthCheck.setUpdateBy(healthCheckModel.getAuthUserId());
 			healthCheck.setUpdateDate(new Date());
@@ -103,7 +116,7 @@ public class HealthCheckService {
 				healthCheck.setUpdateBy(healthCheckModel.getAuthUserId());
 				healthCheck.setUpdateDate(new Date());
 		}
-		
+				
 		return healthCheck;
 	}
 	
@@ -127,10 +140,29 @@ public class HealthCheckService {
 		response.put("siteAccessList",Arrays.asList(healthCheck.getSiteAccessList()));
 		response.put("userAccessList",Arrays.asList(healthCheck.getUserAccessList()));	
 		response.put("healthCheckId", healthCheck.getHealthCheckId());
-		response.put("createdBy", healthCheck.getCreateBy());
-		response.put("createdDate", healthCheck.getCreatedDate());	
-		response.put("updatedBy", healthCheck.getUpdateBy());
-		response.put("updatedDate", healthCheck.getUpdateDate());	
+		
+		Users user = userService.getUserByUserId(healthCheck.getCreateBy());
+		if(user != null) {
+			response.put("createdBy", user.getFirst_name() + " " + user.getLast_name());
+		}else {
+			response.put("createdBy", "");
+		}
+		response.put("createdTime", formatter.format(healthCheck.getCreatedDate()));	
+		
+		if(healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
+			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
+		} else if(!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())){
+			Users updateUser = userService.getUserByUserId(healthCheck.getUpdateBy());
+			if(updateUser != null) {
+				response.put("updatedBy", updateUser.getFirst_name() + " " + updateUser.getLast_name());
+			} else {
+				response.put("updatedBy", "");
+			}
+		} else {
+			response.put("updatedBy", "");
+		}
+		
+		response.put("updatedTime", formatter.format(healthCheck.getUpdateDate()));	
 		response.put("userId", healthCheck.getUserId());	
 		return response;
 	}
