@@ -1,5 +1,6 @@
 package com.zenfra.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -40,6 +41,8 @@ public class HealthCheckService {
 	
 	@Autowired
 	SiteService siteService;
+	
+	private SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 	
 	public HealthCheck saveHealthCheck(HealthCheck healthCheck) {
 		healthCheck.setHealthCheckId(commonFunctions.generateRandomId());
@@ -127,10 +130,29 @@ public class HealthCheckService {
 		response.put("siteAccessList",Arrays.asList(healthCheck.getSiteAccessList()));
 		response.put("userAccessList",Arrays.asList(healthCheck.getUserAccessList()));	
 		response.put("healthCheckId", healthCheck.getHealthCheckId());
-		response.put("createdBy", healthCheck.getCreateBy());
-		response.put("createdDate", healthCheck.getCreatedDate());	
-		response.put("updatedBy", healthCheck.getUpdateBy());
-		response.put("updatedDate", healthCheck.getUpdateDate());	
+		
+		Users user = userService.getUserByUserId(healthCheck.getCreateBy());
+		if(user != null) {
+			response.put("createdBy", user.getFirst_name() + " " + user.getLast_name());
+		}else {
+			response.put("createdBy", "");
+		}
+		response.put("createdTime", formatter.format(healthCheck.getCreatedDate()));	
+		
+		if(healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
+			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
+		} else if(!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())){
+			Users updateUser = userService.getUserByUserId(healthCheck.getUpdateBy());
+			if(updateUser != null) {
+				response.put("updatedBy", updateUser.getFirst_name() + " " + updateUser.getLast_name());
+			} else {
+				response.put("updatedBy", "");
+			}
+		} else {
+			response.put("updatedBy", "");
+		}
+		
+		response.put("updatedTime", formatter.format(healthCheck.getUpdateDate()));	
 		response.put("userId", healthCheck.getUserId());	
 		return response;
 	}
