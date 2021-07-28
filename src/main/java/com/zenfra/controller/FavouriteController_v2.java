@@ -6,11 +6,15 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.BeanUtils;
@@ -26,8 +30,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zenfra.model.DeviceTypeModel;
+import com.zenfra.model.DeviceTypeValueModel;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
+import com.zenfra.model.GridDataFormat;
 import com.zenfra.model.HealthCheck;
 import com.zenfra.model.HealthCheckModel;
 import com.zenfra.model.ResponseModel;
@@ -60,6 +67,8 @@ public class FavouriteController_v2 {
 	
 	@Autowired
 	CategoryMappingService catService;
+	
+	private ObjectMapper objectMapper = new ObjectMapper();
 
 	@PostMapping("/get-all-favourite")
 	public ResponseEntity<?> getFavouriteView(@RequestParam(name = "authUserId", required = false) String userId,
@@ -442,7 +451,8 @@ public class FavouriteController_v2 {
 			
 			String token=request.getHeader("Authorization");
 			
-			JSONArray healthcheckList = healthCheckService.getAllHealthCheck(siteKey);
+			//JSONArray healthcheckList = healthCheckService.getAllHealthCheck(siteKey);
+			GridDataFormat gridDataFormat = healthCheckService.getHealthCheckData( siteKey, userId);
 			
 			//if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEALTHCHECK_COLUMN_ORDER)) {
 				String siteOrder = ZKConstants.HEALTHCHECK_COLUMN_ORDER;
@@ -453,7 +463,7 @@ public class FavouriteController_v2 {
 				responseModel.setHeaderInfo(healthCheckService.getHeaderListFromV2(siteKey, userId, token));
 			}
 
-			if (!healthcheckList.isEmpty()) {
+			if (!gridDataFormat.getData().isEmpty()) {
 				com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId);				
 				responseModel.setjData(gridData.getData());
 				responseModel.setHeaderInfo(gridData.getHeaderInfo());
@@ -491,6 +501,94 @@ public class FavouriteController_v2 {
 		} return responseArray;
 
 	}
+	
+	
+	@PostMapping("/getHealthCheckProperties")
+	public ResponseEntity<?> getDiscoveryReportProperties(@RequestParam(name = "reportCategory") String reportCategory,
+			@RequestParam(name = "categoryType") String categoryType,
+			@RequestParam(name = "projectID", required = false) String projectID,
+			@RequestParam(name = "projectSource", required = false) String projectSource,
+			@RequestParam(name = "siteKey", required = false) String siteKey,
+			@RequestParam(name = "baseFilter", required = false) String baseFilter,
+			@RequestParam(name = "groupBy", required = false) String groupBy,
+			@RequestParam(name = "authUserId", required = false) String userId)
+			throws Exception {
+		
+		JSONArray resultArray = new JSONArray();
+		if (reportCategory.equalsIgnoreCase("healthcheck") && (categoryType.equalsIgnoreCase("healthcheck"))) {
+
+			JSONArray healthCheckArray = healthCheckService.getAllHealthCheck(siteKey, false, userId);
+
+			DeviceTypeModel deviceTypeModel1 = new DeviceTypeModel();
+			deviceTypeModel1.setName("healthCheck");
+			deviceTypeModel1.setLabel("Health Check Report Name");
+			deviceTypeModel1.setType("select");
+			List<DeviceTypeValueModel> deviceTypeValueModelList = new ArrayList<DeviceTypeValueModel>();
+
+			for (int i = 0; i < healthCheckArray.size(); i++) {
+
+				JSONObject jsonObject = (JSONObject) healthCheckArray.get(i);
+				DeviceTypeValueModel deviceTypeValueModel = new DeviceTypeValueModel();
+				if (jsonObject.containsKey("healthCheckId")) {
+					deviceTypeValueModel.setValue(jsonObject.get("healthCheckId").toString());
+				}
+				if (jsonObject.containsKey("healthCheckName")) {
+					deviceTypeValueModel.setLabel(jsonObject.get("healthCheckName").toString());
+				}
+				if (i == 0) {
+					deviceTypeValueModel.setIsDefault(1);
+				} else {
+					deviceTypeValueModel.setIsDefault(0);
+				}
+				deviceTypeValueModelList.add(deviceTypeValueModel);
+			}
+
+			deviceTypeModel1.setValue(deviceTypeValueModelList);
+			
+			resultArray.add(deviceTypeModel1); // Server Type
+
+			JSONArray healthCheckDisplayArray = healthCheckService.getHealthCheckDisplay();
+		
+			for (int i = 0; i < healthCheckDisplayArray.size(); i++) {
+
+				JSONObject jsonObject = (JSONObject) healthCheckDisplayArray.get(i);
+
+				DeviceTypeModel deviceTypeModel_display = new DeviceTypeModel();
+				deviceTypeModel_display.setName(jsonObject.get("name").toString());
+				deviceTypeModel_display.setLabel(jsonObject.get("label").toString());
+				deviceTypeModel_display.setType(jsonObject.get("type").toString());
+				deviceTypeModel_display.setMandatory(false);
+				List<DeviceTypeValueModel> deviceTypeValueModelDisplay = new ArrayList<DeviceTypeValueModel>();
+				JSONArray displayValue = objectMapper.readValue(jsonObject.get("value").toString(), JSONArray.class);				
+				
+				if (!displayValue.isEmpty()) {
+					for (int j = 0; j < displayValue.size(); j++) {
+						Map<String, Object> displayObj = (LinkedHashMap<String, Object>) displayValue.get(j);
+						DeviceTypeValueModel deviceTypeValueModel = new DeviceTypeValueModel();
+						if (displayObj.containsKey("value")) {
+							deviceTypeValueModel.setValue(displayObj.get("value").toString());
+						}
+						if (displayObj.containsKey("label")) {
+							deviceTypeValueModel.setLabel(displayObj.get("label").toString());
+						}
+						int isDefault = 0;
+						if (displayObj.get("isDefault").toString().equals("1")) {
+							isDefault = 1;
+						}
+						deviceTypeValueModel.setIsDefault(isDefault);
+						deviceTypeValueModelDisplay.add(deviceTypeValueModel);
+					}
+				}
+				deviceTypeModel_display.setValue(deviceTypeValueModelDisplay);
+				resultArray.add(deviceTypeModel_display);
+			}
+		} 
+		
+		System.out.println("----resultArray--------- " + resultArray);
+		
+		return ResponseEntity.ok(resultArray);
+	}
+	
 	
 
 }
