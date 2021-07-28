@@ -65,6 +65,13 @@ public class HealthCheckService {
 		
 		return healthCheckModel;
 	}
+	
+	public HealthCheck getHealthCheckObject(String healthCheckId) {
+		HealthCheck healthCheck= new HealthCheck();
+		healthCheck.setHealthCheckId(healthCheckId);		
+		HealthCheck healthCheckObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='"+healthCheckId+"' and is_active='true'", HealthCheck.class);
+		return healthCheckObj;
+	}
 
 	public JSONObject updateHealthCheck(HealthCheck healthCheck) {
 		healthCheckDao.updateEntity(HealthCheck.class, healthCheck);
@@ -85,6 +92,9 @@ public class HealthCheckService {
 
 	public HealthCheck convertToEntity(HealthCheckModel healthCheckModel, String type) {
 		HealthCheck healthCheck = new HealthCheck();
+		if(type.equalsIgnoreCase("update")) {	
+			healthCheck = getHealthCheckObject(healthCheckModel.getHealthCheckId());
+		}
 		healthCheck.setHealthCheckId(healthCheckModel.getHealthCheckId());
 		healthCheck.setSiteKey(healthCheckModel.getSiteKey());
 		healthCheck.setComponentType(healthCheckModel.getComponentType());
@@ -95,8 +105,8 @@ public class HealthCheckService {
 		healthCheck.setSiteAccessList(String.join(",", healthCheckModel.getSiteAccessList()));
 		healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
 		healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); //().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
-		healthCheck.setUserId(healthCheckModel.getAuthUserId());
 		healthCheck.setActive(true);
+		healthCheck.setUserId(healthCheckModel.getAuthUserId());
 		if(type.equalsIgnoreCase("update")) {			
 			healthCheck.setUpdateBy(healthCheckModel.getAuthUserId());
 			healthCheck.setUpdateDate(new Date());
@@ -106,7 +116,7 @@ public class HealthCheckService {
 				healthCheck.setUpdateBy(healthCheckModel.getAuthUserId());
 				healthCheck.setUpdateDate(new Date());
 		}
-		
+				
 		return healthCheck;
 	}
 	
