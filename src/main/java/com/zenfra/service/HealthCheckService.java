@@ -140,6 +140,8 @@ public class HealthCheckService {
 		response.put("siteAccessList",Arrays.asList(healthCheck.getSiteAccessList()));
 		response.put("userAccessList",Arrays.asList(healthCheck.getUserAccessList()));	
 		response.put("healthCheckId", healthCheck.getHealthCheckId());
+		response.put("createdById", healthCheck.getCreateBy());
+		response.put("updatedById", healthCheck.getUpdateBy());
 		
 		Users user = userService.getUserByUserId(healthCheck.getCreateBy());
 		if(user != null) {
@@ -256,8 +258,7 @@ public class HealthCheckService {
 
 
 	public com.zenfra.model.GridDataFormat getHealthCheckData(String siteKey, String userId) {
-		JSONArray toRet = new JSONArray();		
-		HashSet<String> userIdSet = new HashSet<>();
+		JSONArray toRet = new JSONArray();			
 		com.zenfra.model.GridDataFormat gridDataFormat = new com.zenfra.model.GridDataFormat();
 		gridDataFormat.setColumnOrder(new ArrayList<>());
 		
@@ -328,20 +329,12 @@ public class HealthCheckService {
 
 					if (!headerKeys.containsKey(key)) {
 						headerKeys.put(key, generateGridHeader(key, jObj.get(key), null, siteKey, "user", headerLabelJson));
-					}
-
-					if (key.equalsIgnoreCase("createdBy")) {
-
-						userIdSet.add(jObj.get(key).toString());
-					}
-					if (key.equalsIgnoreCase("updatedBy")) {
-						userIdSet.add(jObj.get(key).toString());
-					}
+					}					
 				}
 
 				if (jObj.size() > 0) {
 					//Share Access updated.
-					if(isTenantAdmin || jObj.get("createdBy").toString().equalsIgnoreCase(userId))
+					if(isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId))
 					{
 						isWriteAccess = true;
 					}
