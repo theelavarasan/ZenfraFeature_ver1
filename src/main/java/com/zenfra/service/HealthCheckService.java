@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,13 +12,16 @@ import java.util.Set;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.dao.HealthCheckDao;
+import com.zenfra.dao.HealthCheckDisplayDao;
 import com.zenfra.model.HealthCheck;
+import com.zenfra.model.HealthCheckDisplay;
 import com.zenfra.model.HealthCheckModel;
 import com.zenfra.model.SiteModel;
 import com.zenfra.model.Users;
@@ -31,6 +33,9 @@ public class HealthCheckService {
 	
 	@Autowired
 	HealthCheckDao healthCheckDao;
+	
+	@Autowired
+	HealthCheckDisplayDao healthCheckDisplayDao;
 
 	@Autowired
 	CommonFunctions commonFunctions;	
@@ -43,6 +48,9 @@ public class HealthCheckService {
 	SiteService siteService;
 	
 	private SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+	
+	private ObjectMapper objectMapper = new ObjectMapper();
+	private JSONParser jSONParser = new JSONParser();
 	
 	public HealthCheck saveHealthCheck(HealthCheck healthCheck) {
 		healthCheck.setHealthCheckId(commonFunctions.generateRandomId());
@@ -166,14 +174,48 @@ public class HealthCheckService {
 		
 		response.put("updatedTime", formatter.format(healthCheck.getUpdateDate()));	
 		response.put("userId", healthCheck.getUserId());	
+		
+		/*if(healthCheck.getSiteAccessList() != null && !healthCheck.getSiteAccessList().trim().isEmpty()) {
+			List<String> siteAccessList = new ArrayList<>();
+			siteAccessList.addAll(Arrays.asList(healthCheck.getSiteAccessList().replaceAll("\\[", "").replaceAll("\\]","").split(",")));
+			JSONArray siteArray = new JSONArray();
+			if(!siteAccessList.isEmpty()) {
+				for(String site : siteAccessList) {
+					siteArray.add(site);
+				}
+			}
+			response.put("siteAccessList", siteArray);
+		} else {
+			response.put("siteAccessList", new JSONArray());
+		}
+		
+		if(healthCheck.getUserAccessList() != null && !healthCheck.getUserAccessList().trim().isEmpty()) {
+			List<String> userAccessList = new ArrayList<>();
+			userAccessList.addAll(Arrays.asList(healthCheck.getUserAccessList().replaceAll("\\[", "").replaceAll("\\]","").split(",")));
+			JSONArray userArray = new JSONArray();
+			if(!userAccessList.isEmpty()) {
+				for(String userAccess : userAccessList) {
+					userArray.add(userAccess);
+				}
+			}
+			response.put("userAccessList", userArray);
+		} else {
+			response.put("userAccessList", new JSONArray());
+		}*/
+		
 		return response;
 	}
 
 
-	public JSONArray getAllHealthCheck(String siteKey) {
+	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId) {
 		JSONArray resultArray = new JSONArray();
 		try {
-			List<Object> resultList = healthCheckDao.getEntityListByColumn("select * from health_check where site_key='"+siteKey+"' and is_active='true'", HealthCheck.class);
+			String query = "select * from health_check where site_key='"+siteKey+"' and is_active='true'";
+			if(!isTenantAdmin) {
+				query = "select * from health_check where is_active = 'true' and ((create_by = '"+userId+"' and site_key = '"+siteKey+"') or ((site_access_list like '%"+siteKey+"%' or site_access_list like '%All%') and (user_access_list like '"+userId +"' or user_access_list  like '%All%')))";
+			}
+			
+			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
 			if(resultList != null && !resultList.isEmpty()) {
 				for(Object obj : resultList) {
 					if(obj instanceof HealthCheck) {
@@ -291,33 +333,31 @@ public class HealthCheckService {
 			if(userMap.containsKey(userId))
 			{
 				JSONObject userObj =   userMap.get(userId);
-				if(userObj.containsKey("isTenantAdmin")) {
-					isTenantAdmin = (boolean) userObj.get("isTenantAdmin");
+				if(userObj.containsKey("is_tenant_admin")) {
+					isTenantAdmin = (boolean) userObj.get("is_tenant_admin");
 				}
 				
 			}
 			
-			String siteQuery = "select from site";
-			System.out.println("!!!!! siteQuery: " + siteQuery);
+			
 			JSONArray siteQueryArray = getSiteList();
 			HashMap<String, String> siteMap = new HashMap<>();
 			for (int i = 0; i < siteQueryArray.size(); i++) {
 				JSONObject siteObj = (JSONObject) siteQueryArray.get(i);
-				if(siteObj.containsKey("siteKey") && siteObj.containsKey("siteName"))
+				if(siteObj.containsKey("site_key") && siteObj.containsKey("site_name"))
 				{
-					siteMap.put(siteObj.get("siteKey").toString(), siteObj.get("siteName").toString());
+					siteMap.put(siteObj.get("site_key").toString(), siteObj.get("site_name").toString());
 				}
 			}
-			//String listQuery = "select * from healthcheck where siteKey = '"+siteKey+"' and active = true";
+			// String listQuery = "select * from healthcheck where siteKey = '"+siteKey+"' and active = true";
 			
-			//if(!isTenantAdmin)
-			//{
+			//if(!isTenantAdmin) {
 
-			//	listQuery = "select from HealthCheck where active = 'true' and ((createdBy = '"+userId+"'and siteKey = '"+siteKey+"') or ((siteAccessList in '"+siteKey+"' or siteAccessList in ['All']) and (userAccessList in '"+userId +"' or userAccessList in ['All'])))";
+				//listQuery = "select from HealthCheck where active = 'true' and ((createdBy = '"+userId+"'and siteKey = '"+siteKey+"') or ((siteAccessList in '"+siteKey+"' or siteAccessList in ['All']) and (userAccessList in '"+userId +"' or userAccessList in ['All'])))";
 
 			//}
 			//System.out.println("listQuery:: "+listQuery);
-			JSONArray healthCheckList = getAllHealthCheck(siteKey);
+			JSONArray healthCheckList = getAllHealthCheck(siteKey, isTenantAdmin, userId);
 			
 			for (int i = 0; i < healthCheckList.size(); i++) {
 				JSONObject jObj = (JSONObject) healthCheckList.get(i);
@@ -496,6 +536,25 @@ public class HealthCheckService {
 			e.printStackTrace();
 		}
 		return toReturnHeader;
+	}
+
+
+	public JSONArray getHealthCheckDisplay() {
+		JSONArray jSONArray = new JSONArray();
+		
+		try {
+			List<Map<String, Object>> resultList = healthCheckDisplayDao.getListObjectsByQueryNew("select * from health_check_display"); 
+			if(resultList != null && !resultList.isEmpty()) {
+				for(Map<String, Object> map : resultList) {
+					String jsonString = objectMapper.writeValueAsString(map);
+					jSONArray.add(jSONParser.parse(jsonString));
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return jSONArray;
 	}
 
 }
