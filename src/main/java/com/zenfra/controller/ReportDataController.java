@@ -1,18 +1,8 @@
 package com.zenfra.controller;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +19,9 @@ import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.util.DataframeUtil;
-import com.zenfra.dataframe.util.ZenfraConstants;
+import com.zenfra.model.ZKConstants;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
-import com.zenfra.utils.DBUtils;
 
 
 @CrossOrigin(origins = "*")
@@ -124,14 +113,14 @@ public class ReportDataController {
 	      			
 	      			return new ResponseEntity<>(result, HttpStatus.OK);
 	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 
+	      			 return new ResponseEntity<>(ZKConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 
 	      			}
 	      		
 			} catch (Exception e) {
 				System.out.println("Not able to save local discovery in dataframe {}"+ e);
 			}   	
 	    	
-	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
+	      	 return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
 	    }
 	 
 	  @PostMapping("saveDefaultFavView")
@@ -156,7 +145,7 @@ public class ReportDataController {
 				System.out.println("Not able to save local discovery in dataframe {}"+ e);
 			}   	
 	    	
-	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
+	      	 return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
 	    }
 	 
 	 @PostMapping("getReportHeader")
@@ -186,7 +175,7 @@ public class ReportDataController {
 		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList, request.getCategory());
 		      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 		        }  else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		
+	      			 return new ResponseEntity<>(ZKConstants.PARAMETER_MISSING, HttpStatus.OK);	      		
 	      	    }
 	      		 
 	      		
@@ -195,7 +184,7 @@ public class ReportDataController {
 				System.out.println("Not able to get report headers {}"+ e);
 			}   	
 	    	
-	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
+	      	 return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
 	    }
 	 
 	 
@@ -208,13 +197,13 @@ public class ReportDataController {
 	      			JSONObject response = reportService.getReportUserCustomData(userId, siteKey, reportName);
 	      			return new ResponseEntity<>(response, HttpStatus.OK);
 	      		 } else {
-	      			 return new ResponseEntity<>(ZenfraConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
+	      			 return new ResponseEntity<>(com.zenfra.model.ZKConstants.PARAMETER_MISSING, HttpStatus.OK);	      		 }
 	      		
 			} catch (Exception e) {
 				System.out.println("Not able to get getChartLayout {}"+ e);
 			}   	
 	    	
-	      	 return new ResponseEntity<>(ZenfraConstants.ERROR, HttpStatus.OK);
+	      	 return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
 	    }
 	 
 	 

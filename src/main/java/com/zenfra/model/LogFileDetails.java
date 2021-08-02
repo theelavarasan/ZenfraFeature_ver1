@@ -113,9 +113,99 @@ public class LogFileDetails implements Serializable {
 	private boolean isActive=true;
 
 
+	@Column
+	@ApiModelProperty(value = "Parsing Status", name = "parsingStatus", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String parsingStatus;
+	
 	
 
+	@Column
+	@ApiModelProperty(value = "Message Status", name = "message", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String message;
+	
+	@Column
+	@ApiModelProperty(value = "Parsing Start Time", name = "parsingStartTime", dataType = "String", example = "01-01-2021 01:20:22 AM")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String parsingStartTime;
+	
+	
+	@Column
+	@ApiModelProperty(value = "parsedDateTime", name = "parsedDateTime", dataType = "String", example = "01-01-2021 01:20:22 AM")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String parsedDateTime;
+	
+	
+	@Column
+	@ApiModelProperty(value = "CmdStatusParsing", name = "CmdStatusParsing", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String CmdStatusParsing;
+	
+	@Column
+	@ApiModelProperty(value = "CmdStatusInsertion", name = "CmdStatusInsertion", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String CmdStatusInsertion;
 
+	
+	
+	@Column
+	@ApiModelProperty(value = "tempStatus", name = "tempStatus", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String tempStatus;
+
+
+
+	
+
+	public String getTempStatus() {
+		return tempStatus;
+	}
+
+
+	public void setTempStatus(String tempStatus) {
+		this.tempStatus = tempStatus;
+	}
+
+
+	public String getCmdStatusInsertion() {
+		return CmdStatusInsertion;
+	}
+
+
+	public void setCmdStatusInsertion(String cmdStatusInsertion) {
+		CmdStatusInsertion = cmdStatusInsertion;
+	}
+
+
+	public String getCmdStatusParsing() {
+		return CmdStatusParsing;
+	}
+
+
+	public void setCmdStatusParsing(String cmdStatusParsing) {
+		CmdStatusParsing = cmdStatusParsing;
+	}
+
+
+	public String getParsedDateTime() {
+		return parsedDateTime;
+	}
+
+
+	public void setParsedDateTime(String parsedDateTime) {
+		this.parsedDateTime = parsedDateTime;
+	}
+
+
+	public String getParsingStatus() {
+		return parsingStatus;
+	}
+
+
+	public void setParsingStatus(String parsingStatus) {
+		this.parsingStatus = parsingStatus;
+	}
 
 
 	public String getLogId() {
@@ -278,19 +368,65 @@ public class LogFileDetails implements Serializable {
 	}
 
 
-	@Override
-	public String toString() {
-		return "LogFileDetails [logId=" + logId + ", logType=" + logType + ", uploadedBy=" + uploadedBy + ", siteKey="
-				+ siteKey + ", createdDateTime=" + createdDateTime + ", updatedDateTime=" + updatedDateTime
-				+ ", fileName=" + fileName + ", fileSize=" + fileSize + ", status=" + status + ", response=" + response
-				+ ", tenantId=" + tenantId + ", description=" + description + ", extractedPath=" + extractedPath
-				+ ", uploadedLogs=" + uploadedLogs + ", masterLogs=" + masterLogs + ", isActive=" + isActive + "]";
+	public String getMessage() {
+		return message;
 	}
+
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+
+	public String getParsingStartTime() {
+		return parsingStartTime;
+	}
+
+
+	public void setParsingStartTime(String parsingStartTime) {
+		this.parsingStartTime = parsingStartTime;
+	}
+
+
+	
 
 
 	public LogFileDetails() {
 		super();
 		// TODO Auto-generated constructor stub
+	}
+
+
+	public LogFileDetails(String logId, @NotBlank(message = "logType must not be empty") String logType,
+			String uploadedBy, @NotBlank(message = "Site Key must not be empty") String siteKey, String createdDateTime,
+			String updatedDateTime, String fileName, String fileSize, String status, String response, String tenantId,
+			String description, String extractedPath, String uploadedLogs, String masterLogs, boolean isActive,
+			String parsingStatus, String message, String parsingStartTime, String parsedDateTime,
+			String cmdStatusParsing, String cmdStatusInsertion, String tempStatus) {
+		super();
+		this.logId = logId;
+		this.logType = logType;
+		this.uploadedBy = uploadedBy;
+		this.siteKey = siteKey;
+		this.createdDateTime = createdDateTime;
+		this.updatedDateTime = updatedDateTime;
+		this.fileName = fileName;
+		this.fileSize = fileSize;
+		this.status = status;
+		this.response = response;
+		this.tenantId = tenantId;
+		this.description = description;
+		this.extractedPath = extractedPath;
+		this.uploadedLogs = uploadedLogs;
+		this.masterLogs = masterLogs;
+		this.isActive = isActive;
+		this.parsingStatus = parsingStatus;
+		this.message = message;
+		this.parsingStartTime = parsingStartTime;
+		this.parsedDateTime = parsedDateTime;
+		CmdStatusParsing = cmdStatusParsing;
+		CmdStatusInsertion = cmdStatusInsertion;
+		this.tempStatus = tempStatus;
 	}
 	
 	

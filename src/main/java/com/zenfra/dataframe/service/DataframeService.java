@@ -15,6 +15,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,6 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -54,22 +60,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Sets;
+import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
 import com.zenfra.dataframe.filter.ColumnFilter;
 import com.zenfra.dataframe.filter.NumberColumnFilter;
 import com.zenfra.dataframe.filter.SetColumnFilter;
 import com.zenfra.dataframe.filter.TextColumnFilter;
+import com.zenfra.dataframe.request.AwsInstanceData;
 import com.zenfra.dataframe.request.ColumnVO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
-import com.zenfra.dataframe.util.ZenfraConstants;
+import com.zenfra.model.ZKConstants;
 import com.zenfra.utils.DBUtils;
-
-import scala.collection.JavaConverters;
-import scala.collection.Seq;
 
 
 @Repository
@@ -626,12 +631,12 @@ public class DataframeService{
 			
 			//boolean fileOwnerChanged = DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
 			
-			return ZenfraConstants.SUCCESS;
+			return ZKConstants.SUCCESS;
 		} catch (Exception exp) {
 			logger.error("Not able to create dataframe {}",  exp.getMessage(), exp);
 		}
 		
-		return ZenfraConstants.ERROR;
+		return ZKConstants.ERROR;
 	}
 		
 	
@@ -974,7 +979,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				        			  sparkSession.sql("REFRESH TABLE global_temp."+viewName);				                 
 				                 System.out.println("----------------Dataframe Append--------------------------------");	
 				                 DataframeUtil.deleteFile(tmpFile);
-				                 result = ZenfraConstants.SUCCESS;				                
+				                 result = ZKConstants.SUCCESS;				                
 				        	} catch(Exception e) {
 				        		e.printStackTrace();
 				        	}
@@ -1024,7 +1029,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							
 							 DataframeUtil.deleteFile(tmpFile);
 							 System.out.println("---------new Dataframe created with new source type-------------- ");
-							 result = ZenfraConstants.SUCCESS;
+							 result = ZKConstants.SUCCESS;
 						} 		        	  
 		         
 		         }
@@ -1130,12 +1135,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				Dataset<Row> headerDF = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
 				headerDF.createOrReplaceGlobalTempView("report_columns");
 				System.out.println("---------------3--------------------");
-				return ZenfraConstants.SUCCESS;
+				return ZKConstants.SUCCESS;
 				 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			return ZenfraConstants.ERROR;
+			return ZKConstants.ERROR;
 		}
 
 
@@ -1195,12 +1200,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 				createDataframeGlobalView();
 				
-				return ZenfraConstants.SUCCESS;
+				return ZKConstants.SUCCESS;
 			} catch (Exception exp) {
 				logger.error("Not able to create dataframe {}",  exp.getMessage(), exp);
 			}
 			
-			return ZenfraConstants.ERROR;
+			return ZKConstants.ERROR;
 			
 		}
 
@@ -1669,6 +1674,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 String discoveryFilterqry ="";
 			
 			   List<String> columnHeaders = new ArrayList<>();
+			   List<String> numberColumnHeaders = new ArrayList<>();
 			   if(headers != null && headers.size() > 0) {
 				   for(Object o : headers){
 					    if ( o instanceof JSONObject ) {
@@ -1676,6 +1682,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					    	String dataType = (String) ((JSONObject) o).get("dataType");
 					    	if(dataType.equalsIgnoreCase("String")) {
 					    		columnHeaders.add(col);
+					    	} else {
+					    		numberColumnHeaders.add(col);
 					    	}
 					    	
 					    }
@@ -1787,18 +1795,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                  
                dataCheck = sparkSession.sql(sql).toDF();             
                  
-               logger.info("getReport Details Ends");
-               
-               request.setStartRow(0);
-               request.setEndRow((int)dataCheck.count());
-               rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
-    	        groupKeys = request.getGroupKeys();
-    	        valueColumns = request.getValueCols();
-    	        pivotColumns = request.getPivotCols();
-    	        filterModel = request.getFilterModel();
-    	        sortModel = request.getSortModel();
-    	        isPivotMode = request.isPivotMode();
-    	        isGrouping = rowGroups.size() > groupKeys.size();    	      
+              
+    	        
+    	        //List<String> colHeaders = Arrays.asList(dataCheck.columns());
+                //Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
+                //dataCheck = dataCheck.unionByName(awsInstanceData);
     	        
     	        for(String col : columnHeaders) {    	        	
     	        	dataCheck = dataCheck.withColumn(col, functions.when(col(col).equalTo(""),"N/A")
@@ -1806,12 +1807,39 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
       		  		      .otherwise(col(col)));
     	        }
     	        
-    	        if(!taskListServers.isEmpty()) { //add server~ for task list call
+    	        if(!taskListServers.isEmpty()) { //add server~ for task list call    	        	
+    	        	List<String> allServers = dataCheck.select("Server Name").as(Encoders.STRING()).collectAsList();    
+    	        	
+    	        	taskListServers.removeAll(allServers);    	        
+    	        	
+    	        	if(taskListServers != null && !taskListServers.isEmpty()) {
+    	        		Dataset<Row> nonOptDataset = getNonOptDatasetData(siteKey, taskListServers);
+    	        		
+        	        	if(nonOptDataset != null && !nonOptDataset.isEmpty()) {
+        	        		dataCheck = dataCheck.unionByName(nonOptDataset);
+        	        	}
+    	        	}
+    	        	
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - HW", "server~End Of Life - HW");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS");
     	        	dataCheck = dataCheck.withColumnRenamed("End Of Extended Support - OS", "server~End Of Extended Support - OS");
+    	        
+    	        	
     	        }
+    	        
+    	        logger.info("getReport Details Ends");
+                
+                request.setStartRow(0);
+                request.setEndRow((int)dataCheck.count());
+                rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+     	        groupKeys = request.getGroupKeys();
+     	        valueColumns = request.getValueCols();
+     	        pivotColumns = request.getPivotCols();
+     	        filterModel = request.getFilterModel();
+     	        sortModel = request.getSortModel();
+     	        isPivotMode = request.isPivotMode();
+     	        isGrouping = rowGroups.size() > groupKeys.size();   
     	    
                 return paginate(dataCheck, request);
                  
@@ -1824,6 +1852,173 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
              return paginate(dataCheck, request);
 		}
 		
+		
+		 private Dataset<Row> getNonOptDatasetData(String siteKey, List<String> taskListServers) {
+			 try {
+				 String serverList= "";
+				 serverList = String.join(",", taskListServers
+				            .stream()
+				            .map(server -> ("'" + server.toLowerCase() + "'"))
+				            .collect(Collectors.toList()));
+				   
+				 //, eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life - OS`, eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp.localDiscoveryTemp l  left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(l.`OS Version`) and lcase(eol.os_type)=lcase(l.`Server Type`)  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(l.`Server Model`, ' ', ''))
+				 Dataset<Row> data = sparkSession.sql("select l.rank as `my_rank`, l.`Server Name`, l.OS as `OS Name`, l.`Server Type`, l.`Server Model`, l.Memory, l.`Total Size`, l.`Number of Processors`, l.`Logical Processor Count`, l.`CPU GHz`, l.`Processor Name`, l.`Number of Cores`, l.`DB Service`, l.`HBA Speed`, l.`Number of Ports`, l.`Host`, 'AWS On Demand Price', 'AWS 3 Year Price', 'AWS 1 Year Price', 'AWS Instance Type', 'AWS Region', 'AWS Specs', 'Azure On Demand Price', 'Azure 3 Year Price', 'Azure 1 Year Price', 'Azure Instance Type', 'Azure Specs', 'Google Instance Type', 'Google On Demand Price', 'Google 1 Year Price', 'Google 3 Year Price', l.`OS Version`, eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life - OS`, eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp.localDiscoveryTemp l  left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(l.`OS Version`) and lcase(eol.os_type)=lcase(l.`Server Type`)  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(l.`Server Model`, ' ', '')) where lower(l.`Server Name`) in ("+serverList+")");
+					
+				 data = data.withColumn("AWS On Demand Price", lit("N/A"));
+				 data = data.withColumn("AWS 3 Year Price", lit("N/A"));
+				 data = data.withColumn("AWS 1 Year Price", lit("N/A"));
+				 data = data.withColumn("AWS Instance Type", lit("N/A"));
+				 data = data.withColumn("AWS Region", lit("N/A"));
+				 data = data.withColumn("AWS Specs", lit("N/A"));
+				 data = data.withColumn("Azure On Demand Price", lit("N/A"));
+				 data = data.withColumn("Azure 3 Year Price", lit("N/A"));
+				 data = data.withColumn("Azure 1 Year Price", lit("N/A"));
+				 data = data.withColumn("Azure Instance Type", lit("N/A"));
+				 data = data.withColumn("Azure Specs", lit("N/A"));
+				 data = data.withColumn("Google Instance Type", lit("N/A"));
+				 data = data.withColumn("Google On Demand Price", lit("N/A"));
+				 data = data.withColumn("Google 1 Year Price", lit("N/A"));
+				 data = data.withColumn("Google 3 Year Price", lit("N/A"));				
+				 return data;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			 Dataset<Row> df = sparkSession.emptyDataFrame();
+			return df;
+			
+		}
+
+
+
+		private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
+			 Dataset<Row> result = sparkSession.emptyDataFrame();
+			 Connection conn = null;
+			 Statement stmt = null;
+			 if(deviceType.equalsIgnoreCase("All")) {
+				 deviceType = " (lower(img.platformdetails) like '%linux%' or lower(img.platformdetails) like '%windows%' or lower(img.platformdetails) like '%vmware%')";
+			 } else {
+				 deviceType = " lower(img.platformdetails) like '%"+deviceType.toLowerCase()+"%'";
+			 }
+			 try {
+				String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, img.description from ec2_instances i join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey="+siteKey+" and "+ deviceType;// + " group by it.instancetype, it.vcpuinfo, it.memoryinfo";
+				System.out.println("----------------query------------------" + query);
+				conn = AwsInventoryPostgresConnection.dataSource.getConnection();
+				 stmt = conn.createStatement();				 
+				 ResultSet rs = stmt.executeQuery(query);		
+				
+				 List<AwsInstanceData> resultRows = resultSetToList(rs);
+				 Dataset<Row> data = sparkSession.createDataFrame(resultRows, AwsInstanceData.class);				 				 
+				 
+				// Dataset<Row> data = sparkSession.read().format("csv").option("header","true").load("E:\\opt\\aws_inventory1.csv").distinct();
+			
+				
+				 data = data.withColumnRenamed("region", "AWS Region");
+				 data = data.withColumnRenamed("instancetype", "AWS Instance Type");
+				 data = data.withColumnRenamed("memoryinfo", "Memory");
+				 data = data.withColumnRenamed("vcpuinfo", "Number of Cores");
+				 data = data.withColumnRenamed("platformdetails", "Operating Name");
+				 data = data.withColumnRenamed("description", "OS Version");
+				 data = data.withColumnRenamed("instanceid", "Server Name");
+				
+				 data.createOrReplaceTempView("awsInstanceDF");				
+				 
+				 try {
+					
+					 Dataset<Row> dataCheck1 = sparkSession.sql("select round(az.demandPrice,2) as `Azure On Demand Price`, round(az.3YrPrice,2) as `Azure 3 Year Price`, round(az.1YrPrice,2) as `Azure 1 Year Price`, az.InstanceType as `Azure Instance Type`,  ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`OS Version`, ai.`Server Name`, ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = ai.`Operating Name` and a.PurchaseOption='No Upfront' and a.`Instance Type`= ai.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`,"
+					 		+ "((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = ai.`Operating Name` and a.PurchaseOption='No Upfront' and a.`Instance Type`=ai.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`,"					 		
+					 		+ "(a.`PricePerUnit` * 730) as `AWS On Demand Price`  from awsInstanceDF ai left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)=lower(a.`Instance Type`) and  cast(ai.Memory as int) >= CAST(a.Memory as int) and cast(ai.`Number of Cores` as int) >= CAST(a.vCPU as int) and  a.`License Model`='No License required'  and a.Location='US East (Ohio)' and a.Tenancy <> 'Host' and (a.`Product Family` = 'Compute Instance (bare metal)' or a.`Product Family` = 'Compute Instance')" 
+					 		+ " left join global_temp.azurePricingDF az on cast(ai.Memory as int) >= CAST(az.Memory as int) and cast(ai.`Number of Cores` as int) >= CAST(az.vCPU as int) and ai.`Operating System` = az.`Operating Name` "
+					 		+ "").toDF();  				
+					
+					 // left join global_temp.googlePricingDF g  on cast(ai.Memory as int) >= CAST(g.Memory as int) and cast(ai.`Number of Cores` as int) >= CAST(g.vCPU as int) and ai.`Operating System` = g.`Operating Name` 
+					 
+					 List<String> dup = new ArrayList<>();
+					 dup.addAll(Arrays.asList(dataCheck1.columns()));
+					 List<String> original = new ArrayList<>();
+					 original.addAll(columnHeaders);
+					 original.removeAll(dup);
+					 for(String col : original) {
+						 dataCheck1 = dataCheck1.withColumn(col, lit("N/A"));
+					 }
+					 dataCheck1 = dataCheck1.withColumn("my_rank", lit("N/A"));
+					 result = dataCheck1.toDF();
+					
+			        } catch (Exception ex) {
+			            ex.printStackTrace();
+			        }
+				 
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					conn.close();
+					AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
+				} catch (Exception e2) {
+					// TODO: handle exception
+				}
+			}
+			return result;
+		}
+
+
+		 private List<AwsInstanceData> resultSetToList(ResultSet rs) throws SQLException {
+			    ResultSetMetaData md = rs.getMetaData();
+			    int columns = md.getColumnCount();
+			    List<AwsInstanceData> rows = new ArrayList<>();
+			    while (rs.next()){
+			        Map<String, String> row = new HashMap<String, String>(columns);
+			        
+			        for(int i = 1; i <= columns; ++i){
+			        	String colName = md.getColumnName(i);
+			        	String value = rs.getString(i);			        
+			        	if(md.getColumnName(i).equals("vcpuinfo")) {
+			        		value = getValueFromJson("DefaultVCpus", rs.getString(i));			        		
+			        	}
+			        	if(md.getColumnName(i).equals("memoryinfo")) {
+			        		value = getValueFromJson("SizeInMiB", rs.getString(i));	
+			        		value = Integer.parseInt(value)/1024 + "";
+			        	}
+			        	if(md.getColumnName(i).equals("platformdetails")) {
+			        		value = rs.getString(i);			
+			        		if(StringUtils.containsIgnoreCase(value, "CentOS") || StringUtils.containsIgnoreCase(value, "LINUX")) {
+			        			value = "LINUX";
+			        		}
+			        		if(StringUtils.containsIgnoreCase(value, "SUSE")) {
+			        			value = "SUSE";
+			        		}
+			        		if(StringUtils.containsIgnoreCase(value, "Red")) {
+			        			value = "RHEL";
+			        		}
+			        	}
+			            row.put(colName, value);
+			           
+			        }
+			        AwsInstanceData awsInstanceData = new AwsInstanceData(row.get("region"), row.get("instancetype"),row.get("memoryinfo"),row.get("vcpuinfo"),row.get("platformdetails"),row.get("description"));
+			    	//System.out.println("----json----------" +awsInstanceData.toString() );
+			        rows.add(awsInstanceData);
+			    }
+			    return rows;
+			}
+
+		private String getValueFromJson(String key, String jsonString) {
+			try {
+				JSONParser jSONParser = new JSONParser();
+				JSONObject json = (JSONObject) jSONParser.parse(jsonString);
+			
+				if(json.get(key)  instanceof String) {
+					return (String) json.get(key);
+				} else if(json.get(key)  instanceof Long) {
+					Long  rs = (Long) json.get(key);
+					return rs.toString();
+				}
+				return "";
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return "";
+		}
 		
 
 		 private void constructReport(String siteKey, String discoveryFilterqry) {

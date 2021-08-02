@@ -107,5 +107,11 @@ public class ZKConstants {
 	public static String PG_MAX_POOL_SIZE="pg_max_pool_size";
 	public static String AWS_TABLE_JDBC_URL="postgresurl_aws_db";
 	
+	public final static String ERROR = "Error";
+	public final static String SUCCESS = "Success";
+	public final static String PARAMETER_MISSING = "Parameter missing";
+	public static String HEALTHCHECK_COLUMN_ORDER = "healthCheckName,componentType,reportName,createdBy,createdTime,updatedBy,updatedTime";
+	public static String HEADER_LABEL = "headerLabel";
+	
 
 }
