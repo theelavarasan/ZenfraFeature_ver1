@@ -145,8 +145,15 @@ public class HealthCheckService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
-		response.put("siteAccessList",Arrays.asList(healthCheck.getSiteAccessList()));
-		response.put("userAccessList",Arrays.asList(healthCheck.getUserAccessList()));	
+		
+		List<String> uList = new ArrayList<String>();
+		uList.addAll(Arrays.asList(healthCheck.getUserAccessList().split(",")));
+		
+		List<String> sList = new ArrayList<String>();
+		sList.addAll(Arrays.asList(healthCheck.getSiteAccessList().split(",")));
+		
+		response.put("siteAccessList",sList);
+		response.put("userAccessList",uList);	
 		response.put("healthCheckId", healthCheck.getHealthCheckId());
 		response.put("createdById", healthCheck.getCreateBy());
 		response.put("updatedById", healthCheck.getUpdateBy());
