@@ -14,8 +14,9 @@ public class AwsInstanceData implements Serializable {
 	private String platformdetails;
 	private String description;
 	private String updated_date;
+	private String actualOsType;
 	
-	public AwsInstanceData(String region, String instancetype, String memoryinfo, String vcpuinfo, String platformdetails, String description, String instanceid, String updated_date) {
+	public AwsInstanceData(String region, String instancetype, String memoryinfo, String vcpuinfo, String platformdetails, String description, String instanceid, String updated_date, String actualOsType) {
 		super();
 		this.region = region;
 		this.instancetype = instancetype;
@@ -25,6 +26,7 @@ public class AwsInstanceData implements Serializable {
 		this.description = description;
 		this.instanceid = instanceid;
 		this.updated_date = updated_date;
+		this.actualOsType = actualOsType;
 		
 	}
 
@@ -95,6 +97,15 @@ public class AwsInstanceData implements Serializable {
 	public void setUpdated_date(String updated_date) {
 		this.updated_date = updated_date;
 	}
+	
+
+	public String getActualOsType() {
+		return actualOsType;
+	}
+
+	public void setActualOsType(String actualOsType) {
+		this.actualOsType = actualOsType;
+	}
 
 	public String toString() {
 	     return new ToStringBuilder(this).
@@ -106,6 +117,7 @@ public class AwsInstanceData implements Serializable {
 	       append("description", description).
 	       append("instanceid", instanceid).
 	       append("updated_date", updated_date).
+	       append("actualOsType", actualOsType).
 	       toString();
 	   }
 
