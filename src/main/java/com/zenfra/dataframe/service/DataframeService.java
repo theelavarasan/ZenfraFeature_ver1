@@ -1994,6 +1994,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			        		value = Integer.parseInt(value)/1024 + "";
 			        	}
 			        	
+			        	if(md.getColumnName(i).equals("region")) {
+			        		value = getValueFromJson("region", rs.getString(i));	
+			        		if(value.equalsIgnoreCase("us-east-2")) {
+			        			value = "US East (Ohio)";
+			        		}
+			        	}
 			        	if(md.getColumnName(i).equals("platformdetails")) {
 			        		String actualOsType="";
 			        		value = rs.getString(i);			
