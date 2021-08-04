@@ -105,14 +105,36 @@ public class HealthCheckService {
 		}
 		healthCheck.setHealthCheckId(healthCheckModel.getHealthCheckId());
 		healthCheck.setSiteKey(healthCheckModel.getSiteKey());
-		healthCheck.setComponentType(healthCheckModel.getComponentType());
-		healthCheck.setHealthCheckName(healthCheckModel.getHealthCheckName());
-		healthCheck.setReportName(healthCheckModel.getReportName());
-		healthCheck.setReportBy(healthCheckModel.getReportBy());
-		healthCheck.setReportName(healthCheckModel.getReportName());
-		healthCheck.setSiteAccessList(String.join(",", healthCheckModel.getSiteAccessList()));
-		healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
-		healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); //().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
+		if(healthCheckModel.getComponentType() != null) {
+			healthCheck.setComponentType(healthCheckModel.getComponentType());
+		}
+		if(healthCheckModel.getHealthCheckName() != null) {
+			healthCheck.setHealthCheckName(healthCheckModel.getHealthCheckName());
+		}
+		if(healthCheckModel.getReportName() != null) {
+			healthCheck.setReportName(healthCheckModel.getReportName());
+		}
+		
+		if(healthCheckModel.getReportBy() != null) {
+			healthCheck.setReportBy(healthCheckModel.getReportBy());
+		}
+		if(healthCheckModel.getReportName() != null) {
+			healthCheck.setReportName(healthCheckModel.getReportName());
+		}
+		
+		if(healthCheckModel.getSiteAccessList() != null) {
+			healthCheck.setSiteAccessList(String.join(",", healthCheckModel.getSiteAccessList()));
+		}
+		
+		if(healthCheckModel.getUserAccessList() != null) {
+			healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
+		}
+		
+		
+		if(healthCheckModel.getReportCondition() != null) {
+			healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); 
+		}
+		//().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
 		healthCheck.setActive(true);
 		healthCheck.setUserId(healthCheckModel.getAuthUserId());
 		if(type.equalsIgnoreCase("update")) {			
