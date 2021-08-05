@@ -7,6 +7,7 @@ import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 
 import org.json.simple.JSONObject;
@@ -85,6 +86,9 @@ public class HealthCheck implements Serializable {
 	
 	@Column
 	private boolean isActive;
+	
+	@Transient
+	private String authUserId;
 	
 
 	public String getCreateBy() {
@@ -206,6 +210,16 @@ public class HealthCheck implements Serializable {
 	public void setActive(boolean isActive) {
 		this.isActive = isActive;
 	}
+
+	public String getAuthUserId() {
+		return authUserId;
+	}
+
+	public void setAuthUserId(String authUserId) {
+		this.authUserId = authUserId;
+	}
+	
+	
 
 	
 	

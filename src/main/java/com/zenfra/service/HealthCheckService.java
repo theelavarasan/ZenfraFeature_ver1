@@ -61,11 +61,12 @@ public class HealthCheckService {
 	}
 
 
-	public JSONObject getHealthCheck(String healthCheckId) {
+	public JSONObject getHealthCheck(String healthCheckId, String authUserId) {
 		HealthCheck healthCheck= new HealthCheck();
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='"+healthCheckId+"' and is_active='true'", HealthCheck.class);
+		savedObj.setAuthUserId(authUserId);
 		if(savedObj != null) {
 			healthCheckModel = convertEntityToModel(savedObj);
 			System.out.println("healthCheckModel::"+healthCheckModel);	
@@ -203,6 +204,22 @@ public class HealthCheckService {
 		
 		response.put("updatedTime", formatter.format(healthCheck.getUpdateDate()));	
 		response.put("userId", healthCheck.getUserId());	
+		
+		boolean isWriteAccess = false;
+		if(healthCheck.getAuthUserId() != null) {
+			boolean isTenantAdmin = false;
+			
+			Users loginUser = userService.getUserByUserId(healthCheck.getAuthUserId());
+			if(loginUser != null && loginUser.isIs_tenant_admin()) {
+				isTenantAdmin = true;
+			}
+			
+			if(isTenantAdmin || healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getAuthUserId())) {
+				isWriteAccess = true;
+			}
+		}
+		
+		response.put("isWriteAccess", isWriteAccess);
 		
 		/*if(healthCheck.getSiteAccessList() != null && !healthCheck.getSiteAccessList().trim().isEmpty()) {
 			List<String> siteAccessList = new ArrayList<>();

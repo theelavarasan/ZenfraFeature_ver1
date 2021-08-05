@@ -355,11 +355,11 @@ public class FavouriteController_v2 {
 
 
 	@PostMapping("/getHealthCheck")
-	public ResponseEntity<?> getHealthCheck(@RequestParam("healthCheckId") String healthCheckId, HttpServletRequest request, HttpServletResponse respone) {
+	public ResponseEntity<?> getHealthCheck(@RequestParam("healthCheckId") String healthCheckId, @RequestParam("authUserId") String authUserId, HttpServletRequest request, HttpServletResponse respone) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-			JSONObject healthCheckObj = healthCheckService.getHealthCheck(healthCheckId);
+			JSONObject healthCheckObj = healthCheckService.getHealthCheck(healthCheckId, authUserId);
 
 			if (healthCheckObj != null) {
 				responseModel.setjData(healthCheckObj);
