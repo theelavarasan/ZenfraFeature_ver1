@@ -1927,6 +1927,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 data.show();
 				 
 				 getAzurePricingForAWS();
+				 getGooglePricingForAWS();
 				 try {
 					
 						
@@ -1937,24 +1938,30 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						  +  " left join global_temp.azurePricingDF az on cast(awsData.Memory as int) = CAST(az.Memory as int) and cast(awsData.`Number of Cores` as int) = CAST(az.VCPUs as int) and lcase(az.OperatingSystem) = lcase(awsData.`Operating System`)"
 						  +  " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where  Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float)=cast(awsData.`Number of Cores` as float) and cast(googlePricing.Memory as float)=cast(awsData.Memory as float)") .toDF();
 						*/ 
-					 Dataset<Row> dataCheck1 = sparkSession.sql("select * from (select ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, ai.`OS Name`, round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`,  ROW_NUMBER () over (partition BY ai.`instanceid` ORDER BY a.`PricePerUnit` ASC) AS my_rank, ((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a  where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ) as `AWS 3 Year Price`, ((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`)  and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ) as `AWS 1 Year Price`, (a.`PricePerUnit` * 730) as `AWS On Demand Price` from global_temp.awsInstanceDF ai    left join global_temp.azureReportForAWSInstance azure on lower(azure.`OS Name`) = lower(ai.`actualOsType`) and cast(azure.Memory as float ) = cast(ai.Memory as float)  and cast(azure.VCPUs as int ) = cast(ai.`Number of Cores` as int)  left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)= lower(a.`Instance Type`) and a.`License Model` = 'No License required' and a.Location = 'US East (Ohio)' and a.Tenancy <> 'Host' and a.TermType = 'OnDemand' and lower(a.`Operating System`) = lower(ai.`OS Name`) and cast(a.`PricePerUnit` as float ) > 0.0 and (  a.`Product Family` = 'Compute Instance (bare metal)'   or a.`Product Family` = 'Compute Instance'  )) AWS where AWS.my_rank = 1").toDF();
-										 
+					// Dataset<Row> dataCheck1 = sparkSession.sql("select * from (select ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, ai.`OS Name`, round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`,  ROW_NUMBER () over (partition BY ai.`instanceid` ORDER BY a.`PricePerUnit` ASC) AS my_rank, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a  where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 3 Year Price`, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`)  and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 1 Year Price`, round((a.`PricePerUnit` * 730),2) as `AWS On Demand Price` from global_temp.awsInstanceDF ai    left join global_temp.azureReportForAWSInstance azure on lower(azure.`OS Name`) = lower(ai.`actualOsType`) and cast(azure.Memory as float ) = cast(ai.Memory as float)  and cast(azure.VCPUs as int ) = cast(ai.`Number of Cores` as int)  left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)= lower(a.`Instance Type`) and a.`License Model` = 'No License required' and a.Location = 'US East (Ohio)' and a.Tenancy <> 'Host' and a.TermType = 'OnDemand' and lower(a.`Operating System`) = lower(ai.`OS Name`) and cast(a.`PricePerUnit` as float ) > 0.0 and (  a.`Product Family` = 'Compute Instance (bare metal)'   or a.`Product Family` = 'Compute Instance'  )) AWS where AWS.my_rank = 1").toDF();
+					
+					 Dataset<Row> dataCheck1 = sparkSession.sql("select * from (select g.`Google Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`, g.`Google 3 Year Price`, ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, ai.`OS Name`, round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`,  ROW_NUMBER () over (partition BY ai.`instanceid` ORDER BY a.`PricePerUnit` ASC) AS my_rank, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a  where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 3 Year Price`, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`)  and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 1 Year Price`, round((a.`PricePerUnit` * 730),2) as `AWS On Demand Price` from global_temp.awsInstanceDF ai left join global_temp.googleReportForAWSInstance g on ai.instanceid=g.instanceid  left join global_temp.azureReportForAWSInstance azure on lower(azure.`OS Name`) = lower(ai.`actualOsType`) and cast(azure.Memory as float ) = cast(ai.Memory as float)  and cast(azure.VCPUs as int ) = cast(ai.`Number of Cores` as int)  left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)= lower(a.`Instance Type`) and a.`License Model` = 'No License required' and a.Location = 'US East (Ohio)' and a.Tenancy <> 'Host' and a.TermType = 'OnDemand' and lower(a.`Operating System`) = lower(ai.`OS Name`) and cast(a.`PricePerUnit` as float ) > 0.0 and (  a.`Product Family` = 'Compute Instance (bare metal)'   or a.`Product Family` = 'Compute Instance'  )) AWS where AWS.my_rank = 1").toDF();
+					
 					 List<String> dup = new ArrayList<>();
 					 dup.addAll(Arrays.asList(dataCheck1.columns()));
 					 List<String> original = new ArrayList<>();
 					 original.addAll(columnHeaders);
 					 original.removeAll(dup);
 					 for(String col : original) {
-						 dataCheck1 = dataCheck1.withColumn(col, lit("N/A"));
-					 }					 
+						 if(col.equalsIgnoreCase("Server Type")) {							
+							 dataCheck1 = dataCheck1.withColumn(col, lit("EC2"));
+						 } else {
+							 dataCheck1 = dataCheck1.withColumn(col, lit("N/A"));
+						 }
+						
+					 }		
+					
 					 result = dataCheck1.toDF();	
 					 
-					 Collections.sort(columnHeaders);
-					 List<String> tmp = new ArrayList<String>();
-					 tmp.addAll(Arrays.asList(dataCheck1.columns()));
-					 Collections.sort(tmp);
-					 System.out.println("------------------columnHeaders----------------" + columnHeaders);
-					 System.out.println("------------------columnHeader ----------------" + tmp);
+						/*
+						 * Collections.sort(columnHeaders); List<String> tmp = new ArrayList<String>();
+						 * tmp.addAll(Arrays.asList(dataCheck1.columns())); Collections.sort(tmp);
+						 */				 
 					
 			        } catch (Exception ex) {
 			            ex.printStackTrace();
@@ -1994,9 +2001,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			        		value = Integer.parseInt(value)/1024 + "";
 			        	}
 			        	
-			        	if(md.getColumnName(i).equals("region")) {
-			        		value = getValueFromJson("region", rs.getString(i));	
-			        		if(value.equalsIgnoreCase("us-east-2")) {
+			        	if(md.getColumnName(i).equals("region")) {			        		
+			        		if(rs.getString(i).equalsIgnoreCase("us-east-2")) {
 			        			value = "US East (Ohio)";
 			        		}
 			        	}
@@ -2256,37 +2262,32 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		 public void getGooglePricingForAWS() {
 		        try {
 		            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
-		                    " select report.`vCPU`,  " +
+		                    " select report.`VCPUs`, report.`instanceid`, " +
 		                    " report.`OS Name`," +
 		                    " report.`Memory`, " +		                  
 		                    " report.`Number of Cores`, " +		                   
 		                    " report.`Google Instance Type`,report.`Google On Demand Price`,report.`Google 1 Year Price`,report.`Google 3 Year Price`," +
 		                    " ROW_NUMBER() OVER (PARTITION BY report.`instanceid` ORDER BY cast(report.`Google On Demand Price` as float) asc) as my_rank" +
-		                    " from (SELECT SELECT ai.`instanceid`, " +
+		                    " from (SELECT ai.`instanceid`, " +
 		                    " ai.`Number of Cores`, ai.`actualOsType` as `OS Name`," +		                    
-		                    " ai.Memory, " +		                  
+		                    " ai.Memory, ai.instanceid," +		                  
 		                    " ai.`Number of Cores`, " +		                    
-		                    " googlePricing.InstanceType as `Google Instance Type`," +
-		                    " round(googlePricing.pricePerUnit*730 + " +		                  
+		                    " googlePricing.InstanceType as `Google Instance Type`, googlePricing.`VCPUs`," +
+		                    " round(googlePricing.pricePerUnit * 730 + " +		                  
 		                    " (case when ai.`actualOsType` like '%Windows%' then 67.16  when ai.`actualOsType` like '%Red Hat%' then 43.8 else 0  end),2) as `Google On Demand Price`," +
-		                    " round(googlePricing.1YrPrice*730 + " +		                 
-		                    " (case when localDiscoveryDF.OS like '%Windows%' then 67.16  when localDiscoveryDF.OS like '%Red Hat%' then 43.8 else 0  end),2) as `Google 1 Year Price`," +
-		                    " round(googlePricing.3YrPrice*730 + " +		                  
-		                    " (case when localDiscoveryDF.OS like '%Windows%' then 67.16  when localDiscoveryDF.OS like '%Red Hat%' then 43.8 else 0  end),2) as `Google 3 Year Price`" +
+		                    " round(googlePricing.1YrPrice * 730 + " +		                 
+		                    " (case when ai.`actualOsType` like '%Windows%' then 67.16  when ai.`actualOsType` like '%Red Hat%' then 43.8 else 0  end),2) as `Google 1 Year Price`," +
+		                    " round(googlePricing.3YrPrice * 730 + " +		                  
+		                    " (case when ai.`actualOsType` like '%Windows%' then 67.16  when ai.`actualOsType` like '%Red Hat%' then 43.8 else 0  end),2) as `Google 3 Year Price`" +
 		                    " FROM global_temp.awsInstanceDF ai " +
-		                    " join (Select localDiscoveryDF1.site_key,localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
-		                    " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
-		                    " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key" +
 		                    " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where " +
-		                    " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) >= " +
-		                    " (case when localDiscoveryDF.`Number of Processors` is not null then" +
-		                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Number of Processors` is not null then" +
-		                    " localDiscoveryDF.`Logical Processor Count` else 0 end) and " +
-		                    " cast(googlePricing.Memory as float) >= (case when localDiscoveryDF.Memory is null then 0 else " +
-		                    " cast(localDiscoveryDF.Memory as int) end)) report ) reportData " +
-		                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
+		                    " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) =  cast(ai.`Number of Cores` as float) and " +
+		                    " cast(googlePricing.Memory as float) >= cast (ai.Memory as float)) report ) reportData " +
+		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("googleReportForAWSInstance");				           
 		            dataCheck.cache();
+		            dataCheck.printSchema();
+		            dataCheck.show();
 		        } catch (Exception ex) {
 		            ex.printStackTrace();
 		        }
