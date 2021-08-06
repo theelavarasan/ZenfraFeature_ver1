@@ -8,12 +8,15 @@ public class AwsInstanceData implements Serializable {
 	
 	private String region;
 	private String instancetype;
+	private String instanceid;
 	private String memoryinfo;
 	private String vcpuinfo;
 	private String platformdetails;
 	private String description;
+	private String updated_date;
+	private String actualOsType;
 	
-	public AwsInstanceData(String region, String instancetype, String memoryinfo, String vcpuinfo, String platformdetails, String description) {
+	public AwsInstanceData(String region, String instancetype, String memoryinfo, String vcpuinfo, String platformdetails, String description, String instanceid, String updated_date, String actualOsType) {
 		super();
 		this.region = region;
 		this.instancetype = instancetype;
@@ -21,6 +24,9 @@ public class AwsInstanceData implements Serializable {
 		this.vcpuinfo = vcpuinfo;
 		this.platformdetails = platformdetails;
 		this.description = description;
+		this.instanceid = instanceid;
+		this.updated_date = updated_date;
+		this.actualOsType = actualOsType;
 		
 	}
 
@@ -72,6 +78,35 @@ public class AwsInstanceData implements Serializable {
 		this.description = description;
 	}
 	
+	
+	
+	public String getInstanceid() {
+		return instanceid;
+	}
+
+	public void setInstanceid(String instanceid) {
+		this.instanceid = instanceid;
+	}
+	
+	
+
+	public String getUpdated_date() {
+		return updated_date;
+	}
+
+	public void setUpdated_date(String updated_date) {
+		this.updated_date = updated_date;
+	}
+	
+
+	public String getActualOsType() {
+		return actualOsType;
+	}
+
+	public void setActualOsType(String actualOsType) {
+		this.actualOsType = actualOsType;
+	}
+
 	public String toString() {
 	     return new ToStringBuilder(this).
 	       append("region", region).
@@ -80,6 +115,9 @@ public class AwsInstanceData implements Serializable {
 	       append("vcpuinfo", vcpuinfo).
 	       append("platformdetails", platformdetails).
 	       append("description", description).
+	       append("instanceid", instanceid).
+	       append("updated_date", updated_date).
+	       append("actualOsType", actualOsType).
 	       toString();
 	   }
 

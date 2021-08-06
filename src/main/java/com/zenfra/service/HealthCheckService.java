@@ -61,11 +61,12 @@ public class HealthCheckService {
 	}
 
 
-	public JSONObject getHealthCheck(String healthCheckId) {
+	public JSONObject getHealthCheck(String healthCheckId, String authUserId) {
 		HealthCheck healthCheck= new HealthCheck();
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='"+healthCheckId+"' and is_active='true'", HealthCheck.class);
+		savedObj.setAuthUserId(authUserId);
 		if(savedObj != null) {
 			healthCheckModel = convertEntityToModel(savedObj);
 			System.out.println("healthCheckModel::"+healthCheckModel);	
@@ -105,14 +106,36 @@ public class HealthCheckService {
 		}
 		healthCheck.setHealthCheckId(healthCheckModel.getHealthCheckId());
 		healthCheck.setSiteKey(healthCheckModel.getSiteKey());
-		healthCheck.setComponentType(healthCheckModel.getComponentType());
-		healthCheck.setHealthCheckName(healthCheckModel.getHealthCheckName());
-		healthCheck.setReportName(healthCheckModel.getReportName());
-		healthCheck.setReportBy(healthCheckModel.getReportBy());
-		healthCheck.setReportName(healthCheckModel.getReportName());
-		healthCheck.setSiteAccessList(String.join(",", healthCheckModel.getSiteAccessList()));
-		healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
-		healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); //().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
+		if(healthCheckModel.getComponentType() != null) {
+			healthCheck.setComponentType(healthCheckModel.getComponentType());
+		}
+		if(healthCheckModel.getHealthCheckName() != null) {
+			healthCheck.setHealthCheckName(healthCheckModel.getHealthCheckName());
+		}
+		if(healthCheckModel.getReportName() != null) {
+			healthCheck.setReportName(healthCheckModel.getReportName());
+		}
+		
+		if(healthCheckModel.getReportBy() != null) {
+			healthCheck.setReportBy(healthCheckModel.getReportBy());
+		}
+		if(healthCheckModel.getReportName() != null) {
+			healthCheck.setReportName(healthCheckModel.getReportName());
+		}
+		
+		if(healthCheckModel.getSiteAccessList() != null) {
+			healthCheck.setSiteAccessList(String.join(",", healthCheckModel.getSiteAccessList()));
+		}
+		
+		if(healthCheckModel.getUserAccessList() != null) {
+			healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
+		}
+		
+		
+		if(healthCheckModel.getReportCondition() != null) {
+			healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); 
+		}
+		//().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
 		healthCheck.setActive(true);
 		healthCheck.setUserId(healthCheckModel.getAuthUserId());
 		if(type.equalsIgnoreCase("update")) {			
@@ -145,8 +168,15 @@ public class HealthCheckService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
-		response.put("siteAccessList",Arrays.asList(healthCheck.getSiteAccessList()));
-		response.put("userAccessList",Arrays.asList(healthCheck.getUserAccessList()));	
+		
+		List<String> uList = new ArrayList<String>();
+		uList.addAll(Arrays.asList(healthCheck.getUserAccessList().split(",")));
+		
+		List<String> sList = new ArrayList<String>();
+		sList.addAll(Arrays.asList(healthCheck.getSiteAccessList().split(",")));
+		
+		response.put("siteAccessList",sList);
+		response.put("userAccessList",uList);	
 		response.put("healthCheckId", healthCheck.getHealthCheckId());
 		response.put("createdById", healthCheck.getCreateBy());
 		response.put("updatedById", healthCheck.getUpdateBy());
@@ -174,6 +204,22 @@ public class HealthCheckService {
 		
 		response.put("updatedTime", formatter.format(healthCheck.getUpdateDate()));	
 		response.put("userId", healthCheck.getUserId());	
+		
+		boolean isWriteAccess = false;
+		if(healthCheck.getAuthUserId() != null) {
+			boolean isTenantAdmin = false;
+			
+			Users loginUser = userService.getUserByUserId(healthCheck.getAuthUserId());
+			if(loginUser != null && loginUser.isIs_tenant_admin()) {
+				isTenantAdmin = true;
+			}
+			
+			if(isTenantAdmin || healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getAuthUserId())) {
+				isWriteAccess = true;
+			}
+		}
+		
+		response.put("isWriteAccess", isWriteAccess);
 		
 		/*if(healthCheck.getSiteAccessList() != null && !healthCheck.getSiteAccessList().trim().isEmpty()) {
 			List<String> siteAccessList = new ArrayList<>();
