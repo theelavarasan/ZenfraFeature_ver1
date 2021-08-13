@@ -10,6 +10,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,9 @@ public class ReportDao {
 
 	@Autowired
 	NamedParameterJdbcTemplate namedJdbc;
+	
+	@Autowired
+	JdbcTemplate jdbc;
 
 	@Autowired
 	ReportQueries reportQueries;
@@ -132,16 +136,13 @@ public class ReportDao {
 			params.put("user_id", userId);
 			params.put("site_key", siteKey);
 			params.put("report_name", reportName.toLowerCase());			
-			List<Map<String, Object>> rs = namedJdbc.queryForList(reportQueries.getReportUserCustomData(), params);		
-		
+			List<Map<String, Object>> rs = namedJdbc.queryForList(reportQueries.getReportUserCustomData(), params);	
 			if(rs != null && rs.size() > 0) {
 				result.put("groupedColumns", commonFunctions.convertObjectToJsonArray(rs.get(0).get("grouped_columns")));
 				result.put("columnOrder", commonFunctions.convertObjectToJsonArray(rs.get(0).get("columns_visible")));
 				result.put("chartLayout", commonFunctions.formatJsonArrayr(rs.get(0).get("chart_layout")));
-				ObjectMapper mapper = new ObjectMapper();			
-				
+				ObjectMapper mapper = new ObjectMapper();				
 				JSONObject health_check = mapper.readValue(rs.get(0).get("health_check").toString(), JSONObject.class);
-				
 				result.put("health_check", health_check);
 				
 				

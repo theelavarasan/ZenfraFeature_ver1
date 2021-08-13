@@ -134,4 +134,15 @@ public class ChartService {
 		}
 		return true;
 	}
+
+
+	public List<Object> getChartByCategoryId(String categoryId) {
+		try {
+			
+			return chartDao.getChartByCategoryId(categoryId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

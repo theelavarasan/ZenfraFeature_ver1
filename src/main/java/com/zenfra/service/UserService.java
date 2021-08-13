@@ -1,5 +1,6 @@
 package com.zenfra.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,22 @@ public class UserService{
 			e.printStackTrace();
 		}
 		return names;
+	}
+	
+	public List<Users> getAllUsers() {
+		List<Object> usersObj = new ArrayList<Object>();
+		List<Users> users = new ArrayList<Users>();
+		try {			
+			usersObj = userDao.getEntityListByColumn("select * from user_temp u where u.is_active='true'", Users.class);	
+			for(Object obj : usersObj) {
+				if(obj instanceof Users) {
+					users.add((Users) obj);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return users;
 	}
 	
 }

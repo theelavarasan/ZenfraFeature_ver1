@@ -70,11 +70,9 @@ public class ProcessService {
 	public void sentEmailFTP(JSONObject map) {
 		try {
 			CommonFunctions common=new CommonFunctions();
-			Map<String,String> values=DBUtils.getEmailURL();
 			System.out.println("map::"+map);
-			System.out.println("values::"+values);
 			JSONObject partObj = new JSONObject();
-				partObj.put("templateName", values.get("ftp_template"));
+				partObj.put("templateName", map.get("ftp_template"));
 				partObj.put("mailFrom", map.get("mailFrom"));
 			List<String> mailToList = new ArrayList<>();
 	                mailToList.addAll( (Collection<? extends String>) map.get("mailTo"));

@@ -4,8 +4,20 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,16 +30,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.JsonArray;
+import com.zenfra.model.DeviceTypeModel;
+import com.zenfra.model.DeviceTypeValueModel;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
+import com.zenfra.model.GridDataFormat;
+import com.zenfra.model.HealthCheck;
+import com.zenfra.model.HealthCheckModel;
 import com.zenfra.model.ResponseModel;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
+import com.zenfra.model.ZKConstants;
 import com.zenfra.service.CategoryMappingService;
 import com.zenfra.service.FavouriteApiService_v2;
+import com.zenfra.service.HealthCheckService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -44,7 +63,12 @@ public class FavouriteController_v2 {
 	UserService userService;
 	
 	@Autowired
+	HealthCheckService healthCheckService;
+	
+	@Autowired
 	CategoryMappingService catService;
+	
+	private ObjectMapper objectMapper = new ObjectMapper();
 
 	@PostMapping("/get-all-favourite")
 	public ResponseEntity<?> getFavouriteView(@RequestParam(name = "authUserId", required = false) String userId,
@@ -85,6 +109,47 @@ public class FavouriteController_v2 {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				return ResponseEntity.ok(responseModel);
 			}
+			
+			
+			/*for(int i=0;0<favouriteModel.getFilterProperty().size();i++) {
+				JSONObject obj=(JSONObject) favouriteModel.getFilterProperty().get(i);
+				String label=obj.get("label").toString();
+				String label
+				
+				
+				
+			}
+			if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) && reportList.equalsIgnoreCase("Local")) {
+	            label = "Server";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("Local")) {
+	            label = "Storage";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("Local")) {
+	            label = "Switch";
+	        }
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) &&
+	                reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("End-To-End-Basic")) {
+	            label = "Server - Switch - Storage Summary";
+	        }
+	       
+	        if((category.equalsIgnoreCase("Server") || category.equalsIgnoreCase("Project") || category.equalsIgnoreCase("Third Party Data")) &&
+	                reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        if(category.equalsIgnoreCase("Storage") && reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }
+	        if(category.equalsIgnoreCase("Switch") && reportList.equalsIgnoreCase("End-To-End-Detail")) {
+	            label = "Server - Switch - Storage Detailed";
+	        }*/
+			
 			favouriteModel.setFavouriteId(functions.generateRandomId());
 			if(favouriteModel.getReportName().equalsIgnoreCase("project-summary")) {
 				favouriteModel.setReportLabel(favouriteModel.getFavouriteId());
@@ -255,7 +320,275 @@ public class FavouriteController_v2 {
 
 		// return ResponseEntity.ok(body);
 	}
+	
+	
+	@PostMapping("/saveHealthCheck")
+	public ResponseEntity<?> saveHealthCheck(@RequestBody HealthCheckModel healthCheckModel, HttpServletRequest request, HttpServletResponse respone) {
+
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel, "create");			
+			HealthCheck healthCheckObj = healthCheckService.saveHealthCheck(healthCheck);
+
+			healthCheckModel.setHealthCheckId(healthCheckObj.getHealthCheckId());
+			if (healthCheckObj != null) {
+				responseModel.setResponseMessage("Success");
+				responseModel.setjData(healthCheckModel);
+				responseModel.setResponseDescription("HealthCheck Successfully inserted");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseMessage("Error");
+				responseModel.setResponseDescription("HealthCheck not saved ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+
+	}
 
 
+	@PostMapping("/getHealthCheck")
+	public ResponseEntity<?> getHealthCheck(@RequestParam("healthCheckId") String healthCheckId, @RequestParam("authUserId") String authUserId, HttpServletRequest request, HttpServletResponse respone) {
+
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			JSONObject healthCheckObj = healthCheckService.getHealthCheck(healthCheckId, authUserId);
+
+			if (healthCheckObj != null) {
+				responseModel.setjData(healthCheckObj);
+				responseModel.setResponseDescription("HealthCheck Successfully Retrieved ");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {				
+				responseModel.setjData(new JSONObject());
+				responseModel.setResponseDescription("No data found");
+				responseModel.setResponseCode(HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+
+	}
+	
+	@PostMapping("/updateHealthCheck")
+	public ResponseEntity<?> updateHealthCheck(@RequestBody HealthCheckModel healthCheckModel, HttpServletRequest request, HttpServletResponse respone) {
+
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			HealthCheck healthCheck = healthCheckService.convertToEntity(healthCheckModel, "update");	
+			HealthCheck existingHealthCheck = healthCheckService.getHealthCheckObject(healthCheckModel.getHealthCheckId());	
+			BeanUtils.copyProperties(healthCheck, existingHealthCheck, NullAwareBeanUtilsBean.getNullPropertyNames(healthCheck));
+			
+			JSONObject healthCheckObj = healthCheckService.updateHealthCheck(healthCheck);
+
+			if (healthCheckObj != null) {
+				responseModel.setjData(healthCheckObj);
+				responseModel.setResponseDescription("HealthCheck Successfully Updated ");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseDescription("HealthCheck not Updated ");
+				responseModel.setjData(new JSONObject());
+				responseModel.setResponseCode(HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+
+	}
+	
+	@PostMapping("/deleteHealthCheck")
+	public ResponseEntity<?> deleteHealthCheck(@RequestParam("healthCheckId") String healthCheckId, HttpServletRequest request, HttpServletResponse respone) {
+
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			HealthCheck healthCheck = new HealthCheck();
+			healthCheck.setHealthCheckId(healthCheckId);
+			boolean healthCheckObj = healthCheckService.deleteHealthCheck(healthCheck);
+
+			if (healthCheckObj) {
+				responseModel.setjData(healthCheckObj);
+				responseModel.setResponseDescription("HealthCheck Successfully Deleted ");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseDescription("HealthCheck not Deleted ");
+				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+
+	}
+	
+	@PostMapping("/getHealthCheckList")
+	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey, @RequestParam(name = "authUserId", required = false) String userId, HttpServletRequest request, HttpServletResponse respone) {
+
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+			
+			String token=request.getHeader("Authorization");
+			
+			//JSONArray healthcheckList = healthCheckService.getAllHealthCheck(siteKey);
+			GridDataFormat gridDataFormat = healthCheckService.getHealthCheckData( siteKey, userId);
+			
+			//if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEALTHCHECK_COLUMN_ORDER)) {
+				String siteOrder = ZKConstants.HEALTHCHECK_COLUMN_ORDER;
+				responseModel.setColumnOrder(Arrays.asList(siteOrder.split(",")));
+			//}			
+			
+			if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {				
+				responseModel.setHeaderInfo(healthCheckService.getHeaderListFromV2(siteKey, userId, token));
+			}
+
+			if (!gridDataFormat.getData().isEmpty()) {
+				com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId);				
+				responseModel.setjData(gridData.getData());
+				responseModel.setHeaderInfo(gridData.getHeaderInfo());
+				responseModel.setResponseDescription("HealthCheck Successfully retrieved by sitekey ");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseDescription("No data found ");
+				List<com.zenfra.model.GridHeader> gridHeaderList = new ArrayList<>();
+				responseModel.setHeaderInfo(gridHeaderList);
+				responseModel.setResponseCode(HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+
+	}
+	
+	
+
+	@PostMapping("/healthCheckValidate")
+	public JSONArray getHealthCheckNames(@RequestParam("siteKey") String siteKey) {
+
+		JSONArray responseArray = new JSONArray();
+		try {			
+			responseArray = healthCheckService.getHealthCheckNames(siteKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		} return responseArray;
+
+	}
+	
+	
+	@PostMapping("/getHealthCheckProperties")
+	public ResponseEntity<?> getDiscoveryReportProperties(@RequestParam(name = "reportCategory") String reportCategory,
+			@RequestParam(name = "categoryType") String categoryType,
+			@RequestParam(name = "projectID", required = false) String projectID,
+			@RequestParam(name = "projectSource", required = false) String projectSource,
+			@RequestParam(name = "siteKey", required = false) String siteKey,
+			@RequestParam(name = "baseFilter", required = false) String baseFilter,
+			@RequestParam(name = "groupBy", required = false) String groupBy,
+			@RequestParam(name = "authUserId", required = false) String userId)
+			throws Exception {
+		
+		JSONArray resultArray = new JSONArray();
+		if (reportCategory.equalsIgnoreCase("healthcheck") && (categoryType.equalsIgnoreCase("healthcheck"))) {
+
+			JSONArray healthCheckArray = healthCheckService.getAllHealthCheck(siteKey, false, userId);
+
+			DeviceTypeModel deviceTypeModel1 = new DeviceTypeModel();
+			deviceTypeModel1.setName("healthCheck");
+			deviceTypeModel1.setLabel("Health Check Report Name");
+			deviceTypeModel1.setType("select");
+			List<DeviceTypeValueModel> deviceTypeValueModelList = new ArrayList<DeviceTypeValueModel>();
+
+			for (int i = 0; i < healthCheckArray.size(); i++) {
+
+				JSONObject jsonObject = (JSONObject) healthCheckArray.get(i);
+				DeviceTypeValueModel deviceTypeValueModel = new DeviceTypeValueModel();
+				if (jsonObject.containsKey("healthCheckId")) {
+					deviceTypeValueModel.setValue(jsonObject.get("healthCheckId").toString());
+				}
+				if (jsonObject.containsKey("healthCheckName")) {
+					deviceTypeValueModel.setLabel(jsonObject.get("healthCheckName").toString());
+				}
+				if (i == 0) {
+					deviceTypeValueModel.setIsDefault(1);
+				} else {
+					deviceTypeValueModel.setIsDefault(0);
+				}
+				deviceTypeValueModelList.add(deviceTypeValueModel);
+			}
+
+			deviceTypeModel1.setValue(deviceTypeValueModelList);
+			
+			resultArray.add(deviceTypeModel1); // Server Type
+
+			JSONArray healthCheckDisplayArray = healthCheckService.getHealthCheckDisplay();
+		
+			for (int i = 0; i < healthCheckDisplayArray.size(); i++) {
+
+				JSONObject jsonObject = (JSONObject) healthCheckDisplayArray.get(i);
+
+				DeviceTypeModel deviceTypeModel_display = new DeviceTypeModel();
+				deviceTypeModel_display.setName(jsonObject.get("name").toString());
+				deviceTypeModel_display.setLabel(jsonObject.get("label").toString());
+				deviceTypeModel_display.setType(jsonObject.get("type").toString());
+				deviceTypeModel_display.setMandatory(false);
+				List<DeviceTypeValueModel> deviceTypeValueModelDisplay = new ArrayList<DeviceTypeValueModel>();
+				JSONArray displayValue = objectMapper.readValue(jsonObject.get("value").toString(), JSONArray.class);				
+				
+				if (!displayValue.isEmpty()) {
+					for (int j = 0; j < displayValue.size(); j++) {
+						Map<String, Object> displayObj = (LinkedHashMap<String, Object>) displayValue.get(j);
+						DeviceTypeValueModel deviceTypeValueModel = new DeviceTypeValueModel();
+						if (displayObj.containsKey("value")) {
+							deviceTypeValueModel.setValue(displayObj.get("value").toString());
+						}
+						if (displayObj.containsKey("label")) {
+							deviceTypeValueModel.setLabel(displayObj.get("label").toString());
+						}
+						int isDefault = 0;
+						if (displayObj.get("isDefault").toString().equals("1")) {
+							isDefault = 1;
+						}
+						deviceTypeValueModel.setIsDefault(isDefault);
+						deviceTypeValueModelDisplay.add(deviceTypeValueModel);
+					}
+				}
+				deviceTypeModel_display.setValue(deviceTypeValueModelDisplay);
+				resultArray.add(deviceTypeModel_display);
+			}
+		} 
+		
+		System.out.println("----resultArray--------- " + resultArray);
+		
+		return ResponseEntity.ok(resultArray);
+	}
+	
+	
 
 }

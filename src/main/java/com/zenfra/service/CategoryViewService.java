@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.zenfra.configuration.CommonQueriesData;
 import com.zenfra.dao.CategoryViewDao;
 import com.zenfra.model.CategoryView;
+import com.zenfra.model.ChartModel_v2;
 import com.zenfra.utils.CommonFunctions;
 
 @Service
@@ -27,6 +28,13 @@ public class CategoryViewService {
 	
 	@Autowired
 	UserService userSerice;
+	
+	
+	@Autowired
+	ChartService chartService;
+	
+	@Autowired
+	FavouriteApiService_v2 favService;
 	
 	public CategoryView getCategoryView(String id) {
 		CategoryView obj = null;
@@ -101,6 +109,28 @@ public class CategoryViewService {
 		}
 		return true;
 		
+	}
+
+	public boolean getCategoryStatus(String categoryId) {
+		
+		try {
+			
+			List<Object> chart=chartService.getChartByCategoryId(categoryId);
+			if(chart!=null && !chart.isEmpty()) {				
+				return true;
+			}
+			
+			List<Map<String, Object>> favList=favService.getFavouriteList(categoryId);
+			
+			if(favList!=null && !favList.isEmpty()) {
+				return true;
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	  return false;
 	}
 
 }
