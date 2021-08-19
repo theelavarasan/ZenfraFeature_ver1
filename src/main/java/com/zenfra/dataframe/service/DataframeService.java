@@ -1862,15 +1862,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 Dataset<Row> result = sparkSession.emptyDataFrame();
 			try {
 				 List<AwsInstanceData> thirdPartyData = queryThirdPartyData(siteKey);
-				 Map<String, String> options = new HashMap<String, String>();
-				 options.put("url", dbUrl);						
-				 options.put("dbtable", "source_data");
-				result = sparkSession.sqlContext().read().format("jdbc").options(options).load();
-				result.createOrReplaceTempView("source_data");
-				result = result.select("data");
-				result.createOrReplaceTempView("sourceData");			
-				result.printSchema();
-				result.show();
+				
+				 Dataset<Row> data = sparkSession.createDataFrame(thirdPartyData, AwsInstanceData.class);
+				 data.printSchema();							
+				 data.createOrReplaceGlobalTempView("awsInstanceDF");					
+				 data.show();
+				 
+				 getAzurePricingForAWS();
+				 getGooglePricingForAWS();
+				 
+				 Dataset<Row> azure =  sparkSession.sqlContext().sql("select * from global_temp.azureReportForAWSInstance");
+				 azure.show();
+				 Dataset<Row> google =  sparkSession.sqlContext().sql("select * from global_temp.googleReportForAWSInstance");
+				 google.show();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1885,21 +1889,15 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(
 							"select data from source_data where source_id=(select source_id from source where source_name='ThirdPartyCCR') and site_key='"+siteKey+"'");
 				
-					System.out.println("-----------obj----------" + obj);
-										
-				
-					
 					if(!obj.isEmpty()) {
 						for(Map<String, Object> o : obj) {
-						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));	
-							System.out.println("-----------json----------" + json);
-							
+						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));								
 								if(json.containsKey("Memory") && json.containsKey("Number of Cores") && json.containsKey("OS Type") && json.containsKey("Server Name")) {
 									AwsInstanceData awsInstanceData = new AwsInstanceData("", "", (String)json.get("Memory"), (String)json.get("Number of Cores"), (String)json.get("OS Type"), (String)json.get("Server Name"), "", "", (String)json.get("OS Type"));
 									row.add(awsInstanceData);
 								}
 						}
-						System.out.println("-----------row----------" + row.size());
+						
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
