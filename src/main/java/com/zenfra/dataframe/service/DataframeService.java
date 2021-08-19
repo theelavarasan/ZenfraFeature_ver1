@@ -1882,27 +1882,21 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			private List<AwsInstanceData> queryThirdPartyData(String siteKey) {
 				List<AwsInstanceData> row = new ArrayList<>();
 				try {
-					Object obj = favouriteDao_v2.getSingleColumnAsObject("select data from source_data where source_name='ThirdPartyCCR' and site_key='"+siteKey+"'");
+					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList("select data from source_data where source_name='ThirdPartyCCR' and site_key='"+siteKey+"'");
 				
 					System.out.println("-----------obj----------" + obj);
-					List<Object> datas = new ArrayList<Object>();
-					if (obj.getClass().isArray()) {
-						datas = Arrays.asList((Object[])obj);
-				    } else if (obj instanceof Collection) {
-				    	datas = new ArrayList<>((Collection<?>)obj);
-				    }
+										
+				
 					
-					System.out.println("-----------datas----------" + datas);
-					
-					if(!datas.isEmpty()) {
-						for(Object o : datas) {
-							if(o instanceof JSONObject) {
-								JSONObject json = (JSONObject) o;
+					if(!obj.isEmpty()) {
+						for(Map<String, Object> o : obj) {
+						  JSONObject json = (JSONObject) o.get("data");	
+							System.out.println("-----------json----------" + json);
+							
 								if(json.containsKey("Memory") && json.containsKey("Number of Cores") && json.containsKey("OS Type") && json.containsKey("Server Name")) {
 									AwsInstanceData awsInstanceData = new AwsInstanceData("", "", (String)json.get("Memory"), (String)json.get("Number of Cores"), (String)json.get("OS Type"), (String)json.get("Server Name"), "", "", (String)json.get("OS Type"));
 									row.add(awsInstanceData);
 								}
-							}
 						}
 						System.out.println("-----------row----------" + row.size());
 					}
