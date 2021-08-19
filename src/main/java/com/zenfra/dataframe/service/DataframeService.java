@@ -1864,6 +1864,18 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 List<AwsInstanceData> thirdPartyData = queryThirdPartyData(siteKey);
 				
 				 Dataset<Row> data = sparkSession.createDataFrame(thirdPartyData, AwsInstanceData.class);
+				 
+				 data = data.withColumnRenamed("region", "AWS Region");
+				 data = data.withColumnRenamed("instancetype", "AWS Instance Type");
+				 data = data.withColumnRenamed("memoryinfo", "Memory");
+				 data = data.withColumnRenamed("vcpuinfo", "Number of Cores");
+				 data = data.withColumnRenamed("platformdetails", "OS Name");
+				 data = data.withColumnRenamed("description", "Server Name");
+				 data = data.withColumnRenamed("instanceid", "instanceid");
+				 data = data.withColumnRenamed("updated_date", "updated_date");
+				 data.createOrReplaceGlobalTempView("awsInstanceDF");					
+				 data.show();
+				 
 				 data.printSchema();							
 				 data.createOrReplaceGlobalTempView("awsInstanceDF");					
 				 data.show();
