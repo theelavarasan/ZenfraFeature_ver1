@@ -1882,7 +1882,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			private List<AwsInstanceData> queryThirdPartyData(String siteKey) {
 				List<AwsInstanceData> row = new ArrayList<>();
 				try {
-					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList("select data from source_data where source_name='ThirdPartyCCR' and site_key='"+siteKey+"'");
+					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(
+							"select data from source_data where source_id=(select source_id from source where source_name='ThirdPartyCCR') and site_key='"+siteKey+"'");
 				
 					System.out.println("-----------obj----------" + obj);
 										
