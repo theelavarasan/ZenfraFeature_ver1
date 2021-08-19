@@ -1891,7 +1891,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					
 					if(!obj.isEmpty()) {
 						for(Map<String, Object> o : obj) {
-						  JSONObject json = (JSONObject) o.get("data");	
+						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));	
 							System.out.println("-----------json----------" + json);
 							
 								if(json.containsKey("Memory") && json.containsKey("Number of Cores") && json.containsKey("OS Type") && json.containsKey("Server Name")) {
