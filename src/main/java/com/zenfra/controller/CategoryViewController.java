@@ -97,7 +97,7 @@ public class CategoryViewController {
 			}
 			BeanUtils.copyProperties(view, viewExit, NullAwareBeanUtilsBean.getNullPropertyNames(view));	
 			viewExit.setActive(true);
-			viewExit.setUpdatedBy(view.getAuthUserId());
+			viewExit.setUpdatedBy(view.getUserId());
 			viewExit.setUpdatedTime(functions.getCurrentDateWithTime());			
 			
 		
