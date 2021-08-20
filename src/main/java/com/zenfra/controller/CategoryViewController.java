@@ -56,7 +56,7 @@ public class CategoryViewController {
 				return ResponseEntity.ok(responseModel);
 			}
 			
-			view.setCreateBy(view.getUserId());
+			view.setCreatedBy(view.getUserId());
 			view.setUpdatedBy(view.getUserId());
 			view.setUpdatedTime(functions.getCurrentDateWithTime());
 

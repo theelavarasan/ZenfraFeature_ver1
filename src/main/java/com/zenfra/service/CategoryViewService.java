@@ -76,7 +76,7 @@ public class CategoryViewService {
 				 //System.out.println("report::"+view.getReportBy());
 				 //System.out.println("updateBY::"+view.getUpdatedBy());
 				 	view.setUpdatedBy(view.getUpdatedBy()!=null ? userList.get(view.getUpdatedBy()) :"");
-				 	view.setCreateBy(view.getCreateBy()!=null ? userList.get(view.getCreateBy()) :"");
+				 	view.setCreatedBy(view.getCreatedBy()!=null ? userList.get(view.getCreatedBy()) :"");
 				 arr.add(functions.convertEntityToJsonObject(view));
 			 }
 		} catch (Exception e) {
