@@ -55,7 +55,8 @@ public class CategoryViewController {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				return ResponseEntity.ok(responseModel);
 			}
-
+			
+			view.setCreatedBy(view.getUserId());
 			view.setUpdatedBy(view.getUserId());
 			view.setUpdatedTime(functions.getCurrentDateWithTime());
 
