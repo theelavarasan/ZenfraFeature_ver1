@@ -49,6 +49,16 @@ public class CategoryView {
 	@Transient
 	private String authUserId;
 	
+	public String getCreateBy() {
+		return createBy;
+	}
+
+	public void setCreateBy(String createBy) {
+		this.createBy = createBy;
+	}
+
+	@Column(name = "create_by")
+	private String createBy;
 	
 	public String getAuthUserId() {
 		return authUserId;
