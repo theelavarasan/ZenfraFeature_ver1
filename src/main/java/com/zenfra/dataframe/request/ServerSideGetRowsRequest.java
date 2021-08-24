@@ -56,8 +56,11 @@ public class ServerSideGetRowsRequest implements Serializable {
     private String deviceType;
     
     private String projectId;
+    
+    private String source;  
 
-    public ServerSideGetRowsRequest() {
+
+	public ServerSideGetRowsRequest() {
         this.rowGroupCols = emptyList();
         this.valueCols = emptyList();
         this.pivotCols = emptyList();
@@ -226,6 +229,15 @@ public class ServerSideGetRowsRequest implements Serializable {
 
 	public void setProjectId(String projectId) {
 		this.projectId = projectId;
+	}
+	
+
+    public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
 	}
 	
     
