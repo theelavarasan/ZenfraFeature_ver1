@@ -56,7 +56,7 @@ public class LogFileDetailsController {
 	public ResponseEntity<ResponseModel_v2> saveLogFileDetails(@Valid @RequestBody LogFileDetails logFileDetails){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
-			logFileDetails.setLogId(functions.generateRandomId());
+			logFileDetails.setLogFileId(functions.generateRandomId());
 			response.setjData(service.save(logFileDetails));
 			response.setResponseCode(HttpStatus.CREATED);
 			response.setStatusCode(HttpStatus.CREATED.value());
@@ -128,7 +128,7 @@ public class LogFileDetailsController {
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			
-			LogFileDetails logFileDetailsExist=service.findOne(logFileDetails.getLogId());
+			LogFileDetails logFileDetailsExist=service.findOne(logFileDetails.getLogFileId());
 			
 			if(logFileDetailsExist==null) {
 				response.setResponseDescription("LogFileDetails details not exist");
