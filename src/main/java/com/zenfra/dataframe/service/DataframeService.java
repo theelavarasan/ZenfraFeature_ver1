@@ -1945,15 +1945,26 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					 * +siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')"
 					 * );
 					 */
-					String sources = String.join(",", sourceList
-				            .stream()
-				            .map(source -> ("'" + source + "'"))
-				            .collect(Collectors.toList()));
+					boolean isAllSource = false;
+					String sources = "";
+					if(sourceList.contains("All")) {
+						isAllSource = true;
+					} else {
+						sources = String.join(",", sourceList
+					            .stream()
+					            .map(source -> ("'" + source + "'"))
+					            .collect(Collectors.toList()));
+					}
+					
 					
 					System.out.println("--------sourcessourcessources---------" + sources);
+					String sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and source_id in ("+sources+") and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
 					
-					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(
-							"select data from source_data where source_id in (select source_id from source where is_active='true' and source_id in ("+sources+") and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')");
+					if(isAllSource) {
+						sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
+					}
+					
+					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(sql);
 				
 					
 					if(!obj.isEmpty()) {
