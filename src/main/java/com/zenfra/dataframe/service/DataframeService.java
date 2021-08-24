@@ -1680,11 +1680,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 categoryList.addAll(Arrays.asList(categoryArray));
 			 
 			 List<String> sourceList = new ArrayList<String>();
-			 sourceList.addAll(Arrays.asList(sourceArray));
-			 
-			 System.out.println("----------------------categoryList--------------------------" + categoryList);
-			 System.out.println("----------------------sourceList--------------------------" + sourceList);
-			 
+			 sourceList.addAll(Arrays.asList(sourceArray));			 
 			 
 			 String discoveryFilterqry ="";
 			
@@ -1816,16 +1812,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                           
     	        
                List<String> colHeaders = Arrays.asList(dataCheck.columns());   
-               if(categoryList.contains("All") || categoryList.contains("AWS Instances")) {
-            	   System.out.println("------------------AWS Instances-------------------------" );
+               if(categoryList.contains("All") || categoryList.contains("AWS Instances")) {            	   
             	   Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
             	   if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
                    	dataCheck = dataCheck.unionByName(awsInstanceData);
                    }
                }
     	        	
-               if(categoryList.contains("All") || categoryList.contains("Custom Excel Data")) {
-            	   System.out.println("-----------------Custom Excel Data-----------------------" );
+               if(categoryList.contains("All") || categoryList.contains("Custom Excel Data")) {            	 
             	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList);
             	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {
                    	dataCheck = dataCheck.unionByName(thirdPartyData);
