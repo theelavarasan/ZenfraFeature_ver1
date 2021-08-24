@@ -56,8 +56,12 @@ public class ServerSideGetRowsRequest implements Serializable {
     private String deviceType;
     
     private String projectId;
+    
+    private List<String> source;  
+    private List<String> categoryOpt;  
 
-    public ServerSideGetRowsRequest() {
+
+	public ServerSideGetRowsRequest() {
         this.rowGroupCols = emptyList();
         this.valueCols = emptyList();
         this.pivotCols = emptyList();
@@ -227,6 +231,24 @@ public class ServerSideGetRowsRequest implements Serializable {
 	public void setProjectId(String projectId) {
 		this.projectId = projectId;
 	}
+
+	public List<String> getSource() {
+		return source;
+	}
+
+	public void setSource(List<String> source) {
+		this.source = source;
+	}
+
+	public List<String> getCategoryOpt() {
+		return categoryOpt;
+	}
+
+	public void setCategoryOpt(List<String> categoryOpt) {
+		this.categoryOpt = categoryOpt;
+	}
 	
+
+    
     
 }

@@ -1672,7 +1672,16 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 String deviceTypeHeder = "All";
 			 String reportBy = request.getReportType();			
 			 JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
-			  
+			 
+			 //String [] categoryArray =  request.getCategory().replaceAll( "^\\[|\\]$", "").replaceAll("\"", "").trim().split( "," );
+			// String [] sourceArray =  request.getSource().replaceAll( "^\\[|\\]$", "").replaceAll("\"", "").trim().split( "," );
+			 
+			 List<String> categoryList = request.getCategoryOpt();			 
+			 List<String> sourceList = request.getSource();
+			 	 
+			 System.out.println("------categoryList---------- " + categoryList);
+			 System.out.println("------sourceList---------- " + sourceList);
+			 
 			 String discoveryFilterqry ="";
 			
 			   List<String> columnHeaders = new ArrayList<>();
@@ -1795,20 +1804,28 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                              " where aws.site_key='" + siteKey  + "' and "+ deviceType +" order by aws.`Server Name` asc) ld where ld.my_rank = 1";
                  }                
                  
-               dataCheck = sparkSession.sql(sql).toDF();              
+                 dataCheck = sparkSession.sql(sql).toDF(); 
+             /* if(categoryList.contains("All") || categoryList.contains("Physical Servers")) {
+                	
+               }
+               */
+                          
     	        
-    	        List<String> colHeaders = Arrays.asList(dataCheck.columns());
-                Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
-                Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder);
-                
-                
-             
-                if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
-                	dataCheck = dataCheck.unionByName(awsInstanceData);
-                }
-                if(thirdPartyData != null && !thirdPartyData.isEmpty()) {
-                	dataCheck = dataCheck.unionByName(thirdPartyData);
-                }
+               List<String> colHeaders = Arrays.asList(dataCheck.columns());   
+               if(categoryList.contains("All") || categoryList.contains("AWS Instances")) {            	   
+            	   Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
+            	   if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
+                   	dataCheck = dataCheck.unionByName(awsInstanceData);
+                   }
+               }
+    	        	
+               if(categoryList.contains("All") || categoryList.contains("Custom Excel Data")) {            	 
+            	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList);
+            	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {
+                   	dataCheck = dataCheck.unionByName(thirdPartyData);
+                   }
+               }               
+               
                
                 
     	        for(String col : columnHeaders) {    	        	
@@ -1863,10 +1880,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		}
 		
 		
-		 private Dataset<Row> getThirdPartyData(List<String> columnHeaders, String siteKey, String deviceTypeHeder) {
+		 private Dataset<Row> getThirdPartyData(List<String> columnHeaders, String siteKey, String deviceTypeHeder, List<String> sourceList) {
 			 Dataset<Row> result = sparkSession.emptyDataFrame();
 			try {
-				 List<AwsInstanceData> thirdPartyData = queryThirdPartyData(siteKey);
+				 List<AwsInstanceData> thirdPartyData = queryThirdPartyData(siteKey, sourceList);
 				
 				 Dataset<Row> data = sparkSession.createDataFrame(thirdPartyData, AwsInstanceData.class);
 				 
@@ -1920,12 +1937,38 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 		 
 
-			private List<AwsInstanceData> queryThirdPartyData(String siteKey) {
+			private List<AwsInstanceData> queryThirdPartyData(String siteKey, List<String> sourceList) {
 				List<AwsInstanceData> row = new ArrayList<>();
 				try {
-					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(
-							"select data from source_data where source_id in (select source_id from source where is_active='true' and (link_to='All' or site_key='"+siteKey+"')) and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')");
+					/*
+					 * List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(
+					 * "select data from source_data where source_id in (select source_id from source where is_active='true' and (link_to='All' or site_key='"
+					 * +siteKey+"')) and site_key='"
+					 * +siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')"
+					 * );
+					 */
+					boolean isAllSource = false;
+					String sources = "";
+					if(sourceList.contains("All")) {
+						isAllSource = true;
+					} else {
+						sources = String.join(",", sourceList
+					            .stream()
+					            .map(source -> ("'" + source + "'"))
+					            .collect(Collectors.toList()));
+					}
+					
+					
+					System.out.println("--------sourcessourcessources---------" + sources);
+					String sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and source_id in ("+sources+") and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
+					
+					if(isAllSource) {
+						sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
+					}
+					
+					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(sql);
 				
+					
 					if(!obj.isEmpty()) {
 						for(Map<String, Object> o : obj) {
 						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));								
