@@ -1804,9 +1804,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                              " where aws.site_key='" + siteKey  + "' and "+ deviceType +" order by aws.`Server Name` asc) ld where ld.my_rank = 1";
                  }                
                  
-              if(categoryList.contains("All") || categoryList.contains("Physical Servers")) {
-                	dataCheck = sparkSession.sql(sql).toDF(); 
+                 dataCheck = sparkSession.sql(sql).toDF(); 
+             /* if(categoryList.contains("All") || categoryList.contains("Physical Servers")) {
+                	
                }
+               */
                           
     	        
                List<String> colHeaders = Arrays.asList(dataCheck.columns());   
