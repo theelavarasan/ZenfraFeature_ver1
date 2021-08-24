@@ -1682,6 +1682,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 List<String> sourceList = new ArrayList<String>();
 			 sourceList.addAll(Arrays.asList(sourceArray));
 			 
+			 System.out.println("----------------------categoryList--------------------------" + categoryList);
+			 System.out.println("----------------------sourceList--------------------------" + sourceList);
+			 
+			 
 			 String discoveryFilterqry ="";
 			
 			   List<String> columnHeaders = new ArrayList<>();
@@ -1813,6 +1817,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        
                List<String> colHeaders = Arrays.asList(dataCheck.columns());   
                if(categoryList.contains("All") || categoryList.contains("AWS Instances")) {
+            	   System.out.println("------------------AWS Instances-------------------------" );
             	   Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
             	   if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
                    	dataCheck = dataCheck.unionByName(awsInstanceData);
@@ -1820,6 +1825,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                }
     	        	
                if(categoryList.contains("All") || categoryList.contains("Custom Excel Data")) {
+            	   System.out.println("-----------------Custom Excel Data-----------------------" );
             	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList);
             	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {
                    	dataCheck = dataCheck.unionByName(thirdPartyData);
