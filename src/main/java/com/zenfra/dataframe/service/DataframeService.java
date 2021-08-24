@@ -1673,14 +1673,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 String reportBy = request.getReportType();			
 			 JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
 			 
-			 String [] categoryArray =  request.getCategory().replaceAll( "^\\[|\\]$", "").replaceAll("\"", "").trim().split( "," );
-			 String [] sourceArray =  request.getSource().replaceAll( "^\\[|\\]$", "").replaceAll("\"", "").trim().split( "," );
+			 //String [] categoryArray =  request.getCategory().replaceAll( "^\\[|\\]$", "").replaceAll("\"", "").trim().split( "," );
+			// String [] sourceArray =  request.getSource().replaceAll( "^\\[|\\]$", "").replaceAll("\"", "").trim().split( "," );
 			 
-			 List<String> categoryList = new ArrayList<String>();
-			 categoryList.addAll(Arrays.asList(categoryArray));
-			 
-			 List<String> sourceList = new ArrayList<String>();
-			 sourceList.addAll(Arrays.asList(sourceArray));			 
+			 List<String> categoryList = request.getCategoryOpt();			 
+			 List<String> sourceList = request.getSource();
+			 	 
+			 System.out.println("------categoryList---------- " + categoryList);
+			 System.out.println("------sourceList---------- " + sourceList);
 			 
 			 String discoveryFilterqry ="";
 			
