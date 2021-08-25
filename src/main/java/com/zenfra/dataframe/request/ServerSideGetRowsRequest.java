@@ -57,8 +57,8 @@ public class ServerSideGetRowsRequest implements Serializable {
     
     private String projectId;
     
-    private List<String> source;  
-    private List<String> categoryOpt;  
+    private String source;  
+    private String categoryOpt;  
 
 
 	public ServerSideGetRowsRequest() {
@@ -232,19 +232,19 @@ public class ServerSideGetRowsRequest implements Serializable {
 		this.projectId = projectId;
 	}
 
-	public List<String> getSource() {
+	public String getSource() {
 		return source;
 	}
 
-	public void setSource(List<String> source) {
+	public void setSource(String source) {
 		this.source = source;
 	}
 
-	public List<String> getCategoryOpt() {
+	public String getCategoryOpt() {
 		return categoryOpt;
 	}
 
-	public void setCategoryOpt(List<String> categoryOpt) {
+	public void setCategoryOpt(String categoryOpt) {
 		this.categoryOpt = categoryOpt;
 	}
 	

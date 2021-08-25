@@ -1807,8 +1807,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     			 List<String> sourceList = new ArrayList<>(); 
     			
     			 if(!isTaskListReport) {
-    				 categoryList.addAll(request.getCategoryOpt());
-    				 sourceList.addAll(request.getSource());
+    				 categoryList.add(request.getCategoryOpt());
+    				 sourceList.add(request.getSource());
     			 }
     			 	 
     			 System.out.println("------categoryList---------- " + categoryList);
