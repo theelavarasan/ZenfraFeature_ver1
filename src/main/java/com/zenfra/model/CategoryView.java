@@ -50,6 +50,22 @@ public class CategoryView {
 	private String authUserId;
 	
 	
+
+	@Column(name = "create_by")
+	private String createdBy;
+	
+	
+	
+	
+	
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
 	public String getAuthUserId() {
 		return authUserId;
 	}

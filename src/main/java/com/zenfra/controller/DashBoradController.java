@@ -397,7 +397,8 @@ public class DashBoradController {
 					responce=dashService.updateDashboardChartDetails(exitObject);
 				}else {
 					dash.setActive(true);
-					exitObject.setCreatedBy(authUserId);
+					dash.setCreatedBy(authUserId);
+					dash.setUpdatedBy(authUserId);
 					dash.setCreatedTime(functions.getCurrentDateWithTime());
 					dash.setUpdatedTime(functions.getCurrentDateWithTime());
 					dash.setChartDetails(dash.getChartDetailsObject().toString());
@@ -418,6 +419,7 @@ public class DashBoradController {
 				}
 		
 			} catch (Exception e) {
+				e.printStackTrace();
 				responseModel.setResponseMessage("Error");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				responseModel.setResponseDescription(e.getMessage());
