@@ -2441,7 +2441,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " report.`AWS Instance Type`, report.`OS Name`, report.instanceid, " +
 		                    " report.`Memory` as `Memory`, " +	
 		                    " report.`AWS On Demand Price`,report.`AWS 3 Year Price`, report.`AWS 1 Year Price`, report.`AWS Instance Type`, report.`AWS Specs`, " +
-		                    " ROW_NUMBER() OVER (PARTITION BY report.`Memory` ORDER BY cast(report.`AWS On Demand Price` as float) asc) as my_rank" +
+		                    " ROW_NUMBER() OVER (PARTITION BY report.`AWS Instance Typ` ORDER BY cast(report.`AWS On Demand Price` as float) asc) as my_rank" +
 		                    " from (SELECT ai.`instanceid`, " +
 		                    " ai.`Number of Cores`, ai.`actualOsType` as `OS Name`, " +		                 
 		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 3 Year Price`, "+
