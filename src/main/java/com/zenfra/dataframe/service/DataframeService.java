@@ -2441,7 +2441,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " report.`AWS Instance Type`, report.`OS Name`, report.instanceid, " +
 		                    " report.`Memory` as `Memory`, " +	
 		                    " report.`AWS On Demand Price`,report.`AWS 3 Year Price`, report.`AWS 1 Year Price`, report.`AWS Instance Type`, report.`AWS Specs`, " +
-		                    " ROW_NUMBER() OVER (PARTITION BY report.`Memory` ORDER BY cast(report.`AWS On Demand Price` as float) asc) as my_rank" +
+		                    " ROW_NUMBER() OVER (PARTITION BY report.`Memory`, report.`vCPU`  ORDER BY cast(report.`AWS On Demand Price` as float) asc) as my_rank" +
 		                    " from (SELECT ai.`instanceid`, " +
 		                    " ai.`Number of Cores`, ai.`actualOsType` as `OS Name`, " +		                 
 		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 3 Year Price`, "+
@@ -2451,7 +2451,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " a.Memory, a.`Instance Type` as `AWS Instance Type`, concat_ws(',', concat('Processor: ',a.`Physical Processor`),concat('vCPU: ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor Architecture: ',a.`Processor Architecture`) ,concat('Memory: ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance: ',a.`Network Performance`)) as `AWS Specs` "+
 		                    " FROM global_temp.awsInstanceDF ai" +
 		                    " left join global_temp.awsPricingDF a on cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) "+
-		                    " and lower(a.`Operating System`) = lower(ai.`actualOsType`)" +
+		                    " and lower(a.`Operating System`) = lower(ai.`actualOsType`) and cast(a.`PricePerUnit` as float ) > 0.0" +
 		                    " ) report ) reportData " +
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("awsReportForThirdParty");	
