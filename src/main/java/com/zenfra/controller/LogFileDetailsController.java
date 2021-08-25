@@ -53,10 +53,11 @@ public class LogFileDetailsController {
 	@PostMapping
 	@ApiOperation(value="Saved Log File Details ")
 	@ApiResponse(code = 201, message = "Successfully created")	
-	public ResponseEntity<ResponseModel_v2> saveLogFileDetails(@Valid @RequestBody LogFileDetails logFileDetails){
+	public ResponseEntity<ResponseModel_v2> saveLogFileDetails(@RequestParam String authUserId,@Valid @RequestBody LogFileDetails logFileDetails){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			logFileDetails.setLogFileId(functions.generateRandomId());
+			logFileDetails.setUploadedBy(authUserId);
 			response.setjData(service.save(logFileDetails));
 			response.setResponseCode(HttpStatus.CREATED);
 			response.setStatusCode(HttpStatus.CREATED.value());
@@ -124,7 +125,9 @@ public class LogFileDetailsController {
 	@PutMapping
 	@ApiOperation(value="Update Log File Details by log id")
 	@ApiResponse(code = 201, message = "Successfully updated")	
-	public ResponseEntity<ResponseModel_v2> updateLogFileDetailsByLogId(@RequestBody LogFileDetails logFileDetails){
+	public ResponseEntity<ResponseModel_v2> updateLogFileDetailsByLogId(
+			@RequestParam String authUserId,
+			@RequestBody LogFileDetails logFileDetails){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			
@@ -138,6 +141,7 @@ public class LogFileDetailsController {
 			
 			}
 			BeanUtils.copyProperties(logFileDetails, logFileDetailsExist, NullAwareBeanUtilsBean.getNullPropertyNames(logFileDetails));
+			logFileDetails.setUploadedBy(authUserId);
 			response.setjData(service.update(logFileDetailsExist));
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
