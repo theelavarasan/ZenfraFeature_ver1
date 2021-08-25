@@ -1675,12 +1675,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 
 			 //String [] categoryArray =  request.getCategory().replaceAll( "^\\[|\\]$", "").replaceAll("\"", "").trim().split( "," );
 			// String [] sourceArray =  request.getSource().replaceAll( "^\\[|\\]$", "").replaceAll("\"", "").trim().split( "," );
-			 
-			 List<String> categoryList = request.getCategoryOpt();			 
-			 List<String> sourceList = request.getSource();
-			 	 
-			 System.out.println("------categoryList---------- " + categoryList);
-			 System.out.println("------sourceList---------- " + sourceList);
+			
 			 
 			 String discoveryFilterqry ="";
 			
@@ -1802,27 +1797,52 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                              " left join global_temp.googleReport google on google.`Server Name` = aws.`Server Name` " +
                              " " + hwJoin + " " +
                              " where aws.site_key='" + siteKey  + "' and "+ deviceType +" order by aws.`Server Name` asc) ld where ld.my_rank = 1";
-                 }                
+                 }                    
                  
-                 dataCheck = sparkSession.sql(sql).toDF(); 
-             /* if(categoryList.contains("All") || categoryList.contains("Physical Servers")) {
-                	
-               }
-               */
-                          
+                 boolean isTaskListReport = false;
+    			 if(!taskListServers.isEmpty()) {
+    				 isTaskListReport = true;
+    			 }
+    			 List<String> categoryList = new ArrayList<>();			 
+    			 List<String> sourceList = new ArrayList<>(); 
+    			
+    			 if(!isTaskListReport) {
+    				 categoryList.addAll(request.getCategoryOpt());
+    				 sourceList.addAll(request.getSource());
+    			 }
+    			 	 
+    			 System.out.println("------categoryList---------- " + categoryList);
+    			 System.out.println("------sourceList---------- " + sourceList);
+    			 
+    			 dataCheck = sparkSession.sql(sql).toDF();    
+    			 List<String> colHeaders = Arrays.asList(dataCheck.columns());  
+					
+				 if(!isTaskListReport && !categoryList.contains("All") && !categoryList.contains("Physical Servers")) {
+					 dataCheck = sparkSession.emptyDataFrame();
+				 }     
     	        
-               List<String> colHeaders = Arrays.asList(dataCheck.columns());   
-               if(categoryList.contains("All") || categoryList.contains("AWS Instances")) {            	   
+              
+               System.out.println("------colHeaders---------- " + colHeaders);
+               if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("AWS Instances"))) {            	   
             	   Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
             	   if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
-                   	dataCheck = dataCheck.unionByName(awsInstanceData);
+            		   if(dataCheck.isEmpty()) {
+            			   dataCheck = awsInstanceData;
+            		   } else {
+            			   dataCheck = dataCheck.unionByName(awsInstanceData);
+            		   }
+                   	
                    }
                }
     	        	
-               if(categoryList.contains("All") || categoryList.contains("Custom Excel Data")) {            	 
+               if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {            	 
             	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList);
-            	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {
-                   	dataCheck = dataCheck.unionByName(thirdPartyData);
+            	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
+                    if(dataCheck.isEmpty()) {
+         			   dataCheck = thirdPartyData;
+         		   } else {
+         			  dataCheck = dataCheck.unionByName(thirdPartyData);
+         		   }
                    }
                }               
                
