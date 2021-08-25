@@ -15,4 +15,6 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 	
 	List<LogFileDetails> findByLogIdIn(@Param("logId") List<String> logid);
 
+	List<LogFileDetails> findBySiteKey(String siteKey);
+
 }

@@ -74,10 +74,10 @@ public class LogFileDetailsController {
 	@GetMapping
 	@ApiOperation(value="Get all log file details")
 	@ApiResponse(code = 200, message = "Successfully retrieved")	
-	public ResponseEntity<ResponseModel_v2> getALlLogFileDetails(){
+	public ResponseEntity<ResponseModel_v2> getALlLogFileDetails(@RequestParam String siteKey){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
-			response.setjData(service.findAll());
+			response.setjData(service.getLogFileDetailsBySiteKey(siteKey));
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully retrieved");

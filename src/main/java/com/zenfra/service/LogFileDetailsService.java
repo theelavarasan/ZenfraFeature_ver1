@@ -1,6 +1,8 @@
 package com.zenfra.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,9 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 
 	@Autowired
 	LogFileDetailsDao logDao;
+	
+	@Autowired
+	UserService userService;
 	
 	@Override
 	public LogFileDetails findOne(long id) {
@@ -66,6 +71,26 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logIds){				
 		try {
 			return logDao.getLogFileDetailsByLogids(logIds);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public Object getLogFileDetailsBySiteKey(String siteKey) {
+		try {
+			
+			Map<String,String> userList=userService.getUserNames();
+			List<LogFileDetails> logFile=logDao.getLogFileDetailsBySiteKey(siteKey);
+			List<LogFileDetails> logFileUpdate=new ArrayList<LogFileDetails>();
+			for(LogFileDetails log:logFile) {
+					if(userList.containsKey(log.getUploadedBy())) {
+						log.setUploadedBy(userList.get(log.getUploadedBy()));
+					}
+					logFileUpdate.add(log);					
+				}
+			
+			return logFileUpdate;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

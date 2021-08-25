@@ -1,7 +1,9 @@
 package com.zenfra.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -109,6 +111,18 @@ public class LogFileDetailsDao implements IDao<LogFileDetails>{
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public List<LogFileDetails> getLogFileDetailsBySiteKey(String siteKey) {
+		 List<LogFileDetails> log=new ArrayList<LogFileDetails>();
+		try {
+			
+			log=logRepo.findBySiteKey(siteKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return log;
 	}
 
 
