@@ -17,4 +17,6 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 
 	List<LogFileDetails> findBySiteKey(String siteKey);
 
+	List<LogFileDetails> findBySiteKeyAndIsActive(String siteKey, boolean isActive);
+
 }
