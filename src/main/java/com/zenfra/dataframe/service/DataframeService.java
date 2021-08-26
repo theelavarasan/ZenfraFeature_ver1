@@ -1978,12 +1978,28 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					            .collect(Collectors.toList()));
 					}
 					
+					String sql = "select source_id, data from source_data where source_id in ("+sources+") and site_key='"+siteKey+"'";
 					
-					System.out.println("--------sourcessourcessources---------" + sources);
-					String sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and source_id in ("+sources+") and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
+					String getAllSourceSql = "select source_id, fields from source where is_active='true' and (link_to='All' or site_key='"+siteKey+"') and fields like '%memory%' and fields like '%numberOfCores%' and fields like '%osType%' and fields like '%name%'";
 					
-					if(isAllSource) {
-						sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
+					List<Map<String, Object>> allSource = favouriteDao_v2.getFavouriteList(getAllSourceSql);
+					
+					  
+					Map<String, JSONArray> sourceMap = new HashMap<String, JSONArray>();
+					if(allSource != null && !allSource.isEmpty()) {						
+						for(Map<String, Object> map : allSource) {
+							sourceMap.put((String) map.get("source_id"), (JSONArray)parser.parse((String) map.get("fields")));
+						}
+					}
+					
+					
+				
+					if(isAllSource) {		
+						sources = String.join(",", sourceMap.keySet()
+					            .stream()
+					            .map(source -> ("'" + source + "'"))
+					            .collect(Collectors.toList()));
+						sql = "select source_id, data from source_data where source_id in ("+sources+") and site_key='"+siteKey+"'";
 					}
 					
 					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(sql);
@@ -1991,12 +2007,22 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					
 					if(!obj.isEmpty()) {
 						for(Map<String, Object> o : obj) {
-						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));								
-								if(json.containsKey("Memory") && json.containsKey("Number of Cores") && json.containsKey("OS Type") && json.containsKey("Server Name")) {
+							
+						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));	
+						  String sourceId = (String) o.get("source_id");	
+						  JSONArray fieldMapAry = sourceMap.get(sourceId);						
+						  Map<String, String> mappingNames = new HashMap<String, String>();
+						
+						  for(int i=0; i<fieldMapAry.size(); i++) {
+							  JSONObject sourceFiledMap = (JSONObject) fieldMapAry.get(i);							
+							  mappingNames.put((String)sourceFiledMap.get("primaryKey"), (String)sourceFiledMap.get("displayLabel"));
+						  }
+						
+								if(json.containsKey(mappingNames.get("memory")) && json.containsKey(mappingNames.get("numberOfCores")) && json.containsKey(mappingNames.get("osType")) && json.containsKey(mappingNames.get("name"))) {
 									
 									String actualOsType = "";						        	
 						        		
-						        		String value = (String) json.get("OS Type");			
+						        		String value = (String) json.get(mappingNames.get("osType"));			
 						        		if(StringUtils.containsIgnoreCase(value, "CentOS")) {
 						        			value = "LINUX";
 						        			actualOsType="CentOS";
@@ -2013,10 +2039,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						        			value = "WINDOWS";
 						        			actualOsType="WINDOWS";
 						        		}
-									float mem = Float.parseFloat((String)json.get("Memory"));
-									float vcpu = Float.parseFloat((String)json.get("Number of Cores"));
+									float mem = Float.parseFloat((String)json.get(mappingNames.get("memory")));
+									float vcpu = Float.parseFloat((String)json.get(mappingNames.get("numberOfCores")));
 									String instanceId = mem+"_"+vcpu;
-									AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get("Memory"), (String)json.get("Number of Cores"), value, (String)json.get("Server Name"), instanceId, "", actualOsType);
+									AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), instanceId, "", actualOsType);
 									row.add(awsInstanceData);
 								}
 						}
