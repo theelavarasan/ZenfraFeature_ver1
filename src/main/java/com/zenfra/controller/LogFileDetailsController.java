@@ -37,7 +37,7 @@ import io.swagger.annotations.ApiResponse;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/log-file")
+@RequestMapping("/rest/api/log-file")
 @Api(value="Log file details", description="Log file details table Operations")
 @Validated
 public class LogFileDetailsController {
