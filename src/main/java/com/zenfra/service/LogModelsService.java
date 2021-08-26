@@ -2,8 +2,8 @@ package com.zenfra.service;
 
 import java.util.List;
 
-import org.jvnet.hk2.annotations.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.zenfra.Interface.IService;
 import com.zenfra.dao.LogModelsDao;
@@ -12,6 +12,7 @@ import com.zenfra.model.LogModels;
 @Service
 public class LogModelsService implements IService<LogModels>{
 
+	
 	@Autowired
 	LogModelsDao dao;
 	

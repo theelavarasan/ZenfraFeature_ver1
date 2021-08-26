@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.LogModels;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.service.LogModelsService;
@@ -37,13 +36,17 @@ import io.swagger.annotations.ApiResponse;
 @Validated
 public class LogModelsController {
 	
-	@Autowired
-	LogModelsService service;
+	
 	
 	
 	
 	@Autowired
 	CommonFunctions functions;
+	
+	
+	@Autowired
+	LogModelsService service;
+	
 	
 	@PostMapping
 	@ApiOperation(value="SavedLogModels Details ")
