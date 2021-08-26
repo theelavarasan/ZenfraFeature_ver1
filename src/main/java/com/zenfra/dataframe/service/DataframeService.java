@@ -2420,8 +2420,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " azurePricingDF.VCPUs," +
 		                    " azurePricingDF.Memory, azurePricingDF.`InstanceType` as `Azure Instance Type`, azurePricingDF.`Azure Specs` "+
 		                    " FROM global_temp.awsInstanceDF ai" +
-		                    " left join global_temp.azurePricingDF azurePricingDF on cast(azurePricingDF.VCPUs as int) = cast(ai.`Number of Cores` as int) " +
-		                    " and cast(azurePricingDF.Memory as float) = cast(ai.Memory as float) " +
+		                    " left join global_temp.azurePricingDF azurePricingDF on cast(azurePricingDF.VCPUs as int) >= cast(ai.`Number of Cores` as int) " +
+		                    " and cast(azurePricingDF.Memory as float) >= cast(ai.Memory as float) " +
 		                    " and lower(azurePricingDF.`OperatingSystem`) = lower(ai.`actualOsType`)" +
 		                    " ) report ) reportData " +
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
@@ -2450,7 +2450,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " a.vCPU," +
 		                    " a.Memory, a.`Instance Type` as `AWS Instance Type`, concat_ws(',', concat('Processor: ',a.`Physical Processor`),concat('vCPU: ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor Architecture: ',a.`Processor Architecture`) ,concat('Memory: ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance: ',a.`Network Performance`)) as `AWS Specs` "+
 		                    " FROM global_temp.awsInstanceDF ai" +
-		                    " left join global_temp.awsPricingDF a on cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) "+
+		                    " left join global_temp.awsPricingDF a on cast(a.vCPU as int) >=  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) >= cast (ai.Memory as int) "+
 		                    " and lower(a.`Operating System`) = lower(ai.`actualOsType`) and cast(a.`PricePerUnit` as float ) > 0.0" +
 		                    " ) report ) reportData " +
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
@@ -2488,7 +2488,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " (case when ai.`actualOsType` like '%Windows%' then 67.16  when ai.`actualOsType` like '%Red Hat%' then 43.8 else 0  end),2) as `Google 3 Year Price`" +
 		                    " FROM global_temp.awsInstanceDF ai " +
 		                    " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where " +
-		                    " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) =  cast(ai.`Number of Cores` as float) and " +
+		                    " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) >=  cast(ai.`Number of Cores` as float) and " +
 		                    " cast(googlePricing.Memory as float) >= cast (ai.Memory as float)) report ) reportData " +
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("googleReportForAWSInstance");				           
