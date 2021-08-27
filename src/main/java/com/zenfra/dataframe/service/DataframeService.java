@@ -1978,12 +1978,28 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					            .collect(Collectors.toList()));
 					}
 					
+					String sql = "select source_id, data from source_data where source_id in ("+sources+") and site_key='"+siteKey+"'";
 					
-					System.out.println("--------sourcessourcessources---------" + sources);
-					String sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and source_id in ("+sources+") and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
+					String getAllSourceSql = "select source_id, fields from source where is_active='true' and (link_to='All' or site_key='"+siteKey+"') and fields like '%memory%' and fields like '%numberOfCores%' and fields like '%osType%' and fields like '%name%'";
 					
-					if(isAllSource) {
-						sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
+					List<Map<String, Object>> allSource = favouriteDao_v2.getFavouriteList(getAllSourceSql);
+					
+					  
+					Map<String, JSONArray> sourceMap = new HashMap<String, JSONArray>();
+					if(allSource != null && !allSource.isEmpty()) {						
+						for(Map<String, Object> map : allSource) {
+							sourceMap.put((String) map.get("source_id"), (JSONArray)parser.parse((String) map.get("fields")));
+						}
+					}
+					
+					
+				
+					if(isAllSource) {		
+						sources = String.join(",", sourceMap.keySet()
+					            .stream()
+					            .map(source -> ("'" + source + "'"))
+					            .collect(Collectors.toList()));
+						sql = "select source_id, data from source_data where source_id in ("+sources+") and site_key='"+siteKey+"'";
 					}
 					
 					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(sql);
@@ -1991,12 +2007,22 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					
 					if(!obj.isEmpty()) {
 						for(Map<String, Object> o : obj) {
-						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));								
-								if(json.containsKey("Memory") && json.containsKey("Number of Cores") && json.containsKey("OS Type") && json.containsKey("Server Name")) {
+							
+						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));	
+						  String sourceId = (String) o.get("source_id");	
+						  JSONArray fieldMapAry = sourceMap.get(sourceId);						
+						  Map<String, String> mappingNames = new HashMap<String, String>();
+						
+						  for(int i=0; i<fieldMapAry.size(); i++) {
+							  JSONObject sourceFiledMap = (JSONObject) fieldMapAry.get(i);							
+							  mappingNames.put((String)sourceFiledMap.get("primaryKey"), (String)sourceFiledMap.get("displayLabel"));
+						  }
+						
+								if(json.containsKey(mappingNames.get("memory")) && json.containsKey(mappingNames.get("numberOfCores")) && json.containsKey(mappingNames.get("osType")) && json.containsKey(mappingNames.get("name"))) {
 									
 									String actualOsType = "";						        	
 						        		
-						        		String value = (String) json.get("OS Type");			
+						        		String value = (String) json.get(mappingNames.get("osType"));			
 						        		if(StringUtils.containsIgnoreCase(value, "CentOS")) {
 						        			value = "LINUX";
 						        			actualOsType="CentOS";
@@ -2013,10 +2039,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						        			value = "WINDOWS";
 						        			actualOsType="WINDOWS";
 						        		}
-									float mem = Float.parseFloat((String)json.get("Memory"));
-									float vcpu = Float.parseFloat((String)json.get("Number of Cores"));
+									float mem = Float.parseFloat((String)json.get(mappingNames.get("memory")));
+									float vcpu = Float.parseFloat((String)json.get(mappingNames.get("numberOfCores")));
 									String instanceId = mem+"_"+vcpu;
-									AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get("Memory"), (String)json.get("Number of Cores"), value, (String)json.get("Server Name"), instanceId, "", actualOsType);
+									AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), instanceId, "", actualOsType);
 									row.add(awsInstanceData);
 								}
 						}
@@ -2435,23 +2461,23 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		 
 		 public void getAwsPricingForThirdParty() {
 		        try {
-		        
+		        //cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) and
 		            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
-		                    " select report.`vCPU`, " +
+		                    " select report.`vCPU`,  report.`Server Name`, " +
 		                    " report.`AWS Instance Type`, report.`OS Name`, report.instanceid, " +
 		                    " report.`Memory` as `Memory`, " +	
 		                    " report.`AWS On Demand Price`,report.`AWS 3 Year Price`, report.`AWS 1 Year Price`, report.`AWS Instance Type`, report.`AWS Specs`, " +
-		                    " ROW_NUMBER() OVER (PARTITION BY report.`Memory`, report.`vCPU`  ORDER BY cast(report.`AWS On Demand Price` as float) asc) as my_rank" +
+		                    " ROW_NUMBER() OVER (PARTITION BY report.`Server Name`  ORDER BY cast(report.`AWS On Demand Price` as float) asc) as my_rank" +
 		                    " from (SELECT ai.`instanceid`, " +
 		                    " ai.`Number of Cores`, ai.`actualOsType` as `OS Name`, " +		                 
-		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 3 Year Price`, "+
-		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) and a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 1 Year Price`, "+
+		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and  a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 3 Year Price`, "+
+		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and  a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 1 Year Price`, "+
 		                    " round( (a.`PricePerUnit` * 730), 2 ) as `AWS On Demand Price`, "+
-		                    " a.vCPU," +
+		                    " a.vCPU, ai.`Server Name`," +
 		                    " a.Memory, a.`Instance Type` as `AWS Instance Type`, concat_ws(',', concat('Processor: ',a.`Physical Processor`),concat('vCPU: ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor Architecture: ',a.`Processor Architecture`) ,concat('Memory: ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance: ',a.`Network Performance`)) as `AWS Specs` "+
 		                    " FROM global_temp.awsInstanceDF ai" +
 		                    " left join global_temp.awsPricingDF a on cast(a.vCPU as int) >=  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) >= cast (ai.Memory as int) "+
-		                    " and lower(a.`Operating System`) = lower(ai.`actualOsType`) and cast(a.`PricePerUnit` as float ) > 0.0" +
+		                    " and a.`TermType`='OnDemand' and lower(a.`Operating System`) = lower(ai.`actualOsType`) and cast(a.`PricePerUnit` as float ) > 0.0" +
 		                    " ) report ) reportData " +
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("awsReportForThirdParty");	
@@ -2459,7 +2485,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		            
 		            dataCheck.show();
 		            
-		            
+		           
 		            
 		        } catch (Exception ex) {
 		            ex.printStackTrace();
