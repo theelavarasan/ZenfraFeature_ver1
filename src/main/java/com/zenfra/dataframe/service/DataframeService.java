@@ -1926,7 +1926,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 try {
 					
 					// Dataset<Row> dataCheck1 = sparkSession.sql("select * from (select g.`Google Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`, g.`Google 3 Year Price`, ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, ai.`OS Name`, round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`,  ROW_NUMBER () over (partition BY ai.`instanceid` ORDER BY a.`PricePerUnit` ASC) AS my_rank, concat_ws(',', concat('Processor: ',a.`Physical Processor`),concat('vCPU: ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor Architecture: ',a.`Processor Architecture`) ,concat('Memory: ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance: ',a.`Network Performance`)) as `AWS Specs`, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a  where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 3 Year Price`, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`)  and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 1 Year Price`, round((a.`PricePerUnit` * 730),2) as `AWS On Demand Price` from global_temp.awsInstanceDF ai left join global_temp.googleReportForAWSInstance g on ai.instanceid=g.instanceid  left join global_temp.azureReportForAWSInstance azure on lower(azure.`OS Name`) = lower(ai.`actualOsType`) and cast(azure.Memory as float ) = cast(ai.Memory as float)  and cast(azure.VCPUs as int ) = cast(ai.`Number of Cores` as int)  left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)= lower(a.`Instance Type`) and a.`License Model` = 'No License required' and a.Location = 'US East (Ohio)' and a.Tenancy <> 'Host' and a.TermType = 'OnDemand' and lower(a.`Operating System`) = lower(ai.`OS Name`) and cast(a.`PricePerUnit` as float ) > 0.0 and (  a.`Product Family` = 'Compute Instance (bare metal)'   or a.`Product Family` = 'Compute Instance'  )) AWS where AWS.my_rank = 1").toDF();
-					 Dataset<Row> dataCheck1 = sparkSession.sql(" select g.`Google Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`, g.`Google 3 Year Price`, ai.`AWS Region`, a.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, ai.`OS Name`, round( azure.`Azure On Demand Price`, 2 ) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`, 2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`, 2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`, a.`AWS On Demand Price`, a.`AWS 3 Year Price`, a.`AWS 1 Year Price`, a.`AWS Specs` from global_temp.awsInstanceDF ai left join global_temp.googleReportForAWSInstance g on ai.instanceid = g.instanceid left join global_temp.azureReportForAWSInstance azure on ai.instanceid = azure.instanceid left join global_temp.awsReportForThirdParty a on  ai.instanceid = a.instanceid").toDF();
+					 Dataset<Row> dataCheck1 = sparkSession.sql("select * from (select ROW_NUMBER() OVER (PARTITION BY ai.`Server Name` ORDER BY  g.`Google On Demand Price`, a.`AWS On Demand Price`  asc) as my_rank,  g.`Google Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`, g.`Google 3 Year Price`, ai.`AWS Region`, a.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, ai.`OS Name`, round( azure.`Azure On Demand Price`, 2 ) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`, 2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`, 2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`, a.`AWS On Demand Price`, a.`AWS 3 Year Price`, a.`AWS 1 Year Price`, a.`AWS Specs` from global_temp.awsInstanceDF ai left join global_temp.googleReportForAWSInstance g on ai.instanceid = g.instanceid left join global_temp.azureReportForAWSInstance azure on ai.instanceid = azure.instanceid left join global_temp.awsReportForThirdParty a on  ai.instanceid = a.instanceid) thirdParty where thirdParty.my_rank = 1").toDF();
 					
 					 List<String> dup = new ArrayList<>();
 					 dup.addAll(Arrays.asList(dataCheck1.columns()));
@@ -1978,12 +1978,28 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					            .collect(Collectors.toList()));
 					}
 					
+					String sql = "select source_id, data from source_data where source_id in ("+sources+") and site_key='"+siteKey+"'";
 					
-					System.out.println("--------sourcessourcessources---------" + sources);
-					String sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and source_id in ("+sources+") and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
+					String getAllSourceSql = "select source_id, fields from source where is_active='true' and (link_to='All' or site_key='"+siteKey+"') and fields like '%memory%' and fields like '%numberOfCores%' and fields like '%osType%' and fields like '%name%'";
 					
-					if(isAllSource) {
-						sql = "select data from source_data where source_id in (select source_id from source where is_active='true' and site_key='"+siteKey+"') and site_key='"+siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')";
+					List<Map<String, Object>> allSource = favouriteDao_v2.getFavouriteList(getAllSourceSql);
+					
+					  
+					Map<String, JSONArray> sourceMap = new HashMap<String, JSONArray>();
+					if(allSource != null && !allSource.isEmpty()) {						
+						for(Map<String, Object> map : allSource) {
+							sourceMap.put((String) map.get("source_id"), (JSONArray)parser.parse((String) map.get("fields")));
+						}
+					}
+					
+					
+				
+					if(isAllSource) {		
+						sources = String.join(",", sourceMap.keySet()
+					            .stream()
+					            .map(source -> ("'" + source + "'"))
+					            .collect(Collectors.toList()));
+						sql = "select source_id, data from source_data where source_id in ("+sources+") and site_key='"+siteKey+"'";
 					}
 					
 					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(sql);
@@ -1991,12 +2007,22 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					
 					if(!obj.isEmpty()) {
 						for(Map<String, Object> o : obj) {
-						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));								
-								if(json.containsKey("Memory") && json.containsKey("Number of Cores") && json.containsKey("OS Type") && json.containsKey("Server Name")) {
+							
+						  JSONObject json = (JSONObject) parser.parse((String) o.get("data"));	
+						  String sourceId = (String) o.get("source_id");	
+						  JSONArray fieldMapAry = sourceMap.get(sourceId);						
+						  Map<String, String> mappingNames = new HashMap<String, String>();
+						
+						  for(int i=0; i<fieldMapAry.size(); i++) {
+							  JSONObject sourceFiledMap = (JSONObject) fieldMapAry.get(i);							
+							  mappingNames.put((String)sourceFiledMap.get("primaryKey"), (String)sourceFiledMap.get("displayLabel"));
+						  }
+						
+								if(json.containsKey(mappingNames.get("memory")) && json.containsKey(mappingNames.get("numberOfCores")) && json.containsKey(mappingNames.get("osType")) && json.containsKey(mappingNames.get("name"))) {
 									
 									String actualOsType = "";						        	
 						        		
-						        		String value = (String) json.get("OS Type");			
+						        		String value = (String) json.get(mappingNames.get("osType"));			
 						        		if(StringUtils.containsIgnoreCase(value, "CentOS")) {
 						        			value = "LINUX";
 						        			actualOsType="CentOS";
@@ -2013,10 +2039,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						        			value = "WINDOWS";
 						        			actualOsType="WINDOWS";
 						        		}
-									float mem = Float.parseFloat((String)json.get("Memory"));
-									float vcpu = Float.parseFloat((String)json.get("Number of Cores"));
+									float mem = Float.parseFloat((String)json.get(mappingNames.get("memory")));
+									float vcpu = Float.parseFloat((String)json.get(mappingNames.get("numberOfCores")));
 									String instanceId = mem+"_"+vcpu;
-									AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get("Memory"), (String)json.get("Number of Cores"), value, (String)json.get("Server Name"), instanceId, "", actualOsType);
+									AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), instanceId, "", actualOsType);
 									row.add(awsInstanceData);
 								}
 						}
@@ -2420,8 +2446,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " azurePricingDF.VCPUs," +
 		                    " azurePricingDF.Memory, azurePricingDF.`InstanceType` as `Azure Instance Type`, azurePricingDF.`Azure Specs` "+
 		                    " FROM global_temp.awsInstanceDF ai" +
-		                    " left join global_temp.azurePricingDF azurePricingDF on cast(azurePricingDF.VCPUs as int) = cast(ai.`Number of Cores` as int) " +
-		                    " and cast(azurePricingDF.Memory as float) = cast(ai.Memory as float) " +
+		                    " left join global_temp.azurePricingDF azurePricingDF on cast(azurePricingDF.VCPUs as int) >= cast(ai.`Number of Cores` as int) " +
+		                    " and cast(azurePricingDF.Memory as float) >= cast(ai.Memory as float) " +
 		                    " and lower(azurePricingDF.`OperatingSystem`) = lower(ai.`actualOsType`)" +
 		                    " ) report ) reportData " +
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
@@ -2435,23 +2461,23 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		 
 		 public void getAwsPricingForThirdParty() {
 		        try {
-		        
+		        //cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) and
 		            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
-		                    " select report.`vCPU`, " +
+		                    " select report.`vCPU`,  report.`Server Name`, " +
 		                    " report.`AWS Instance Type`, report.`OS Name`, report.instanceid, " +
 		                    " report.`Memory` as `Memory`, " +	
 		                    " report.`AWS On Demand Price`,report.`AWS 3 Year Price`, report.`AWS 1 Year Price`, report.`AWS Instance Type`, report.`AWS Specs`, " +
-		                    " ROW_NUMBER() OVER (PARTITION BY report.`Memory`, report.`vCPU`  ORDER BY cast(report.`AWS On Demand Price` as float) asc) as my_rank" +
+		                    " ROW_NUMBER() OVER (PARTITION BY report.`Server Name`  ORDER BY cast(report.`PricePerUnit` as float) asc) as my_rank" +
 		                    " from (SELECT ai.`instanceid`, " +
 		                    " ai.`Number of Cores`, ai.`actualOsType` as `OS Name`, " +		                 
-		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 3 Year Price`, "+
-		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) and a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 1 Year Price`, "+
-		                    " round( (a.`PricePerUnit` * 730), 2 ) as `AWS On Demand Price`, "+
-		                    " a.vCPU," +
+		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and  a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 3 Year Price`, "+
+		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and  a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 1 Year Price`, "+
+		                    " round( (a.`PricePerUnit` * 730), 2 ) as `AWS On Demand Price`, a.`PricePerUnit`, "+
+		                    " a.vCPU, ai.`Server Name`, " +
 		                    " a.Memory, a.`Instance Type` as `AWS Instance Type`, concat_ws(',', concat('Processor: ',a.`Physical Processor`),concat('vCPU: ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor Architecture: ',a.`Processor Architecture`) ,concat('Memory: ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance: ',a.`Network Performance`)) as `AWS Specs` "+
 		                    " FROM global_temp.awsInstanceDF ai" +
-		                    " left join global_temp.awsPricingDF a on cast(a.vCPU as int) =  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) = cast (ai.Memory as int) "+
-		                    " and lower(a.`Operating System`) = lower(ai.`actualOsType`) and cast(a.`PricePerUnit` as float ) > 0.0" +
+		                    " left join global_temp.awsPricingDF a on cast(a.vCPU as int) >=  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) >= cast (ai.Memory as int) "+
+		                    " and a.`TermType`='OnDemand' and Location='US East (Ohio)' and Tenancy <> 'Host'  and (`Product Family` = 'Compute Instance (bare metal)' or `Product Family` = 'Compute Instance') and lower(a.`Operating System`) = lower(ai.`actualOsType`) and cast(a.`PricePerUnit` as float ) > 0.0" +
 		                    " ) report ) reportData " +
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("awsReportForThirdParty");	
@@ -2459,7 +2485,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		            
 		            dataCheck.show();
 		            
-		            
+		           
 		            
 		        } catch (Exception ex) {
 		            ex.printStackTrace();
@@ -2488,7 +2514,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " (case when ai.`actualOsType` like '%Windows%' then 67.16  when ai.`actualOsType` like '%Red Hat%' then 43.8 else 0  end),2) as `Google 3 Year Price`" +
 		                    " FROM global_temp.awsInstanceDF ai " +
 		                    " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where " +
-		                    " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) =  cast(ai.`Number of Cores` as float) and " +
+		                    " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) >=  cast(ai.`Number of Cores` as float) and " +
 		                    " cast(googlePricing.Memory as float) >= cast (ai.Memory as float)) report ) reportData " +
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("googleReportForAWSInstance");				           
