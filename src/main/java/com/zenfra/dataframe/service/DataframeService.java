@@ -2473,7 +2473,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and  a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 3 Year Price`, "+
 		                    " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and  a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 1 Year Price`, "+
 		                    " round( (a.`PricePerUnit` * 730), 2 ) as `AWS On Demand Price`, a.`PricePerUnit`, "+
-		                    " a.vCPU, ai.`Server Name`," +
+		                    " a.vCPU, ai.`Server Name`, " +
 		                    " a.Memory, a.`Instance Type` as `AWS Instance Type`, concat_ws(',', concat('Processor: ',a.`Physical Processor`),concat('vCPU: ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor Architecture: ',a.`Processor Architecture`) ,concat('Memory: ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance: ',a.`Network Performance`)) as `AWS Specs` "+
 		                    " FROM global_temp.awsInstanceDF ai" +
 		                    " left join global_temp.awsPricingDF a on cast(a.vCPU as int) >=  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) >= cast (ai.Memory as int) "+
