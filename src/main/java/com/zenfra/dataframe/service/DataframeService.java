@@ -1810,10 +1810,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     				 categoryList.add(request.getCategoryOpt());
     				 sourceList.add(request.getSource());
     			 }
-    			 	 
-    			 System.out.println("------categoryList---------- " + categoryList);
-    			 System.out.println("------sourceList---------- " + sourceList);
-    			 
+    			
     			 dataCheck = sparkSession.sql(sql).toDF();    
     			 List<String> colHeaders = Arrays.asList(dataCheck.columns());  
 					
@@ -1822,7 +1819,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 }     
     	        
               
-               System.out.println("------colHeaders---------- " + colHeaders);
+              
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("AWS Instances"))) {            	   
             	   Dataset<Row> awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
             	   if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
@@ -1837,6 +1834,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        	
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {            	 
             	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList);
+            	   
+            	   if(categoryList.contains("All")) {
+            		  List<Row> serverNames =  dataCheck.select(functions.lit("Server Name")).collectAsList();
+            		  System.out.println("------------serverNames-----------------"+serverNames);
+            		 //  dataCheck.createOrReplaceTempView("filterData");
+            		  // sparkSession.sqlContext().sql("select * from filterData where `Server Name` not in ()");
+            	   }
+            	   
             	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
                     if(dataCheck.isEmpty()) {
          			   dataCheck = thirdPartyData;
@@ -1844,6 +1849,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
          			  dataCheck = dataCheck.unionByName(thirdPartyData);
          		   }
                    }
+            	   
+            	   
                }               
                
                dataCheck.printSchema();
