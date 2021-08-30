@@ -1918,12 +1918,17 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 data = data.withColumnRenamed("updated_date", "updated_date");
 				 data.createOrReplaceGlobalTempView("awsInstanceDF");	
 				
+				
 				// getAwsPricingForThirdParty();
 				 getAWSPricingForThirdParty();
 				 getAzurePricingForAWS();
 				 getGooglePricingForAWS();		
 				 
 				
+				 
+				 data.printSchema();
+				 data.show();
+				 
 				 
 				 try {
 					
