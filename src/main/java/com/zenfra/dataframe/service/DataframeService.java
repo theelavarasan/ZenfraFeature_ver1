@@ -2353,8 +2353,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`PricePerUnit` as float) asc) as my_rank" +
 		                    " from (SELECT localDiscoveryDF.`Server Name`," +
 		                    " localDiscoveryDF.`OS Name`, " +
-		                    " cast(localDiscoveryDF.`Number of Processors` as int) as `Number of Processors`," +
-		                    " cast(localDiscoveryDF.`Memory` as int) as `Memory`, " +
+		                    " localDiscoveryDF.`Number of Processors`," +
+		                    " localDiscoveryDF.`Memory`, " +
 		                    " awsPricing2.`Instance Type` as `AWS Instance Type`, awsPricing2.Location as `AWS Region`" +
 		                    " ,concat_ws(',', concat('Processor: ',awsPricing2.`Physical Processor`),concat('vCPU: ',awsPricing2.vCPU)" +
 		                    " ,concat('Clock Speed: ',awsPricing2.`Clock Speed`),concat('Processor Architecture: ',awsPricing2.`Processor Architecture`)" +
