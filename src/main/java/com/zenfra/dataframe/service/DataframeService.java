@@ -1910,7 +1910,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 data = data.withColumnRenamed("region", "AWS Region");
 				 data = data.withColumnRenamed("instancetype", "AWS Instance Type");
 				 data = data.withColumnRenamed("memoryinfo", "Memory");
-				 data = data.withColumnRenamed("vcpuinfo", "Number of Processers");
+				 data = data.withColumnRenamed("vcpuinfo", "Number of Processors");
 				 data = data.withColumnRenamed("platformdetails", "OS Name");
 				 data = data.withColumnRenamed("description", "Server Name");
 				 data = data.withColumnRenamed("instanceid", "instanceid");
