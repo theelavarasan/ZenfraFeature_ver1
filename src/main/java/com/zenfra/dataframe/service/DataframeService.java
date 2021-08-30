@@ -1836,10 +1836,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                
 
                List<String> physicalServerNames = new ArrayList<String>();
-        	   if(categoryList.contains("All")) {
+        	   /*if(categoryList.contains("All")) {
         		  List<Row> serverNames =  dataCheck.select(functions.col("Server Name")).collectAsList();
         		  serverNames.forEach((Consumer<? super Row>) row -> physicalServerNames.add(row.getAs("Server Name")));
-        	   }
+        	   }*/
         	   System.out.println("----physicalServerNames-----------" + physicalServerNames);
     	        	
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {            	 
