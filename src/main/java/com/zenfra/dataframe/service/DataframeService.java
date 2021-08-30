@@ -1843,7 +1843,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
         	   System.out.println("----physicalServerNames-----------" + physicalServerNames);
     	        	
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {            	 
-            	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList, request.getDeviceType());
+            	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList, request.getDeviceType(), physicalServerNames);
             	               	   
             	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
                     if(dataCheck.isEmpty()) {
@@ -1911,10 +1911,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		}
 		
 		
-		 private Dataset<Row> getThirdPartyData(List<String> columnHeaders, String siteKey, String deviceTypeHeder, List<String> sourceList, String deviceType) {
+		 private Dataset<Row> getThirdPartyData(List<String> columnHeaders, String siteKey, String deviceTypeHeder, List<String> sourceList, String deviceType, List<String> physicalServerNames) {
 			 Dataset<Row> result = sparkSession.emptyDataFrame();
 			try {
-				 List<AwsInstanceData> thirdPartyData = queryThirdPartyData(siteKey, sourceList, deviceType);
+				 List<AwsInstanceData> thirdPartyData = queryThirdPartyData(siteKey, sourceList, deviceType, physicalServerNames);
 				
 				 Dataset<Row> data = sparkSession.createDataFrame(thirdPartyData, AwsInstanceData.class);
 				 
@@ -1972,7 +1972,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 		 
 
-			private List<AwsInstanceData> queryThirdPartyData(String siteKey, List<String> sourceList, String deviceType) {
+			private List<AwsInstanceData> queryThirdPartyData(String siteKey, List<String> sourceList, String deviceType, List<String> physicalServerNames) {
 				List<AwsInstanceData> row = new ArrayList<>();
 				try {
 					/*
@@ -2027,6 +2027,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						deviceList.add(deviceType.toUpperCase());		
 					}
 					
+					System.out.println("-------deviceList------------" + deviceList);
+					
 					if(!obj.isEmpty()) {
 						for(Map<String, Object> o : obj) {
 							
@@ -2064,7 +2066,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									float mem = Float.parseFloat((String)json.get(mappingNames.get("memory")));
 									float vcpu = Float.parseFloat((String)json.get(mappingNames.get("numberOfCores")));
 									String instanceId = mem+"_"+vcpu;
-									if(deviceList.contains(value)) {
+									if(deviceList.contains(value) && !physicalServerNames.stream().anyMatch(d -> d.equalsIgnoreCase((String)json.get(mappingNames.get("name"))))) {
 										AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType);
 										row.add(awsInstanceData);
 									}
