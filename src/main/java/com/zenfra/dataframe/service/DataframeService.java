@@ -1924,7 +1924,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 getAzurePricingForAWS();
 				 getGooglePricingForAWS();		
 				 
-				
+				 data = data.drop("instanceid");
 				 
 				 data.printSchema();
 				 data.show();
