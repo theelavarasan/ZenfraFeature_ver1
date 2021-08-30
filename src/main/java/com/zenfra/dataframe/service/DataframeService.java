@@ -1925,6 +1925,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 getGooglePricingForAWS();		
 				 
 				 data = data.drop("instanceid");
+				 data.createOrReplaceGlobalTempView("awsInstanceDF");	
 				 
 				 data.printSchema();
 				 data.show();
