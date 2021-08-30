@@ -2022,7 +2022,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					List<String> deviceList = new ArrayList<>();
 					if(deviceType.contentEquals("All")) {
 						deviceList.add("LINUX");
-						deviceList.add("WINDOWS");						
+						deviceList.add("WINDOWS");	
+						deviceList.add("SUSE");		
+						deviceList.add("RHEL");		
 					} else {
 						deviceList.add(deviceType.toUpperCase());		
 					}
