@@ -2344,10 +2344,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		 public void getAWSPricingForThirdParty() {
 		        try {
 		            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
-		                    " select report.Host, report.log_date,report.`vCPU`, report.site_key, report.`Server Type`, report.`Server Name`, report.`OS Name`,report.`OS Version`, report.`Server Type`, report.`Server Model`," +
-		                    " report.`Memory` as `Memory`, (case when report.`Total Size` is null then 0 else report.`Total Size` end) as `Total Size`, report.`Number of Processors`, report.`Logical Processor Count`, " +
-		                    " report.`CPU GHz`, report.`Processor Name`, report.`Number of Cores` as `Number of Cores`, report.`DB Service`, report.`HBA Speed`," +
-		                    " report.`Number of Ports`, (report.`PricePerUnit` * 730) as `AWS On Demand Price`," +
+		                    " select report.`vCPU`, report.`Server Name`, report.`OS Name`," +
+		                    " report.`Memory` as `Memory`, report.`Number of Processors`, " +
+		                    "  (report.`PricePerUnit` * 730) as `AWS On Demand Price`," +
 		                    " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`, " +
 		                    " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`, " +
 		                    " report.`AWS Instance Type`,report.`AWS Region`,report.`AWS Specs`," +
