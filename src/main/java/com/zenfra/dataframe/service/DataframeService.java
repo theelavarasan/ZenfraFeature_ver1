@@ -1927,9 +1927,6 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 Dataset<Row> data1 = data.drop("instanceid");
 				 data1.createOrReplaceGlobalTempView("awsInstanceDF");	
 				 
-				 data1.printSchema();
-				 data1.show();
-				 
 				 
 				 try {
 					
@@ -2379,10 +2376,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " awsPricing2.Memory and awsPricing.vCPU = awsPricing2.vCPU and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData" +
 		                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("awsReportForThirdParty");				            
-		            dataCheck.cache();
-		            dataCheck.printSchema();
-		            dataCheck.show();
-		            
+		           		            
 		        } catch (Exception ex) {
 		            ex.printStackTrace();
 		        }
@@ -2502,7 +2496,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " ) report ) reportData " +
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("azureReportForAWSInstance");	
-		            dataCheck.show();
+		           
 		            
 		        } catch (Exception ex) {
 		            ex.printStackTrace();
@@ -2569,8 +2563,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("googleReportForAWSInstance");				           
 		            dataCheck.cache();
-		           // dataCheck.printSchema();
-		            dataCheck.show();
+		           
 		        } catch (Exception ex) {
 		            ex.printStackTrace();
 		        }
