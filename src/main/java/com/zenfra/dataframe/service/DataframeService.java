@@ -2368,7 +2368,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " and Location='US East (Ohio)' and Tenancy <> 'Host' and (`Product Family` = 'Compute Instance (bare metal)' or `Product Family` = 'Compute Instance') and cast(PricePerUnit as float) > 0 group by `Operating System`,Memory,vCPU,TermType) awsPricing on" +
 		                    " lcase(awsPricing.`Operating System`) = lcase((case when localDiscoveryDF.`OS Name` like '%Red Hat%' then 'RHEL'" +
 		                    " when localDiscoveryDF.`OS Name` like '%SUSE%' then 'SUSE' when localDiscoveryDF.`OS Name` like '%Linux%' OR localDiscoveryDF.`OS Name` like '%CentOS%' then 'Linux'" +
-		                    " when localDiscoveryDF.`OS Name` like '%Windows%' then 'Windows' else localDiscoveryDF.`Server Type` end)) and" +
+		                    " when localDiscoveryDF.`OS Name` like '%Windows%' then 'Windows')) and" +
 		                    " awsPricing.Memory >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
 		                    " and awsPricing.vCPU >= (cast(localDiscoveryDF.`Number of Processors` as int))" +
 		                    " left join global_temp.awsPricingDF awsPricing2 on awsPricing2.`Operating System` = awsPricing.`Operating System` and awsPricing2.PricePerUnit = awsPricing.pricePerUnit and awsPricing.Memory = " +
