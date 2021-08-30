@@ -1,17 +1,31 @@
 package com.zenfra.controller;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+
+import org.apache.commons.fileupload.util.Streams;
+
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -34,6 +48,7 @@ import com.zenfra.utils.NullAwareBeanUtilsBean;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -208,6 +223,57 @@ public class LogFileDetailsController {
 	}
 	
 	
-	
+	  @PostMapping("/upload-file")
+	    @ApiOperation(value = "Make a POST request to upload the file",
+	            produces = "application/json", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	    @ApiResponses(value = {
+	            @ApiResponse(code = 200, message = "The POST call is Successful"),
+	            @ApiResponse(code = 500, message = "The POST call is Failed"),
+	            @ApiResponse(code = 404, message = "The API could not be found")
+	    })
+	    public ResponseEntity<?> uploadFile(
+	    		HttpServletRequest request
+	            ) {
+		  
+		  ResponseModel_v2 responseModel_v2=new ResponseModel_v2();
+		  try {
+	            boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+	            if (!isMultipart) {
+	            	System.out.println("isMultipart::"+isMultipart);
+	                // Inform user about invalid request
+	                return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.EXPECTATION_FAILED);
+	                
+	            }
+
+	            // Create a new file upload handler
+	            ServletFileUpload upload = new ServletFileUpload();
+
+	            // Parse the request
+	            FileItemIterator iter = upload.getItemIterator(request);
+	            while (iter.hasNext()) {
+	                FileItemStream item = iter.next();
+	                String name = item.getFieldName();
+	                InputStream stream = item.openStream();
+	                if (!item.isFormField()) {
+	                    String filename = item.getName();
+	                    // Process the input stream
+	                    OutputStream out = new FileOutputStream("test"+filename);
+	                    IOUtils.copy(stream, out);
+	                    stream.close();
+	                    out.close();
+	                }
+	            }
+	        } catch (FileUploadException e) {
+	        	e.printStackTrace();
+	        	 return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.EXPECTATION_FAILED);
+	        } catch (IOException e) {
+	        	e.printStackTrace();
+	        	 return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.EXPECTATION_FAILED);
+	        }catch(Exception e) {
+	        	e.printStackTrace();
+	        }
+
+		  return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.OK);
+	    }
 	
 }
