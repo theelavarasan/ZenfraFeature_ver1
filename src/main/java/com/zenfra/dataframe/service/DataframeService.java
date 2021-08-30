@@ -1910,7 +1910,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 data = data.withColumnRenamed("region", "AWS Region");
 				 data = data.withColumnRenamed("instancetype", "AWS Instance Type");
 				 data = data.withColumnRenamed("memoryinfo", "Memory");
-				 data = data.withColumnRenamed("vcpuinfo", "Number of Processors");
+				 data = data.withColumnRenamed("vcpuinfo", "Number of Cores");
 				 data = data.withColumnRenamed("platformdetails", "OS Name");
 				 data = data.withColumnRenamed("description", "Server Name");
 				 data = data.withColumnRenamed("instanceid", "instanceid");
@@ -2345,7 +2345,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		        try {
 		            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
 		                    " select report.`vCPU`, report.`Server Name`, report.`OS Name`," +
-		                    " report.`Memory` as `Memory`, report.`Number of Processors`, " +
+		                    " report.`Memory` as `Memory`, report.`Number of Cores`, " +
 		                    "  (report.`PricePerUnit` * 730) as `AWS On Demand Price`," +
 		                    " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`, " +
 		                    " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`, " +
@@ -2353,13 +2353,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`PricePerUnit` as float) asc) as my_rank" +
 		                    " from (SELECT localDiscoveryDF.`Server Name`," +
 		                    " localDiscoveryDF.`OS Name`, " +
-		                    " cast(localDiscoveryDF.`Number of Processors` as int) as `Number of Processors`," +
+		                    " cast(localDiscoveryDF.`Number of Cores` as int) as `Number of Cores`," +
 		                    " cast(localDiscoveryDF.`Memory` as int) as `Memory`, " +
 		                    " awsPricing2.`Instance Type` as `AWS Instance Type`, awsPricing2.Location as `AWS Region`" +
 		                    " ,concat_ws(',', concat('Processor: ',awsPricing2.`Physical Processor`),concat('vCPU: ',awsPricing2.vCPU)" +
 		                    " ,concat('Clock Speed: ',awsPricing2.`Clock Speed`),concat('Processor Architecture: ',awsPricing2.`Processor Architecture`)" +
 		                    " ,concat('Memory: ',awsPricing2.Memory),concat('Storage: ',awsPricing2.Storage),concat('Network Performance: ',awsPricing2.`Network Performance`)) as `AWS Specs`" +
-		                    " , cast(localDiscoveryDF.`Number of Processors` as int) as `vCPU`, (case when localDiscoveryDF.`Memory` is null then 0 else cast(localDiscoveryDF.`Memory` as int) end) as `MemorySize`, awsPricing2.PricePerUnit as `PricePerUnit`,awsPricing2.`Operating System` as `OperatingSystem` " +
+		                    " , cast(localDiscoveryDF.`Number of Cores` as int) as `vCPU`, (case when localDiscoveryDF.`Memory` is null then 0 else cast(localDiscoveryDF.`Memory` as int) end) as `MemorySize`, awsPricing2.PricePerUnit as `PricePerUnit`,awsPricing2.`Operating System` as `OperatingSystem` " +
 		                    " FROM global_temp.awsInstanceDF localDiscoveryDF" +
 		                    " join (Select localDiscoveryDF1.`Server Name` " +
 		                    " from global_temp.awsInstanceDF localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`) localDiscoveryTemp2 ON " +
@@ -2368,11 +2368,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " and Location='US East (Ohio)' and Tenancy <> 'Host' and (`Product Family` = 'Compute Instance (bare metal)' or `Product Family` = 'Compute Instance') and cast(PricePerUnit as float) > 0 group by `Operating System`,Memory,vCPU,TermType) awsPricing on" +
 		                    " lcase(awsPricing.`Operating System`) = lcase(localDiscoveryDF.`OS Name`) and" +
 		                    " awsPricing.Memory >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
-		                    " and awsPricing.vCPU >= (cast(localDiscoveryDF.`Number of Processors` as int))" +
+		                    " and awsPricing.vCPU >= (cast(localDiscoveryDF.`Number of Cores` as int))" +
 		                    " left join global_temp.awsPricingDF awsPricing2 on awsPricing2.`Operating System` = awsPricing.`Operating System` and awsPricing2.PricePerUnit = awsPricing.pricePerUnit and awsPricing.Memory = " +
 		                    " awsPricing2.Memory and awsPricing.vCPU = awsPricing2.vCPU and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData" +
 		                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
-		            dataCheck.createOrReplaceGlobalTempView("awsReport");				            
+		            dataCheck.createOrReplaceGlobalTempView("awsReportForThirdParty");				            
 		            dataCheck.cache();
 		            dataCheck.printSchema();
 		            dataCheck.show();
