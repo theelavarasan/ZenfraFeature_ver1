@@ -101,7 +101,7 @@ public class EolService {
                     .option("header", "true").option("inferschema", false)
                     .load(commonPath+"/Dataframe/data/AWS EC2 Pricing - US East Ohio.csv");
             awsPriceDataSet.createOrReplaceGlobalTempView("awsPricingDF");
-            awsPriceDataSet.cache();
+            awsPriceDataSet.cache();            
         } catch (Exception ex) {
             logger.error("Exception in getAzurePricing", ex);
         }
