@@ -1836,7 +1836,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
             	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList);
             	   
             	   if(categoryList.contains("All")) {
-            		  List<Row> serverNames =  dataCheck.select(functions.lit("Server Name")).collectAsList();
+            		  List<Row> serverNames =  dataCheck.select(functions.col("Server Name")).collectAsList();
             		  System.out.println("------------serverNames-----------------"+serverNames);
             		 //  dataCheck.createOrReplaceTempView("filterData");
             		  // sparkSession.sqlContext().sql("select * from filterData where `Server Name` not in ()");
