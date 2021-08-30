@@ -2344,14 +2344,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		 public void getAWSPricingForThirdParty() {
 		        try {
 		            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
-		                    " select report.`vCPU`, report.`Server Name`, report.`OS Name`," +
+		                    " select report.`vCPU`, report.`Server Name`, report.`OS Name`, report.instanceid, " +
 		                    " report.`Memory` as `Memory`, report.`Number of Cores`, " +
 		                    "  (report.`PricePerUnit` * 730) as `AWS On Demand Price`," +
 		                    " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`, " +
 		                    " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`, " +
 		                    " report.`AWS Instance Type`,report.`AWS Region`,report.`AWS Specs`," +
 		                    " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`PricePerUnit` as float) asc) as my_rank" +
-		                    " from (SELECT localDiscoveryDF.`Server Name`," +
+		                    " from (SELECT localDiscoveryDF.`Server Name`, localDiscoveryDF.instanceid, " +
 		                    " localDiscoveryDF.`OS Name`, " +
 		                    " cast(localDiscoveryDF.`Number of Cores` as int) as `Number of Cores`," +
 		                    " cast(localDiscoveryDF.`Memory` as int) as `Memory`, " +
