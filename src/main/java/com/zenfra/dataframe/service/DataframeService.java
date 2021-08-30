@@ -33,6 +33,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.ForeachFunction;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
@@ -1831,17 +1833,18 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                    	
                    }
                }
+               
+
+               List<String> physicalServerNames = new ArrayList<String>();
+        	   if(categoryList.contains("All")) {
+        		  List<Row> serverNames =  dataCheck.select(functions.col("Server Name")).collectAsList();
+        		  serverNames.forEach((Consumer<? super Row>) row -> physicalServerNames.add(row.getAs("Server Name")));
+        	   }
+        	   System.out.println("----physicalServerNames-----------" + physicalServerNames);
     	        	
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {            	 
-            	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList);
-            	   
-            	   if(categoryList.contains("All")) {
-            		  List<Row> serverNames =  dataCheck.select(functions.col("Server Name")).collectAsList();
-            		  System.out.println("------------serverNames-----------------"+serverNames);
-            		 //  dataCheck.createOrReplaceTempView("filterData");
-            		  // sparkSession.sqlContext().sql("select * from filterData where `Server Name` not in ()");
-            	   }
-            	   
+            	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList, request.getDeviceType());
+            	               	   
             	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
                     if(dataCheck.isEmpty()) {
          			   dataCheck = thirdPartyData;
@@ -1908,10 +1911,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		}
 		
 		
-		 private Dataset<Row> getThirdPartyData(List<String> columnHeaders, String siteKey, String deviceTypeHeder, List<String> sourceList) {
+		 private Dataset<Row> getThirdPartyData(List<String> columnHeaders, String siteKey, String deviceTypeHeder, List<String> sourceList, String deviceType) {
 			 Dataset<Row> result = sparkSession.emptyDataFrame();
 			try {
-				 List<AwsInstanceData> thirdPartyData = queryThirdPartyData(siteKey, sourceList);
+				 List<AwsInstanceData> thirdPartyData = queryThirdPartyData(siteKey, sourceList, deviceType);
 				
 				 Dataset<Row> data = sparkSession.createDataFrame(thirdPartyData, AwsInstanceData.class);
 				 
@@ -1969,7 +1972,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 		 
 
-			private List<AwsInstanceData> queryThirdPartyData(String siteKey, List<String> sourceList) {
+			private List<AwsInstanceData> queryThirdPartyData(String siteKey, List<String> sourceList, String deviceType) {
 				List<AwsInstanceData> row = new ArrayList<>();
 				try {
 					/*
@@ -2016,6 +2019,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					
 					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(sql);
 				
+					List<String> deviceList = new ArrayList<>();
+					if(deviceType.contentEquals("All")) {
+						deviceList.add("LINUX");
+						deviceList.add("WINDOWS");						
+					} else {
+						deviceList.add(deviceType.toUpperCase());		
+					}
 					
 					if(!obj.isEmpty()) {
 						for(Map<String, Object> o : obj) {
@@ -2054,8 +2064,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									float mem = Float.parseFloat((String)json.get(mappingNames.get("memory")));
 									float vcpu = Float.parseFloat((String)json.get(mappingNames.get("numberOfCores")));
 									String instanceId = mem+"_"+vcpu;
-									AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType);
-									row.add(awsInstanceData);
+									if(deviceList.contains(value)) {
+										AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType);
+										row.add(awsInstanceData);
+									}
+									
 								}
 						}
 						
