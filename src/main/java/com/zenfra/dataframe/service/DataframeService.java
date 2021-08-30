@@ -1886,6 +1886,20 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        	
     	        }
     	        
+    	        
+    	        List<String> numericalHeaders = getReportNumericalHeaders("Optimization", "All", "Optimization", siteKey);	    	
+    	    	
+    	    	List<String> columns = Arrays.asList(dataCheck.columns());
+    	    	
+                for(String column : numericalHeaders) {                        	
+                	if(columns.contains(column)) { 
+                		dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("float"));
+                	}
+                	
+                }
+    	        
+    	        
+    	        
     	        logger.info("getReport Details Ends");
                 
                 request.setStartRow(0);
