@@ -2353,15 +2353,15 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`PricePerUnit` as float) asc) as my_rank" +
 		                    " from (SELECT localDiscoveryDF.`Server Name`," +
 		                    " localDiscoveryDF.`OS Name`, " +
-		                    " localDiscoveryDF.`Number of Processors`," +
-		                    " localDiscoveryDF.`Memory`, " +
+		                    " cast(localDiscoveryDF.`Number of Processors` as int) as `Number of Processors`," +
+		                    " cast(localDiscoveryDF.`Memory` as int) as `Memory`, " +
 		                    " awsPricing2.`Instance Type` as `AWS Instance Type`, awsPricing2.Location as `AWS Region`" +
 		                    " ,concat_ws(',', concat('Processor: ',awsPricing2.`Physical Processor`),concat('vCPU: ',awsPricing2.vCPU)" +
 		                    " ,concat('Clock Speed: ',awsPricing2.`Clock Speed`),concat('Processor Architecture: ',awsPricing2.`Processor Architecture`)" +
 		                    " ,concat('Memory: ',awsPricing2.Memory),concat('Storage: ',awsPricing2.Storage),concat('Network Performance: ',awsPricing2.`Network Performance`)) as `AWS Specs`" +
 		                    " , cast(localDiscoveryDF.`Number of Processors` as int) as `vCPU`, (case when localDiscoveryDF.`Memory` is null then 0 else cast(localDiscoveryDF.`Memory` as int) end) as `MemorySize`, awsPricing2.PricePerUnit as `PricePerUnit`,awsPricing2.`Operating System` as `OperatingSystem` " +
 		                    " FROM global_temp.awsInstanceDF localDiscoveryDF" +
-		                    " join (Select localDiscoveryDF1.`Server Name`," +
+		                    " join (Select localDiscoveryDF1.`Server Name` " +
 		                    " from global_temp.awsInstanceDF localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`) localDiscoveryTemp2 ON " +
 		                    " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name`" +
 		                    " left join (select `Operating System`,Memory,min(PricePerUnit) as pricePerUnit, vCPU,TermType from global_temp.awsPricingDF where `License Model`='No License required'" +
