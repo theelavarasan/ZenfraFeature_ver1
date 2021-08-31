@@ -1,3 +1,4 @@
+
 package com.zenfra.service;
 
 import java.io.BufferedReader;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,14 +27,18 @@ import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
 
 @Service
-public class LogFileDetailsService implements IService<LogFileDetails> {
+public class LogFileDetailsService implements IService<LogFileDetails>{
 
 	@Autowired
 	LogFileDetailsDao logDao;
-
+	
+	@Autowired
+	UserService userService;
+	
 	@Autowired
 	CommonFunctions common;
 
+	
 	@Override
 	public LogFileDetails findOne(long id) {
 		// TODO Auto-generated method stub
@@ -59,30 +65,51 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	@Override
 	public void delete(LogFileDetails entity) {
 		logDao.delete(entity);
-
+		
 	}
 
 	@Override
 	public void deleteById(long entityId) {
 		logDao.deleteById(entityId);
-
+		
 	}
 
 	@Override
 	public void deleteById(String entityId) {
 		logDao.deleteById(entityId);
-
+		
 	}
-
+	
 	@Override
 	public LogFileDetails findOne(String id) {
 		// TODO Auto-generated method stub
 		return logDao.findOne(id);
 	}
+	
 
-	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logIds) {
+	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logIds){				
 		try {
 			return logDao.getLogFileDetailsByLogids(logIds);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public Object getLogFileDetailsBySiteKey(String siteKey) {
+		try {
+			
+			Map<String,String> userList=userService.getUserNames();
+			List<LogFileDetails> logFile=logDao.getLogFileDetailsBySiteKey(siteKey);
+			List<LogFileDetails> logFileUpdate=new ArrayList<LogFileDetails>();
+			for(LogFileDetails log:logFile) {
+					if(userList.containsKey(log.getUploadedBy())) {
+						log.setUploadedBy(userList.get(log.getUploadedBy()));
+					}
+					logFileUpdate.add(log);					
+				}
+			
+			return logFileUpdate;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -273,3 +300,6 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	}
 	
 }
+
+
+
