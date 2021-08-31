@@ -211,7 +211,7 @@ public class LogFileDetailsController {
 		}
 	}
 
-	@PostMapping("/upload-file-test")
+	@PostMapping("/upload-log-file")
 	    @ApiOperation(value = "Make a POST request to upload the file",
 	            produces = "application/json", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	    @ApiResponses(value = {
