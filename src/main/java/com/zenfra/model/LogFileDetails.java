@@ -25,6 +25,11 @@ public class LogFileDetails implements Serializable {
 	private String logFileId;
 	
 	
+	
+	@Column
+	private String logId;
+	
+	
 	@Column
 	@ApiModelProperty(value = "Log file type", name = "logType", dataType = "String", example = "AUTO")
 	@NotBlank(message = "logType must not be empty")
@@ -153,19 +158,12 @@ public class LogFileDetails implements Serializable {
 	@ApiModelProperty(value = "tempStatus", name = "tempStatus", dataType = "String", example = "queue")
 	//@NotBlank(message = "Site Key must not be empty")
 	private String tempStatus;
-	
-	@Column
-	@ApiModelProperty(value = "rid", name = "rid", dataType = "String", example = "#1")
-	//@NotBlank(message = "Site Key must not be empty")
-	private String rid;
-	
-	
-	@Column
-	@ApiModelProperty(value = "logId", name = "logId", dataType = "String", example = "qw223-das8asfd-asdf9a-00asdf")
-	//@NotBlank(message = "Site Key must not be empty")
-	private String logId;
 
 	
+	@Column
+	@ApiModelProperty(value = "filePaths", name = "filePaths", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String filePaths;
 
 
 	
@@ -220,15 +218,13 @@ public class LogFileDetails implements Serializable {
 	}
 
 
-	
-
-	public String getLogFileId() {
-		return logFileId;
+	public String getLogId() {
+		return logId;
 	}
 
 
-	public void setLogFileId(String logFileId) {
-		this.logFileId = logFileId;
+	public void setLogId(String logId) {
+		this.logId = logId;
 	}
 
 
@@ -405,12 +401,66 @@ public class LogFileDetails implements Serializable {
 	
 
 
+	public String getFilePaths() {
+		return filePaths;
+	}
+
+
+	public void setFilePaths(String filePaths) {
+		this.filePaths = filePaths;
+	}
+
+
+	public String getLogFileId() {
+		return logFileId;
+	}
+
+
+	public void setLogFileId(String logFileId) {
+		this.logFileId = logFileId;
+	}
+
+
 	public LogFileDetails() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
 
+	public LogFileDetails(String logId, @NotBlank(message = "logType must not be empty") String logType,
+			String uploadedBy, @NotBlank(message = "Site Key must not be empty") String siteKey, String createdDateTime,
+			String updatedDateTime, String fileName, String fileSize, String status, String response, String tenantId,
+			String description, String extractedPath, String uploadedLogs, String masterLogs, boolean isActive,
+			String parsingStatus, String message, String parsingStartTime, String parsedDateTime,
+			String cmdStatusParsing, String cmdStatusInsertion, String tempStatus) {
+		super();
+		this.logId = logId;
+		this.logType = logType;
+		this.uploadedBy = uploadedBy;
+		this.siteKey = siteKey;
+		this.createdDateTime = createdDateTime;
+		this.updatedDateTime = updatedDateTime;
+		this.fileName = fileName;
+		this.fileSize = fileSize;
+		this.status = status;
+		this.response = response;
+		this.tenantId = tenantId;
+		this.description = description;
+		this.extractedPath = extractedPath;
+		this.uploadedLogs = uploadedLogs;
+		this.masterLogs = masterLogs;
+		this.isActive = isActive;
+		this.parsingStatus = parsingStatus;
+		this.message = message;
+		this.parsingStartTime = parsingStartTime;
+		this.parsedDateTime = parsedDateTime;
+		CmdStatusParsing = cmdStatusParsing;
+		CmdStatusInsertion = cmdStatusInsertion;
+		this.tempStatus = tempStatus;
+	}
+	
+	
+	
 	
 	
 	
