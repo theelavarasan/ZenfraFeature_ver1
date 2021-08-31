@@ -129,6 +129,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	public String unZipFiles(String path, String siteKey) {
 		System.out.println("@unZipFiles");
 		String uncompressPath = ZKModel.getProperty(ZKConstants.UNCOMPRESS_PATH);
+		System.out.println("uncompressPath::"+uncompressPath);
 		JSONObject extractedData = new JSONObject();
 		JSONParser parser = new JSONParser();
 		String toReturnPathFromFile = path;

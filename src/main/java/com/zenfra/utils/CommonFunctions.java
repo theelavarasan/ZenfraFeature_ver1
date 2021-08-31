@@ -577,6 +577,7 @@ public class CommonFunctions {
 		            input.close();
 		            System.out.println("PHP file is working : ");
 		        } catch (Exception err) {
+		        	err.printStackTrace();
 		            throw err;
 
 		        }
