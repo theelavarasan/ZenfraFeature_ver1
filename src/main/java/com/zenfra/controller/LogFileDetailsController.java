@@ -12,9 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-
-import org.apache.commons.fileupload.util.Streams;
-
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
@@ -34,10 +31,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ResponseModel_v2;
@@ -223,7 +224,7 @@ public class LogFileDetailsController {
 	}
 	
 	
-	  @PostMapping("/upload-file")
+	  @PostMapping("/upload-file-test")
 	    @ApiOperation(value = "Make a POST request to upload the file",
 	            produces = "application/json", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	    @ApiResponses(value = {
@@ -232,48 +233,29 @@ public class LogFileDetailsController {
 	            @ApiResponse(code = 404, message = "The API could not be found")
 	    })
 	    public ResponseEntity<?> uploadFile(
-	    		HttpServletRequest request
+	    		@RequestAttribute(name = "authUserId", required = false) String userId, MultipartHttpServletRequest request
 	            ) {
 		  
 		  ResponseModel_v2 responseModel_v2=new ResponseModel_v2();
-		  try {
-	            boolean isMultipart = ServletFileUpload.isMultipartContent(request);
-	            if (!isMultipart) {
-	            	System.out.println("isMultipart::"+isMultipart);
-	                // Inform user about invalid request
-	                return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.EXPECTATION_FAILED);
-	                
-	            }
-
-	            // Create a new file upload handler
-	            ServletFileUpload upload = new ServletFileUpload();
-
-	            // Parse the request
-	            FileItemIterator iter = upload.getItemIterator(request);
-	            while (iter.hasNext()) {
-	                FileItemStream item = iter.next();
-	                String name = item.getFieldName();
-	                InputStream stream = item.openStream();
-	                if (!item.isFormField()) {
-	                    String filename = item.getName();
-	                    // Process the input stream
-	                    OutputStream out = new FileOutputStream("test"+filename);
-	                    IOUtils.copy(stream, out);
-	                    stream.close();
-	                    out.close();
-	                }
-	            }
-	        } catch (FileUploadException e) {
-	        	e.printStackTrace();
-	        	 return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.EXPECTATION_FAILED);
-	        } catch (IOException e) {
-	        	e.printStackTrace();
-	        	 return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.EXPECTATION_FAILED);
-	        }catch(Exception e) {
-	        	e.printStackTrace();
-	        }
-
-		  return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.OK);
+				  try {
+						MultipartFile file = request.getFile("parseFile");
+						String type = request.getParameter("logType");
+						String siteKey = request.getParameter("siteKey");
+						String tenantId = request.getParameter("tenantId");
+						String siteName = request.getParameter("siteName");
+						String logId = request.getParameter("logId");
+						String description = request.getParameter("description");
+						String uploadAndProcess = request.getParameter("uploadAndProcess");
+						String folderPath = request.getParameter("parseFilePath");
+						String filePath = request.getParameter("parseFileName");
+					  
+				
+				return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.OK);
+				} catch (Exception e) {
+					e.printStackTrace();
+					return new ResponseEntity<ResponseModel_v2>(responseModel_v2,HttpStatus.EXPECTATION_FAILED);
+				}
+	           
 	    }
 	
 }
