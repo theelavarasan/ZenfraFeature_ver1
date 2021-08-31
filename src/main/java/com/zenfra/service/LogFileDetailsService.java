@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.validation.constraints.NotEmpty;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -297,6 +299,21 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 			e.printStackTrace();
 		}
 		return logDao.save(logFile);
+	}
+
+	public boolean saveLogtypeAndDescription(List<String> logFileIds,
+			 String description,
+			String logtype) {
+		
+		try {
+			
+			return logDao.saveLogtypeAndDescription(logFileIds,description,logtype);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		 
 	}
 	
 }

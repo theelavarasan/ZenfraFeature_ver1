@@ -276,6 +276,7 @@ public class LogFileDetailsController {
 						}else {
 							responseModel_v2.setResponseMessage("Failed");
 							responseModel_v2.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+							responseModel_v2.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
 							responseModel_v2.setjData("There is no files found");
 						}							
 					}else {							
@@ -284,6 +285,7 @@ public class LogFileDetailsController {
 					}
 					responseModel_v2.setResponseMessage("Success");
 					responseModel_v2.setResponseCode(HttpStatus.OK);
+					responseModel_v2.setStatusCode(HttpStatus.OK.value());
 					JSONObject response=new JSONObject();
 						response.put("logFileDetails", logFileIdList);
 					responseModel_v2.setjData(response);
@@ -299,7 +301,40 @@ public class LogFileDetailsController {
     }
   
   
-   
+	@PostMapping("/save-logtype-description")
+	@ApiOperation(value="Saved Log File description ")
+	@ApiResponse(code = 201, message = "Successfully created")	
+	public ResponseEntity<ResponseModel_v2> saveLogtypeAndDescription(
+			@NotEmpty(message = "logtype must be not empty") 
+			@RequestParam(required = true) String logtype, 
+			@NotEmpty(message = "description must be not empty") 
+			@RequestParam(required = true) String description,
+			@NotEmpty(message = "logFileIds must be not empty") 
+			@RequestParam(required = true) List<String> logFileIds){
+		ResponseModel_v2 response=new ResponseModel_v2();
+		try {		
+			
+			if(!service.saveLogtypeAndDescription(logFileIds,description,logtype)) {
+				
+				response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+				response.setStatusCode(HttpStatus.EXPECTATION_FAILED.value());
+				response.setResponseDescription("Something went wrong");
+				response.setResponseMessage("Something went wrong");	
+				return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.EXPECTATION_FAILED);
+			}
+			
+			
+			response.setResponseCode(HttpStatus.OK);
+			response.setStatusCode(HttpStatus.OK.value());
+			response.setResponseDescription("Successfully created");
+			response.setResponseMessage("Successfully created");	
+			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.CREATED);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.EXPECTATION_FAILED);
+		}
+	}
+	
 
 }
 	

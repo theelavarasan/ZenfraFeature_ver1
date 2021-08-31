@@ -125,7 +125,21 @@ public class LogFileDetailsDao implements IDao<LogFileDetails>{
 		return log;
 	}
 
+	public boolean saveLogtypeAndDescription(List<String> logFileIds, String description, String logtype) {
+		
+		try {
+			
+			logRepo.saveLogtypeAndDescription(logFileIds,description,logtype);
+			
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 
+
+	
 	
 	
 	
