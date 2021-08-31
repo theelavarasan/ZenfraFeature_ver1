@@ -22,6 +22,11 @@ public class LogFileDetails implements Serializable {
 	@Id
 	//@GeneratedValue//(strategy = GenerationType.IDENTITY)
 	@ApiModelProperty(hidden = true)
+	private String logFileId;
+	
+	
+	
+	@Column
 	private String logId;
 	
 	
@@ -154,6 +159,11 @@ public class LogFileDetails implements Serializable {
 	//@NotBlank(message = "Site Key must not be empty")
 	private String tempStatus;
 
+	
+	@Column
+	@ApiModelProperty(value = "filePaths", name = "filePaths", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String filePaths;
 
 
 	
@@ -389,6 +399,26 @@ public class LogFileDetails implements Serializable {
 
 
 	
+
+
+	public String getFilePaths() {
+		return filePaths;
+	}
+
+
+	public void setFilePaths(String filePaths) {
+		this.filePaths = filePaths;
+	}
+
+
+	public String getLogFileId() {
+		return logFileId;
+	}
+
+
+	public void setLogFileId(String logFileId) {
+		this.logFileId = logFileId;
+	}
 
 
 	public LogFileDetails() {

@@ -113,5 +113,15 @@ public class ZKConstants {
 	public static String HEALTHCHECK_COLUMN_ORDER = "healthCheckName,componentType,reportName,createdBy,createdTime,updatedBy,updatedTime";
 	public static String HEADER_LABEL = "headerLabel";
 	
+	
+	public static String PURE_File_PROP = "pureFileProp";
+	public static String UPLOADEDLOGS_PATH = "uploadedlogs"; 
+	public static String OUTPUTFOLDER_PATH = "outputlogs"; 
+	public static String INSERTION_LOGS = "insertionlogs";
+	public static String INSERTION_SCRIPT_FOLDER = "insertion_script_folder";
+	public static String CUSTOM_REPORT_PROP = "customDiscoveryReportProp";
+	public static String LOG_ANALYTICS_PATH = "log_analytics_path";
+	public static String UNCOMPRESS_PATH = "uncompressPath";
 
+	public static String PREDICTION_PATH = "predictionPath";
 }
