@@ -261,11 +261,6 @@ public class LogFileDetailsController {
 							JSONObject responseJsonobject = service.predictModel(responsePath, siteKey);
 							if(responseJsonobject != null && responseJsonobject.size() > 0 ){
 								logFileIdList=service.parseExce(responseJsonobject, filePaths, uploadAndProcess, logFile, convFile);
-								responseModel_v2.setResponseMessage("Success");
-								responseModel_v2.setResponseCode(HttpStatus.OK);
-								JSONObject response=new JSONObject();
-									response.put("logFileDetails", logFileIdList);
-								responseModel_v2.setjData(response);								
 							}else {
 								responseModel_v2.setResponseMessage("Failed");
 								responseModel_v2.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);

@@ -203,6 +203,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
             input.close();
             System.out.println("PHP file is working : ");
         } catch (Exception err) {
+        	err.printStackTrace();
             throw err;
 
         }
@@ -236,7 +237,8 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 								filePaths.put("compressedPath", compressedPath);
 								filePaths.put("pathFromObj", pathFromObj);	
 								LogFileDetails temp=saveLogFileDetails(filePaths, logFile, convFile, uploadAndProcess, Contants.LOG_FILE_STATUS_DRAFT, Contants.LOG_FILE_STATUS_DRAFT, "File in draft");
-								logFileIdList.add(temp.getLogId());
+								logFileIdList.add(temp.getLogFileId());
+								
 					}
 				}
 			}
@@ -259,7 +261,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			logFile.setLogFileId(common.generateRandomId());	
 			logFile.setStatus(status);
 			logFile.setParsingStatus(parsingStatus);
-			logFile.setMessage(msg);						
+			logFile.setMessage(msg);		
+			logFile.setFileName(convFile.getName());
+			logFile.setFileSize(String.valueOf(convFile.length()));
+			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
