@@ -196,23 +196,17 @@ public class LogFileDetailsController {
 	
 
 	
-	@GetMapping("/get-log-status")
+	@GetMapping("/check-parsing-status")
 	@ApiOperation(value="Get Log File processing status by array of log ids")
 	@ApiResponse(code = 200, message = "Successfully retrived")
 	public ResponseEntity<ResponseModel_v2> getLogFileProcessingStatus(
-			@NotEmpty(message = "LogId's must be not empty") @RequestParam String logIds){
+			@NotEmpty(message = "LogId's must be not empty") @RequestParam List<String> logIds){
 		ResponseModel_v2 response=new ResponseModel_v2();
 		try {			
 			
-			JSONParser parser = new JSONParser();
-			JSONArray rid = (JSONArray) parser.parse(logIds);
-
-			Stream<String> ss = rid.stream().map (json->json.toString ());
-	        List<String> logId = ss.collect (Collectors.toList ());
-	        
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
-			response.setjData(service.getLogFileDetailsByLogids(logId));
+			response.setjData(service.getLogFileDetailsByLogids(logIds));
 			response.setResponseDescription("Successfully deleted");
 			response.setResponseMessage("Successfully deleted");	
 			return new ResponseEntity<ResponseModel_v2>(response,HttpStatus.OK);
