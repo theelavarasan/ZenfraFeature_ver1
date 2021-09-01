@@ -239,9 +239,9 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
         return FinOut;
     }
 
-	public List<String> parseExce(JSONObject responseJsonobject, JSONObject filePaths, String uploadAndProcess,
+	public List<LogFileDetails> parseExce(JSONObject responseJsonobject, JSONObject filePaths, String uploadAndProcess,
 			LogFileDetails logFile,File convFile) {
-		List<String> logFileIdList=new ArrayList<String>();
+		List<LogFileDetails> logFileIdList=new ArrayList<LogFileDetails>();
 		try {
 
 			JSONParser parser = new JSONParser();
@@ -266,7 +266,7 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 								filePaths.put("compressedPath", compressedPath);
 								filePaths.put("pathFromObj", pathFromObj);	
 								LogFileDetails temp=saveLogFileDetails(filePaths, logFile, convFile, uploadAndProcess, Contants.LOG_FILE_STATUS_DRAFT, Contants.LOG_FILE_STATUS_DRAFT, "File in draft");
-								logFileIdList.add(temp.getLogFileId());
+								logFileIdList.add(temp);
 								
 					}
 				}

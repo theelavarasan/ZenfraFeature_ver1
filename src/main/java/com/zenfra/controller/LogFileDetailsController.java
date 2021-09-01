@@ -265,7 +265,7 @@ public class LogFileDetailsController {
 						filePaths.put("filePath", filePath);
 					
 					
-						List<String> logFileIdList=new ArrayList<String>();
+						List<LogFileDetails> logFileIdList=new ArrayList<LogFileDetails>();
 					
 					
 					if(type.equalsIgnoreCase("auto")){
@@ -281,7 +281,7 @@ public class LogFileDetailsController {
 						}							
 					}else {							
 						LogFileDetails logFileTemp=service.saveLogFileDetails(filePaths, logFile, convFile, uploadAndProcess, Contants.LOG_FILE_STATUS_DRAFT, Contants.LOG_FILE_STATUS_DRAFT, "File in draft");
-						logFileIdList.add(logFileTemp.getLogFileId());
+						logFileIdList.add(logFileTemp);
 					}
 					responseModel_v2.setResponseMessage("Success");
 					responseModel_v2.setResponseCode(HttpStatus.OK);
