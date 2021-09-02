@@ -138,6 +138,17 @@ public class LogFileDetailsDao implements IDao<LogFileDetails>{
 		}
 	}
 
+	public boolean deleteLogfileProcessAction(List<String> logFileIds) {
+		try {
+			
+			logRepo.updateLogFileIdsActive(logFileIds);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 
 	
 	

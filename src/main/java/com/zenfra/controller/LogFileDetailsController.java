@@ -13,8 +13,10 @@ import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.ws.rs.DELETE;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -40,6 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.zenfra.model.LogFileDetails;
+import com.zenfra.model.Response;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
 import com.zenfra.service.LogFileDetailsService;
@@ -371,4 +374,33 @@ public class LogFileDetailsController {
 
 	}
 
+	
+	@DeleteMapping("/delete-selected-log-file")
+	public ResponseEntity<ResponseModel_v2>  deleteLogfileProcessAction(
+			@NotEmpty(message = "LogFileIds must be not empty") @RequestParam(required = true) List<String> logFileIds) throws IOException, ParseException{
+		
+		ResponseModel_v2 response = new ResponseModel_v2();
+		try {
+			
+			if(!service.deleteLogfileProcessAction(logFileIds)) {
+				response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+				response.setStatusCode(HttpStatus.EXPECTATION_FAILED.value());
+				response.setResponseDescription("Something went wrong");
+				response.setResponseMessage("Something went wrong");
+				return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);				
+			}
+			
+			response.setResponseCode(HttpStatus.OK);
+			response.setStatusCode(HttpStatus.OK.value());
+			response.setResponseDescription("Successfully deleted");
+			response.setResponseMessage("Successfully deleted");			
+			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
+		}
+		
+		
+	}
+	
 }

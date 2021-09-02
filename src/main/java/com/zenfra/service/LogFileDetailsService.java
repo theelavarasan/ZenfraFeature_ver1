@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import javax.validation.constraints.NotEmpty;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -313,6 +315,18 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			return false;
 		}
 
+	}
+
+	public boolean deleteLogfileProcessAction(List<String> logFileIds) {
+		try {
+			
+			
+			return logDao.deleteLogfileProcessAction(logFileIds);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 }

@@ -25,4 +25,8 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 	@Query("update LogFileDetails s set s.description=:description,s.logType=:logType  where s.logFileId in :logFileId")
 	void saveLogtypeAndDescription(@Param("logFileId") List<String> logFileId,@Param("description") String description,@Param("logType") String logType);
 
+	@Modifying
+	@Query("update LogFileDetails s set s.isActive=false  where s.logFileId in :logFileId")
+	void updateLogFileIdsActive(List<String> logFileIds);
+
 }
