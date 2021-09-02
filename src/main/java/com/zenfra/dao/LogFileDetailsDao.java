@@ -104,9 +104,9 @@ public class LogFileDetailsDao implements IDao<LogFileDetails>{
 	}
 
 	
-	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logIds){				
+	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logFileIds){				
 		try {
-			return logRepo.findByLogFileIdIn(logIds);
+			return logRepo.findByLogFileIdIn(logFileIds);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

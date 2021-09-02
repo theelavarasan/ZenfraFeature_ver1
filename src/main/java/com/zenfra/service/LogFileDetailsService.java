@@ -8,10 +8,10 @@ import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.validation.constraints.NotEmpty;
+import java.util.Queue;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -21,7 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.zenfra.Interface.IService;
+import com.zenfra.configuration.RedisUtil;
 import com.zenfra.dao.LogFileDetailsDao;
+import com.zenfra.model.BaseModel;
 import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
@@ -29,18 +31,23 @@ import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
 
 @Service
-public class LogFileDetailsService implements IService<LogFileDetails>{
+public class LogFileDetailsService implements IService<LogFileDetails> {
+
+	Map<String, Map<String, Queue<BaseModel>>> siteQueueMap = new HashMap<String, Map<String, Queue<BaseModel>>>();
+	Map<String, Queue<BaseModel>> logQueueMap = new HashMap<String, Queue<BaseModel>>();
 
 	@Autowired
 	LogFileDetailsDao logDao;
-	
+
 	@Autowired
 	UserService userService;
-	
+
 	@Autowired
 	CommonFunctions common;
 
-	
+	@Autowired
+	RedisUtil redisUtil;
+
 	@Override
 	public LogFileDetails findOne(long id) {
 		// TODO Auto-generated method stub
@@ -67,31 +74,30 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 	@Override
 	public void delete(LogFileDetails entity) {
 		logDao.delete(entity);
-		
+
 	}
 
 	@Override
 	public void deleteById(long entityId) {
 		logDao.deleteById(entityId);
-		
+
 	}
 
 	@Override
 	public void deleteById(String entityId) {
 		logDao.deleteById(entityId);
-		
+
 	}
-	
+
 	@Override
 	public LogFileDetails findOne(String id) {
 		// TODO Auto-generated method stub
 		return logDao.findOne(id);
 	}
-	
 
-	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logIds){				
+	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logFileIds) {
 		try {
-			return logDao.getLogFileDetailsByLogids(logIds);
+			return logDao.getLogFileDetailsByLogids(logFileIds);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -100,17 +106,17 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 
 	public Object getLogFileDetailsBySiteKey(String siteKey) {
 		try {
-			
-			Map<String,String> userList=userService.getUserNames();
-			List<LogFileDetails> logFile=logDao.getLogFileDetailsBySiteKey(siteKey);
-			List<LogFileDetails> logFileUpdate=new ArrayList<LogFileDetails>();
-			for(LogFileDetails log:logFile) {
-					if(userList.containsKey(log.getUploadedBy())) {
-						log.setUploadedBy(userList.get(log.getUploadedBy()));
-					}
-					logFileUpdate.add(log);					
+
+			Map<String, String> userList = userService.getUserNames();
+			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKey(siteKey);
+			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
+			for (LogFileDetails log : logFile) {
+				if (userList.containsKey(log.getUploadedBy())) {
+					log.setUploadedBy(userList.get(log.getUploadedBy()));
 				}
-			
+				logFileUpdate.add(log);
+			}
+
 			return logFileUpdate;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -158,7 +164,7 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 	public String unZipFiles(String path, String siteKey) {
 		System.out.println("@unZipFiles");
 		String uncompressPath = ZKModel.getProperty(ZKConstants.UNCOMPRESS_PATH);
-		System.out.println("uncompressPath::"+uncompressPath);
+		System.out.println("uncompressPath::" + uncompressPath);
 		JSONObject extractedData = new JSONObject();
 		JSONParser parser = new JSONParser();
 		String toReturnPathFromFile = path;
@@ -190,7 +196,7 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 		try {
 			String predictQuery = "php " + phpPredictPath + " -f " + path + " -s " + siteKey;
 			System.out.println("Predict engin query - " + predictQuery);
-			String predictResponse =execPHP(predictQuery);
+			String predictResponse = execPHP(predictQuery);
 			System.out.println("predictResponse - " + predictResponse);
 			JSONParser parse = new JSONParser();
 
@@ -208,45 +214,42 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 		return toRet;
 	}
 
-	
+	public String execPHP(String scriptName) throws Exception {
+		String FinOut = null;
 
-    public String execPHP(String scriptName) throws Exception {
-        String FinOut = null;
+		System.out.println("!!!!! ScriptName: " + scriptName);
+		try {
+			System.out.println("!!!!! execPHP 1 ");
+			String line;
+			System.out.println("!!!!! execPHP 1 ");
+			StringBuilder output = new StringBuilder();
+			System.out.println("!!!!! execPHP 1 ");
+			Process p = Runtime.getRuntime().exec(scriptName);
+			System.out.println("!!!!! execPHP 1 ");
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			System.out.println("!!!!! execPHP 1 ");
+			while ((line = input.readLine()) != null) {
+				System.out.println("!!!!! line: " + line);
+				output.append(line);
+			}
+			FinOut = output.toString();
+			input.close();
+			System.out.println("PHP file is working : ");
+		} catch (Exception err) {
+			err.printStackTrace();
+			throw err;
 
-        System.out.println("!!!!! ScriptName: " + scriptName);
-        try {
-            System.out.println("!!!!! execPHP 1 ");
-            String line;
-            System.out.println("!!!!! execPHP 1 ");
-            StringBuilder output = new StringBuilder();
-            System.out.println("!!!!! execPHP 1 ");
-            Process p = Runtime.getRuntime().exec(scriptName);
-            System.out.println("!!!!! execPHP 1 ");
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            System.out.println("!!!!! execPHP 1 ");
-            while ((line = input.readLine()) != null) {
-                System.out.println("!!!!! line: " + line);
-                output.append(line);
-            }
-            FinOut = output.toString();
-            input.close();
-            System.out.println("PHP file is working : ");
-        } catch (Exception err) {
-        	err.printStackTrace();
-            throw err;
-
-        }
-        return FinOut;
-    }
+		}
+		return FinOut;
+	}
 
 	public List<LogFileDetails> parseExce(JSONObject responseJsonobject, JSONObject filePaths, String uploadAndProcess,
-			LogFileDetails logFile,File convFile) {
-		List<LogFileDetails> logFileIdList=new ArrayList<LogFileDetails>();
+			LogFileDetails logFile, File convFile) {
+		List<LogFileDetails> logFileIdList = new ArrayList<LogFileDetails>();
 		try {
 
 			JSONParser parser = new JSONParser();
 
-			
 			for (Object key : responseJsonobject.keySet()) {
 				String type = key.toString().replace("-", "");
 				String pathValue = responseJsonobject.get(key).toString();
@@ -262,12 +265,13 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 						String compressedPath = jsonObject.containsKey("compressed")
 								? jsonObject.get("compressed").toString()
 								: convFile.getAbsolutePath();
-						
-								filePaths.put("compressedPath", compressedPath);
-								filePaths.put("pathFromObj", pathFromObj);	
-								LogFileDetails temp=saveLogFileDetails(filePaths, logFile, convFile, uploadAndProcess, Contants.LOG_FILE_STATUS_DRAFT, Contants.LOG_FILE_STATUS_DRAFT, "File in draft");
-								logFileIdList.add(temp);
-								
+
+						filePaths.put("compressedPath", compressedPath);
+						filePaths.put("pathFromObj", pathFromObj);
+						LogFileDetails temp = saveLogFileDetails(filePaths, logFile, convFile, uploadAndProcess,
+								Contants.LOG_FILE_STATUS_DRAFT, Contants.LOG_FILE_STATUS_DRAFT, "File in draft");
+						logFileIdList.add(temp);
+
 					}
 				}
 			}
@@ -278,45 +282,37 @@ public class LogFileDetailsService implements IService<LogFileDetails>{
 		return logFileIdList;
 	}
 
-	
-	
-	public LogFileDetails saveLogFileDetails(JSONObject filePaths,LogFileDetails logFile,File convFile,
-			String uploadAndProcess,String status,String parsingStatus,String msg) {
-		
+	public LogFileDetails saveLogFileDetails(JSONObject filePaths, LogFileDetails logFile, File convFile,
+			String uploadAndProcess, String status, String parsingStatus, String msg) {
+
 		try {
 			logFile.setFilePaths(filePaths.toJSONString());
 			logFile.setMasterLogs(convFile.getAbsolutePath());
-			logFile.setParsingStatus(uploadAndProcess.equalsIgnoreCase("true") ? Contants.LOG_FILE_STATUS_QUEUE : Contants.LOG_FILE_STATUS_DRAFT);
-			logFile.setLogFileId(common.generateRandomId());	
+			logFile.setParsingStatus(uploadAndProcess.equalsIgnoreCase("true") ? Contants.LOG_FILE_STATUS_QUEUE
+					: Contants.LOG_FILE_STATUS_DRAFT);
+			logFile.setLogFileId(common.generateRandomId());
 			logFile.setStatus(status);
 			logFile.setParsingStatus(parsingStatus);
-			logFile.setMessage(msg);		
+			logFile.setMessage(msg);
 			logFile.setFileName(convFile.getName());
 			logFile.setFileSize(String.valueOf(convFile.length()));
-			
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return logDao.save(logFile);
 	}
 
-	public boolean saveLogtypeAndDescription(List<String> logFileIds,
-			 String description,
-			String logtype) {
-		
+	public boolean saveLogtypeAndDescription(List<String> logFileIds, String description, String logtype) {
+
 		try {
-			
-			return logDao.saveLogtypeAndDescription(logFileIds,description,logtype);
+
+			return logDao.saveLogtypeAndDescription(logFileIds, description, logtype);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
-		
-		 
+
 	}
-	
+
 }
-
-
-
