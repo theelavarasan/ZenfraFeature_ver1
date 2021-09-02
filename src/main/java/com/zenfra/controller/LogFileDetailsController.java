@@ -8,12 +8,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.ServerException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.ws.rs.DELETE;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -42,7 +40,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.zenfra.model.LogFileDetails;
-import com.zenfra.model.Response;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
 import com.zenfra.service.LogFileDetailsService;
