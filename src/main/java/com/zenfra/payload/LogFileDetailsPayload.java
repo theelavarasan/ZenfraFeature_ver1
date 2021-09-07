@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class LogFileDetailsPayload {
 
 	
@@ -13,7 +15,7 @@ public class LogFileDetailsPayload {
 	
 	private String description;
 	
-	
+	@ApiModelProperty(value = "Log file ids", name = "logFileIds", dataType = "Array", example = "[\"test01\",\"test01\"]")
 	private List<String> logFileIds;
 
 	public String getLogtype() {

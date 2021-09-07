@@ -303,7 +303,7 @@ public class LogFileDetailsController {
 	@ApiOperation(value = "Saved Log File description ")
 	@ApiResponse(code = 201, message = "Successfully created")
 	public ResponseEntity<ResponseModel_v2> saveLogtypeAndDescription(
-			@Valid LogFileDetailsPayload logFileDetailsPayload) {
+			@Valid  @RequestBody  LogFileDetailsPayload logFileDetailsPayload) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 
@@ -373,7 +373,7 @@ public class LogFileDetailsController {
 	
 	@DeleteMapping("/delete-selected-log-file")
 	public ResponseEntity<ResponseModel_v2>  deleteLogfileProcessAction(
-			@Valid LogFileDetailsPayload logFileDetailsPayload) throws IOException, ParseException{
+			@Valid @RequestBody LogFileDetailsPayload logFileDetailsPayload) throws IOException, ParseException{
 		
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
