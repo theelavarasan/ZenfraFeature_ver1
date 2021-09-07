@@ -42,6 +42,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
+import com.zenfra.payload.LogFileDetailsPayload;
 import com.zenfra.service.LogFileDetailsService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
@@ -302,13 +303,11 @@ public class LogFileDetailsController {
 	@ApiOperation(value = "Saved Log File description ")
 	@ApiResponse(code = 201, message = "Successfully created")
 	public ResponseEntity<ResponseModel_v2> saveLogtypeAndDescription(
-			@NotEmpty(message = "logtype must be not empty") @RequestParam(required = true) String logtype,
-			@NotEmpty(message = "description must be not empty") @RequestParam(required = true) String description,
-			@NotEmpty(message = "logFileIds must be not empty") @RequestParam(required = true) List<String> logFileIds) {
+			@Valid LogFileDetailsPayload logFileDetailsPayload) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 
-			if (!service.saveLogtypeAndDescription(logFileIds, description, logtype)) {
+			if (!service.saveLogtypeAndDescription(logFileDetailsPayload.getLogFileIds(), logFileDetailsPayload.getDescription(), logFileDetailsPayload.getLogtype())) {
 
 				response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 				response.setStatusCode(HttpStatus.EXPECTATION_FAILED.value());
@@ -374,12 +373,12 @@ public class LogFileDetailsController {
 	
 	@DeleteMapping("/delete-selected-log-file")
 	public ResponseEntity<ResponseModel_v2>  deleteLogfileProcessAction(
-			@NotEmpty(message = "LogFileIds must be not empty") @RequestParam(required = true) List<String> logFileIds) throws IOException, ParseException{
+			@Valid LogFileDetailsPayload logFileDetailsPayload) throws IOException, ParseException{
 		
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 			
-			if(!service.deleteLogfileProcessAction(logFileIds)) {
+			if(!service.deleteLogfileProcessAction(logFileDetailsPayload.getLogFileIds())) {
 				response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 				response.setStatusCode(HttpStatus.EXPECTATION_FAILED.value());
 				response.setResponseDescription("Something went wrong");
@@ -400,4 +399,24 @@ public class LogFileDetailsController {
 		
 	}
 	
+	
+	@GetMapping("/get-detailed-log-status")
+	@ApiOperation(value = "Get Log File detailed status")
+	@ApiResponse(code = 200, message = "Successfully retrived")
+	public ResponseEntity<ResponseModel_v2> getLogFileDetailedStatus(
+			@NotEmpty(message = "LogFileId must be not empty") @RequestParam String logFileId) {
+		ResponseModel_v2 response = new ResponseModel_v2();
+		try {
+			
+			response.setResponseCode(HttpStatus.OK);
+			response.setStatusCode(HttpStatus.OK.value());
+			response.setjData(service.getLogFileDetailedStatus(logFileId));
+			response.setResponseDescription("Successfully retrived");
+			response.setResponseMessage("Successfully retrived");
+			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
+		}
+	}
 }

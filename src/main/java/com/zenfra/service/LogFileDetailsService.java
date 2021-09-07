@@ -329,4 +329,14 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 		}
 	}
 
+	public Object getLogFileDetailedStatus(@NotEmpty(message = "LogFileId must be not empty") String logFileId) {
+		try {
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	return null;	
+	}
+
 }
