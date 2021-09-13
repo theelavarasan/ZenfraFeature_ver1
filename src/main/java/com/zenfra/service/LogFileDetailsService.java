@@ -3,7 +3,10 @@ package com.zenfra.service;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.validation.constraints.NotEmpty;
 
@@ -319,10 +324,9 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 	public boolean deleteLogfileProcessAction(List<String> logFileIds) {
 		try {
-			
-			
+
 			return logDao.deleteLogfileProcessAction(logFileIds);
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -331,12 +335,50 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 	public Object getLogFileDetailedStatus(@NotEmpty(message = "LogFileId must be not empty") String logFileId) {
 		try {
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	public int zipMultipleFile(List<String> path, String zipFile) throws FileNotFoundException {
+		int fileLength = 0;
+		try {
+			FileOutputStream fos = new FileOutputStream(zipFile);
+			ZipOutputStream zos = new ZipOutputStream(fos);
+			// create byte buffer
+			byte[] buffer = new byte[1024];
+
+			for (int i = 0; i < path.size(); i++) {
+				File srcFile = new File(path.get(i));
+				fileLength += srcFile.length();
+				FileInputStream fis = new FileInputStream(srcFile);
+				// begin writing a new ZIP entry, positions the stream to the start of the entry
+				// data
+				zos.putNextEntry(new ZipEntry(srcFile.getName()));
+				int length;
+				while ((length = fis.read(buffer)) > 0) {
+					zos.write(buffer, 0, length);
+				}
+				zos.closeEntry();
+				// close the InputStream
+				fis.close();
+			}
+			// close the ZipOutputStream
+			zos.close();
+		} catch (IOException ioe) {
+			System.out.println("Error creating zip file: " + ioe);
+		}
+		return fileLength;
+	}
+
+	public List<LogFileDetails> findAllByLogFileIds(List<String> modelName) {
+		try {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-	return null;	
 	}
-
 }

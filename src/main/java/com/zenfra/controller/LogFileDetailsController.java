@@ -42,6 +42,8 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
+import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.payload.LogFileDetailsPayload;
 import com.zenfra.service.LogFileDetailsService;
 import com.zenfra.service.UserService;
@@ -328,9 +330,63 @@ public class LogFileDetailsController {
 	}
 
 	/*********************************************************************************/
+	@RequestMapping(value = "/download-files", method = RequestMethod.GET)
+	public ResponseEntity<Resource> downloadMultipleLogFileMultiple(@RequestParam List<String> modelName) throws IOException {
+		
 
-	@RequestMapping(value = "/download-files/{modelName}", method = RequestMethod.GET)
-	public ResponseEntity<Resource> downloadMultipleLogFile(@PathVariable String modelName) throws IOException {
+		try {
+			ByteArrayResource resource = null;
+			List<String> paths=new ArrayList<>();
+			
+			
+			List<LogFileDetails> logFileList = service.findAllByLogFileIds(modelName);
+			
+			for(LogFileDetails logFile:logFileList) {
+				paths.add(logFile.getUploadedLogs()!=null ? logFile.getUploadedLogs()
+					: logFile.getMasterLogs());
+			}
+			
+			
+			if(!paths.isEmpty())
+			{
+				String inputFolder = ZKModel.getProperty(ZKConstants.INPUT_FOLDER);
+				inputFolder = inputFolder + "LogFileBundle_" + System.currentTimeMillis() + ".zip";
+				System.out.println("Output path - " + inputFolder);
+				int length = service.zipMultipleFile(paths, inputFolder);
+				File zipFile = new File(inputFolder);
+				System.out.println("Zip file size - " + zipFile.length());
+				if((zipFile.length() / (1024 * 1024)) <  1024 && zipFile.length() != 0)
+				{
+
+				
+				Path path = Paths.get(zipFile.getAbsolutePath());
+				System.out.println("path  :" + path);
+				resource = new ByteArrayResource(Files.readAllBytes(path));
+				try {
+					System.out.println("Finally downlloading.....");
+					
+					
+					return ResponseEntity.ok()
+							.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + zipFile.getName() + "\"")
+							.contentLength(zipFile.length()).contentType(MediaType.parseMediaType("application/octet-stream"))
+							.body(resource);
+
+				} catch (Exception e) {
+					throw new ServerException("There is no model found in config");
+				} 
+			}
+			
+		}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+	
+	@RequestMapping(value = "/download-files-one/{modelName}", method = RequestMethod.GET)
+	public ResponseEntity<Resource> downloadMultipleLogFileOne(@PathVariable String modelName) throws IOException {
 		
 
 		try {
