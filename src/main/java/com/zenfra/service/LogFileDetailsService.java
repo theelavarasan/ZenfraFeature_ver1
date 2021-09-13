@@ -377,8 +377,11 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	public List<LogFileDetails> findAllByLogFileIds(List<String> modelName) {
 		try {
 			
+			
+			return logDao.findAllByLogFileIds(modelName);
 		} catch (Exception e) {
 			e.printStackTrace();
+			return null;
 		}
 	}
 }
