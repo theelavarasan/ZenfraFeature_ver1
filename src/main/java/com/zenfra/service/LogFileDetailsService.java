@@ -353,6 +353,11 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 			for (int i = 0; i < path.size(); i++) {
 				File srcFile = new File(path.get(i));
+				
+				if(!srcFile.exists()) {
+					continue;
+				}
+				
 				fileLength += srcFile.length();
 				FileInputStream fis = new FileInputStream(srcFile);
 				// begin writing a new ZIP entry, positions the stream to the start of the entry

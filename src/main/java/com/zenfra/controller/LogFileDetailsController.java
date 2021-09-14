@@ -338,6 +338,11 @@ public class LogFileDetailsController {
 			ByteArrayResource resource = null;
 			List<String> paths=new ArrayList<>();
 			
+			if(modelName!=null && modelName.size()==1) {
+				
+				return downloadMultipleLogFileOne(modelName.get(0));
+			}
+			
 			
 			List<LogFileDetails> logFileList = service.findAllByLogFileIds(modelName);
 			
