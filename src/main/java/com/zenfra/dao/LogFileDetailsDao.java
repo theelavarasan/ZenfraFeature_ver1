@@ -117,7 +117,7 @@ public class LogFileDetailsDao implements IDao<LogFileDetails>{
 		 List<LogFileDetails> log=new ArrayList<LogFileDetails>();
 		try {
 			
-			log=logRepo.findBySiteKeyAndIsActive(siteKey,true);
+			log=logRepo.getBySiteKeyAndIsActive(siteKey,true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
