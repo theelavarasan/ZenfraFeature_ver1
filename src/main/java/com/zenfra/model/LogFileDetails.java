@@ -167,6 +167,8 @@ public class LogFileDetails implements Serializable {
 	private String filePaths;
 
 
+	@Transient
+	Object tempData;
 	
 	@Transient
 	private String username;
@@ -435,6 +437,18 @@ public class LogFileDetails implements Serializable {
 
 	public void setLogFileId(String logFileId) {
 		this.logFileId = logFileId;
+	}
+
+
+	
+	
+	public Object getTempData() {
+		return tempData;
+	}
+
+
+	public void setTempData(Object tempData) {
+		this.tempData = tempData;
 	}
 
 

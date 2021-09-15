@@ -19,6 +19,7 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 
 	List<LogFileDetails> findBySiteKey(String siteKey);
 
+	@Query("select l from LogFileDetails l where order by cast(updatedDateTime as Date) DESC")
 	List<LogFileDetails> findBySiteKeyAndIsActive(String siteKey, boolean isActive);
 	
 	@Modifying

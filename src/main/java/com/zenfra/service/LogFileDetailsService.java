@@ -355,6 +355,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				File srcFile = new File(path.get(i));
 				
 				if(!srcFile.exists()) {
+					System.out.println("File Not Found::"+path.get(i));
 					continue;
 				}
 				
