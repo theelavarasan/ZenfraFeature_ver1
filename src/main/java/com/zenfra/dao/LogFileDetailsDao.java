@@ -18,7 +18,7 @@ import com.zenfra.model.LogFileDetails;
 import lombok.extern.apachecommons.CommonsLog;
 
 @Component
-public class LogFileDetailsDao implements IDao<LogFileDetails>{
+public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogFileDetails> {
 
 	
 	@Autowired
@@ -26,8 +26,6 @@ public class LogFileDetailsDao implements IDao<LogFileDetails>{
 	
 	IGenericDao<LogFileDetails> dao;
 	
-	@Autowired
-	JdbcCommonOperations jdbc;
 	
 	@Autowired
 	public void setDao(IGenericDao<LogFileDetails> daoToSet) {
@@ -207,7 +205,8 @@ public class LogFileDetailsDao implements IDao<LogFileDetails>{
 					")g\r\n" + 
 					")h group by cmd_status_parsing";
 			
-			List<Map<String,Object>> response=jdbc.getObjectFromQuery(query);
+			query=query.replace(":log_fil_id", logFileId);
+			List<Map<String,Object>> response=getObjectFromQuery(query);
 			
 			if(response!=null && response.size()>0) {
 				return response.get(0);
