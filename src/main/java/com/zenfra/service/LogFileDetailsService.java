@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.Interface.IService;
 import com.zenfra.configuration.RedisUtil;
 import com.zenfra.dao.LogFileDetailsDao;
@@ -333,9 +334,17 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 		}
 	}
 
-	public Object getLogFileDetailedStatus(@NotEmpty(message = "LogFileId must be not empty") String logFileId) {
+	public Object getLogFileDetailedStatus(String logFileId) {
 		try {
 
+			Map<String,Object>  map=logDao.getLogFileDetailedStatus(logFileId);
+			
+			if(map!=null && map.containsKey("response")) {
+				
+				return new ObjectMapper().readTree(map.get("response").toString());
+				
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
