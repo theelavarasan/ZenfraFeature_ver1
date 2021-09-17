@@ -11,6 +11,8 @@ import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -57,6 +59,7 @@ import org.apache.spark.sql.types.StructType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2729,6 +2732,46 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				        logger.info("Construct EOL/EOS - HW Dataframe Ends");
 				        return dataCount;
 				    }
+
+
+
+					public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
+						 JSONObject json = new JSONObject();
+						// filePath = "C:\\Senthil\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Storage_3PAR_Host WWN.json";
+							
+						 File f = new File(filePath);
+						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");
+						try {
+							String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
+							 JSONParser parser = new JSONParser();
+							 Object obj = parser.parse(datas);
+							 JSONArray jsonArray = (JSONArray) obj;			
+							 json = (JSONObject) jsonArray.get(0);						
+						} catch (Exception e) {							
+								e.printStackTrace();					
+							if(f.exists()) {								 
+								createDataframeForJsonData(filePath);
+							}
+						}
+						
+						return json;
+					}
+
+
+
+					public void createDataframeForJsonData(String filePath) {
+						try {		
+							//filePath = "C:\\Senthil\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Storage_3PAR_Host WWN.json";
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath); 	 
+							File f = new File(filePath);
+							String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");
+							dataset.createOrReplaceGlobalTempView(viewName);
+							System.out.println("-----------DF created------------");
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
 							
 					
 	    
