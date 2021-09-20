@@ -1,5 +1,7 @@
 package com.zenfra.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -224,9 +226,12 @@ public class ReportDataController {
 	
 	 
 	 @PostMapping("getOdbReportData")
-	    public ResponseEntity<?> getOdbReportData(@RequestParam("filePath") String filePath) { 		
+	    public ResponseEntity<?> getOdbReportData(HttpServletRequest request) { 		
 		  		 
 		  try {	  
+			  String filePath = request.getParameter("filePath");
+			  System.out.println("-------getOdbReportData------  " + filePath);
+			  
 				  JSONObject data = dataframeService.getMigrationReport(filePath);
 				  if(data != null) {
 		      			return new ResponseEntity<>(data, HttpStatus.OK);
@@ -241,9 +246,13 @@ public class ReportDataController {
 	    }
 	 
 	   @PostMapping("createDataframeOdbData")
-	    public  ResponseEntity<?> createDataframeOdbData(@RequestParam("filePath") String filePath) { 		
-		  		 
+	    public  ResponseEntity<?> createDataframeOdbData(HttpServletRequest request) { 		
+		  
+		   
 		  try {	  
+			  String filePath = request.getParameter("filePath");
+			  System.out.println("-------createDataframeOdbData------  " + filePath);
+			  
 				    dataframeService.createDataframeForJsonData(filePath);				  
 		      		return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
 		      		
