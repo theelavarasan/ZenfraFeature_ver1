@@ -2739,17 +2739,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						 JSONObject json = new JSONObject();
 						// filePath = "C:\\Senthil\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Storage_3PAR_Host WWN.json";
 						
-						 File f = new File(filePath);
-						 System.out.println("----------viewName-----ffff-------" + f.exists() + " :: " + f.getAbsolutePath());
-						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");
-						 System.out.println("----------viewName-----11-------" + viewName);
+						 File f = new File(filePath);						
+						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");						
 						try {
 							 String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
 							 JSONParser parser = new JSONParser();
 							 Object obj = parser.parse(datas);
 							 JSONArray jsonArray = (JSONArray) obj;			
-							 json = (JSONObject) jsonArray.get(0);		
-							 System.out.println("----------viewName-----11-json------" + json.size());
+							 json = (JSONObject) jsonArray.get(0);									
 						} catch (Exception e) {							
 								e.printStackTrace();					
 							if(f.exists()) {								 
@@ -2766,14 +2763,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					public void createDataframeForJsonData(String filePath) {
 						try {		
 							//filePath = "C:\\Senthil\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Storage_3PAR_Host WWN.json";
-							 System.out.println("---------createDataframeForJsonData-----" + filePath);
-							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath); 	
-							 System.out.println("---------dataset-----" + dataset);
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
 							File f = new File(filePath);
-							String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");
-							System.out.println("----------viewName------------" + viewName);
-							dataset.createOrReplaceGlobalTempView(viewName);
-							System.out.println("-----------DF created------------");
+							String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");							
+							dataset.createOrReplaceGlobalTempView(viewName);							
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
