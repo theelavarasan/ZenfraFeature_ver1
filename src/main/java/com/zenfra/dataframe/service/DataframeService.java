@@ -2738,8 +2738,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
 						 JSONObject json = new JSONObject();
 						// filePath = "C:\\Senthil\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Storage_3PAR_Host WWN.json";
-							
+						
 						 File f = new File(filePath);
+						 System.out.println("----------viewName-----ffff-------" + f.exists() + " :: " + f.getAbsolutePath());
 						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");
 						 System.out.println("----------viewName-----11-------" + viewName);
 						try {
@@ -2751,10 +2752,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							 System.out.println("----------viewName-----11-json------" + json.size());
 						} catch (Exception e) {							
 								e.printStackTrace();					
-							//if(f.exists()) {								 
+							if(f.exists()) {								 
 								createDataframeForJsonData(filePath);
 								json = getMigrationReport(filePath);
-							//}
+							}
 						}
 						
 						return json;
@@ -2765,7 +2766,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					public void createDataframeForJsonData(String filePath) {
 						try {		
 							//filePath = "C:\\Senthil\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Storage_3PAR_Host WWN.json";
-							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath); 	 
+							 System.out.println("---------createDataframeForJsonData-----" + filePath);
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath); 	
+							 System.out.println("---------dataset-----" + dataset);
 							File f = new File(filePath);
 							String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");
 							System.out.println("----------viewName------------" + viewName);
