@@ -1,5 +1,7 @@
 package com.zenfra.controller;
 
+import java.io.File;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.spark.sql.SparkSession;
@@ -8,6 +10,7 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -136,6 +139,13 @@ public class ReportDataController {
 			 * sourceType.equalsIgnoreCase("VMWARE"))) {
 			 * reportService.refreshCloudCostViews(); }
 			 */
+			  
+			  try { //remove orient db dataframe
+				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator + sourceType + File.separator;
+				FileSystemUtils.deleteRecursively(new File(dataframePath));
+			  } catch (Exception e) {
+				e.printStackTrace();
+			}
 			  		
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
