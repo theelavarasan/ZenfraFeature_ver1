@@ -2743,7 +2743,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");
 						 System.out.println("----------viewName-----11-------" + viewName);
 						try {
-							String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
+							 String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
 							 JSONParser parser = new JSONParser();
 							 Object obj = parser.parse(datas);
 							 JSONArray jsonArray = (JSONArray) obj;			
@@ -2751,10 +2751,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							 System.out.println("----------viewName-----11-json------" + json.size());
 						} catch (Exception e) {							
 								e.printStackTrace();					
-							if(f.exists()) {								 
+							//if(f.exists()) {								 
 								createDataframeForJsonData(filePath);
 								json = getMigrationReport(filePath);
-							}
+							//}
 						}
 						
 						return json;
