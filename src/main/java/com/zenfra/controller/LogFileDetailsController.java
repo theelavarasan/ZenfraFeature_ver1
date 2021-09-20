@@ -469,9 +469,12 @@ public class LogFileDetailsController {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 			
+			JSONObject responseObj=new JSONObject();
+				responseObj.put("response", service.getLogFileDetailedStatus(logFileId));
+			
+			response.setjData(responseObj);
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
-			response.setjData(service.getLogFileDetailedStatus(logFileId));
 			response.setResponseDescription("Successfully retrived");
 			response.setResponseMessage("Successfully retrived");
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
