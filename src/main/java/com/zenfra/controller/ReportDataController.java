@@ -1,11 +1,16 @@
 package com.zenfra.controller;
 
+import java.io.File;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -134,6 +139,13 @@ public class ReportDataController {
 			 * sourceType.equalsIgnoreCase("VMWARE"))) {
 			 * reportService.refreshCloudCostViews(); }
 			 */
+			  
+			  try { //remove orient db dataframe
+				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator + sourceType + File.separator;
+				FileSystemUtils.deleteRecursively(new File(dataframePath));
+			  } catch (Exception e) {
+				e.printStackTrace();
+			}
 			  		
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
@@ -222,5 +234,43 @@ public class ReportDataController {
 	          
 	    }
 	
+	 
+	 @PostMapping("getOdbReportData")
+	    public ResponseEntity<?> getOdbReportData(HttpServletRequest request) { 		
+		  		 
+		  try {	  
+			  String filePath = request.getParameter("filePath");
+			  System.out.println("-------getOdbReportData------  " + filePath);
+			  
+				  JSONObject data = dataframeService.getMigrationReport(filePath);
+				  if(data != null) {
+		      			return new ResponseEntity<>(data, HttpStatus.OK);
+		      		 }
+			  }
+		    catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Not able to fecth report {}"+ e);
+			}   	
+		  JSONObject emptyJSONObject = new JSONObject();
+	      	 return new ResponseEntity<>(emptyJSONObject, HttpStatus.OK);
+	    }
+	 
+	   @PostMapping("createDataframeOdbData")
+	    public  ResponseEntity<?> createDataframeOdbData(HttpServletRequest request) { 		
+		  
+		   
+		  try {	  
+			  String filePath = request.getParameter("filePath");
+			  System.out.println("-------createDataframeOdbData------  " + filePath);
+			  
+				    dataframeService.createDataframeForJsonData(filePath);				  
+		      		return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
+		      		
+			  }catch (Exception e) {
+				e.printStackTrace();				
+			}   	
+		     
+	      	 return new ResponseEntity<>("Not able to create dataframe" , HttpStatus.OK);
+	    }
 	 
 }
