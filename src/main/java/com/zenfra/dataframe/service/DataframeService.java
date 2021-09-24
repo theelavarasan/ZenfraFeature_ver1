@@ -11,6 +11,8 @@ import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -57,6 +59,7 @@ import org.apache.spark.sql.types.StructType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -677,7 +680,7 @@ public class DataframeService{
 		} 
 		 
 		 try {	       
-			 isDiscoveryDataInView = false;
+			 //isDiscoveryDataInView = false;
 	         if(!isDiscoveryDataInView) {
 	        	 File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type);
 	        	 if(!verifyDataframePath.exists()) {
@@ -712,13 +715,7 @@ public class DataframeService{
 		        		 if(eolos.count() > 0) { 		        			
 		        			 osJoin = " left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";   // where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`)
 		                     osdata = ",eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`";
-			        		 		                     
-		 	        		/*String eosQuery = "Select * from ( Select ldView.* ,eol.end_of_life_cycle as `End Of Life - OS` ,eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp."+viewName+" ldView left join eolos eol on lcase(eol.os_type)=lcase(ldView.actual_os_type) where lcase(eol.os_version)=lcase(ldView.`OS Version`) )";
-		 	        		Dataset<Row> datasetTmp =  sparkSession.sql(eosQuery);
-		 	        		 System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>--------------" + datasetTmp.count());
-		 	        		datasetTmp.show(); */
-				        	
-				         }
+			        	 }
 	        		 }
 	        		 
 	        	}
@@ -728,12 +725,7 @@ public class DataframeService{
 	        			 
 	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', ''))";
 	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";	                  
-	     	        	/*String hwModel =  dataset.first().getAs("Server Model");
-	        		 Dataset<Row> eolhw = sparkSession.sql("select end_of_life_cycle as `End Of Life - HW`, end_of_extended_support as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
-		        	 if(eolhw.count() > 0) {		        	
-			        	 dataset = dataset.join(eolhw);
-			         } */
-	        	 }
+	     	      }
 	        	 }
 	        	
 	        	//sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
@@ -807,12 +799,6 @@ public class DataframeService{
             	results = results.withColumn("Server Type", lit("vmware-host"));
             }
 
-	       
-	       /* List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
-	        List<String> actualHeadets = new ArrayList<>();
-	        actualHeadets.addAll(Arrays.asList(results.columns()));	      
-	        actualHeadets.removeAll(headers);	       
-	        results =  results.drop(actualHeadets.stream().toArray(String[]::new)); */
 	        return paginate(results, request);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2729,6 +2715,46 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				        logger.info("Construct EOL/EOS - HW Dataframe Ends");
 				        return dataCount;
 				    }
+
+
+
+					public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
+						 JSONObject json = new JSONObject();
+						// filePath = "C:\\Senthil\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Storage_3PAR_Host WWN.json";
+						
+						 File f = new File(filePath);						
+						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");						
+						try {
+							 String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
+							 JSONParser parser = new JSONParser();
+							 Object obj = parser.parse(datas);
+							 JSONArray jsonArray = (JSONArray) obj;			
+							 json = (JSONObject) jsonArray.get(0);									
+						} catch (Exception e) {							
+								e.printStackTrace();					
+							if(f.exists()) {								 
+								createDataframeForJsonData(filePath);
+								json = getMigrationReport(filePath);
+							}
+						}
+						
+						return json;
+					}
+
+
+
+					public void createDataframeForJsonData(String filePath) {
+						try {		
+							//filePath = "C:\\Senthil\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Storage_3PAR_Host WWN.json";
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
+							File f = new File(filePath);
+							String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");							
+							dataset.createOrReplaceGlobalTempView(viewName);							
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
 							
 					
 	    
