@@ -64,6 +64,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Sets;
+import com.google.protobuf.TextFormat.ParseException;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
@@ -2729,6 +2730,44 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				        logger.info("Construct EOL/EOS - HW Dataframe Ends");
 				        return dataCount;
 				    }
+				    
+				    
+
+					public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
+						 JSONObject json = new JSONObject();
+						
+						 File f = new File(filePath);						
+						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");						
+						try {
+							 String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
+							 JSONParser parser = new JSONParser();
+							 Object obj = parser.parse(datas);
+							 JSONArray jsonArray = (JSONArray) obj;			
+							 json = (JSONObject) jsonArray.get(0);									
+						} catch (Exception e) {							
+								e.printStackTrace();					
+							if(f.exists()) {								 
+								createDataframeForJsonData(filePath);
+								json = getMigrationReport(filePath);
+							}
+						}
+						
+						return json;
+					}
+
+
+
+					public void createDataframeForJsonData(String filePath) {
+						try {		
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
+							File f = new File(filePath);
+							String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");							
+							dataset.createOrReplaceGlobalTempView(viewName);							
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
 							
 					
 	    
