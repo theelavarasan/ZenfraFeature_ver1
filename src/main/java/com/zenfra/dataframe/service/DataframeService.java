@@ -678,7 +678,7 @@ public class DataframeService{
 		} 
 		 
 		 try {	       
-			 isDiscoveryDataInView = false;
+			 //isDiscoveryDataInView = false;
 	         if(!isDiscoveryDataInView) {
 	        	 File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type);
 	        	 if(!verifyDataframePath.exists()) {
