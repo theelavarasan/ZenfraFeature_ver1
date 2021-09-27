@@ -138,8 +138,16 @@ public class ReportDataController {
 		  try {	
 			
 			  try { //remove orient db dataframe
-					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator + sourceType + File.separator;
-					FileSystemUtils.deleteRecursively(new File(dataframePath));
+					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator; // + sourceType + File.separator;
+					File[] directories = new File(dataframePath).listFiles(File::isDirectory);
+					for(File dir : directories) {
+						 System.out.println("--------------dir----------------------" + dir.getName());
+						if(dir.getName().equalsIgnoreCase(sourceType)) {
+							System.out.println("--------------delete----------------------" + dir.getName());
+							FileSystemUtils.deleteRecursively(dir);
+						}
+					}
+					
 				  } catch (Exception e) {
 					e.printStackTrace();
 				}
