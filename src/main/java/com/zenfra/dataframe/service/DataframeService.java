@@ -2734,10 +2734,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				    
 
 					public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
+						if(filePath.contains(",")) {
+							filePath = filePath.split(",")[0];
+						}
 						 JSONObject json = new JSONObject();
-						
+							System.out.println("----get filePath--------" + filePath);
 						 File f = new File(filePath);						
-						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");						
+						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");		
+							System.out.println("----get filePath--------" + viewName);
 						try {
 							 String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
 							 JSONParser parser = new JSONParser();
@@ -2746,7 +2750,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							 json = (JSONObject) jsonArray.get(0);									
 						} catch (Exception e) {							
 								e.printStackTrace();					
-							if(f.exists()) {								 
+							if(f.exists()) {	
+								System.out.println("----get filePath----exep----" + filePath);
 								createDataframeForJsonData(filePath);
 								json = getMigrationReport(filePath);
 							}
@@ -2758,11 +2763,16 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 
 					public void createDataframeForJsonData(String filePath) {
+						if(filePath.contains(",")) {
+							filePath = filePath.split(",")[0];
+						}
 						try {		
+							System.out.println("----create filePath--------" + filePath);
 							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
 							File f = new File(filePath);
 							String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");							
-							dataset.createOrReplaceGlobalTempView(viewName);							
+							dataset.createOrReplaceGlobalTempView(viewName);		
+							System.out.println("----DF created --------" + viewName );
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
