@@ -2737,11 +2737,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						if(filePath.contains(",")) {
 							filePath = filePath.split(",")[0];
 						}
-						 JSONObject json = new JSONObject();
-							System.out.println("----get filePath--------" + filePath);
+						 JSONObject json = new JSONObject();							
 						 File f = new File(filePath);						
 						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");		
-							System.out.println("----get filePath--------" + viewName);
+						
 						try {
 							 String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
 							 JSONParser parser = new JSONParser();
@@ -2750,8 +2749,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							 json = (JSONObject) jsonArray.get(0);									
 						} catch (Exception e) {							
 								e.printStackTrace();					
-							if(f.exists()) {	
-								System.out.println("----get filePath----exep----" + filePath);
+							if(f.exists()) {
 								createDataframeForJsonData(filePath);
 								json = getMigrationReport(filePath);
 							}
@@ -2766,13 +2764,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						if(filePath.contains(",")) {
 							filePath = filePath.split(",")[0];
 						}
-						try {		
-							System.out.println("----create filePath--------" + filePath);
+						try {	
 							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
 							File f = new File(filePath);
 							String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");							
-							dataset.createOrReplaceGlobalTempView(viewName);		
-							System.out.println("----DF created --------" + viewName );
+							dataset.createOrReplaceGlobalTempView(viewName);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
