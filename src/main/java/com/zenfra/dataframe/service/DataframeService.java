@@ -2734,6 +2734,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				    
 
 					public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
+						if(filePath.contains(",")) {
+							filePath = filePath.split(",")[0];
+						}
 						 JSONObject json = new JSONObject();
 							System.out.println("----get filePath--------" + filePath);
 						 File f = new File(filePath);						
@@ -2760,6 +2763,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 
 					public void createDataframeForJsonData(String filePath) {
+						if(filePath.contains(",")) {
+							filePath = filePath.split(",")[0];
+						}
 						try {		
 							System.out.println("----create filePath--------" + filePath);
 							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
