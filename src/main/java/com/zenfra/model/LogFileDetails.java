@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
@@ -166,7 +167,25 @@ public class LogFileDetails implements Serializable {
 	private String filePaths;
 
 
+	@Transient
+	Object tempData;
 	
+	@Transient
+	private String username;
+	
+	
+	
+	
+
+	public String getUsername() {
+		return username;
+	}
+
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 
 	public String getTempStatus() {
 		return tempStatus;
@@ -418,6 +437,18 @@ public class LogFileDetails implements Serializable {
 
 	public void setLogFileId(String logFileId) {
 		this.logFileId = logFileId;
+	}
+
+
+	
+	
+	public Object getTempData() {
+		return tempData;
+	}
+
+
+	public void setTempData(Object tempData) {
+		this.tempData = tempData;
 	}
 
 
