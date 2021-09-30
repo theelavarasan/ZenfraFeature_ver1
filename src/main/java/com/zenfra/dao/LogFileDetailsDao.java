@@ -206,6 +206,8 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 					")h group by cmd_status_parsing";
 			
 			query=query.replace(":log_fil_id", logFileId);
+			
+			System.out.println("I information query::"+query);
 			List<Map<String,Object>> response=getObjectFromQuery(query);
 			
 			if(response!=null && response.size()>0) {
