@@ -30,4 +30,6 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 	@Query("update LogFileDetails s set s.isActive=false  where s.logFileId in :logFileIds")
 	void updateLogFileIdsActive(List<String> logFileIds);
 
+	long countBySiteKey(String siteKey);
+
 }

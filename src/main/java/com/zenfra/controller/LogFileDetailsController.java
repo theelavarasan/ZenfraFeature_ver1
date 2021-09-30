@@ -39,6 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.parse.serviceImpl.ReportFilterServiceImpl;
+import com.parse.util.Response;
 import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
@@ -483,4 +485,31 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
+	
+	
+
+	@GetMapping("/get-log-file-count")
+	@ApiOperation(value = "Get Log File detailed status")
+	@ApiResponse(code = 200, message = "Successfully retrived")
+	public ResponseEntity<ResponseModel_v2> getLogFileCount(
+			@NotEmpty(message = "Site key must be not empty") @RequestParam String siteKey) {
+		ResponseModel_v2 response = new ResponseModel_v2();
+		try {
+			
+			JSONObject responseObj=new JSONObject();
+				responseObj.put("response", service.getFileLogCount(siteKey));
+			
+			response.setjData(responseObj);
+			response.setResponseCode(HttpStatus.OK);
+			response.setStatusCode(HttpStatus.OK.value());
+			response.setResponseDescription("Successfully retrived");
+			response.setResponseMessage("Successfully retrived");
+			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
+		}
+	}
+	
+	
 }

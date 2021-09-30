@@ -228,6 +228,18 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 		return null;
 	}
 
+	public Object getFileLogCount(String siteKey) {
+		try {
+			
+			
+			return logRepo.countBySiteKey(siteKey);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+
 
 	
 	
