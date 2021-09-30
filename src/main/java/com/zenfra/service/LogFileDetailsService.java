@@ -399,4 +399,14 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			return null;
 		}
 	}
+
+	public Object getFileLogCount(String siteKey) {
+		try {
+			
+			return logDao.getFileLogCount(siteKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
 }
