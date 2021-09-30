@@ -497,8 +497,7 @@ public class LogFileDetailsController {
 		try {
 			
 			JSONObject responseObj=new JSONObject();
-				responseObj.put("response", service.getFileLogCount(siteKey));
-			
+				responseObj.put("response", service.getFileLogCount(siteKey));			
 			response.setjData(responseObj);
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());

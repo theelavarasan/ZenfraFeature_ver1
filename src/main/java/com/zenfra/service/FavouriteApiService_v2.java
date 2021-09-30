@@ -126,6 +126,7 @@ public class FavouriteApiService_v2 {
 			parameters.put(":favourite_id", favouriteModel.getFavouriteId());
 			parameters.put(":filter_property", favouriteModel.getFilterProperty().toJSONString());
 			parameters.put(":report_label", favouriteModel.getReportLabel());
+			parameters.put(":os_type", favouriteModel.getOsType());
 
 			String updateQuery = queries.favouriteView().getSave();
 
