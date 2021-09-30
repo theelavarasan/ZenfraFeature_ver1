@@ -39,8 +39,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import com.parse.serviceImpl.ReportFilterServiceImpl;
-import com.parse.util.Response;
 import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
