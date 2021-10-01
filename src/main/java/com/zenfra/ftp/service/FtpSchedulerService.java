@@ -306,7 +306,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 				logFile.setDescription("FTP file parsing");
 				logFile.setFileName(fileName);
 				logFile.setFileSize(String.valueOf(convFile.length()));
-				logFile.setLogType("FTP");
+				logFile.setLogType(logType);
 				logFile.setExtractedPath(folderPath + "/" + fileName);
 				logFile.setSiteKey(siteKey);
 				logFile.setStatus(Contants.LOG_FILE_STATUS_QUEUE);
