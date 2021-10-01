@@ -57,4 +57,10 @@ public class TrippleDes {
 		return decryptedText;
 	}
 
+	public static void main(String[] args) throws Exception {
+		
+		TrippleDes des=new TrippleDes();
+		System.out.println(des.encrypt("Zenfra@123$"));
+	}
+	
 }

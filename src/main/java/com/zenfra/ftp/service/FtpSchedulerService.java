@@ -295,6 +295,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		String tenantId,String fileName,String token,
 		String folderPath,long schedulerId) {
 		
+		CommonFunctions functions=new CommonFunctions();
 		try {			
 			
 			File convFile = getFilePathFromFTP(folderPath, fileName);
