@@ -20,17 +20,15 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException.Unauthorized;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.TimeZone;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
+import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
@@ -40,6 +38,7 @@ import com.zenfra.service.ProcessService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Constants;
+import com.zenfra.utils.Contants;
 import com.zenfra.utils.DBUtils;
 
 @Service
@@ -68,6 +67,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 	
 	@Autowired
 	UserService userService;
+	
 	
 	
 	public long saveFtpScheduler(FtpScheduler ftpScheduler) {
@@ -297,9 +297,43 @@ public class FtpSchedulerService extends CommonEntityManager{
 		
 		try {			
 			
-			RestTemplate restTemplate=new RestTemplate();
-			System.out.println("Enter Parsing.....");
+			File convFile = getFilePathFromFTP(folderPath, fileName);
+			LogFileDetails logFile=new LogFileDetails();
+				logFile.setLogFileId(functions.generateRandomId());
+				logFile.setActive(true);
+				logFile.setCreatedDateTime(functions.getCurrentDateWithTime());
+				logFile.setDescription("FTP file parsing");
+				logFile.setFileName(fileName);
+				logFile.setFileSize(String.valueOf(convFile.length()));
+				logFile.setLogType("FTP");
+				logFile.setExtractedPath(folderPath + "/" + fileName);
+				logFile.setSiteKey(siteKey);
+				logFile.setStatus(Contants.LOG_FILE_STATUS_QUEUE);
+				logFile.setUpdatedDateTime(functions.getCurrentDateWithTime());
+				logFile.setUploadedBy(userId);
+				logFile.setTenantId(tenantId);
+				logFile.setMasterLogs("");
+				logFile.setMessage("");
+				logFile.setParsingStatus("");
+				logFile.setFilePaths("");
+			
+				
+				
+				String query="INSERT INTO public.log_file_details(log_file_id, "
+						+ "created_date_time, description, "
+						+ " file_name, file_size, is_active, log_type, master_logs,  site_key, status, tenant_id,"
+						+ " updated_date_time, uploaded_by, message, "
+						+ " parsing_status, file_paths,extracted_path)"
+						+ " values('"+logFile.getLogFileId()+"','"+logFile.getCreatedDateTime()+"','"+logFile.getDescription()+"','"+logFile.getFileName()+"','"+logFile.getFileSize()+"'"
+						+ ","+logFile.getActive()+",'"+logFile.getLogType()+"','"+logFile.getMasterLogs()+"','"+logFile.getSiteKey()+"','"+logFile.getStatus()+"','"+logFile.getTenantId()+"','"+logFile.getUpdatedDateTime()+"',"
+						+ " '"+logFile.getUploadedBy()+"','"+logFile.getMessage()+"','"+logFile.getParsingStatus()+"','"+logFile.getFilePaths()+"','"+logFile.getExtractedPath()+"')";
+				
+				System.out.println("insert log_file_details query::"+query);
+				
+				excuteByUpdateQueryNew(query);
 			String parsingURL=DBUtils.getParsingServerIP();
+			/*RestTemplate restTemplate=new RestTemplate();
+			System.out.println("Enter Parsing.....");			
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 		      body.add("parseFilePath", folderPath);
 		      body.add("parseFileName", fileName);
@@ -330,10 +364,10 @@ public class FtpSchedulerService extends CommonEntityManager{
 		if(rid==null && rid.isEmpty()) {
 			return "invalid rid";
 		}		
-
+			*/
 		StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");
-         builder.append("?rid=");	
-         builder.append(URLEncoder.encode(rid,StandardCharsets.UTF_8.toString()));
+         builder.append("?logFileId=");	
+         builder.append(URLEncoder.encode(logFile.getLogFileId(),StandardCharsets.UTF_8.toString()));
          builder.append("&logType=");	
          builder.append(URLEncoder.encode(logType,StandardCharsets.UTF_8.toString()));
          builder.append("&description=");	
@@ -401,4 +435,22 @@ public class FtpSchedulerService extends CommonEntityManager{
 			e.printStackTrace();
 		}
 	 }
+	 
+	 
+	 public File getFilePathFromFTP(String folderPath, String filePath) {
+			
+			try {
+				File inputFolder = new File(folderPath);
+				if (!inputFolder.exists()) {
+					inputFolder.mkdirs();
+				}
+				
+				File convFile = new File(filePath);
+				return convFile;
+			} catch(Exception e) {
+				
+			}
+			
+			return null;
+		}
 }
