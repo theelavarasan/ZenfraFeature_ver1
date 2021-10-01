@@ -339,7 +339,7 @@ public class AwsInventoryController {
 				logFile.setFileSize("0");
 				logFile.setLogFileId(common.generateRandomId());
 				logFile.setLogType("AWS");
-				logFile.setStatus(Contants.LOG_FILE_STATUS_DRAFT);
+				logFile.setStatus(Contants.LOG_FILE_STATUS_PARSING);
 				logFile.setUsername((saveUser.getFirst_name() != null ? saveUser.getFirst_name() : "") + " "
 						+ (saveUser.getLast_name() != null ? saveUser.getLast_name() : ""));
 				logFile.setTenantId(tenantId);
@@ -348,31 +348,7 @@ public class AwsInventoryController {
 				logFile.setUploadedBy(userId);
 				
 				logFile=logFileService.save(logFile);
-			/*System.out.println("Start insertLogUploadTable..... ");
-			 String fileName = "json/temp.json";
-		        ClassLoader classLoader = getClass().getClassLoader();
-		 
-		        File file = new File(classLoader.getResource(fileName).getFile());
-				
-		MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
-			      //body.add("parseFile", file);
-			      body.add("logType", "AWS");
-			      body.add("description", "AWS data retrieval");
-			      body.add("siteKey", siteKey);
-			      body.add("userId", userId);
-			      body.add("tenantId", tenantId);
-			      body.add("uploadAndProcess", false);
-			      body.add("status", status);
-			      System.out.println(Constants.current_url);
-
-		 RestTemplate restTemplate=new RestTemplate();
-		 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(token));
-          responce= restTemplate
-                 .exchange(DBUtils.getParsingServerIP()+"/parsing/upload", HttpMethod.POST, request, String.class);	
-			
-        
-          System.out.println("End insertLogUploadTable..... ");
-          */
+		
 				return logFile;
 		} catch (Exception e) {
 			e.printStackTrace();
