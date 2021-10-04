@@ -87,12 +87,16 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} 		    
+			} 	
+		    
+		    eolService.getEOLEOSHW();
+	    	eolService.getEOLEOSData();
 		    dataframeService.createDataframeForLocalDiscovery("local_discovery");	        
 	    	
 		    eolService.getGooglePricing();
 	    	eolService.getAzurePricing();
 	    	eolService.getAWSPricing();
+	    	
 	    	
 	    }
 	   

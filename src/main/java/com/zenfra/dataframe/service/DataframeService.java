@@ -645,8 +645,96 @@ public class DataframeService{
 	}
 		
 	
+	public DataResult getReportData(ServerSideGetRowsRequest request) {	    
+		 
+		 
+		 String siteKey = request.getSiteKey();
+        String source_type = request.getSourceType().toLowerCase();
+       
+      
+		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
+			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("vmware") && request.getReportBy().toLowerCase().contains("host"))) {
+			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("nutanix") && request.getReportBy().toLowerCase().contains("host"))) {
+			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("nutanix") && request.getReportBy().toLowerCase().equalsIgnoreCase("vm"))) {
+			source_type = source_type + "-" + "guest";
+		} 		
+		
+		
+        
+		 boolean isDiscoveryDataInView = false;
+		 Dataset<Row> dataset = null;
+		 String viewName = siteKey+"_"+source_type.toLowerCase();
+		 viewName = viewName.replaceAll("-", "");		
+		 try {
+			 dataset = sparkSession.sql("select * from global_temp."+viewName);
+			 dataset.cache();
+			 isDiscoveryDataInView = true;			
+		} catch (Exception e) {
+			System.out.println("---------View Not exists--------");
+		} 
+		 
+		 if(!isDiscoveryDataInView) {
+        	 File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type);
+        	 if(verifyDataframePath.exists()) {
+        		 createDataframeOnTheFly(siteKey, source_type);
+        		 dataset = sparkSession.sql("select * from global_temp."+viewName);
+    			 dataset.cache();
+        	 }
+         }		
+		 
+		 actualColumnNames = Arrays.asList(dataset.columns());	
+         Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
+         renamedDataSet.createOrReplaceTempView(viewName+"renamedDataSet");
+        if(request.getEndRow() == 0) { // temp code
+        	request.setEndRow((int) dataset.count());
+        } 
+    	 
+        rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+        groupKeys = request.getGroupKeys();
+        valueColumns = request.getValueCols();
+        pivotColumns = request.getPivotCols();
+        filterModel = request.getFilterModel();
+        sortModel = request.getSortModel();
+        isPivotMode = request.isPivotMode();
+        isGrouping = rowGroups.size() > groupKeys.size();	        
+       
+        rowGroups =  formatInputColumnNames(rowGroups);
+        groupKeys =  formatInputColumnNames(groupKeys);
+        sortModel =  formatSortModel(sortModel);
+
+        Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from "+viewName+"renamedDataSet"); 	        	
+        renamedColumnNames = Arrays.asList(df.columns());		       
+        	
+        Dataset<Row> results = orderBy(groupBy(filter(df, viewName+"renamedDataSet")));	
+        
+        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	
+        
+        results = results.dropDuplicates();	        
+
+        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", request.getSourceType().toLowerCase(), "Discovery", siteKey);	    	
+    	
+    	List<String> columns = Arrays.asList(results.columns());
+    	
+        for(String column : numericalHeaders) {                        	
+        	if(columns.contains(column)) { 
+        		results = results.withColumn(column, results.col(column).cast("float"));
+        	}
+        	
+        }
+        
+        if(source_type.equalsIgnoreCase("vmware-host")) { 
+        	results = results.withColumn("Server Type", lit("vmware-host"));
+        }
+
+        return paginate(results, request);
+		 
+	}
 	
-	 public DataResult getReportData(ServerSideGetRowsRequest request) {	    
+	
+	 public DataResult getReportData1(ServerSideGetRowsRequest request) {	    
 		 
 		 
 		 String siteKey = request.getSiteKey();
@@ -713,12 +801,7 @@ public class DataframeService{
 		        		 if(eolos.count() > 0) { 		        			
 		        			 osJoin = " left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";   // where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`)
 		                     osdata = ",eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`";
-			        		 		                     
-		 	        		/*String eosQuery = "Select * from ( Select ldView.* ,eol.end_of_life_cycle as `End Of Life - OS` ,eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp."+viewName+" ldView left join eolos eol on lcase(eol.os_type)=lcase(ldView.actual_os_type) where lcase(eol.os_version)=lcase(ldView.`OS Version`) )";
-		 	        		Dataset<Row> datasetTmp =  sparkSession.sql(eosQuery);
-		 	        		 System.out.println("----------->>>>>>>>>>>>>>>>>>>>>>--------------" + datasetTmp.count());
-		 	        		datasetTmp.show(); */
-				        	
+			        		 
 				         }
 	        		 }
 	        		 
@@ -729,11 +812,7 @@ public class DataframeService{
 	        			 
 	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', ''))";
 	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";	                  
-	     	        	/*String hwModel =  dataset.first().getAs("Server Model");
-	        		 Dataset<Row> eolhw = sparkSession.sql("select end_of_life_cycle as `End Of Life - HW`, end_of_extended_support as `End Of Extended Support - HW` from global_temp.eolHWDataDF where lower(concat(vendor,' ',model))='"+hwModel.toLowerCase()+"'");  // where lower(`Server Name`)="+source_type
-		        	 if(eolhw.count() > 0) {		        	
-			        	 dataset = dataset.join(eolhw);
-			         } */
+	     	        	
 	        	 }
 	        	 }
 	        	
@@ -788,8 +867,7 @@ public class DataframeService{
 	        	
 	        Dataset<Row> results = orderBy(groupBy(filter(df, viewName+"renamedDataSet")));	
 	        
-	        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	        
-	        //results.printSchema();	 	
+	        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	
 	        
 	        results = results.dropDuplicates();	        
 
@@ -808,12 +886,6 @@ public class DataframeService{
             	results = results.withColumn("Server Type", lit("vmware-host"));
             }
 
-	       
-	       /* List<String> headers = reportDao.getReportHeaderForFilter("discovery", source_type.toLowerCase(), request.getReportBy().toLowerCase());	  
-	        List<String> actualHeadets = new ArrayList<>();
-	        actualHeadets.addAll(Arrays.asList(results.columns()));	      
-	        actualHeadets.removeAll(headers);	       
-	        results =  results.drop(actualHeadets.stream().toArray(String[]::new)); */
 	        return paginate(results, request);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -861,15 +933,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					File[] files = new File(path).listFiles();
 					if (files != null) {
 						DataframeUtil.formatJsonFile(files);
-					}
+					}		
+		
+		 for (File file : files) {			
+		        if (file.isDirectory()) {		        
+		        	createLocalDiscoveryView(file.listFiles());
+		        }
+		    }
 		 
-		 String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
-		 dataframeBySiteKey = sparkSession.read().json(filePath); 	 
-		 dataframeBySiteKey.createOrReplaceTempView("tmpView");
-		 dataframeBySiteKey =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
-		 dataframeBySiteKey.createOrReplaceGlobalTempView(viewName); 
-		 dataframeBySiteKey.cache();
-		 System.out.println("------------dataframeBySiteKey-------------------" + dataframeBySiteKey.count());
          
 	} catch (Exception e) {
 		e.printStackTrace();
@@ -1091,32 +1162,44 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			  for (File file : files) {
 			        if (file.isDirectory()) {
 			        	createLocalDiscoveryView(file.listFiles());
-			        } else {
-			            String filePath =  file.getAbsolutePath();
-			            if(filePath.endsWith(".json")) {			            	
-			            	String source_type = file.getParentFile().getName().replace("source_type=", "").trim();
-			            	String siteKey = file.getParentFile().getParentFile().getName().replace("site_key=", "").trim();
-			   	         	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
-			   	         	String viewName = siteKey+"_"+source_type.toLowerCase();
-			   	         	viewName = viewName.replaceAll("-", "");
-			   	       
-			   	      try {
-			   	    	 System.out.println("--------dataframeFilePath-------- :: " + viewName + " : " + dataframeFilePath);
-			   	        	 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
-			   	        	 dataset.createOrReplaceTempView("tmpView");
-			   	        	 sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-			   		         dataset.createOrReplaceGlobalTempView(viewName); 
-			   		         dataset.cache();
-			   		 	 System.out.println("---------View created-------- :: " + viewName);
-		        		} catch (Exception e) {
-		        			e.printStackTrace();
-		        			 System.out.println("---------Not able to create View-------- :: " + viewName);
-		        		}  
-			            	
-			            }
+			        } else {			        	
+			            createDataframeGlobally(path, file);
 			        }
 			    }
 			
+		}
+
+
+
+		private void createDataframeGlobally(String path, File file) {
+			String filePath =  file.getAbsolutePath();
+			
+			if(filePath.endsWith(".json")) {			            	
+				String source_type = file.getParentFile().getName().replace("source_type=", "").trim();
+				String siteKey = file.getParentFile().getParentFile().getName().replace("site_key=", "").trim();
+			 	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
+			 	String viewName = siteKey+"_"+source_type.toLowerCase();
+			 	viewName = viewName.replaceAll("-", "");
+ 	       
+ 	      try {			   	    	
+				 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
+				 dataset.createOrReplaceTempView("tmpView");
+				 
+				 String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"+
+			               	  " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";
+			     try {			   	        		
+					 dataset = sparkSession.sql(sql);				   		 	
+				} catch (Exception e) {
+					//e.printStackTrace();					   		         
+				}
+				 dataset.createOrReplaceGlobalTempView(viewName);
+			     
+			 System.out.println("---------View created-------- :: " + viewName);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}  
+				
+			}
 		}
 
 
