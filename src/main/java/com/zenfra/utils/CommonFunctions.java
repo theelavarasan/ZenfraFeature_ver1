@@ -324,7 +324,7 @@ public class CommonFunctions {
 			      body.add("password", password);
 			  	      
 			 RestTemplate restTemplate=new RestTemplate();
-			 HttpEntity<Object> request = new HttpEntity<>(body);
+			 HttpEntity<Object> request = new HttpEntity<>(body,createHeaders(null));
 			 ResponseEntity<String> response= restTemplate
 	                 //.exchange("http://localhost:8080/usermanagment/auth/login", HttpMethod.POST, request, String.class);
 	        		  .exchange(Constants.current_url+"/UserManagement/auth/login", HttpMethod.POST, request, String.class);
