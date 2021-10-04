@@ -97,6 +97,7 @@ public class DataframeService{
 	
 	private List<String> actualColumnNames = null;
 	private List<String> renamedColumnNames = null;
+	private Map<String, List<String>> serverDiscoveryNumbericalColumns = new HashMap<String, List<String>>();
 
 	private static DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	
@@ -685,12 +686,23 @@ public class DataframeService{
         	 }
          }		
 		 
-		 actualColumnNames = Arrays.asList(dataset.columns());	
-         Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
-         renamedDataSet.createOrReplaceTempView(viewName+"renamedDataSet");
+		 System.out.println("--------dataset-------" + dataset.count());
+		 dataset.printSchema();
         if(request.getEndRow() == 0) { // temp code
         	request.setEndRow((int) dataset.count());
-        } 
+        } else { //actual server side pagniation
+        	
+            actualColumnNames = Arrays.asList(dataset.columns());	
+            Dataset<Row> renamedDataSet = renameDataFrame(dataset); 
+            renamedDataSet.createOrReplaceTempView(viewName+"renamedDataSet");
+
+            Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from "+viewName+"renamedDataSet"); 	        	
+            renamedColumnNames = Arrays.asList(df.columns());		       
+            	
+            dataset = orderBy(groupBy(filter(df, viewName+"renamedDataSet")));	
+            
+            dataset =  reassignColumnName(actualColumnNames, renamedColumnNames, dataset);	
+        }
     	 
         rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
         groupKeys = request.getGroupKeys();
@@ -704,32 +716,10 @@ public class DataframeService{
         rowGroups =  formatInputColumnNames(rowGroups);
         groupKeys =  formatInputColumnNames(groupKeys);
         sortModel =  formatSortModel(sortModel);
-
-        Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from "+viewName+"renamedDataSet"); 	        	
-        renamedColumnNames = Arrays.asList(df.columns());		       
-        	
-        Dataset<Row> results = orderBy(groupBy(filter(df, viewName+"renamedDataSet")));	
         
-        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	
-        
-        results = results.dropDuplicates();	        
-
-        List<String> numericalHeaders = getReportNumericalHeaders("Discovery", request.getSourceType().toLowerCase(), "Discovery", siteKey);	    	
-    	
-    	List<String> columns = Arrays.asList(results.columns());
-    	
-        for(String column : numericalHeaders) {                        	
-        	if(columns.contains(column)) { 
-        		results = results.withColumn(column, results.col(column).cast("float"));
-        	}
-        	
-        }
-        
-        if(source_type.equalsIgnoreCase("vmware-host")) { 
-        	results = results.withColumn("Server Type", lit("vmware-host"));
-        }
-
-        return paginate(results, request);
+        dataset = dataset.dropDuplicates();	  
+       
+        return paginate(dataset, request);
 		 
 	}
 	
@@ -1192,7 +1182,27 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				} catch (Exception e) {
 					//e.printStackTrace();					   		         
 				}
-				 dataset.createOrReplaceGlobalTempView(viewName);
+			        List<String> numericalHeaders = new ArrayList<String>();
+			        if(!serverDiscoveryNumbericalColumns.containsKey("Discovery"+source_type.toLowerCase())) {
+			        	numericalHeaders = getReportNumericalHeaders("Discovery", source_type.toLowerCase(), "Discovery", siteKey);	    	
+			        	serverDiscoveryNumbericalColumns.put("Discovery"+source_type.toLowerCase(), numericalHeaders);
+			        } else {
+			        	numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery"+source_type.toLowerCase());
+			        }
+			        
+			    	List<String> columns = Arrays.asList(dataset.columns());
+			    	
+			        for(String column : numericalHeaders) {                        	
+			        	if(columns.contains(column)) { 
+			        		dataset = dataset.withColumn(column, dataset.col(column).cast("float"));
+			        	}
+			        }
+			        
+			        if(source_type.equalsIgnoreCase("vmware-host")) { 
+			        	dataset = dataset.withColumn("Server Type", lit("vmware-host"));
+			        }
+			        
+				  dataset.createOrReplaceGlobalTempView(viewName);
 			     
 			 System.out.println("---------View created-------- :: " + viewName);
 			} catch (Exception e) {
