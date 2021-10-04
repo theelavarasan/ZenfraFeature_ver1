@@ -348,10 +348,7 @@ public class FtpSchedulerService extends CommonEntityManager{
      	final String rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
 		
 		
-		if(rid==null && rid.isEmpty()) {
-			return "invalid rid";
-		}		
-			
+		
 		/*StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");
          builder.append("?logFileId=");	
          builder.append(URLEncoder.encode(logFile.getLogFileId(),StandardCharsets.UTF_8.toString()));
