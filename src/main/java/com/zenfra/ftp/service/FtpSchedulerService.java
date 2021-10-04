@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,9 +19,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException.Unauthorized;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.TimeZone;
 import com.zenfra.configuration.AESEncryptionDecryption;
@@ -304,7 +306,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 				
 				
-				String query="INSERT INTO public.log_file_details(log_file_id, "
+			/*	String query="INSERT INTO public.log_file_details(log_file_id, "
 						+ "created_date_time, description, "
 						+ " file_name, file_size, is_active, log_type, master_logs,  site_key, status, tenant_id,"
 						+ " updated_date_time, uploaded_by, message, "
@@ -315,9 +317,9 @@ public class FtpSchedulerService extends CommonEntityManager{
 				
 				System.out.println("insert log_file_details query::"+query);
 				
-				excuteByUpdateQueryNew(query);
-				/*String parsingURL=DBUtils.getParsingServerIP();
-			/*RestTemplate restTemplate=new RestTemplate();
+				excuteByUpdateQueryNew(query);*/
+				String parsingURL=DBUtils.getParsingServerIP();
+			RestTemplate restTemplate=new RestTemplate();
 			System.out.println("Enter Parsing.....");			
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 		      body.add("parseFilePath", folderPath);
@@ -350,7 +352,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 			return "invalid rid";
 		}		
 			
-		StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");
+		/*StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");
          builder.append("?logFileId=");	
          builder.append(URLEncoder.encode(logFile.getLogFileId(),StandardCharsets.UTF_8.toString()));
          builder.append("&logType=");	
