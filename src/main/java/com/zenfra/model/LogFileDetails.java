@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModel;
@@ -22,6 +23,11 @@ public class LogFileDetails implements Serializable {
 	@Id
 	//@GeneratedValue//(strategy = GenerationType.IDENTITY)
 	@ApiModelProperty(hidden = true)
+	private String logFileId;
+	
+	
+	
+	@Column
 	private String logId;
 	
 	
@@ -154,9 +160,32 @@ public class LogFileDetails implements Serializable {
 	//@NotBlank(message = "Site Key must not be empty")
 	private String tempStatus;
 
-
-
 	
+	@Column
+	@ApiModelProperty(value = "filePaths", name = "filePaths", dataType = "String", example = "queue")
+	//@NotBlank(message = "Site Key must not be empty")
+	private String filePaths;
+
+
+	@Transient
+	Object tempData;
+	
+	@Transient
+	private String username;
+	
+	
+	
+	
+
+	public String getUsername() {
+		return username;
+	}
+
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 
 	public String getTempStatus() {
 		return tempStatus;
@@ -389,6 +418,38 @@ public class LogFileDetails implements Serializable {
 
 
 	
+
+
+	public String getFilePaths() {
+		return filePaths;
+	}
+
+
+	public void setFilePaths(String filePaths) {
+		this.filePaths = filePaths;
+	}
+
+
+	public String getLogFileId() {
+		return logFileId;
+	}
+
+
+	public void setLogFileId(String logFileId) {
+		this.logFileId = logFileId;
+	}
+
+
+	
+	
+	public Object getTempData() {
+		return tempData;
+	}
+
+
+	public void setTempData(Object tempData) {
+		this.tempData = tempData;
+	}
 
 
 	public LogFileDetails() {

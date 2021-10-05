@@ -1,10 +1,15 @@
 package com.zenfra.controller;
 
 import java.io.File;
+
 import java.io.IOException;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -149,6 +154,7 @@ public class ReportDataController {
 				  } catch (Exception e) {
 					e.printStackTrace();
 				}
+			
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 	      			
@@ -269,5 +275,44 @@ public class ReportDataController {
 	    }	
 		
 	
+	 
+	 
+	 @PostMapping("getOdbReportData")
+	    public ResponseEntity<?> getOdbReportData(HttpServletRequest request) { 		
+		  		 
+		  try {	  
+			  String filePath = request.getParameter("filePath");
+			  System.out.println("-------getOdbReportData------  " + filePath);
+			  
+				  JSONObject data = dataframeService.getMigrationReport(filePath);
+				  if(data != null) {
+		      			return new ResponseEntity<>(data, HttpStatus.OK);
+		      		 }
+			  }
+		    catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Not able to fecth report {}"+ e);
+			}   	
+		  JSONObject emptyJSONObject = new JSONObject();
+	      	 return new ResponseEntity<>(emptyJSONObject, HttpStatus.OK);
+	    }
+	 
+	   @PostMapping("createDataframeOdbData")
+	    public  ResponseEntity<?> createDataframeOdbData(HttpServletRequest request) { 		
+		  
+		   
+		  try {	  
+			  String filePath = request.getParameter("filePath");
+			  System.out.println("-------createDataframeOdbData------  " + filePath);
+			  
+				    dataframeService.createDataframeForJsonData(filePath);				  
+		      		return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
+		      		
+			  }catch (Exception e) {
+				e.printStackTrace();				
+			}   	
+		     
+	      	 return new ResponseEntity<>("Not able to create dataframe" , HttpStatus.OK);
+	    }
 	 
 }

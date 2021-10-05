@@ -24,8 +24,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.ForeachFunction;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
@@ -57,6 +54,7 @@ import org.apache.spark.sql.types.StructType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +62,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Sets;
-import com.google.protobuf.TextFormat.ParseException;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
@@ -724,25 +721,25 @@ public class DataframeService{
 	}
 	
 	
-	 public DataResult getReportData1(ServerSideGetRowsRequest request) {	    
+	public DataResult getReportData_old(ServerSideGetRowsRequest request) {	    
 		 
 		 
 		 String siteKey = request.getSiteKey();
-         String source_type = request.getSourceType().toLowerCase();
-        
+        String source_type = request.getSourceType().toLowerCase();
        
- 		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
- 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
- 		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("vmware") && request.getReportBy().toLowerCase().contains("host"))) {
- 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
- 		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("nutanix") && request.getReportBy().toLowerCase().contains("host"))) {
- 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
- 		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("nutanix") && request.getReportBy().toLowerCase().equalsIgnoreCase("vm"))) {
- 			source_type = source_type + "-" + "guest";
- 		} 		
- 		
- 		
-         
+      
+		if(source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
+			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("vmware") && request.getReportBy().toLowerCase().contains("host"))) {
+			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("nutanix") && request.getReportBy().toLowerCase().contains("host"))) {
+			source_type = source_type + "-" + request.getReportBy().toLowerCase();
+		} else if(source_type != null && !source_type.trim().isEmpty() && (source_type.contains("nutanix") && request.getReportBy().toLowerCase().equalsIgnoreCase("vm"))) {
+			source_type = source_type + "-" + "guest";
+		} 		
+		
+		
+        
 		 boolean isDiscoveryDataInView = false;
 		 Dataset<Row> dataset = null;
 		 String viewName = siteKey+"_"+source_type.toLowerCase();
@@ -791,8 +788,7 @@ public class DataframeService{
 		        		 if(eolos.count() > 0) { 		        			
 		        			 osJoin = " left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";   // where lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`)
 		                     osdata = ",eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`";
-			        		 
-				         }
+			        	 }
 	        		 }
 	        		 
 	        	}
@@ -802,8 +798,7 @@ public class DataframeService{
 	        			 
 	        			 hwJoin = " left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', ''))";
 	                     hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";	                  
-	     	        	
-	        	 }
+	     	      }
 	        	 }
 	        	
 	        	//sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
@@ -857,7 +852,8 @@ public class DataframeService{
 	        	
 	        Dataset<Row> results = orderBy(groupBy(filter(df, viewName+"renamedDataSet")));	
 	        
-	        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	
+	        results =  reassignColumnName(actualColumnNames, renamedColumnNames, results);	        
+	        //results.printSchema();	 	
 	        
 	        results = results.dropDuplicates();	        
 
@@ -865,16 +861,16 @@ public class DataframeService{
 	    	
 	    	List<String> columns = Arrays.asList(results.columns());
 	    	
-            for(String column : numericalHeaders) {                        	
-            	if(columns.contains(column)) { 
-            		results = results.withColumn(column, results.col(column).cast("float"));
-            	}
-            	
-            }
+           for(String column : numericalHeaders) {                        	
+           	if(columns.contains(column)) { 
+           		results = results.withColumn(column, results.col(column).cast("float"));
+           	}
+           	
+           }
 	        
-            if(source_type.equalsIgnoreCase("vmware-host")) { 
-            	results = results.withColumn("Server Type", lit("vmware-host"));
-            }
+           if(source_type.equalsIgnoreCase("vmware-host")) { 
+           	results = results.withColumn("Server Type", lit("vmware-host"));
+           }
 
 	        return paginate(results, request);
 		} catch (Exception e) {
@@ -884,7 +880,8 @@ public class DataframeService{
 	         
 		
 		 return null;
-	    } 	   
+	    } 	
+	
 	 
 	 public List<String> getReportNumericalHeaders(String reportName, String source_type, String reportBy, String siteKey) {
 			// TODO Auto-generated method stub
@@ -2826,7 +2823,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				    
 				    
 
-					public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
+				    public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
 						if(filePath.contains(",")) {
 							filePath = filePath.split(",")[0];
 						}

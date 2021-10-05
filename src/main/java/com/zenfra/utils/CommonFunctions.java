@@ -1,5 +1,7 @@
 package com.zenfra.utils;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -550,5 +552,35 @@ public class CommonFunctions {
 		            e.printStackTrace();
 		        }
 		        return key;
+		    }
+		 
+		 
+		  public String execPHP(String scriptName) throws Exception {
+		        String FinOut = null;
+
+		        System.out.println("!!!!! ScriptName: " + scriptName);
+		        try {
+		            System.out.println("!!!!! execPHP 1 ");
+		            String line;
+		            System.out.println("!!!!! execPHP 1 ");
+		            StringBuilder output = new StringBuilder();
+		            System.out.println("!!!!! execPHP 1 ");
+		            Process p = Runtime.getRuntime().exec(scriptName);
+		            System.out.println("!!!!! execPHP 1 ");
+		            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		            System.out.println("!!!!! execPHP 1 ");
+		            while ((line = input.readLine()) != null) {
+		                System.out.println("!!!!! line: " + line);
+		                output.append(line);
+		            }
+		            FinOut = output.toString();
+		            input.close();
+		            System.out.println("PHP file is working : ");
+		        } catch (Exception err) {
+		        	err.printStackTrace();
+		            throw err;
+
+		        }
+		        return FinOut;
 		    }
 }
