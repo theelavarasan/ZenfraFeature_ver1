@@ -665,7 +665,7 @@ public class DataframeService{
 		 boolean isDiscoveryDataInView = false;
 		 Dataset<Row> dataset = null;
 		 String viewName = siteKey+"_"+source_type.toLowerCase();
-		 viewName = viewName.replaceAll("-", "");		
+		 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");		
 		 try {
 			 dataset = sparkSession.sql("select * from global_temp."+viewName);
 			 dataset.cache();
@@ -743,7 +743,7 @@ public class DataframeService{
 		 boolean isDiscoveryDataInView = false;
 		 Dataset<Row> dataset = null;
 		 String viewName = siteKey+"_"+source_type.toLowerCase();
-		 viewName = viewName.replaceAll("-", "");
+		 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");
 		 try {
 			 dataset = sparkSession.sql("select * from global_temp."+viewName);
 			 dataset.cache();
@@ -914,7 +914,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				.mode(SaveMode.Overwrite).save(f.getPath());
 		
 		 String viewName = siteKey+"_"+source_type.toLowerCase();
-		 viewName = viewName.replaceAll("-", "");
+		 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");
 		 
 		// remove double quotes from json file
 					File[] files = new File(path).listFiles();
@@ -1007,7 +1007,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		         System.out.println("---------------newJson-----------------------------" + newJson);
 		         
 		         String viewName = siteKey+"_"+sourceType;
-		   	       viewName = viewName.replaceAll("-", "");	
+		   	       viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");	
 		   	       
 		         if(siteKeyAndSourceType.exists()) {  // site key and source type present		        	
 		        	
@@ -1166,7 +1166,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				String siteKey = file.getParentFile().getParentFile().getName().replace("site_key=", "").trim();
 			 	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
 			 	String viewName = siteKey+"_"+source_type.toLowerCase();
-			 	viewName = viewName.replaceAll("-", "");
+			 	viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");
  	       
  	      try {			   	    	
 				 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
@@ -1510,7 +1510,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 JSONArray resultArray = new JSONArray();
 			 
 			 String viewName = siteKey+"_"+deviceType.toLowerCase();
-			 viewName = viewName.replaceAll("-", "");
+			 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");
 			 Dataset<Row> dataset = sparkSession.emptyDataFrame();
 			 try {
 				 dataset = sparkSession.sql("select * from global_temp."+viewName);
@@ -1625,7 +1625,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		            if(filePath.endsWith(".json")) {			            	
 		   	         	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + sourceType + File.separator + "*.json";
 		   	         	String viewName = siteKey+"_"+sourceType.toLowerCase();
-		   	         	viewName = viewName.replaceAll("-", "");
+		   	         	viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");
 		   	       
 		   	      try {			   	    	 
 		   	        	 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
@@ -1704,7 +1704,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				String deviceType = request.getDeviceType();
 				
 				 String viewName = siteKey+"_"+deviceType.toLowerCase();
-				 viewName = viewName.replaceAll("-", "")+"_opt";
+				 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","")+"_opt";
 				
 				 boolean isDiscoveryDataInView = false;
 				 try {
