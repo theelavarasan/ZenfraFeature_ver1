@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +30,7 @@ import com.ibm.icu.util.TimeZone;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
+import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileNameSettingsModel;
 import com.zenfra.model.ftp.FileWithPath;
@@ -40,6 +40,7 @@ import com.zenfra.service.ProcessService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Constants;
+import com.zenfra.utils.Contants;
 import com.zenfra.utils.DBUtils;
 
 @Service
@@ -68,6 +69,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 	
 	@Autowired
 	UserService userService;
+	
 	
 	
 	public long saveFtpScheduler(FtpScheduler ftpScheduler) {
@@ -113,8 +115,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 		ProcessService process=new ProcessService();
 		JSONObject email=new JSONObject();
 		CommonFunctions functions=new CommonFunctions();
-		ObjectMapper mapper=new ObjectMapper();
-		Map<String,String> parseUrls=new HashMap<String, String>();
+		ObjectMapper mapper=new ObjectMapper();		
 		String passFileList="";
 		FTPServerModel server =new FTPServerModel();
 		final List<FileWithPath> files=new ArrayList<>();
@@ -194,16 +195,16 @@ public class FtpSchedulerService extends CommonEntityManager{
 			
 			String token=functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 			
-			
+			List<LogFileDetails> logFiles=new ArrayList<LogFileDetails>();
 			String emailFileList="";
 			String updateFiles="";
 			for(FileWithPath file:files) {
 				System.out.println("Token::"+token);			
 				System.out.println("Final::"+file.getPath());
-				String url=callParsing(file.getLogType(), settings.getUserId(),
+				LogFileDetails url=callParsing(file.getLogType(), settings.getUserId(),
 							settings.getSiteKey(), s.getTenantId(), file.getName(), token,
 							file.getPath(),s.getId());		
-				 parseUrls.put(file.getLogType()+":"+file.getName(),url);
+				logFiles.add(url);
 				 emailFileList+="<li>"+file.getLogType()+":"+file.getName()+"</li>";
 				 updateFiles+=updateFiles+","+file.getName();
 			}	
@@ -224,15 +225,15 @@ public class FtpSchedulerService extends CommonEntityManager{
 				}
 			
 				
-			System.out.println("parseUrls::"+parseUrls);
+			
 			RestTemplate restTemplate=new RestTemplate();
-			for(String parse:parseUrls.keySet()) {	
-				  passFileList+="<li>"+parse+"</li>";				  
+			for(LogFileDetails logFile:logFiles) {	
+				  passFileList+="<li>"+logFile.getFileName()+"</li>";				  
 				Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
 				    @Override
 				    public void uncaughtException(Thread th, Throwable ex) {
 				    	email.put("ftp_template", values.get("ftp_template_partially_processed"));
-				    	email.put("FileList", "<li>"+parse+"</li>");
+				    	email.put("FileList", "<li>"+logFile.getFileName()+"</li>");
 				    	email.put("subject", Constants.ftp_Partially_Processed.replace(":ftp_name", server.getFtpName()));
 						email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
 						if(files.size()>0) {
@@ -240,23 +241,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 						}
 				    }
 				};
-				Thread n = new Thread(){
-			        public void run(){
-			        	try {
-			        		CallFTPParseAPI(restTemplate, parseUrls.get(parse), token);
-						} catch (Exception e) {
-							email.put("ftp_template", values.get("ftp_template_partially_processed"));
-							email.put("FileList", "<li>"+parse+"</li>");
-							email.put("subject", Constants.ftp_Partially_Processed.replace(":ftp_name", server.getFtpName()));
-							email.put("Notes", "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
-							if(files.size()>0) {
-								process.sentEmailFTP(email);
-							}	
-						}				        	
-			        }
-				  };
-				    
-				    n.setUncaughtExceptionHandler(h);n.start();				    
+						    
 				  
 			}
 			return files;
@@ -291,15 +276,51 @@ public class FtpSchedulerService extends CommonEntityManager{
 	}
 
 	
-	public String callParsing(String logType,String userId,String siteKey,
+	public LogFileDetails callParsing(String logType,String userId,String siteKey,
 		String tenantId,String fileName,String token,
 		String folderPath,long schedulerId) {
 		
-		try {			
+		CommonFunctions functions=new CommonFunctions();
+		LogFileDetails logFile=new LogFileDetails();
+		try {
 			
+			File convFile = getFilePathFromFTP(folderPath, fileName);
+			
+				logFile.setLogFileId(functions.generateRandomId());
+				logFile.setActive(true);
+				logFile.setCreatedDateTime(functions.getCurrentDateWithTime());
+				logFile.setDescription("FTP file parsing");
+				logFile.setFileName(fileName);
+				logFile.setFileSize(String.valueOf(convFile.length()));
+				logFile.setLogType(logType);
+				logFile.setExtractedPath(folderPath + "/" + fileName);
+				logFile.setSiteKey(siteKey);
+				logFile.setStatus(Contants.LOG_FILE_STATUS_QUEUE);
+				logFile.setUpdatedDateTime(functions.getCurrentDateWithTime());
+				logFile.setUploadedBy(userId);
+				logFile.setTenantId(tenantId);
+				logFile.setMasterLogs("");
+				logFile.setMessage("");
+				logFile.setParsingStatus("");
+				logFile.setFilePaths("");
+			
+				
+				
+			/*	String query="INSERT INTO public.log_file_details(log_file_id, "
+						+ "created_date_time, description, "
+						+ " file_name, file_size, is_active, log_type, master_logs,  site_key, status, tenant_id,"
+						+ " updated_date_time, uploaded_by, message, "
+						+ " parsing_status, file_paths,extracted_path)"
+						+ " values('"+logFile.getLogFileId()+"','"+logFile.getCreatedDateTime()+"','"+logFile.getDescription()+"','"+logFile.getFileName()+"','"+logFile.getFileSize()+"'"
+						+ ","+logFile.getActive()+",'"+logFile.getLogType()+"','"+logFile.getMasterLogs()+"','"+logFile.getSiteKey()+"','"+logFile.getStatus()+"','"+logFile.getTenantId()+"','"+logFile.getUpdatedDateTime()+"',"
+						+ " '"+logFile.getUploadedBy()+"','"+logFile.getMessage()+"','"+logFile.getParsingStatus()+"','"+logFile.getFilePaths()+"','"+logFile.getExtractedPath()+"')";
+				
+				System.out.println("insert log_file_details query::"+query);
+				
+				excuteByUpdateQueryNew(query);*/
+				String parsingURL=DBUtils.getParsingServerIP();
 			RestTemplate restTemplate=new RestTemplate();
-			System.out.println("Enter Parsing.....");
-			String parsingURL=DBUtils.getParsingServerIP();
+			System.out.println("Enter Parsing.....");			
 			MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
 		      body.add("parseFilePath", folderPath);
 		      body.add("parseFileName", fileName);
@@ -327,28 +348,25 @@ public class FtpSchedulerService extends CommonEntityManager{
      	final String rid=root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
 		
 		
-		if(rid==null && rid.isEmpty()) {
-			return "invalid rid";
-		}		
-
-		StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");
-         builder.append("?rid=");	
-         builder.append(URLEncoder.encode(rid,StandardCharsets.UTF_8.toString()));
+		
+		/*StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");
+         builder.append("?logFileId=");	
+         builder.append(URLEncoder.encode(logFile.getLogFileId(),StandardCharsets.UTF_8.toString()));
          builder.append("&logType=");	
          builder.append(URLEncoder.encode(logType,StandardCharsets.UTF_8.toString()));
          builder.append("&description=");	
          builder.append(URLEncoder.encode("",StandardCharsets.UTF_8.toString()));
          builder.append("&isReparse=");	
-         builder.append(URLEncoder.encode("false",StandardCharsets.UTF_8.toString()));
+         builder.append(URLEncoder.encode("false",StandardCharsets.UTF_8.toString()));*/
          	
        
-         return builder.toString();
+       
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		
-		return "Unable to call Parse API";
+		return logFile;
 	}
 	
 	
@@ -401,4 +419,22 @@ public class FtpSchedulerService extends CommonEntityManager{
 			e.printStackTrace();
 		}
 	 }
+	 
+	 
+	 public File getFilePathFromFTP(String folderPath, String filePath) {
+			
+			try {
+				File inputFolder = new File(folderPath);
+				if (!inputFolder.exists()) {
+					inputFolder.mkdirs();
+				}
+				
+				File convFile = new File(filePath);
+				return convFile;
+			} catch(Exception e) {
+				
+			}
+			
+			return null;
+		}
 }

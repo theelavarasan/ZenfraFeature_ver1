@@ -188,9 +188,7 @@ public class AwsInventoryController {
 		try {
 
 			String token = request.getHeader("Authorization");
-			// String token="Bearer
-			// "+common.getZenfraToken("aravind.krishnasamy@virtualtechgurus.com",
-			// "Aravind@123");
+			
 			System.out.println(token);
 
 			LogFileDetails insert = insertLogUploadTable(siteKey, tenantId, userId, token, "Processing");
@@ -214,11 +212,13 @@ public class AwsInventoryController {
 			array.add(arr);
 			JSONObject obj = new JSONObject();
 			obj.put("logFileDetails", arr);
-			model.setjData(obj);
+			
 
 			final String rid = root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
 			System.out.println("rid::" + rid);*/
 
+			model.setjData(insert);
+			
 			AwsInventory aws = getAwsInventoryByDataId(data_id);
 			ProcessingStatus status = new ProcessingStatus();
 			status.setProcessing_id(common.generateRandomId());
