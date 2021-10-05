@@ -244,45 +244,10 @@ public class ReportDataController {
 	 
 	 
 	 @PostMapping("getOdbReportData")
-	    public ResponseEntity<?> getOdbReportData(@RequestParam("filePath") String filePath) { 		
-		  		 
-		  try {	  
-				  JSONObject data = dataframeService.getMigrationReport(filePath);
-				  if(data != null) {
-		      			return new ResponseEntity<>(data, HttpStatus.OK);
-		      		 }
-			  }
-		    catch (Exception e) {
-				e.printStackTrace();
-				System.out.println("Not able to fecth report {}"+ e);
-			}   	
-		  JSONObject emptyJSONObject = new JSONObject();
-	      	 return new ResponseEntity<>(emptyJSONObject, HttpStatus.OK);
-	    }
-	 
-	   @PostMapping("createDataframeOdbData")
-	    public  ResponseEntity<?> createDataframeOdbData(@RequestParam("filePath") String filePath) { 		
-		  		 
-		  try {	  
-				    dataframeService.createDataframeForJsonData(filePath);				  
-		      		return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
-		      		
-			  }catch (Exception e) {
-				e.printStackTrace();				
-			}   	
-		     
-	      	 return new ResponseEntity<>("Not able to create dataframe" , HttpStatus.OK);
-	    }	
-		
-	
-	 
-	 
-	 @PostMapping("getOdbReportData")
 	    public ResponseEntity<?> getOdbReportData(HttpServletRequest request) { 		
 		  		 
 		  try {	  
 			  String filePath = request.getParameter("filePath");
-			  System.out.println("-------getOdbReportData------  " + filePath);
 			  
 				  JSONObject data = dataframeService.getMigrationReport(filePath);
 				  if(data != null) {
@@ -303,7 +268,6 @@ public class ReportDataController {
 		   
 		  try {	  
 			  String filePath = request.getParameter("filePath");
-			  System.out.println("-------createDataframeOdbData------  " + filePath);
 			  
 				    dataframeService.createDataframeForJsonData(filePath);				  
 		      		return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
