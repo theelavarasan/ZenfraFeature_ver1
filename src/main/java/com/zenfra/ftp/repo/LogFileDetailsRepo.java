@@ -2,6 +2,8 @@ package com.zenfra.ftp.repo;
 
 import java.util.List;
 
+import javax.persistence.NamedNativeQueries;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,8 +20,8 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 	List<LogFileDetails> findByLogFileIdIn(@Param("logId") List<String> logid);
 
 	List<LogFileDetails> findBySiteKey(String siteKey);
-
-	@Query("select l from LogFileDetails l  where l.siteKey=:siteKey and l.isActive=:isActive order by cast(updatedDateTime as date) DESC")
+	
+	@Query(value="select * from log_file_details order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') desc",nativeQuery = true)
 	List<LogFileDetails> getBySiteKeyAndIsActive(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive);
 	
 	@Modifying
