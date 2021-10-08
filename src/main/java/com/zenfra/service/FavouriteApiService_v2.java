@@ -339,6 +339,7 @@ public class FavouriteApiService_v2 {
 					favouriteModel.setIsDefault(true);
 					favouriteModel.setIsActive(true);
 					favouriteModel.setReportLabel(report_label);
+					favouriteModel.setOsType(parsedLogType);
 					saveFavouriteView(favouriteModel);			
 				}
 			}
