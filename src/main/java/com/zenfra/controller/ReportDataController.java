@@ -1,11 +1,18 @@
 package com.zenfra.controller;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -15,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.protobuf.TextFormat.ParseException;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -124,17 +132,23 @@ public class ReportDataController {
 	    }
 	 
 	  @PostMapping("saveDefaultFavView")
-	    public ResponseEntity<String> testfav(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) { 	     
+	    public ResponseEntity<String> saveDefaultFavView(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) { 	     
 		  System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : " + siteKey + " : "+userId);
 		 
 		  try {	
-			/*
-			 * if(sourceType != null && (sourceType.equalsIgnoreCase("LINUX") ||
-			 * sourceType.equalsIgnoreCase("WINDOWS") ||
-			 * sourceType.equalsIgnoreCase("VMWARE"))) {
-			 * reportService.refreshCloudCostViews(); }
-			 */
-			  		
+			
+			  try { //remove orient db dataframe
+					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator; // + sourceType + File.separator;
+					File[] directories = new File(dataframePath).listFiles(File::isDirectory);
+					for(File dir : directories) {					
+						if(dir.getName().equalsIgnoreCase(sourceType)) {							
+							FileSystemUtils.deleteRecursively(dir);
+						}
+					}
+					
+				  } catch (Exception e) {
+					e.printStackTrace();
+				}
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 	      			
@@ -221,6 +235,39 @@ public class ReportDataController {
 	          return ResponseEntity.ok(resultObject);
 	          
 	    }
+	 
+	 
+	 @PostMapping("getOdbReportData")
+	    public ResponseEntity<?> getOdbReportData(@RequestParam("filePath") String filePath) { 		
+		  		 
+		  try {	  
+				  JSONObject data = dataframeService.getMigrationReport(filePath);
+				  if(data != null) {
+		      			return new ResponseEntity<>(data, HttpStatus.OK);
+		      		 }
+			  }
+		    catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Not able to fecth report {}"+ e);
+			}   	
+		  JSONObject emptyJSONObject = new JSONObject();
+	      	 return new ResponseEntity<>(emptyJSONObject, HttpStatus.OK);
+	    }
+	 
+	   @PostMapping("createDataframeOdbData")
+	    public  ResponseEntity<?> createDataframeOdbData(@RequestParam("filePath") String filePath) { 		
+		  		 
+		  try {	  
+				    dataframeService.createDataframeForJsonData(filePath);				  
+		      		return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
+		      		
+			  }catch (Exception e) {
+				e.printStackTrace();				
+			}   	
+		     
+	      	 return new ResponseEntity<>("Not able to create dataframe" , HttpStatus.OK);
+	    }	
+		
 	
 	 
 }

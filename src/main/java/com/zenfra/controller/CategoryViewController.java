@@ -55,7 +55,8 @@ public class CategoryViewController {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				return ResponseEntity.ok(responseModel);
 			}
-
+			
+			view.setCreatedBy(view.getUserId());
 			view.setUpdatedBy(view.getUserId());
 			view.setUpdatedTime(functions.getCurrentDateWithTime());
 
@@ -96,7 +97,7 @@ public class CategoryViewController {
 			}
 			BeanUtils.copyProperties(view, viewExit, NullAwareBeanUtilsBean.getNullPropertyNames(view));	
 			viewExit.setActive(true);
-			viewExit.setUpdatedBy(view.getAuthUserId());
+			viewExit.setUpdatedBy(view.getUserId());
 			viewExit.setUpdatedTime(functions.getCurrentDateWithTime());			
 			
 		

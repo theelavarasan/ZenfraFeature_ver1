@@ -258,7 +258,7 @@ public class HealthCheckService {
 		try {
 			String query = "select * from health_check where site_key='"+siteKey+"' and is_active='true'";
 			if(!isTenantAdmin) {
-				query = "select * from health_check where is_active = 'true' and ((create_by = '"+userId+"' and site_key = '"+siteKey+"') or ((site_access_list like '%"+siteKey+"%' or site_access_list like '%All%') and (user_access_list like '"+userId +"' or user_access_list  like '%All%')))";
+				query = "select * from health_check where is_active = 'true' and ((create_by = '"+userId+"' and site_key = '"+siteKey+"') or ((site_access_list like '%"+siteKey+"%' or site_access_list like '%All%') and (user_access_list like '%"+userId+"%' or user_access_list  like '%All%')))";
 			}
 			
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
