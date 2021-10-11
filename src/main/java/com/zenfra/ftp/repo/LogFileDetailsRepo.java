@@ -21,7 +21,7 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 
 	List<LogFileDetails> findBySiteKey(String siteKey);
 	
-	@Query(value="select * from log_file_details order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') desc",nativeQuery = true)
+	@Query(value="select * from log_file_details where is_active=:isActive and  site_key=:siteKey order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') desc",nativeQuery = true)
 	List<LogFileDetails> getBySiteKeyAndIsActive(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive);
 	
 	@Modifying
