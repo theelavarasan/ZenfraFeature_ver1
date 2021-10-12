@@ -1,11 +1,16 @@
 package com.zenfra.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +30,8 @@ public class ChartService {
 	
 	@Autowired
 	ChartDAO chartDao;
+	
+	private JSONParser jsonParser = new JSONParser();
 	
 	public boolean saveChart(ChartModel_v2 chart) {
 		boolean response=false;
@@ -145,4 +152,99 @@ public class ChartService {
 			return null;
 		}
 	}
+	
+	
+
+	public void getChartDatas(String siteKey, String sourceType) {
+		try {
+			List<Map<String, Object>> chatDatas = chartDao.getChartsBySiteKeyAndLogType(siteKey, sourceType);
+			//Set<String> chartParameters = new HashSet<String>();
+			Map<String, Set<String>> chartInputs = new HashMap<String, Set<String>>();
+			if(chatDatas != null && !chatDatas.isEmpty()) {
+		    	for(Map<String, Object> chart : chatDatas) {
+		    		
+		    		JSONObject chartDetails = (JSONObject) jsonParser.parse(chart.get("chart_configuration").toString());
+		    		JSONObject filterDetails = (JSONObject) jsonParser.parse(chart.get("filter_property").toString());
+		    	
+		    		if(!filterDetails.isEmpty()) {
+		    			String componentType = (String) filterDetails.get("category");
+		    			
+		    			
+		    			Set<String> chartParameters = new HashSet<>();
+		    			if(!chartDetails.isEmpty()) {		    			
+			    			JSONArray xAxis = (JSONArray) chartDetails.get("xaxis");
+			    			JSONArray yAxis = (JSONArray) chartDetails.get("yaxis");
+			    			
+			    			for(int i=0; i<xAxis.size(); i++) {
+			    				JSONObject xAxisData = (JSONObject) xAxis.get(i);
+			    				chartParameters.add((String) xAxisData.get("label"));
+			    			}
+			    			
+			    			for(int i=0; i<yAxis.size(); i++) {
+			    				JSONObject yAxisData = (JSONObject) yAxis.get(i);
+			    				chartParameters.add((String) yAxisData.get("label"));
+			    			}
+			    		}
+		    			
+		    			if(chartInputs.containsKey(componentType)) {
+		    				Set<String> values = chartInputs.get(componentType);
+		    				values.addAll(chartParameters);
+		    				chartInputs.put(componentType, values);
+		    			} else {
+		    				Set<String> values = new HashSet<>();
+		    				values.addAll(chartParameters);
+		    				chartInputs.put(componentType, values);
+		    			}
+		    		}
+		    				    	
+		    	}
+		    }
+			System.out.println("------------- >> " + chartInputs);
+			
+			if(!chartInputs.isEmpty()) {
+				String componentType = chartInputs.keySet().stream().findFirst().get();
+				if(componentType.equalsIgnoreCase("Server")) { //local discovery table
+					Set<String> chartParams = chartInputs.values().stream().findFirst().get();
+					String query = formAggrigationQuery(siteKey, componentType, sourceType, chartParams);
+					List<Map<String, Object>> serverChartAggValues = chartDao.getServerDiscoveryChartAggValues(query);
+					System.out.println("----------serverChartAggValues----------" + serverChartAggValues);
+					JSONArray result = new JSONArray();
+					for(Map<String, Object> map : serverChartAggValues) {
+						JSONObject json = new JSONObject();
+					    json.putAll( map );
+					    result.add(json);
+					}
+					
+					System.out.println("----------result----------" + result);
+				}
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+
+	private String formAggrigationQuery(String siteKey, String componentType, String sourceType, Set<String> chartParams) {
+		String query = "";
+		if(componentType.equalsIgnoreCase("Server")) {
+			String selectQuery = String.join(",", chartParams
+		            .stream()
+		            .map(param -> ("string_agg(a." + param.replaceAll("\\s+", "_") + ", ',') as \""+param.replaceAll("\\s+", "_")+"\""))
+		            .collect(Collectors.toList()));
+			
+			String whereQuery = String.join(",", chartParams
+		            .stream()
+		            .map(param -> ("json_array_elements(data_temp::json) ->> '" + param + "' as "+param.replaceAll("\\s+", "_")+""))
+		            .collect(Collectors.toList()));
+			
+			query = "select a.source_id, "+selectQuery+" from (select source_id,  "+whereQuery+" from local_discovery	where site_key='"+siteKey+"' and lower(source_type)='"+sourceType.toLowerCase()+"') a group by a.source_id";
+			System.out.println("----------Query----------" + query);
+		}
+		return query;
+	}
+	
+	
 }

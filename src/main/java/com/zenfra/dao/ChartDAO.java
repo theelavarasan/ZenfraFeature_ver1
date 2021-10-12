@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +22,7 @@ public class ChartDAO extends CommonEntityManager{
 	CommonFunctions functions;
 	
 	@Autowired
-	CommonQueriesData quereis;
-	
+	CommonQueriesData quereis;	
 	
 	public int SaveChart(Map<String,Object> params) {
 		int responce=0;
@@ -77,5 +78,33 @@ public class ChartDAO extends CommonEntityManager{
 		
 		return chart;
 	}
+
+
+
+
+	public List<Map<String, Object>> getChartsBySiteKeyAndLogType(String siteKey, String sourceType) {
+		List<Map<String, Object>> charts = new ArrayList<>();
+		try {		
+			charts = getListMapObjectById("select chart_id, chart_configuration, filter_property from chart where site_key='"+siteKey+"' and lower(report_name) like '%"+sourceType.toLowerCase()+"%'");
+		 } catch (Exception e) {
+			e.printStackTrace();
+		}
+		return charts;
+	}
+
+
+
+
+	public List<Map<String, Object>> getServerDiscoveryChartAggValues(String query) {
+		List<Map<String, Object>> charts = new ArrayList<>();
+		try {		
+			charts = getListMapObjectById(query);
+		 } catch (Exception e) {
+			e.printStackTrace();
+		}
+		return charts;
+	}
+	
+	
 	
 }
