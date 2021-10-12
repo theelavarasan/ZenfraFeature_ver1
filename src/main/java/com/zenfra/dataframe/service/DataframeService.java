@@ -2835,9 +2835,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							filePath = filePath.split(",")[0];
 						}
 						 JSONObject json = new JSONObject();							
-						 File f = new File(filePath);						
+						 File f = new File(filePath);	
+						 System.out.println("-----------filePath-----" + filePath);
 						 String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");		
-						
+						 System.out.println("------------ODB View Name get------------" + viewName);
 						try {
 							 String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
 							 JSONParser parser = new JSONParser();
@@ -2866,6 +2867,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							File f = new File(filePath);
 							String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");							
 							dataset.createOrReplaceGlobalTempView(viewName);
+							System.out.println("------------ODB View Name create------------" + viewName);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
