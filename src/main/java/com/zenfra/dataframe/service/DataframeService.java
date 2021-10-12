@@ -2836,7 +2836,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						}
 						 JSONObject json = new JSONObject();							
 						 File f = new File(filePath);						
-						 String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+ ", "");		
+						 String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");		
 						
 						try {
 							 String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
@@ -2864,7 +2864,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						try {	
 							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
 							File f = new File(filePath);
-							String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+ ", "");							
+							String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");							
 							dataset.createOrReplaceGlobalTempView(viewName);
 						} catch (Exception e) {
 							e.printStackTrace();
