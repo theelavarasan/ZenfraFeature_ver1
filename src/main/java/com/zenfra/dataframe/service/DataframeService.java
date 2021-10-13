@@ -2863,10 +2863,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							filePath = filePath.split(",")[0];
 						}
 						try {	
-							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("mode", "PERMISSIVE").json(filePath);
 							File f = new File(filePath);
 							String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");							
 							dataset.createOrReplaceGlobalTempView(viewName);
+							dataset.show();
 							System.out.println("------------ODB View Name create------------" + viewName);
 						} catch (Exception e) {
 							e.printStackTrace();
