@@ -11,6 +11,7 @@ import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -2834,7 +2835,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						if(filePath.contains(",")) {
 							filePath = filePath.split(",")[0];
 						}
-						 JSONObject json = new JSONObject();							
+						 System.out.println("-----------filePath-get----" + filePath);
+						 JSONParser parser = new JSONParser();
+						 Object obj = parser.parse(new FileReader(filePath));
+				         JSONObject jsonObject = (JSONObject)obj;
+				         
+				         
+						/* JSONObject json = new JSONObject();							
 						 File f = new File(filePath);	
 						 System.out.println("-----------filePath-----" + filePath);
 						 String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");		
@@ -2852,8 +2859,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 								json = getMigrationReport(filePath);
 							}
 						}
+						*/
 						
-						return json;
+						return jsonObject;
 					}
 
 
