@@ -11,6 +11,7 @@ import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -600,25 +601,27 @@ public class DataframeService{
 			
 			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
 			formattedDataframe.createOrReplaceTempView("local_discovery");
-
+						
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext().sql("select distinct(site_key) from local_discovery");
 			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();
 
 			//String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
-				try {
+				try {					
 					Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
 							"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
+								
 					
 					File f = new File(path + siteKey);
 					if (!f.exists()) {
 						f.mkdir();
 					}
 					
+					
 					dataframeBySiteKey.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true)
 							.partitionBy("site_key", "source_type").format("org.apache.spark.sql.json")
 							.mode(SaveMode.Overwrite).save(f.getPath());
-					dataframeBySiteKey.unpersist();
+					
 				} catch (Exception e) {
 					logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(), e);
 				}
@@ -1169,13 +1172,18 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 	viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");
  	       
  	      try {			   	    	
-				 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 
+				 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 				
 				 dataset.createOrReplaceTempView("tmpView");
+				 Dataset<Row> filteredData = sparkSession.emptyDataFrame();
+				 
+				// select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1
 				 
 				 String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"+
 			               	  " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";
 			     try {			   	        		
-					 dataset = sparkSession.sql(sql);				   		 	
+					 dataset = sparkSession.sql(sql);	
+					 dataset.createOrReplaceTempView("datawithoutFilter");
+					  filteredData =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
 				} catch (Exception e) {
 					//e.printStackTrace();					   		         
 				}
@@ -1187,19 +1195,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			        	numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery"+source_type.toLowerCase());
 			        }
 			        
-			    	List<String> columns = Arrays.asList(dataset.columns());
+			    	List<String> columns = Arrays.asList(filteredData.columns());
 			    	
 			        for(String column : numericalHeaders) {                        	
 			        	if(columns.contains(column)) { 
-			        		dataset = dataset.withColumn(column, dataset.col(column).cast("float"));
+			        		filteredData = filteredData.withColumn(column, filteredData.col(column).cast("float"));
 			        	}
 			        }
 			        
 			        if(source_type.equalsIgnoreCase("vmware-host")) { 
-			        	dataset = dataset.withColumn("Server Type", lit("vmware-host"));
+			        	filteredData = filteredData.withColumn("Server Type", lit("vmware-host"));
 			        }
 			        
-				  dataset.createOrReplaceGlobalTempView(viewName);
+			        filteredData.createOrReplaceGlobalTempView(viewName);
 			     
 			 System.out.println("---------View created-------- :: " + viewName);
 			} catch (Exception e) {
@@ -2827,10 +2835,17 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						if(filePath.contains(",")) {
 							filePath = filePath.split(",")[0];
 						}
-						 JSONObject json = new JSONObject();							
-						 File f = new File(filePath);						
-						 String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");		
-						
+						 System.out.println("-----------filePath-get----" + filePath);
+						 JSONParser parser = new JSONParser();
+						 Object obj = parser.parse(new FileReader(filePath));
+				         JSONObject jsonObject = (JSONObject)obj;
+				         
+				         
+						/* JSONObject json = new JSONObject();							
+						 File f = new File(filePath);	
+						 System.out.println("-----------filePath-----" + filePath);
+						 String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");		
+						 System.out.println("------------ODB View Name get------------" + viewName);
 						try {
 							 String datas =  sparkSession.sql("select * from global_temp."+viewName).toJSON().collectAsList().toString();
 							 JSONParser parser = new JSONParser();
@@ -2844,8 +2859,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 								json = getMigrationReport(filePath);
 							}
 						}
+						*/
 						
-						return json;
+						return jsonObject;
 					}
 
 
@@ -2855,10 +2871,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							filePath = filePath.split(",")[0];
 						}
 						try {	
-							Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("mode", "PERMISSIVE").json(filePath);
 							File f = new File(filePath);
-							String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");							
+							String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");							
 							dataset.createOrReplaceGlobalTempView(viewName);
+							dataset.show();
+							System.out.println("------------ODB View Name create------------" + viewName);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
