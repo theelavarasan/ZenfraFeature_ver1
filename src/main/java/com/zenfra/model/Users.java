@@ -85,6 +85,10 @@ public class Users {
 	
 	@Column(name="is_okta_user")
 	private boolean is_okta_user;
+	
+	@Column(name="header_pin_status")
+	private boolean headerPinStatus ;
+	
 
 	public String getUser_id() {
 		return user_id;
@@ -260,6 +264,14 @@ public class Users {
 
 	public void setIs_okta_user(boolean is_okta_user) {
 		this.is_okta_user = is_okta_user;
+	}
+
+	public boolean isHeaderPinStatus() {
+		return headerPinStatus;
+	}
+
+	public void setHeaderPinStatus(boolean headerPinStatus) {
+		this.headerPinStatus = headerPinStatus;
 	}
 	
 	
