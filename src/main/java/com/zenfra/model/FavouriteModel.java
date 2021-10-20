@@ -30,10 +30,18 @@ public class FavouriteModel {
 	private boolean isDefault;
 	private String authUserId;
 	private String reportLabel;
-	
+	private String osType;
 	
 	
 
+
+	public String getOsType() {
+		return osType;
+	}
+
+	public void setOsType(String osType) {
+		this.osType = osType;
+	}
 
 	public Object getCategoryColumns() {
 		return categoryColumns;

@@ -1,10 +1,15 @@
 package com.zenfra.controller;
 
 import java.io.File;
+
 import java.io.IOException;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -149,6 +154,7 @@ public class ReportDataController {
 				  } catch (Exception e) {
 					e.printStackTrace();
 				}
+			
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 	      			
@@ -238,9 +244,11 @@ public class ReportDataController {
 	 
 	 
 	 @PostMapping("getOdbReportData")
-	    public ResponseEntity<?> getOdbReportData(@RequestParam("filePath") String filePath) { 		
+	    public ResponseEntity<?> getOdbReportData(HttpServletRequest request) { 		
 		  		 
 		  try {	  
+			  String filePath = request.getParameter("filePath");
+			  
 				  JSONObject data = dataframeService.getMigrationReport(filePath);
 				  if(data != null) {
 		      			return new ResponseEntity<>(data, HttpStatus.OK);
@@ -255,9 +263,12 @@ public class ReportDataController {
 	    }
 	 
 	   @PostMapping("createDataframeOdbData")
-	    public  ResponseEntity<?> createDataframeOdbData(@RequestParam("filePath") String filePath) { 		
-		  		 
+	    public  ResponseEntity<?> createDataframeOdbData(HttpServletRequest request) { 		
+		  
+		   
 		  try {	  
+			  String filePath = request.getParameter("filePath");
+			  
 				    dataframeService.createDataframeForJsonData(filePath);				  
 		      		return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
 		      		
@@ -266,8 +277,6 @@ public class ReportDataController {
 			}   	
 		     
 	      	 return new ResponseEntity<>("Not able to create dataframe" , HttpStatus.OK);
-	    }	
-		
-	
+	    }
 	 
 }
