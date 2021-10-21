@@ -1,6 +1,7 @@
 package com.zenfra.dao;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +86,7 @@ public class ChartDAO extends CommonEntityManager{
 	public List<Map<String, Object>> getChartsBySiteKeyAndLogType(String siteKey, String sourceType) {
 		List<Map<String, Object>> charts = new ArrayList<>();
 		try {		
-			charts = getListMapObjectById("select chart_id, chart_configuration, filter_property from chart where site_key='"+siteKey+"' and lower(report_name) like '%"+sourceType.toLowerCase()+"%'");
+			charts = getListMapObjectById("select chart_id, chart_configuration, filter_property, chart_type, site_key, chart_name from chart where site_key='"+siteKey+"' and lower(report_label) like '%"+sourceType.toLowerCase()+"%'");
 		 } catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -95,10 +96,10 @@ public class ChartDAO extends CommonEntityManager{
 
 
 
-	public List<Map<String, Object>> getServerDiscoveryChartAggValues(String query) {
-		List<Map<String, Object>> charts = new ArrayList<>();
+	public Map<String, Object> getServerDiscoveryChartAggValues(String query) {
+		Map<String, Object> charts = new HashMap<>();
 		try {		
-			charts = getListMapObjectById(query);
+			charts = getResultAsMap(query);
 		 } catch (Exception e) {
 			e.printStackTrace();
 		}
