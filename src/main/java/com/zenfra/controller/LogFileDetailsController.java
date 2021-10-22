@@ -9,8 +9,10 @@ import java.nio.file.Paths;
 import java.rmi.ServerException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
 import org.json.simple.JSONObject;
@@ -46,6 +48,7 @@ import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 import com.zenfra.payload.LogFileDetailsPayload;
 import com.zenfra.service.LogFileDetailsService;
+import com.zenfra.service.ReportService;
 import com.zenfra.service.UserService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
@@ -71,6 +74,9 @@ public class LogFileDetailsController {
 
 	@Autowired
 	CommonFunctions functions;
+	
+	@Autowired
+	ReportService reportService;
 
 	@PostMapping
 	@ApiOperation(value = "Saved Log File Details ")
@@ -101,7 +107,8 @@ public class LogFileDetailsController {
 	@GetMapping
 	@ApiOperation(value = "Get all log file details")
 	@ApiResponse(code = 200, message = "Successfully retrieved")
-	public ResponseEntity<ResponseModel_v2> getALlLogFileDetails(@RequestParam String siteKey) {
+	public ResponseEntity<ResponseModel_v2> getALlLogFileDetails(
+			@NotBlank(message = "Sitekey must not be empty") @RequestParam String siteKey,  @NotBlank(message = "UserId must not be empty")@RequestParam String userId) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 			response.setjData(service.getLogFileDetailsBySiteKey(siteKey));
@@ -109,6 +116,10 @@ public class LogFileDetailsController {
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully retrieved");
 			response.setResponseMessage("Successfully retrieved");
+			JSONObject reportUserCustom = reportService.getReportUserCutomBySiteKey(siteKey, userId);
+			System.out.println("-------------->>>--------------"  + reportUserCustom.get("columnOrder"));
+			response.setColumnOrder((List<Object>)reportUserCustom.get("columnOrder"));
+			
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();

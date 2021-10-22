@@ -18,6 +18,8 @@ public class ReportQueries {
 	private String chartLayout;
 	
 	private String reportUserCustomData;
+	
+	private String reportUserCustomDataBySiteKey;
 
 	public String getHeader() {
 		return header;
@@ -58,6 +60,16 @@ public class ReportQueries {
 	public void setReportUserCustomData(String reportUserCustomData) {
 		this.reportUserCustomData = reportUserCustomData;
 	}
+
+	public String getReportUserCustomDataBySiteKey() {
+		return reportUserCustomDataBySiteKey;
+	}
+
+	public void setReportUserCustomDataBySiteKey(String reportUserCustomDataBySiteKey) {
+		this.reportUserCustomDataBySiteKey = reportUserCustomDataBySiteKey;
+	}
+
+	
 	
 	
 	
