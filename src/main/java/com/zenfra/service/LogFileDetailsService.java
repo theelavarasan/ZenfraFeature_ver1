@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -122,6 +123,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				if (userList.containsKey(log.getUploadedBy())) {
 					log.setUploadedBy(userList.get(log.getUploadedBy()));
 				}
+				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getCreatedDateTime()));
+				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
+				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
+				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
 				logFileUpdate.add(log);
 			}
 
