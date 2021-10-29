@@ -116,8 +116,7 @@ public class LogFileDetailsController {
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully retrieved");
 			response.setResponseMessage("Successfully retrieved");
-			JSONObject reportUserCustom = reportService.getReportUserCutomBySiteKey(siteKey, userId);
-			System.out.println("-------------->>>--------------"  + reportUserCustom.get("columnOrder"));
+			JSONObject reportUserCustom = reportService.getReportUserCutomBySiteKey(siteKey, userId);			
 			response.setColumnOrder((List<Object>)reportUserCustom.get("columnOrder"));
 			
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
