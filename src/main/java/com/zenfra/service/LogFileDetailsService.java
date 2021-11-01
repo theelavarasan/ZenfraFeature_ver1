@@ -122,11 +122,11 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			for (LogFileDetails log : logFile) {
 				if (userList.containsKey(log.getUploadedBy())) {
 					log.setUploadedBy(userList.get(log.getUploadedBy()));
-				}
+				}				
 				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getCreatedDateTime()));
-				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
-				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
-				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
+				log.setUpdatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
+				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
+				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
 				logFileUpdate.add(log);
 			}
 
