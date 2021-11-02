@@ -53,7 +53,7 @@ public class CommonFunctions {
 	RestTemplate restTemplate;
 	
 	
-	private List<String> dateFormats = Arrays.asList("yyyy/MM/dd HH:mm:ss,yyyy/mm/dd HH:mm:ss,yyyy/mm/dd hh:mm:ss,yyyy-MM-dd HH:mm:ss,yyyy-mm-dd HH:mm:ss,yyyy-mm-dd hh:mm:ss".split(","));
+	private List<String> dateFormats = Arrays.asList("yyyy/MM/dd HH:mm:ss,yyyy/mm/dd HH:mm:ss".split(","));  //,yyyy/mm/dd hh:mm:ss,yyyy-MM-dd HH:mm:ss,yyyy-mm-dd HH:mm:ss,yyyy-mm-dd hh:mm:ss
 	
 	
 	public Map<String, Object> getFavViewCheckNull(Map<String, Object> row) {
@@ -593,22 +593,29 @@ public class CommonFunctions {
 		  public String convertToUtc(TimeZone timeZone, String dateString) {
 				String utcTime = dateString; 
 				try {
-					for(String df : dateFormats) {				
-						try {					
+					//for(String df : dateFormats) {				
+						try {
+							String df = "yyyy/mm/dd HH:mm:ss";
+							if(dateString.contains("-")) {
+								df="yyyy-MM-dd HH:mm:ss";
+							}
 							DateFormat formatterIST = new SimpleDateFormat(df);
 							formatterIST.setTimeZone(TimeZone.getDefault()); // better than using IST
-							Date date = formatterIST.parse(dateString);
+							if(dateString != null && !dateString.isEmpty()) {
+								Date date = formatterIST.parse(dateString);
 
-							DateFormat formatterUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-							formatterUTC.setTimeZone(TimeZone.getTimeZone("UTC")); // UTC timezone	
-							return formatterUTC.format(date);
+								DateFormat formatterUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+								formatterUTC.setTimeZone(TimeZone.getTimeZone("UTC")); // UTC timezone	
+								return formatterUTC.format(date);
+							}
+							
 						} catch (Exception e) {
-							e.printStackTrace();
+							//e.printStackTrace();
 						}
-					}
+					//}
 					
 				} catch (Exception e) {
-					e.printStackTrace();
+					///e.printStackTrace();
 				}
 				return utcTime;
 				
