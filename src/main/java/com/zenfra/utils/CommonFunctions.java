@@ -3,7 +3,9 @@ package com.zenfra.utils;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -49,6 +51,10 @@ public class CommonFunctions {
 
 	@Autowired
 	RestTemplate restTemplate;
+	
+	
+	private List<String> dateFormats = Arrays.asList("yyyy/MM/dd HH:mm:ss,yyyy/mm/dd HH:mm:ss".split(","));  //,yyyy/mm/dd hh:mm:ss,yyyy-MM-dd HH:mm:ss,yyyy-mm-dd HH:mm:ss,yyyy-mm-dd hh:mm:ss
+	
 	
 	public Map<String, Object> getFavViewCheckNull(Map<String, Object> row) {
 
@@ -583,4 +589,35 @@ public class CommonFunctions {
 		        }
 		        return FinOut;
 		    }
+		  
+		  public String convertToUtc(TimeZone timeZone, String dateString) {
+				String utcTime = dateString; 
+				try {
+					//for(String df : dateFormats) {				
+						try {
+							String df = "yyyy/mm/dd HH:mm:ss";
+							if(dateString.contains("-")) {
+								df="yyyy-MM-dd HH:mm:ss";
+							}
+							DateFormat formatterIST = new SimpleDateFormat(df);
+							formatterIST.setTimeZone(TimeZone.getDefault()); // better than using IST
+							if(dateString != null && !dateString.isEmpty()) {
+								Date date = formatterIST.parse(dateString);
+
+								DateFormat formatterUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+								formatterUTC.setTimeZone(TimeZone.getTimeZone("UTC")); // UTC timezone	
+								return formatterUTC.format(date);
+							}
+							
+						} catch (Exception e) {
+							//e.printStackTrace();
+						}
+					//}
+					
+				} catch (Exception e) {
+					///e.printStackTrace();
+				}
+				return utcTime;
+				
+			}
 }
