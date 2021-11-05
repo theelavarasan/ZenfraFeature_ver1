@@ -158,8 +158,7 @@ public class ReportDataController {
 				  } catch (Exception e) {
 					e.printStackTrace();
 				}
-			  	
-			
+			        chartService.getChartDatas(siteKey, sourceType);
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 	      			

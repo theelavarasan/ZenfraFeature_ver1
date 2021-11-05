@@ -23,6 +23,7 @@ import com.zenfra.dao.ChartDAO;
 import com.zenfra.dataframe.service.DashBoardService;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ChartModel_v2;
+import com.zenfra.model.DashboardChartDetails;
 import com.zenfra.model.DashboardInputModel;
 import com.zenfra.utils.CommonFunctions;
 
@@ -238,6 +239,7 @@ public class ChartService {
 					
 					for (Map.Entry<String, JSONObject> entry : chartObjects.entrySet()) {
 					    String chartId = entry.getKey();
+					    System.out.println("--------chartId----- >> " + chartId);
 					    JSONObject chartConf = entry.getValue();
 					    String chartType = (String) chartConf.get("chartType");		
 					    String siteKeyRef = (String) chartConf.get("siteKey");		
@@ -245,9 +247,10 @@ public class ChartService {
 					    dashboardInputModel.setSiteKey(siteKeyRef);
 					    dashboardInputModel.setChartId(chartId);
 					   
+					    DashboardChartDetails dashboardChartDetailsObj = dashBoardService.getDashboardChartDetailsBySiteKey(siteKeyRef,chartId);
+					    
 					    JSONObject dashboardChartDetails = dashBoardService.getDashboardChartDetails(dashboardInputModel);
-					    if(chartType.equalsIgnoreCase("pie")) {
-					    	// System.out.println("-------chartId------" + chartId + " : " +siteKeyRef);
+					    if(chartType.equalsIgnoreCase("pie")) {					    
 					    	JSONArray columnArray = null;
 					    	try {
 					    		columnArray = (JSONArray) jsonParser.parse((String)chartConf.get("column"));
@@ -272,17 +275,29 @@ public class ChartService {
 					    						    		
 	                            JSONObject traceObj = new JSONObject();
 	                            if(numbericalHeader.contains((String) columnObj.get("field"))) {
-				    				 traceObj.put("values", aggDataArray.toJSONString().replaceAll("\"", "").replaceAll("\"\\[", "\\[").replaceAll("\\]\"", "\\]"));
+	                            	List<Float> arr = new ArrayList<>();
+	                            	for(int k=0; k<aggDataArray.size(); k++) {
+	                            		arr.add(Float.parseFloat((String) aggDataArray.get(k)));
+	                            	}
+				    				 traceObj.put("values", arr);
 				    			} else {
 				    				 traceObj.put("values", aggDataArray);
 				    			}
 	                            if(numbericalHeader.contains((String) columnObj.get("field"))) {
-	                            	 traceObj.put("labels", aggDataArray.toJSONString().replaceAll("\"", "").replaceAll("\"\\[", "\\[").replaceAll("\\]\"", "\\]"));
+	                            	List<Float> arr = new ArrayList<>();
+	                            	for(int k=0; k<aggDataArray.size(); k++) {
+	                            		arr.add(Float.parseFloat((String) aggDataArray.get(k)));
+	                            	}
+	                            	 traceObj.put("labels", arr);
 				    			} else {
 				    				 traceObj.put("labels", aggDataArray);
 				    			}
 	                            if(numbericalHeader.contains((String) columnObj.get("field"))) {
-	                            	traceObj.put("text", aggDataArray.toJSONString().replaceAll("\"", "").replaceAll("\"\\[", "\\[").replaceAll("\\]\"", "\\]"));
+	                            	List<Float> arr = new ArrayList<>();
+	                            	for(int k=0; k<aggDataArray.size(); k++) {
+	                            		arr.add(Float.parseFloat((String) aggDataArray.get(k)));
+	                            	}	                            	
+	                            	traceObj.put("text", arr);
 				    			} else {
 				    				traceObj.put("text", aggDataArray);
 				    			}
@@ -299,9 +314,9 @@ public class ChartService {
 	                            traceArr.add(traceObj);
 	                           
 					    	}
-					    	 dashboardChartDetails.put("traces", traceArr.toJSONString());
-					    	// System.out.println("-------traceArr------" + traceArr);
-					    	 System.out.println("-------pie-----" + traceArr);
+					    	 dashboardChartDetails.put("traces", traceArr);
+					    	 dashboardChartDetailsObj.setChartDetails(dashboardChartDetails.toJSONString());					    	
+					    	
 					    } else if (chartType.equalsIgnoreCase("bar") || chartType.equalsIgnoreCase("line")){
 					    	 JSONArray xaxisArray = (JSONArray) chartConf.get("xaxis");
 					    	 JSONArray yaxisArray = (JSONArray) chartConf.get("yaxis");
@@ -315,8 +330,7 @@ public class ChartService {
 					    	 for(int i=0; i<yaxisArray.size(); i++) {
 					    		 JSONObject yObj = (JSONObject)yaxisArray.get(i);
 					    		 yaxisParams.add((String) yObj.get("field"));
-					    	 }					    	
-					    	 
+					    	 }					    	 
 					    	 JSONArray traceArr = new JSONArray();
 					    	 for (int k = 0; k < yaxisParams.size(); k++) {
 					    		 JSONArray aggDataXaixsArray = new JSONArray();
@@ -325,31 +339,45 @@ public class ChartService {
 					    		 
 					    		 if(k<xaxisParams.size()) {
 					    			 String aggDataX = (String)serverChartAggValues.get(xaxisParams.get(k).replaceAll("\\s", "_"));
-							    	if(aggDataX != null) {
+					    		
+					    			 if(aggDataX != null) {
 						    				String[] straryXaixs =  aggDataX.split(","); 								    	
 								    		for(int j=0; j<straryXaixs.length; j++) {
 								    			aggDataXaixsArray.add(straryXaixs[j].trim());
 								    		}
 						    			}
 							    	
-							    	  
+					    			
+					    			 
                                     if(numbericalHeader.contains((String) xaxisParams.get(k))) {
-   				    				 traceObj.put("x", aggDataXaixsArray.toJSONString().replaceAll("\"", "").replaceAll("\"\\[", "\\[").replaceAll("\\]\"", "\\]"));
+   				    				//traceObj.put("x", aggDataXaixsArray.toJSONString().replaceAll("\"", "").replaceAll("\"\\[", "\\[").replaceAll("\\]\"", "\\]"));
+                                    
+                                    	List<Float> arr = new ArrayList<>();
+    	                            	for(int l=0; l<aggDataXaixsArray.size(); l++) {
+    	                            		arr.add(Float.parseFloat((String) aggDataXaixsArray.get(l)));
+    	                            	}
+    	                            	traceObj.put("x", arr);
                                     } else {
    				    				 traceObj.put("x", aggDataXaixsArray);
                                     }
                                     
-					    		 }
-						    		
+					    		 }						    		
 						    		 String aggDataY = (String)serverChartAggValues.get(yaxisParams.get(k).replaceAll("\\s", "_"));
-						    	  if(aggDataY != null) {
+						    	
+						    		 if(aggDataY != null) {
 							    		 String[] straryYAxis =  aggDataY.split(","); 
 								    		for(int j=0; j<straryYAxis.length; j++) {
 								    			aggDataYaixsArray.add(straryYAxis[j].trim());
 								    		} 
 								    		
+								    		 
 								    		if(numbericalHeader.contains((String) yaxisParams.get(k))) {
-			   				    				 traceObj.put("y", aggDataYaixsArray.toJSONString().replaceAll("\"", "").replaceAll("\"\\[", "\\[").replaceAll("\\]\"", "\\]"));
+								    			List<Float> arr = new ArrayList<>();
+		    	                            	for(int l=0; l<aggDataYaixsArray.size(); l++) {
+		    	                            		arr.add(Float.parseFloat((String) aggDataYaixsArray.get(l)));
+		    	                            	}
+		    	                            	
+			   				    				 traceObj.put("y", arr);
 			                                 } else {
 			                                     traceObj.put("y", aggDataYaixsArray);
 			                                 }
@@ -368,13 +396,9 @@ public class ChartService {
 	                                    }
 	                                    traceArr.add(traceObj);
 	                                
-	                            }
-					    	 
-					    	// System.out.println("-------traceArr------" + traceArr);
-	                           // chartDetails.replace("traces", chartDetails.get("traces"), traceArr);
-					    	 dashboardChartDetails.put("traces", traceArr.toJSONString());
-					    	 
-					    	 System.out.println("-------line bar-----" + traceArr);
+	                            }					    	
+					    	 dashboardChartDetails.put("traces", traceArr);
+					    	 dashboardChartDetailsObj.setChartDetails(dashboardChartDetails.toJSONString());
 					    	 
 					    } else if (chartType.equalsIgnoreCase("table")){
 					    	JSONArray columnArray = null;
@@ -382,9 +406,7 @@ public class ChartService {
 					    		columnArray = (JSONArray) jsonParser.parse((String)chartConf.get("tableColumns"));
 							} catch (Exception e) {
 								columnArray = (JSONArray) chartConf.get("tableColumns");
-							}
-					    	
-					    	System.out.println("-------columnArray------" + columnArray);
+							}					    	
 					    	
 					    	JSONArray traceValueArr = new JSONArray();
 					    	for(int i=0; i<columnArray.size(); i++) {
@@ -402,17 +424,17 @@ public class ChartService {
 					    		
 					    		
 					    		if(numbericalHeader.contains((String) columnObj.get("field"))) {
-					    			traceValueArr.add(aggDataArray.toJSONString().replaceAll("\"", "").replaceAll("\"\\[", "\\[").replaceAll("\\]\"", "\\]"));
-                                } else {
+					    			List<Float> arr = new ArrayList<>();
+	                            	for(int l=0; l<aggDataArray.size(); l++) {
+	                            		arr.add(Float.parseFloat((String) aggDataArray.get(l)));
+	                            	}
+	                            	traceValueArr.add(arr);
+					    		} else {
                                 	traceValueArr.add(aggDataArray);
                                 }	                           
 					    	}
 					    	
-					    	System.out.println("-------table<<<>>>>>>>>>>-----" + dashboardChartDetails.get("traces"));
-					    	
-					    	
-					    	List<LinkedHashMap> traceJson =  (List<LinkedHashMap>) dashboardChartDetails.get("traces");
-					    	//JSONObject traceJson = (JSONObject) trace.get(0);
+					    	List<LinkedHashMap> traceJson =  (List<LinkedHashMap>) dashboardChartDetails.get("traces");					    	
 					    	LinkedHashMap cells = new LinkedHashMap();					    	
 					    	for(LinkedHashMap json : traceJson) {
 					    		if(json.containsKey("cells")) {
@@ -421,10 +443,11 @@ public class ChartService {
 					    		}
 					    	}
 					    	
-					    	System.out.println("-------table-----" + traceValueArr);
-					    	
+					    	 dashboardChartDetails.put("traces", traceJson);
+					    	 dashboardChartDetailsObj.setChartDetails(dashboardChartDetails.toJSONString());
 					    }
 					    
+					    chartDao.updateEntity(DashboardChartDetails.class, dashboardChartDetailsObj);
 					}
 					
 					

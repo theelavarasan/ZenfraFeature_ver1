@@ -180,11 +180,11 @@ public class DashBoardService {
 			String query=queries.dashboardQueries().getGetDashboardChartDetails()
 					.replace(":chart_id", dashboardInputModel.getChartId()).replace(":site_key",dashboardInputModel.getSiteKey());
 			
-			System.out.println(query);
+			//System.out.println(query);
 			Object temp=dashDao.getObjectFromQuery(query);
 			
 			JSONArray arr=map.convertValue(temp, JSONArray.class);
-			System.out.println(arr);
+			///System.out.println(arr);
 			if(arr!=null && !arr.isEmpty()) {				
 				obj= map.convertValue(arr.get(0), JSONObject.class);
 				obj= map.readValue(obj.get("chartDetails").toString(), JSONObject.class);

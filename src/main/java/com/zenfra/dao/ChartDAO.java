@@ -86,7 +86,7 @@ public class ChartDAO extends CommonEntityManager{
 	public List<Map<String, Object>> getChartsBySiteKeyAndLogType(String siteKey, String sourceType) {
 		List<Map<String, Object>> charts = new ArrayList<>();
 		try {		
-			charts = getListMapObjectById("select chart_id, chart_configuration, filter_property, chart_type, site_key, chart_name from chart where site_key='"+siteKey+"' and lower(report_label) like '%"+sourceType.toLowerCase()+"%'");
+			charts = getListMapObjectById("select chart_id, chart_configuration, filter_property, chart_type, site_key, chart_name from chart where site_key='"+siteKey+"' and lower(report_label) like '%"+sourceType.toLowerCase()+"%' and is_active='true'");
 		 } catch (Exception e) {
 			e.printStackTrace();
 		}
