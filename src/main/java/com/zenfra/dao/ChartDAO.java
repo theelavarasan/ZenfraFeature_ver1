@@ -1,9 +1,12 @@
 package com.zenfra.dao;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +23,7 @@ public class ChartDAO extends CommonEntityManager{
 	CommonFunctions functions;
 	
 	@Autowired
-	CommonQueriesData quereis;
-	
+	CommonQueriesData quereis;	
 	
 	public int SaveChart(Map<String,Object> params) {
 		int responce=0;
@@ -77,5 +79,33 @@ public class ChartDAO extends CommonEntityManager{
 		
 		return chart;
 	}
+
+
+
+
+	public List<Map<String, Object>> getChartsBySiteKeyAndLogType(String siteKey, String sourceType) {
+		List<Map<String, Object>> charts = new ArrayList<>();
+		try {		
+			charts = getListMapObjectById("select chart_id, chart_configuration, filter_property, chart_type, site_key, chart_name from chart where site_key='"+siteKey+"' and lower(report_label) like '%"+sourceType.toLowerCase()+"%' and is_active='true'");
+		 } catch (Exception e) {
+			e.printStackTrace();
+		}
+		return charts;
+	}
+
+
+
+
+	public Map<String, Object> getServerDiscoveryChartAggValues(String query) {
+		Map<String, Object> charts = new HashMap<>();
+		try {		
+			charts = getResultAsMap(query);
+		 } catch (Exception e) {
+			e.printStackTrace();
+		}
+		return charts;
+	}
+	
+	
 	
 }
