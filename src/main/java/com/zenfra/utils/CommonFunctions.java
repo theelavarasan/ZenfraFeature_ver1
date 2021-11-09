@@ -595,7 +595,7 @@ public class CommonFunctions {
 				try {
 					//for(String df : dateFormats) {				
 						try {
-							String df = "yyyy/mm/dd HH:mm:ss";
+							String df = "yyyy/MM/dd HH:mm:ss";
 							if(dateString.contains("-")) {
 								df="yyyy-MM-dd HH:mm:ss";
 							}
