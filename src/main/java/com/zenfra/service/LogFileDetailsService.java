@@ -106,7 +106,17 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logFileIds) {
 		try {
-			return logDao.getLogFileDetailsByLogids(logFileIds);
+			List<LogFileDetails> logFile = logDao.getLogFileDetailsByLogids(logFileIds);
+			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
+			for (LogFileDetails log : logFile) {							
+				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getCreatedDateTime()));
+				log.setUpdatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
+				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
+				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
+				logFileUpdate.add(log);
+			}
+
+			return logFileUpdate;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
