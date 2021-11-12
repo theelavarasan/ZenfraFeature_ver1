@@ -35,7 +35,7 @@ import com.zenfra.model.Users;
 import com.zenfra.model.ftp.ProcessingStatus;
 import com.zenfra.service.LogFileDetailsService;
 import com.zenfra.service.ProcessService;
-import com.zenfra.service.UserService;
+import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
 import com.zenfra.utils.DBUtils;
@@ -54,7 +54,7 @@ public class AwsInventoryController {
 	ProcessService serivce;
 	
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 	
 	@Autowired
 	LogFileDetailsService logFileService;
@@ -329,7 +329,7 @@ public class AwsInventoryController {
 		LogFileDetails logFile=new LogFileDetails();
 		try {
 			
-			Users saveUser = userService.getUserByUserId(userId);
+			Users saveUser = userCreateService.getUserByUserId(userId);
 			
 				logFile.setActive(true);
 				logFile.setCreatedDateTime(common.getCurrentDateWithTime());

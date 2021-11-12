@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.model.ResponseModel_v2;
-import com.zenfra.service.UserService;
+import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 
 @RestController
@@ -17,7 +17,7 @@ import com.zenfra.utils.CommonFunctions;
 public class UserController {
 
 	@Autowired
-	UserService service;
+	UserCreateService service;
 	
 	@Autowired
 	CommonFunctions functions;

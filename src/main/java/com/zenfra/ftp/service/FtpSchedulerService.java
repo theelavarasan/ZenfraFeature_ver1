@@ -37,7 +37,7 @@ import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.model.ftp.FtpScheduler;
 import com.zenfra.model.ftp.ProcessingStatus;
 import com.zenfra.service.ProcessService;
-import com.zenfra.service.UserService;
+import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Constants;
 import com.zenfra.utils.Contants;
@@ -68,7 +68,7 @@ public class FtpSchedulerService extends CommonEntityManager{
 	AESEncryptionDecryption encryption;
 	
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 	
 	
 	

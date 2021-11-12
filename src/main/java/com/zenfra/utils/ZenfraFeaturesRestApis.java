@@ -9,7 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import com.zenfra.dao.UserDao;
-import com.zenfra.service.UserService;
+import com.zenfra.service.UserCreateService;
 
 @Component
 public class ZenfraFeaturesRestApis {
@@ -24,7 +24,7 @@ public class ZenfraFeaturesRestApis {
 	CommonFunctions functions;
 	
 	@Autowired
-	UserService service;
+	UserCreateService service;
 	
 	@Autowired
 	UserDao userDao;

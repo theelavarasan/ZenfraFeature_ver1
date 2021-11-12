@@ -13,7 +13,7 @@ import com.zenfra.dao.UserDao;
 import com.zenfra.model.Users;
 
 @Service
-public class UserService{
+public class UserCreateService{
 
 	@Autowired
 	CommonQueriesData queries;
