@@ -22,7 +22,7 @@ import com.zenfra.model.CategoryView;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
 import com.zenfra.service.CategoryViewService;
-import com.zenfra.service.UserService;
+import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
@@ -37,7 +37,7 @@ public class CategoryViewController {
 	CommonFunctions functions;
 	
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 
 	@PostMapping
 	public ResponseEntity<?> saveCategoryView(@Valid @RequestBody CategoryView view) {
@@ -61,7 +61,7 @@ public class CategoryViewController {
 			view.setUpdatedTime(functions.getCurrentDateWithTime());
 
 			if (categoryService.saveCategoryView(view)) {
-				Users user=userService.getUserByUserId(view.getUserId());
+				Users user=userCreateService.getUserByUserId(view.getUserId());
 				view.setUpdatedBy(user.getFirst_name()+" "+user.getLast_name());
 				responseModel.setjData(functions.convertEntityToJsonObject(view));
 				responseModel.setResponseDescription("Category Successfully inserted");

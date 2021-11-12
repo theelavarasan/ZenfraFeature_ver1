@@ -49,7 +49,7 @@ import com.zenfra.model.ZKModel;
 import com.zenfra.payload.LogFileDetailsPayload;
 import com.zenfra.service.LogFileDetailsService;
 import com.zenfra.service.ReportService;
-import com.zenfra.service.UserService;
+import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
@@ -70,7 +70,7 @@ public class LogFileDetailsController {
 	LogFileDetailsService service;
 
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 
 	@Autowired
 	CommonFunctions functions;
@@ -89,7 +89,7 @@ public class LogFileDetailsController {
 			logFileDetails.setLogFileId(functions.generateRandomId());
 			logFileDetails.setUploadedBy(authUserId);
 			service.save(logFileDetails);
-			Users saveUser = userService.getUserByUserId(authUserId);
+			Users saveUser = userCreateService.getUserByUserId(authUserId);
 			logFileDetails.setUsername((saveUser.getFirst_name() != null ? saveUser.getFirst_name() : "") + " "
 					+ (saveUser.getLast_name() != null ? saveUser.getLast_name() : ""));
 			response.setjData(logFileDetails);

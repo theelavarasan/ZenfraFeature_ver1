@@ -49,7 +49,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	LogFileDetailsDao logDao;
 
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 
 	@Autowired
 	CommonFunctions common;
@@ -126,7 +126,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	public Object getLogFileDetailsBySiteKey(String siteKey) {
 		try {
 
-			Map<String, String> userList = userService.getUserNames();
+			Map<String, String> userList = userCreateService.getUserNames();
 			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKey(siteKey);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 			for (LogFileDetails log : logFile) {
