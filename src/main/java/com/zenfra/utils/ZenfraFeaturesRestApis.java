@@ -17,8 +17,8 @@ public class ZenfraFeaturesRestApis {
 	@Autowired
 	TrippleDes keyGen;
 	
-	@Autowired
-	RestTemplate restTemplate;
+	
+	RestTemplate restTemplate = new RestTemplate();
 	
 	@Autowired
 	CommonFunctions functions;
