@@ -66,4 +66,14 @@ public class UserService{
 		return users;
 	}
 	
+	public Users getUserByEmail(String username) {
+		Users user=new Users();
+		try {			
+			user=(Users)userDao.getEntityByColumn(queries.userTable().getGetUserByEmail().replace(":email", username),Users.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return user;
+	}
+	
 }
