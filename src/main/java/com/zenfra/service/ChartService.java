@@ -240,6 +240,7 @@ public class ChartService {
 						//System.out.println("------------- >> " + serverChartAggValues);
 						
 						for (Map.Entry<String, JSONObject> entry : chartObjects.entrySet()) {
+							  try {
 						    String chartId = entry.getKey();						   
 						    JSONObject chartConf = entry.getValue();
 						    String chartType = (String) chartConf.get("chartType");		
@@ -251,6 +252,11 @@ public class ChartService {
 						    DashboardChartDetails dashboardChartDetailsObj = dashBoardService.getDashboardChartDetailsBySiteKey(siteKeyRef,chartId);
 						    
 						    JSONObject dashboardChartDetails = dashBoardService.getDashboardChartDetails(dashboardInputModel);
+						   
+						    System.out.println("-------------dashboardChartDetails-----------" + dashboardChartDetails);
+						 
+								
+							
 						    if(chartType.equalsIgnoreCase("pie")) {					    
 						    	JSONArray columnArray = null;
 						    	try {
@@ -449,6 +455,9 @@ public class ChartService {
 						    }
 						    
 						    chartDao.updateEntity(DashboardChartDetails.class, dashboardChartDetailsObj);
+							  } catch (Exception e) {
+									e.printStackTrace();
+								}
 						}
 						
 						
