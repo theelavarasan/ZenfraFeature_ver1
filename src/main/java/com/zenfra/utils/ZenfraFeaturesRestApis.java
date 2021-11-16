@@ -7,18 +7,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.zenfra.dao.UserDao;
 import com.zenfra.service.UserCreateService;
 
-@Component
+@Service
 public class ZenfraFeaturesRestApis {
 
-	@Autowired
-	TrippleDes keyGen;
+	/*
+	 * @Autowired TrippleDes keyGen;
+	 */
 	
 	
-	RestTemplate restTemplate = new RestTemplate();
+	//RestTemplate restTemplate = new RestTemplate();
 	
 	@Autowired
 	CommonFunctions functions;
@@ -74,9 +76,10 @@ public class ZenfraFeaturesRestApis {
 		
 	}
 	
-	public static void main(String[] args) throws ParseException {
-		ZenfraFeaturesRestApis api=new ZenfraFeaturesRestApis();
-		System.out.println(api.login("s"));
-	}
+	/*
+	 * public static void main(String[] args) throws ParseException {
+	 * ZenfraFeaturesRestApis api=new ZenfraFeaturesRestApis();
+	 * System.out.println(api.login("s")); }
+	 */
 			
 }
