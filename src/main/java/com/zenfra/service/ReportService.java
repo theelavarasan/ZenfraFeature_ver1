@@ -123,7 +123,7 @@ public class ReportService {
 	        String reportLabel = label + " " + deviceType + " by " + reportBy;
 	        return reportLabel;
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		
 		return "";
