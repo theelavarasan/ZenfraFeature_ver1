@@ -56,7 +56,7 @@ public class ZenfraFeaturesRestApis {
 	public JSONObject login(String username) throws ParseException {
 		
     	JSONObject jsonObject = new JSONObject();
-    	Object obj=service.getUserByUserId(username);
+    	Object obj=service.getUserByEmail(username);
     	jsonObject = functions.convertEntityToJsonObject(obj);
 
         return jsonObject;

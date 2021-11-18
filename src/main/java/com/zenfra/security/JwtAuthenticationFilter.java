@@ -47,23 +47,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         String path = req.getRequestURI();
         String contentType = req.getContentType();
-        System.out.println("Request URL path="+path+": Request content type ="+contentType);
+        //System.out.println("Request URL path="+path+": Request content type ="+contentType);
         
          
         /*if(path!=null && path.contains("/auth")) {
         	return;
         }*/
         
-        System.out.println("----------------Enter do fillter-------------");
+        //System.out.println("----------------Enter do fillter-------------");
         String username = null;
         String authToken = null;
-        System.out.println("!!!!! header: " + header);
+        //System.out.println("!!!!! header: " + header);
         if (header != null && header.startsWith(Constants.TOKEN_PREFIX)) {
             authToken = header.replace(Constants.TOKEN_PREFIX,"");
-            System.out.println("!!!!! authToken: " + authToken);
+            //System.out.println("!!!!! authToken: " + authToken);
             try {
                 username = jwtTokenUtil.getUsernameFromToken(authToken);
-                System.out.println("!!!!! username: " + username);
+                //System.out.println("!!!!! username: " + username);
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             } catch (ExpiredJwtException e) {
