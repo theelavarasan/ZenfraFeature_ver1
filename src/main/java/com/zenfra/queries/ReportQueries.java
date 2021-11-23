@@ -18,6 +18,8 @@ public class ReportQueries {
 	private String chartLayout;
 	
 	private String reportUserCustomData;
+	
+	private String headerForCompatibility;
 
 	public String getHeader() {
 		return header;
@@ -58,6 +60,16 @@ public class ReportQueries {
 	public void setReportUserCustomData(String reportUserCustomData) {
 		this.reportUserCustomData = reportUserCustomData;
 	}
+
+	public String getHeaderForCompatibility() {
+		return headerForCompatibility;
+	}
+
+	public void setHeaderForCompatibility(String headerForCompatibility) {
+		this.headerForCompatibility = headerForCompatibility;
+	}
+
+	
 	
 	
 	
