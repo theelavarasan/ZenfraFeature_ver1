@@ -143,9 +143,7 @@ public class ReportDao {
 				result.put("chartLayout", commonFunctions.formatJsonArrayr(rs.get(0).get("chart_layout")));
 				ObjectMapper mapper = new ObjectMapper();				
 				JSONObject health_check = mapper.readValue(rs.get(0).get("health_check").toString(), JSONObject.class);
-				result.put("health_check", health_check);
-				
-				
+				result.put("health_check", health_check);				
 				
 			} else {
 				JSONArray empty = new JSONArray();
@@ -157,7 +155,47 @@ public class ReportDao {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-		}		
+		}	
+		
+		//column reorder for compatability report
+		if(reportName != null && reportName.contains("Compatibility")) {
+			String deviceType = "project";			
+			if(reportName.toLowerCase().contains("aix")) {
+				deviceType = "aix";
+			} else if(reportName.toLowerCase().contains("hpux")) {
+				deviceType = "hpux";
+			} else if(reportName.toLowerCase().contains("linux")) {
+				deviceType = "linux";
+			} else if(reportName.toLowerCase().contains("solaris")) {
+				deviceType = "solaris";
+			} else if(reportName.toLowerCase().contains("vmware") && !reportName.toLowerCase().contains("host")) {
+				deviceType = "vmware";
+			} else if(reportName.toLowerCase().contains("vmware") && reportName.toLowerCase().contains("host")) {
+				deviceType = "vmware-host";
+			} else if(reportName.toLowerCase().contains("windows") && reportName.toLowerCase().contains("windows")) {
+				deviceType = "windows";
+			}
+			JSONArray preOrder = (JSONArray) result.get("columnOrder");
+			List<String> compatabilityOrder = getReportHeaderForCompatibility("Compatibility", deviceType);
+			if(!compatabilityOrder.isEmpty()) {
+				 result.put("columnOrder", compatabilityOrder);
+			}
+			
+		}
+		return result;
+	}
+
+	private List<String> getReportHeaderForCompatibility(String reportName, String deviceType) {
+		List<String> result = new ArrayList<String>();
+		try {
+			Map<String,Object> params=new HashMap<String, Object>();
+			params.put("report_name", reportName.toLowerCase());
+			params.put("device_type", deviceType.toLowerCase());						
+			result = namedJdbc.queryForList(reportQueries.getHeaderForCompatibility(), params, String.class);	
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 

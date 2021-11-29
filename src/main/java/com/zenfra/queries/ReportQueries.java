@@ -20,6 +20,8 @@ public class ReportQueries {
 	private String reportUserCustomData;
 	
 	private String reportUserCustomDataBySiteKey;
+	
+	private String headerForCompatibility;
 
 	public String getHeader() {
 		return header;
@@ -67,6 +69,15 @@ public class ReportQueries {
 
 	public void setReportUserCustomDataBySiteKey(String reportUserCustomDataBySiteKey) {
 		this.reportUserCustomDataBySiteKey = reportUserCustomDataBySiteKey;
+	}
+
+
+	public String getHeaderForCompatibility() {
+		return headerForCompatibility;
+	}
+
+	public void setHeaderForCompatibility(String headerForCompatibility) {
+		this.headerForCompatibility = headerForCompatibility;
 	}
 
 	

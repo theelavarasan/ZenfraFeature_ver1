@@ -31,6 +31,7 @@ import com.google.protobuf.TextFormat.ParseException;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
+import com.zenfra.dataframe.service.EolService;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.service.ChartService;
@@ -57,6 +58,9 @@ public class ReportDataController {
 	
 	@Autowired
 	ChartService chartService;
+	
+	@Autowired
+	EolService eolService;
 	
 
 	@GetMapping("createLocalDiscoveryDF")
@@ -299,5 +303,10 @@ public class ReportDataController {
 		     
 	      	 return new ResponseEntity<>("Not able to create dataframe" , HttpStatus.OK);
 	    }
+	   
+	   @GetMapping("createEolEodDf")
+	   public void createEolEodDf(HttpServletRequest request) {
+		   eolService.recreateEolEosDataframe();
+	   }
 	 
 }
