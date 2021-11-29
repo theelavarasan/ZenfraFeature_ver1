@@ -2562,7 +2562,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                    " awsPricing.Memory >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
 				                    " and awsPricing.vCPU >= (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then " +
 				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then " +
-				                    " localDiscoveryDF.`Logical Processor Count` else 0 end)" +
+				                    " localDiscoveryDF.`Number of Processors` else 0 end)" +
 				                    " left join global_temp.awsPricingDF awsPricing2 on awsPricing2.`Operating System` = awsPricing.`Operating System` and awsPricing2.PricePerUnit = awsPricing.pricePerUnit and awsPricing.Memory = " +
 				                    " awsPricing2.Memory and awsPricing.vCPU = awsPricing2.vCPU and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData" +
 				                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
@@ -2572,7 +2572,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				            ex.printStackTrace();
 				        }
 				    }
-
+		 
+		
 		 public void getAzurePricing() {
 				        try {
 				            Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
