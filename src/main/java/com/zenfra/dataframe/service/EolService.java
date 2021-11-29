@@ -165,6 +165,48 @@ public class EolService {
         
         
     }
+
+	public void recreateEolEosDataframe() {
+		 System.out.println("-------------recreate EOL EOS dataframe---------");
+				 try {  
+			            Map<String, String> options = new HashMap<String, String>();
+						options.put("url", dbUrl);
+						options.put("dbtable", "eol_eos_hardware");
+						
+						@SuppressWarnings("deprecation")
+						Dataset<Row> eoleosDataSet = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
+						long count =  eoleosDataSet.count();
+						  if (count > 0) {
+				            	eoleosDataSet.createOrReplaceTempView("eolHWDataDFTmp");
+				            	eoleosDataSet = sparkSession.sql("select vendor, model, end_of_life_cycle, end_of_extended_support, source_link from eolHWDataDFTmp");
+				                eoleosDataSet.createOrReplaceGlobalTempView("eolHWDataDF");
+				                eoleosDataSet.cache();
+				            }           
+			        } catch (Exception ex) {			        	
+			            logger.error("Exception in generating dataframe for EOL/EOS HW data", ex);
+			        }
+				 
+				 try {
+			        	Map<String, String> options = new HashMap<String, String>();
+						options.put("url", dbUrl);
+						options.put("dbtable", "eol_eos_software");
+						
+						@SuppressWarnings("deprecation")
+						Dataset<Row> eoleosDataSet = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
+						      
+			            long count = eoleosDataSet.count();
+			            if (count > 0) {
+			            	eoleosDataSet.createOrReplaceTempView("eolDataDFTmp");
+			            	eoleosDataSet = sparkSession.sql("select os_type, os_version, os_name, end_of_life_cycle, end_of_extended_support from eolDataDFTmp");
+			                eoleosDataSet.createOrReplaceGlobalTempView("eolDataDF");
+			                eoleosDataSet.cache();			             
+			            }
+			        } catch (Exception ex) {
+			            logger.error("Exception in generating dataframe for EOL/EOS OS data", ex);
+			        }
+			
+		
+	}
   
    
 }
