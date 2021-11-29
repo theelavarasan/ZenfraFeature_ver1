@@ -2560,9 +2560,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                    " when localDiscoveryDF.OS like '%SUSE%' then 'SUSE' when localDiscoveryDF.OS like '%Linux%' OR localDiscoveryDF.OS like '%CentOS%' then 'Linux'" +
 				                    " when localDiscoveryDF.OS like '%Windows%' then 'Windows' else localDiscoveryDF.`Server Type` end)) and" +
 				                    " awsPricing.Memory >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
-				                    " and awsPricing.vCPU >= (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then " +
-				                    " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then " +
-				                    " localDiscoveryDF.`Number of Processors` else 0 end)" +
+				                    " and awsPricing.vCPU >= (case localDiscoveryDF.`Number of Processors` is not null then " +
+				                    " cast(localDiscoveryDF.`Number of Processors` as int) else 0 end)" +
 				                    " left join global_temp.awsPricingDF awsPricing2 on awsPricing2.`Operating System` = awsPricing.`Operating System` and awsPricing2.PricePerUnit = awsPricing.pricePerUnit and awsPricing.Memory = " +
 				                    " awsPricing2.Memory and awsPricing.vCPU = awsPricing2.vCPU and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData" +
 				                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
