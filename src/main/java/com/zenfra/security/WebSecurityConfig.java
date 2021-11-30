@@ -1,10 +1,12 @@
 package com.zenfra.security;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -48,15 +50,37 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable().
-                authorizeRequests()
-                .antMatchers("/auth/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http
-                .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
+    	 // Enable CORS and disable CSRF
+        http = http.cors().and().csrf().disable();
+
+        // Set session management to stateless
+        http = http
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and();
+
+        // Set unauthorized requests exception handler
+        http = http
+            .exceptionHandling()
+				.authenticationEntryPoint(/*
+											 * (request, response, ex) -> { response.sendError(
+											 * HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage() ); }
+											 */unauthorizedHandler)
+            .and();
+
+        // Set permissions on endpoints
+        http.authorizeRequests()
+            // Our public endpoints
+           // .antMatchers("/rest/df/**").permitAll()           
+            .antMatchers(HttpMethod.POST, "/rest/df/getOdbReportData").permitAll()          
+            // Our private endpoints
+            .anyRequest().authenticated();
+
+        // Add JWT token filter
+        http.addFilterBefore(
+        		authenticationTokenFilterBean(),
+            UsernamePasswordAuthenticationFilter.class
+        );
     }
 
     @Bean
