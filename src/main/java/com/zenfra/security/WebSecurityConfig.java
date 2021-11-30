@@ -52,7 +52,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
     	 // Enable CORS and disable CSRF
         http = http.cors().and().csrf().disable();
-
         // Set session management to stateless
         http = http
             .sessionManagement()
@@ -62,17 +61,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // Set unauthorized requests exception handler
         http = http
             .exceptionHandling()
-				.authenticationEntryPoint(/*
-											 * (request, response, ex) -> { response.sendError(
-											 * HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage() ); }
-											 */unauthorizedHandler)
+				.authenticationEntryPoint(unauthorizedHandler)
             .and();
 
         // Set permissions on endpoints
-        http.authorizeRequests()
-            // Our public endpoints
-           // .antMatchers("/rest/df/**").permitAll()           
-            .antMatchers(HttpMethod.POST, "/rest/df/getOdbReportData").permitAll()          
+        http.authorizeRequests()                    
+            .antMatchers(HttpMethod.POST, "/rest/df/getOdbReportData").permitAll()  
+            .antMatchers(HttpMethod.GET, "/rest/df/createEolEodDf").permitAll()
+            .antMatchers(HttpMethod.POST, "/rest/df/createDataframeOdbData").permitAll()
+            .antMatchers(HttpMethod.DELETE, "/zenfra-features/rest/api/log-file/**").permitAll()
             // Our private endpoints
             .anyRequest().authenticated();
 
