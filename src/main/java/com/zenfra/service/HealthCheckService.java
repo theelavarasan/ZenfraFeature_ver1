@@ -429,10 +429,33 @@ public class HealthCheckService {
 			//}
 			//System.out.println("listQuery:: "+listQuery);
 			JSONArray healthCheckList = getAllHealthCheck(siteKey, isTenantAdmin, userId);
-			
+			JSONParser parser = new JSONParser();
 			for (int i = 0; i < healthCheckList.size(); i++) {
 				JSONObject jObj = (JSONObject) healthCheckList.get(i);
+				JSONArray storageList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
+				JSONArray serverList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
+				JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
 				
+				String reportBy = "";
+				if (serverList.contains(jObj.get("componentType").toString().toLowerCase())) {
+					reportBy = "Server";	
+					jObj.replace("reportName", reportBy);
+				} else if (storageList.contains(jObj.get("componentType").toString().toLowerCase())) {
+					reportBy = "Storage";
+					jObj.replace("reportName", reportBy);
+				} else if (switchList.contains(jObj.get("componentType").toString().toLowerCase())) {
+					reportBy = "Switch";
+					jObj.replace("reportName", reportBy);
+				}
+				if (jObj.get("reportName").toString().equalsIgnoreCase("End-To-End-Basic")) {
+					reportBy = "Server - Switch - Storage Summary";
+					jObj.replace("reportName", reportBy);
+					
+				}
+				if (jObj.get("reportName").toString().equalsIgnoreCase("End-To-End-Detail")) {
+					reportBy = "Server - Switch - Storage";
+					jObj.replace("reportName", reportBy);
+				}
 				boolean isreadAccess = true;
 				boolean isWriteAccess = false;
 				Set<String> keys = jObj.keySet();
