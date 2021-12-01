@@ -43,7 +43,7 @@ public class HealthCheckService {
 	
 	
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 	
 	@Autowired
 	SiteService siteService;
@@ -62,7 +62,7 @@ public class HealthCheckService {
 	}
 
 
-	public JSONObject getHealthCheck(String healthCheckId, String authUserId) {
+	public JSONObject getHealthCheck(String healthCheckId, String authUserId) throws ParseException {
 		HealthCheck healthCheck= new HealthCheck();
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
@@ -83,7 +83,7 @@ public class HealthCheckService {
 		return healthCheckObj;
 	}
 
-	public JSONObject updateHealthCheck(HealthCheck healthCheck) {
+	public JSONObject updateHealthCheck(HealthCheck healthCheck) throws ParseException {
 		healthCheckDao.updateEntity(HealthCheck.class, healthCheck);
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.findEntityById(HealthCheck.class, healthCheck.getHealthCheckId());
 		JSONObject healthCheckModel = convertEntityToModel(savedObj);
@@ -206,7 +206,7 @@ public class HealthCheckService {
 		response.put("createdById", healthCheck.getCreateBy());
 		response.put("updatedById", healthCheck.getUpdateBy());
 		
-		Users user = userService.getUserByUserId(healthCheck.getCreateBy());
+		Users user = userCreateService.getUserByUserId(healthCheck.getCreateBy());
 		if(user != null) {
 			response.put("createdBy", user.getFirst_name() + " " + user.getLast_name());
 		}else {
@@ -217,7 +217,7 @@ public class HealthCheckService {
 		if(healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
 		} else if(!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())){
-			Users updateUser = userService.getUserByUserId(healthCheck.getUpdateBy());
+			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
 			if(updateUser != null) {
 				response.put("updatedBy", updateUser.getFirst_name() + " " + updateUser.getLast_name());
 			} else {
@@ -234,7 +234,7 @@ public class HealthCheckService {
 		if(healthCheck.getAuthUserId() != null) {
 			boolean isTenantAdmin = false;
 			
-			Users loginUser = userService.getUserByUserId(healthCheck.getAuthUserId());
+			Users loginUser = userCreateService.getUserByUserId(healthCheck.getAuthUserId());
 			if(loginUser != null && loginUser.isIs_tenant_admin()) {
 				isTenantAdmin = true;
 			}
@@ -552,7 +552,7 @@ public class HealthCheckService {
 
 	private Map<String, JSONObject> getUserList(JSONArray jsonArray, boolean b) {
 		Map<String, JSONObject>  result = new HashMap<String, JSONObject> ();
-		List<Users> users = userService.getAllUsers();
+		List<Users> users = userCreateService.getAllUsers();
 		if(users != null && !users.isEmpty()) {
 			for(Users u : users) {				
 				result.put(u.getUser_id(), commonFunctions.convertEntityToJsonObject(u));
