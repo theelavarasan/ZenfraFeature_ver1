@@ -26,6 +26,7 @@ import com.zenfra.model.HealthCheckModel;
 import com.zenfra.model.SiteModel;
 import com.zenfra.model.Users;
 import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.utils.CommonFunctions;
 
 @Service
@@ -42,7 +43,7 @@ public class HealthCheckService {
 	
 	
 	@Autowired
-	UserCreateService userCreateService;
+	UserService userService;
 	
 	@Autowired
 	SiteService siteService;
@@ -152,13 +153,37 @@ public class HealthCheckService {
 	}
 	
 
-	private JSONObject convertEntityToModel(HealthCheck healthCheck) {
+	private JSONObject convertEntityToModel(HealthCheck healthCheck) throws ParseException {
 		JSONObject response=new JSONObject();
+		JSONParser parser = new JSONParser();
+		
+		JSONArray storageList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
+		JSONArray serverList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
+		JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
+		
+		String reportBy = "";
+		if (serverList.contains(healthCheck.getComponentType().toLowerCase())) {
+			reportBy = "Server";	
+		} else if (storageList.contains(healthCheck.getComponentType().toLowerCase())) {
+			reportBy = "Storage";
+		} else if (switchList.contains(healthCheck.getComponentType().toLowerCase())) {
+			reportBy = "Switch";
+		}
+		if (healthCheck.getReportBy().equalsIgnoreCase("End-To-End-Basic")) {
+			reportBy = "Server - Switch - Storage Summary";
+			
+		}
+		if (healthCheck.getReportBy().equalsIgnoreCase("End-To-End-Detail")) {
+			reportBy = "Server - Switch - Storage";
+		}
+
+		
+		
 		response.put("siteKey", healthCheck.getHealthCheckId());
 		response.put("healthCheckName", healthCheck.getHealthCheckName());
 		response.put("componentType", healthCheck.getComponentType());
 		response.put("reportName", healthCheck.getReportName());
-		response.put("reportBy", healthCheck.getReportBy());
+		response.put("reportBy", reportBy);
 		try {
 			String s =  healthCheck.getReportCondition();
 			ObjectMapper mapper = new ObjectMapper();
@@ -181,7 +206,7 @@ public class HealthCheckService {
 		response.put("createdById", healthCheck.getCreateBy());
 		response.put("updatedById", healthCheck.getUpdateBy());
 		
-		Users user = userCreateService.getUserByUserId(healthCheck.getCreateBy());
+		Users user = userService.getUserByUserId(healthCheck.getCreateBy());
 		if(user != null) {
 			response.put("createdBy", user.getFirst_name() + " " + user.getLast_name());
 		}else {
@@ -192,7 +217,7 @@ public class HealthCheckService {
 		if(healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
 		} else if(!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())){
-			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
+			Users updateUser = userService.getUserByUserId(healthCheck.getUpdateBy());
 			if(updateUser != null) {
 				response.put("updatedBy", updateUser.getFirst_name() + " " + updateUser.getLast_name());
 			} else {
@@ -209,7 +234,7 @@ public class HealthCheckService {
 		if(healthCheck.getAuthUserId() != null) {
 			boolean isTenantAdmin = false;
 			
-			Users loginUser = userCreateService.getUserByUserId(healthCheck.getAuthUserId());
+			Users loginUser = userService.getUserByUserId(healthCheck.getAuthUserId());
 			if(loginUser != null && loginUser.isIs_tenant_admin()) {
 				isTenantAdmin = true;
 			}
@@ -527,7 +552,7 @@ public class HealthCheckService {
 
 	private Map<String, JSONObject> getUserList(JSONArray jsonArray, boolean b) {
 		Map<String, JSONObject>  result = new HashMap<String, JSONObject> ();
-		List<Users> users = userCreateService.getAllUsers();
+		List<Users> users = userService.getAllUsers();
 		if(users != null && !users.isEmpty()) {
 			for(Users u : users) {				
 				result.put(u.getUser_id(), commonFunctions.convertEntityToJsonObject(u));
