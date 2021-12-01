@@ -437,16 +437,17 @@ public class HealthCheckService {
 				JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
 				
 				String reportBy = "";
-				if (serverList.contains(jObj.get("componentType").toString().toLowerCase())) {
+				if (serverList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
 					reportBy = "Server";	
 					jObj.replace("reportName", reportBy);
-				} else if (storageList.contains(jObj.get("componentType").toString().toLowerCase())) {
+				} else if (storageList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
 					reportBy = "Storage";
 					jObj.replace("reportName", reportBy);
-				} else if (switchList.contains(jObj.get("componentType").toString().toLowerCase())) {
+				} else if (switchList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
 					reportBy = "Switch";
 					jObj.replace("reportName", reportBy);
 				}
+				
 				if (jObj.get("reportName").toString().equalsIgnoreCase("End-To-End-Basic")) {
 					reportBy = "Server - Switch - Storage Summary";
 					jObj.replace("reportName", reportBy);
