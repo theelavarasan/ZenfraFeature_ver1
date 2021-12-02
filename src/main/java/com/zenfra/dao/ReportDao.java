@@ -82,7 +82,11 @@ public class ReportDao {
 	public List<String> getReportNumericalHeaders(String reportName, String deviceType, String reportBy,
 			String siteKey) {
 		List<String> result = new ArrayList<String>();
-		try {
+		try {			 
+		     if(deviceType.toLowerCase().contains("vmware")) {
+		    	 deviceType = "vmware";
+		     }
+		     
 			Map<String,Object> params=new HashMap<String, Object>();
 			params.put("report_name", reportName.toLowerCase());
 			params.put("device_type", deviceType.toLowerCase());
