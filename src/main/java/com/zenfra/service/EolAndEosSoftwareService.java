@@ -16,7 +16,7 @@ public class EolAndEosSoftwareService {
 	public String saveData(EolAndEosSoftwareModel model) {
 		try {
 			model.setEolAndEosSoftwareIdentityModel(
-					new EolAndEosSoftwareIdentityModel(model.getOsName(), model.getOsVersion()));
+					new EolAndEosSoftwareIdentityModel(model.getOsVersion(), model.getOsName()));
 			eolAndEosSoftwareRepository.save(model);
 			return "Success";
 		} catch (Exception e) {
@@ -29,7 +29,7 @@ public class EolAndEosSoftwareService {
 
 	public String update(EolAndEosSoftwareModel model) {
 		try {
-			EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository.findById(new EolAndEosSoftwareIdentityModel(model.getOsName(), model.getOsVersion())).orElse(null);
+			EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository.findById(new EolAndEosSoftwareIdentityModel(model.getOsVersion(), model.getOsName())).orElse(null);
 			existing.setSourceUrl(model.getSourceUrl());
 			existing.setEndOfLifeCycle(model.getEndOfLifeCycle());
 			existing.setOsType(model.getOsType());
