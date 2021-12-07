@@ -1,24 +1,23 @@
 package com.zenfra.model;
 
-import java.io.Serializable;
-
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
 @Table(name = "eol_eos_hardware")
-@IdClass(EolAndEosHardwareModel.class)
-public class EolAndEosHardwareModel implements Serializable {
 
-	
-	@Id
+public class EolAndEosHardwareModel {
+
+	@EmbeddedId
+	private EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel;
+
+	@Transient
 	private String vendor;
-	
-	@Id
-	private String model;
 
+	@Transient
+	private String model;
 
 	private String endOfLifeCycle;
 	private String endOfExtendedSupport;
@@ -26,14 +25,13 @@ public class EolAndEosHardwareModel implements Serializable {
 	private String eolEosHwId;
 	private String userId;
 	private boolean active;
-	
 
-	public boolean isActive() {
-		return active;
+	public EolAndEosHardwareIdentityModel getEolAndEosHardwareIdentityModel() {
+		return eolAndEosHardwareIdentityModel;
 	}
 
-	public void setActive(boolean active) {
-		this.active = active;
+	public void setEolAndEosHardwareIdentityModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel) {
+		this.eolAndEosHardwareIdentityModel = eolAndEosHardwareIdentityModel;
 	}
 
 	public String getVendor() {
@@ -92,13 +90,23 @@ public class EolAndEosHardwareModel implements Serializable {
 		this.userId = userId;
 	}
 
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
 	public EolAndEosHardwareModel() {
 		super();
 	}
 
-	public EolAndEosHardwareModel(String vendor, String model, String endOfLifeCycle, String endOfExtendedSupport,
-			String sourceLink, String eolEosHwId, String userId) {
+	public EolAndEosHardwareModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel, String vendor,
+			String model, String endOfLifeCycle, String endOfExtendedSupport, String sourceLink, String eolEosHwId,
+			String userId, boolean active) {
 		super();
+		this.eolAndEosHardwareIdentityModel = eolAndEosHardwareIdentityModel;
 		this.vendor = vendor;
 		this.model = model;
 		this.endOfLifeCycle = endOfLifeCycle;
@@ -106,5 +114,7 @@ public class EolAndEosHardwareModel implements Serializable {
 		this.sourceLink = sourceLink;
 		this.eolEosHwId = eolEosHwId;
 		this.userId = userId;
+		this.active = active;
 	}
+
 }

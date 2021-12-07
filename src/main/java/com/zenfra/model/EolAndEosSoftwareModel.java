@@ -1,31 +1,39 @@
 package com.zenfra.model;
 
-import java.io.Serializable;
-
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
 @Table(name = "eol_eos_software")
-@IdClass(EolAndEosSoftwareModel.class)
-public class EolAndEosSoftwareModel implements Serializable {
+public class EolAndEosSoftwareModel {
+
+	@EmbeddedId
+	private EolAndEosSoftwareIdentityModel eolAndEosSoftwareIdentityModel;
 
 	private String sourceUrl;
 	private String endOfLifeCycle;
 	private String osType;
 
-	@Id
+	@Transient
 	private String osVersion;
-	
+
 	private String userId;
 
-	@Id
+	@Transient
 	private String osName;
-	
+
 	private String endOfExtendedSupport;
 	private boolean active;
+
+	public EolAndEosSoftwareIdentityModel getEolAndEosSoftwareIdentityModel() {
+		return eolAndEosSoftwareIdentityModel;
+	}
+
+	public void setEolAndEosSoftwareIdentityModel(EolAndEosSoftwareIdentityModel eolAndEosSoftwareIdentityModel) {
+		this.eolAndEosSoftwareIdentityModel = eolAndEosSoftwareIdentityModel;
+	}
 
 	public String getSourceUrl() {
 		return sourceUrl;
@@ -95,9 +103,11 @@ public class EolAndEosSoftwareModel implements Serializable {
 		super();
 	}
 
-	public EolAndEosSoftwareModel(String sourceUrl, String endOfLifeCycle, String osType, String osVersion,
-			String userId, String osName, String endOfExtendedSupport, boolean active) {
+	public EolAndEosSoftwareModel(EolAndEosSoftwareIdentityModel eolAndEosSoftwareIdentityModel, String sourceUrl,
+			String endOfLifeCycle, String osType, String osVersion, String userId, String osName,
+			String endOfExtendedSupport, boolean active) {
 		super();
+		this.eolAndEosSoftwareIdentityModel = eolAndEosSoftwareIdentityModel;
 		this.sourceUrl = sourceUrl;
 		this.endOfLifeCycle = endOfLifeCycle;
 		this.osType = osType;
