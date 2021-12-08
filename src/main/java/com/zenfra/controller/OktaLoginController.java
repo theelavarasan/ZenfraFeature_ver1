@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.model.OktaLoginModel;
@@ -28,8 +29,8 @@ public class OktaLoginController {
 	}
 
 	@GetMapping("/get")
-	public ResponseEntity<?> selectController(@RequestBody OktaLoginModel OktaLoginModel) {
-		return ResponseEntity.ok(OktaLoginService.getData(OktaLoginModel));
+	public ResponseEntity<?> selectController(@RequestParam String id) {
+		return ResponseEntity.ok(OktaLoginService.getData(id));
 	}
 
 	@PutMapping("/update")
@@ -39,9 +40,9 @@ public class OktaLoginController {
 	}
 
 	@DeleteMapping("/delete")
-	public ResponseEntity<?> deleteController(@RequestBody OktaLoginModel OktaLoginModel) {
+	public ResponseEntity<?> deleteController(@RequestParam String id) {
 
-		return ResponseEntity.ok(OktaLoginService.deleteData(OktaLoginModel));
+		return ResponseEntity.ok(OktaLoginService.deleteData(id));
 
 	}
 }

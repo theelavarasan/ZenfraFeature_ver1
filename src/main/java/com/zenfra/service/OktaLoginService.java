@@ -28,10 +28,10 @@ public class OktaLoginService {
 		return "Failure";
 	}
 
-	public String getData(OktaLoginModel OktaLoginModel) {
+	public String getData(String id) {
 
 		try {
-			OktaLoginRepository.findById(OktaLoginModel.getId()).orElse(null);
+			OktaLoginRepository.findById(id).orElse(null);
 			return "Success";
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -56,10 +56,10 @@ public class OktaLoginService {
 		}
 	}
 
-	public String deleteData(OktaLoginModel OktaLoginModel) {
+	public String deleteData(String id) {
 
 		try {
-			OktaLoginRepository.deleteById(OktaLoginModel.getId());
+			OktaLoginRepository.deleteById(id);
 			return "Success";
 		} catch (Exception e) {
 			// TODO: handle exception
