@@ -663,7 +663,7 @@ public class DataframeService{
 			source_type = source_type + "-" + "guest";
 		} 		
 		
-		
+		System.out.println("---------source_type------" + source_type);
         
 		 boolean isDiscoveryDataInView = false;
 		 Dataset<Row> dataset = null;
@@ -676,10 +676,15 @@ public class DataframeService{
 		} catch (Exception e) {
 			System.out.println("---------View Not exists--------");
 		} 
-		 
+		
 		 if(!isDiscoveryDataInView) {
         	 File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type);
+        	
         	 if(verifyDataframePath.exists()) {
+        		 createSingleDataframe(siteKey, source_type, verifyDataframePath.getAbsolutePath());
+        		 dataset = sparkSession.sql("select * from global_temp."+viewName);
+    			 dataset.cache();
+        	 }else {
         		 createDataframeOnTheFly(siteKey, source_type);
         		 dataset = sparkSession.sql("select * from global_temp."+viewName);
     			 dataset.cache();
@@ -759,10 +764,14 @@ public class DataframeService{
 			 //isDiscoveryDataInView = false;
 	         if(!isDiscoveryDataInView) {
 	        	 File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type);
+	        	 System.out.println("----->>>>>>>>>>>>>>>>----View Not exists--verifyDataframePath------" +verifyDataframePath);
 	        	 if(!verifyDataframePath.exists()) {
-	        		 createDataframeOnTheFly(siteKey, source_type);
+	        		 System.out.println("---------true-----" );
+	        		// createDataframeOnTheFly(siteKey, source_type);
 	        	 }
+	        	 System.out.println("---------false-----" );
 	        	 String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
+	        	 System.out.println("---------true-filePath----"  + filePath);
 	        	 dataset = sparkSession.read().json(filePath); 	 
 	        	 dataset.createOrReplaceTempView("tmpView");
 	        	 dataset =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
@@ -917,7 +926,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				.mode(SaveMode.Overwrite).save(f.getPath());
 		
 		 String viewName = siteKey+"_"+source_type.toLowerCase();
-		 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");
+		 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");		
 		 
 		// remove double quotes from json file
 					File[] files = new File(path).listFiles();
@@ -1160,17 +1169,68 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		}
 
 
+		private void createSingleDataframe(String siteKey, String source_type, String filePath) {
+			 try {		
+					String viewName = siteKey+"_"+source_type.toLowerCase();
+				 	viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");
+				 	
+				 Dataset<Row> dataset = sparkSession.read().json(filePath+  File.separator + "*.json"); 				
+				 dataset.createOrReplaceTempView("tmpView");				 
+				 Dataset<Row> filteredData = sparkSession.emptyDataFrame();
+				 
+				 
+				// select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1
+				 
+				 String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"+
+			               	  " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";
+			     try {			   	        		
+					 dataset = sparkSession.sql(sql);	
+					 dataset.createOrReplaceTempView("datawithoutFilter");
+					 filteredData =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
+				} catch (Exception e) {
+					//e.printStackTrace();	
+					sql = "select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1";
+					 dataset.createOrReplaceTempView("datawithoutFilter");
+					 filteredData =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
+									   		         
+				}
+			        List<String> numericalHeaders = new ArrayList<String>();
+			        if(!serverDiscoveryNumbericalColumns.containsKey("Discovery"+source_type.toLowerCase())) {
+			        	numericalHeaders = getReportNumericalHeaders("Discovery", source_type.toLowerCase(), "Discovery", siteKey);	    	
+			        	serverDiscoveryNumbericalColumns.put("Discovery"+source_type.toLowerCase(), numericalHeaders);
+			        } else {
+			        	numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery"+source_type.toLowerCase());
+			        }
+			        
+			    	List<String> columns = Arrays.asList(filteredData.columns());
+			    	
+			        for(String column : numericalHeaders) {                        	
+			        	if(columns.contains(column)) { 
+			        		filteredData = filteredData.withColumn(column, filteredData.col(column).cast("float"));
+			        	}
+			        }
+			        
+			        if(source_type.equalsIgnoreCase("vmware-host")) { 
+			        	filteredData = filteredData.withColumn("Server Type", lit("vmware-host"));
+			        }
+			        
+			        filteredData.createOrReplaceGlobalTempView(viewName);
+			     
+			 System.out.println("--------single-View created-------- :: " + viewName);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
 		private void createDataframeGlobally(String path, File file) {
-			String filePath =  file.getAbsolutePath();
-			
+			String filePath =  file.getAbsolutePath();			
+			 
 			if(filePath.endsWith(".json")) {			            	
 				String source_type = file.getParentFile().getName().replace("source_type=", "").trim();
 				String siteKey = file.getParentFile().getParentFile().getName().replace("site_key=", "").trim();
 			 	String dataframeFilePath = path + siteKey +  File.separator + "site_key="+siteKey + File.separator + "source_type=" + source_type + File.separator + "*.json";
 			 	String viewName = siteKey+"_"+source_type.toLowerCase();
-			 	viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");
- 	       
+			 	viewName = viewName.replaceAll("-", "").replaceAll("\\s+",""); 	       
  	      try {			   	    	
 				 Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath); 				
 				 dataset.createOrReplaceTempView("tmpView");
@@ -1185,7 +1245,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					 dataset.createOrReplaceTempView("datawithoutFilter");
 					  filteredData =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
 				} catch (Exception e) {
-					//e.printStackTrace();					   		         
+					sql = "select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1";
+					 dataset.createOrReplaceTempView("datawithoutFilter");
+					 filteredData =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
+											   		         
 				}
 			        List<String> numericalHeaders = new ArrayList<String>();
 			        if(!serverDiscoveryNumbericalColumns.containsKey("Discovery"+source_type.toLowerCase())) {
