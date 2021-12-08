@@ -28,15 +28,14 @@ public class OktaLoginService {
 		return "Failure";
 	}
 
-	public String getData(String id) {
+	public OktaLoginModel getData(String id) {
 
 		try {
-			OktaLoginRepository.findById(id).orElse(null);
-			return "Success";
+			return OktaLoginRepository.findById(id).orElse(null);
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			return "Failure";
+			return null;
 		}
 
 	}
