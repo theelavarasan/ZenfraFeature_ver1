@@ -27,7 +27,7 @@ public class OktaLoginController {
 
 	}
 
-	@GetMapping("/select")
+	@GetMapping("/get")
 	public ResponseEntity<?> selectController(@RequestBody OktaLoginModel OktaLoginModel) {
 		return ResponseEntity.ok(OktaLoginService.getData(OktaLoginModel));
 	}
