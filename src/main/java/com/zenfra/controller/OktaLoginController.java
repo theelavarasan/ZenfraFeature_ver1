@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.OktaLoginRepository;
 import com.zenfra.model.OktaLoginModel;
 import com.zenfra.model.ResponseModel_v2;
@@ -40,10 +41,12 @@ public class OktaLoginController {
 		ResponseModel_v2 rmodel=new ResponseModel_v2();
 
 		try {
-		OktaLoginModel olmodelObject=OktaLoginRepository.findById(id).orElse(null);
+		OktaLoginModel olmodelObject=OktaLoginService.getData(id);
 		
+		ObjectMapper mapper= new ObjectMapper();
+		JSONObject jsondata=mapper.convertValue(olmodelObject, JSONObject.class);
 		if(olmodelObject != null) {
-			rmodel.setjData(olmodelObject);
+			rmodel.setjData(jsondata);
 			rmodel.setResponseDescription("Successfully Retrieved ");
 			rmodel.setStatusCode(200);
 		}
