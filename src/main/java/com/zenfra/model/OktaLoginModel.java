@@ -15,6 +15,8 @@ public class OktaLoginModel {
 	private String publisherUrl;
 	@Column(name = "client_id")
 	private String clientId;
+	@Column(name="active")
+	private String active;
 
 	public String getId() {
 		return id;
@@ -40,11 +42,20 @@ public class OktaLoginModel {
 		this.clientId = clientId;
 	}
 
-	public OktaLoginModel(String id, String publisherUrl, String clientId) {
+	public String getActive() {
+		return active;
+	}
+
+	public void setActive(String active) {
+		this.active = active;
+	}
+
+	public OktaLoginModel(String id, String publisherUrl, String clientId, String active) {
 		super();
 		this.id = id;
 		this.publisherUrl = publisherUrl;
 		this.clientId = clientId;
+		this.active = active;
 	}
 
 	public OktaLoginModel() {

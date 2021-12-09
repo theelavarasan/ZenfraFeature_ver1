@@ -4,6 +4,7 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.OktaLoginRepository;
 import com.zenfra.model.OktaLoginModel;
 
@@ -11,25 +12,37 @@ import com.zenfra.model.OktaLoginModel;
 public class OktaLoginService {
 
 	@Autowired
-	private OktaLoginRepository OktaLoginRepository;
+	private OktaLoginRepository oktaLoginRepository;
 
-	public String saveData(OktaLoginModel OktaLoginModel) {
-
+	public JSONObject saveData(OktaLoginModel OktaLoginModel) {
+		JSONObject result = new JSONObject();
+		ObjectMapper mapper = new ObjectMapper();
 		try {
-			OktaLoginRepository.save(OktaLoginModel);
-			return "Success";
+			OktaLoginModel res = oktaLoginRepository.findById(OktaLoginModel.getId()).orElse(null);
+			
+			if (res == null) {
+				OktaLoginModel.setActive("true");
+				res = oktaLoginRepository.save(OktaLoginModel);
+				JSONObject jsonData = mapper.convertValue(res, JSONObject.class);
+				result.put("data", jsonData);
+				result.put("msg", "sucess");
+				return result;
+			} else {
+				return result;
+			}
+
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
-		return "Failure";
+		return result;
 	}
 
 	public JSONObject getData(String id) {
 		JSONObject resObject = new JSONObject();
 		try {
 
-			OktaLoginModel res = OktaLoginRepository.findById(id).orElse(null);
+			OktaLoginModel res = oktaLoginRepository.findById(id).orElse(null);
 			resObject.put("id", res.getId());
 			resObject.put("publisherUrl", res.getPublisherUrl());
 			resObject.put("clientId", res.getClientId());
@@ -46,10 +59,10 @@ public class OktaLoginService {
 	public String updateData(OktaLoginModel OktaLoginModel) {
 
 		try {
-			OktaLoginModel existingData = OktaLoginRepository.findById(OktaLoginModel.getId()).orElse(null);
+			OktaLoginModel existingData = oktaLoginRepository.findById(OktaLoginModel.getId()).orElse(null);
 			existingData.setClientId(OktaLoginModel.getClientId());
 			existingData.setPublisherUrl(OktaLoginModel.getPublisherUrl());
-			OktaLoginRepository.save(existingData);
+			oktaLoginRepository.save(existingData);
 			return "Success";
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -61,7 +74,7 @@ public class OktaLoginService {
 	public String deleteData(String id) {
 
 		try {
-			OktaLoginRepository.deleteById(id);
+			oktaLoginRepository.deleteById(id);
 			return "Success";
 		} catch (Exception e) {
 			// TODO: handle exception

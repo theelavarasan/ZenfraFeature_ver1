@@ -30,7 +30,11 @@ public class OktaLoginController {
 
 	@PostMapping("/insert")
 	public ResponseEntity<?> insertController(@RequestBody OktaLoginModel OktaLoginModel) {
-		return ResponseEntity.ok(OktaLoginService.saveData(OktaLoginModel));
+		ResponseModel_v2 rmodel = new ResponseModel_v2();
+		JSONObject resultObject = new JSONObject();
+		
+		rmodel.setjData(resultObject);
+		return ResponseEntity.ok(rmodel);
 
 	}
 
