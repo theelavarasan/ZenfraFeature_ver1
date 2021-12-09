@@ -1,7 +1,5 @@
 package com.zenfra.service;
 
-import java.util.UUID;
-
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,8 +16,6 @@ public class OktaLoginService {
 	public String saveData(OktaLoginModel OktaLoginModel) {
 
 		try {
-			UUID uuid = UUID.randomUUID();
-			OktaLoginModel.setId(uuid.toString());
 			OktaLoginRepository.save(OktaLoginModel);
 			return "Success";
 		} catch (Exception e) {
@@ -42,7 +38,7 @@ public class OktaLoginService {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			return null;
+			return resObject;
 		}
 
 	}
