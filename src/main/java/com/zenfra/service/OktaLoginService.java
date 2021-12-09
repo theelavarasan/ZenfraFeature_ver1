@@ -4,18 +4,19 @@ import java.util.UUID;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.dao.OktaLoginRepository;
 import com.zenfra.model.OktaLoginModel;
-import com.zenfra.model.ResponseModel_v2;
 
 @Service
 public class OktaLoginService {
 
 	@Autowired
 	private OktaLoginRepository OktaLoginRepository;
+
+	@Autowired
+	private OktaLoginModel OktaLoginModel;
 
 	public String saveData(OktaLoginModel OktaLoginModel) {
 
@@ -31,10 +32,17 @@ public class OktaLoginService {
 		return "Failure";
 	}
 
-	public OktaLoginModel getData(String id) {
+	
+	public JSONObject getData(String id) {
+		JSONObject resObject = new JSONObject();
 		try {
-		
-			return OktaLoginRepository.findById(id).orElse(null);
+
+			OktaLoginModel res = OktaLoginRepository.findById(id).orElse(null);
+			resObject.put("id", res.getId());
+			resObject.put("publisherUrl", res.getPublisherUrl());
+			resObject.put("clientId", res.getClientId());
+
+			return resObject;
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();

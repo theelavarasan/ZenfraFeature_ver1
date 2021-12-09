@@ -41,19 +41,18 @@ public class OktaLoginController {
 		ResponseModel_v2 rmodel=new ResponseModel_v2();
 
 		try {
-		OktaLoginModel olmodelObject=OktaLoginService.getData(id);
-		
-		ObjectMapper mapper= new ObjectMapper();
-		JSONObject jsondata=mapper.convertValue(olmodelObject, JSONObject.class);
-		if(olmodelObject != null) {
-			rmodel.setjData(jsondata);
+			JSONObject resultObject = new JSONObject();
+
+			resultObject=OktaLoginService.getData(id);
+		if(resultObject != null) {
+			rmodel.setjData(resultObject);
 			rmodel.setResponseDescription("Successfully Retrieved ");
 			rmodel.setStatusCode(200);
 		}
 		else {
 			rmodel.setjData(new JSONObject());
 			rmodel.setResponseDescription("No data found");
-			rmodel.setResponseCode(HttpStatus.OK);
+			rmodel.setStatusCode(500);
 		}
 		}
 		catch(Exception e){
@@ -75,7 +74,8 @@ public class OktaLoginController {
 	@DeleteMapping("/delete")
 	public ResponseEntity<?> deleteController(@RequestParam String id) {
 
-		return ResponseEntity.ok(OktaLoginService.deleteData(id));
+		return ResponseEntity.ok(OktaLoginService.deleteData(id)); 
 
-	}
+	} 
+	
 }
