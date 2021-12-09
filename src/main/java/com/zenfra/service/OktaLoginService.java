@@ -23,9 +23,7 @@ public class OktaLoginService {
 			if (res == null) {
 				OktaLoginModel.setActive(true);
 				res = oktaLoginRepository.save(OktaLoginModel);
-				JSONObject jsonData = mapper.convertValue(res, JSONObject.class);
-				result.put("data", jsonData);
-				result.put("msg", "sucess");
+				result.put("data", res);
 				return result;
 			} else {
 				return result;
