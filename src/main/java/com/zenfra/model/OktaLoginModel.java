@@ -16,7 +16,7 @@ public class OktaLoginModel {
 	@Column(name = "client_id")
 	private String clientId;
 	@Column(name="active")
-	private String active;
+	private boolean active;
 
 	public String getId() {
 		return id;
@@ -42,15 +42,17 @@ public class OktaLoginModel {
 		this.clientId = clientId;
 	}
 
-	public String getActive() {
+
+
+	public boolean isActive() {
 		return active;
 	}
 
-	public void setActive(String active) {
+	public void setActive(boolean active) {
 		this.active = active;
 	}
 
-	public OktaLoginModel(String id, String publisherUrl, String clientId, String active) {
+	public OktaLoginModel(String id, String publisherUrl, String clientId, boolean active) {
 		super();
 		this.id = id;
 		this.publisherUrl = publisherUrl;

@@ -21,7 +21,7 @@ public class OktaLoginService {
 			OktaLoginModel res = oktaLoginRepository.findById(OktaLoginModel.getId()).orElse(null);
 			
 			if (res == null) {
-				OktaLoginModel.setActive("true");
+				OktaLoginModel.setActive(true);
 				res = oktaLoginRepository.save(OktaLoginModel);
 				JSONObject jsonData = mapper.convertValue(res, JSONObject.class);
 				result.put("data", jsonData);
@@ -62,6 +62,7 @@ public class OktaLoginService {
 			OktaLoginModel existingData = oktaLoginRepository.findById(OktaLoginModel.getId()).orElse(null);
 			existingData.setClientId(OktaLoginModel.getClientId());
 			existingData.setPublisherUrl(OktaLoginModel.getPublisherUrl());
+			existingData.setActive(OktaLoginModel.isActive());
 			oktaLoginRepository.save(existingData);
 			return "Success";
 		} catch (Exception e) {
