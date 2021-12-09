@@ -15,9 +15,6 @@ public class OktaLoginService {
 	@Autowired
 	private OktaLoginRepository OktaLoginRepository;
 
-	@Autowired
-	private OktaLoginModel OktaLoginModel;
-
 	public String saveData(OktaLoginModel OktaLoginModel) {
 
 		try {
@@ -32,7 +29,6 @@ public class OktaLoginService {
 		return "Failure";
 	}
 
-	
 	public JSONObject getData(String id) {
 		JSONObject resObject = new JSONObject();
 		try {
