@@ -23,16 +23,17 @@ import com.zenfra.service.OktaLoginService;
 public class OktaLoginController {
 
 	@Autowired
-	OktaLoginService OktaLoginService;
+	OktaLoginService oktaLoginService;
 
 	@Autowired
-	private OktaLoginRepository OktaLoginRepository;
+	private OktaLoginRepository oktaLoginRepository;
 
 	@PostMapping("/insert")
-	public ResponseEntity<?> insertController(@RequestBody OktaLoginModel OktaLoginModel) {
+	public ResponseEntity<?> insertController(@RequestBody OktaLoginModel oktaLoginModel) {
 		ResponseModel_v2 rmodel = new ResponseModel_v2();
 		JSONObject resultObject = new JSONObject();
-		
+		resultObject = oktaLoginService.saveData(oktaLoginModel);
+
 		rmodel.setjData(resultObject);
 		return ResponseEntity.ok(rmodel);
 
@@ -45,7 +46,7 @@ public class OktaLoginController {
 		try {
 			JSONObject resultObject = new JSONObject();
 
-			resultObject = OktaLoginService.getData(id);
+			resultObject = oktaLoginService.getData(id);
 			if (resultObject != null) {
 				rmodel.setjData(resultObject);
 				rmodel.setResponseDescription("Successfully Retrieved ");
@@ -66,15 +67,14 @@ public class OktaLoginController {
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<?> updateController(@RequestBody OktaLoginModel OktaLoginModel) {
-
-		return ResponseEntity.ok(OktaLoginService.updateData(OktaLoginModel));
+	public ResponseEntity<?> updateController(@RequestBody OktaLoginModel oktaLoginModel) {
+		oktaLoginModel.setActive(true);
+		return ResponseEntity.ok(oktaLoginService.updateData(oktaLoginModel));
 	}
 
 	@DeleteMapping("/delete")
 	public ResponseEntity<?> deleteController(@RequestParam String id) {
-
-		return ResponseEntity.ok(OktaLoginService.deleteData(id));
+		return ResponseEntity.ok(oktaLoginService.deleteData(id));
 
 	}
 

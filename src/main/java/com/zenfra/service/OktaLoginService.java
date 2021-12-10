@@ -8,22 +8,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.OktaLoginRepository;
 import com.zenfra.model.OktaLoginModel;
 
+
 @Service
 public class OktaLoginService {
 
 	@Autowired
 	private OktaLoginRepository oktaLoginRepository;
 
-	public JSONObject saveData(OktaLoginModel OktaLoginModel) {
+	public JSONObject saveData(OktaLoginModel oktaLoginModel) {
 		JSONObject result = new JSONObject();
 		ObjectMapper mapper = new ObjectMapper();
+		System.out.println(oktaLoginModel);
 		try {
-			OktaLoginModel res = oktaLoginRepository.findById(OktaLoginModel.getId()).orElse(null);
-			
+			OktaLoginModel res = oktaLoginRepository.findById(oktaLoginModel.getId()).orElse(null);
+			System.out.println(res);
 			if (res == null) {
-				OktaLoginModel.setActive(true);
-				res = oktaLoginRepository.save(OktaLoginModel);
+				oktaLoginModel.setActive(true);
+				res = oktaLoginRepository.save(oktaLoginModel);
 				result.put("data", res);
+				
 				return result;
 			} else {
 				return result;
@@ -54,13 +57,13 @@ public class OktaLoginService {
 
 	}
 
-	public String updateData(OktaLoginModel OktaLoginModel) {
+	public String updateData(OktaLoginModel oktaLoginModel) {
 
 		try {
-			OktaLoginModel existingData = oktaLoginRepository.findById(OktaLoginModel.getId()).orElse(null);
-			existingData.setClientId(OktaLoginModel.getClientId());
-			existingData.setPublisherUrl(OktaLoginModel.getPublisherUrl());
-			existingData.setActive(OktaLoginModel.isActive());
+			OktaLoginModel existingData = oktaLoginRepository.findById(oktaLoginModel.getId()).orElse(null);
+			existingData.setClientId(oktaLoginModel.getClientId());
+			existingData.setPublisherUrl(oktaLoginModel.getPublisherUrl());
+			existingData.setActive(oktaLoginModel.isActive());
 			oktaLoginRepository.save(existingData);
 			return "Success";
 		} catch (Exception e) {
