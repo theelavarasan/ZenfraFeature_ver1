@@ -2055,11 +2055,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	    	
                 for(String column : numericalHeaders) {                        	
                 	if(columns.contains(column)) { 
-                		dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("float"));
+                		//dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("float"));
+                		dataCheck = dataCheck.withColumn(column, functions.when(col(column).equalTo(""),"")
+            		  		      .when(col(column).equalTo(null),"").when(col(column).isNull(),"")
+            		  		      .otherwise(col(column).cast("float")));
                 	}
                 	
                 }
-    	        
     	        
     	        
     	        logger.info("getReport Details Ends");
