@@ -20,20 +20,20 @@ public class EolAndEosSoftwareController {
 	private EolAndEosSoftwareService eolAndEosSoftwareService;
 
 	@PostMapping("/insert")
-	public ResponseEntity<String> insertData(@RequestBody EolAndEosSoftwareModel model) {
+	public ResponseEntity<?> insertData(@RequestBody EolAndEosSoftwareModel model) {
 		model.setActive(true);
 		return ResponseEntity.ok(eolAndEosSoftwareService.saveData(model));
 
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<String> updateData(@RequestBody EolAndEosSoftwareModel model) {
+	public ResponseEntity<?> updateData(@RequestBody EolAndEosSoftwareModel model) {
 		model.setActive(true);
 		return ResponseEntity.ok(eolAndEosSoftwareService.update(model));
 	}
 
-	@DeleteMapping("/delete")
-	public ResponseEntity<String> deletedata(@RequestBody EolAndEosSoftwareModel model) {
+	@PutMapping("/delete")
+	public ResponseEntity<?> deletedata(@RequestBody EolAndEosSoftwareModel model) {
 		model.setActive(false);
 		return ResponseEntity.ok(eolAndEosSoftwareService.update(model));
 	}

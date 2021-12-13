@@ -25,6 +25,10 @@ public class EolAndEosSoftwareModel {
 	private String osName;
 
 	private String endOfExtendedSupport;
+	
+	@Transient
+	private String eolEosSwId;
+	
 	private boolean active;
 
 	public EolAndEosSoftwareIdentityModel getEolAndEosSoftwareIdentityModel() {
@@ -91,6 +95,14 @@ public class EolAndEosSoftwareModel {
 		this.endOfExtendedSupport = endOfExtendedSupport;
 	}
 
+	public String getEolEosSwId() {
+		return eolEosSwId;
+	}
+
+	public void setEolEosSwId(String eolEosSwId) {
+		this.eolEosSwId = eolEosSwId;
+	}
+
 	public boolean isActive() {
 		return active;
 	}
@@ -105,7 +117,7 @@ public class EolAndEosSoftwareModel {
 
 	public EolAndEosSoftwareModel(EolAndEosSoftwareIdentityModel eolAndEosSoftwareIdentityModel, String sourceUrl,
 			String endOfLifeCycle, String osType, String osVersion, String userId, String osName,
-			String endOfExtendedSupport, boolean active) {
+			String endOfExtendedSupport, String eolEosSwId, boolean active) {
 		super();
 		this.eolAndEosSoftwareIdentityModel = eolAndEosSoftwareIdentityModel;
 		this.sourceUrl = sourceUrl;
@@ -115,7 +127,9 @@ public class EolAndEosSoftwareModel {
 		this.userId = userId;
 		this.osName = osName;
 		this.endOfExtendedSupport = endOfExtendedSupport;
+		this.eolEosSwId = eolEosSwId;
 		this.active = active;
 	}
 
+	
 }

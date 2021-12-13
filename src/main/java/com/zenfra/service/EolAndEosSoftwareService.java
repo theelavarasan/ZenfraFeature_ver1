@@ -1,35 +1,47 @@
 package com.zenfra.service;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.dao.EolAndEosSoftwareRepository;
 import com.zenfra.model.EolAndEosSoftwareIdentityModel;
 import com.zenfra.model.EolAndEosSoftwareModel;
+import com.zenfra.model.ResponseModel_v2;
 
 @Service
 public class EolAndEosSoftwareService {
 
 	@Autowired
 	private EolAndEosSoftwareRepository eolAndEosSoftwareRepository;
+	
+	ResponseModel_v2 responseModel = new ResponseModel_v2();
 
-	public String saveData(EolAndEosSoftwareModel model) {
+	public ResponseEntity<?> saveData(EolAndEosSoftwareModel model) {
 		try {
+			model.setEolEosSwId(UUID.randomUUID().toString());
 			model.setEolAndEosSoftwareIdentityModel(
-					new EolAndEosSoftwareIdentityModel(model.getOsVersion(), model.getOsName()));
+					new EolAndEosSoftwareIdentityModel(model.getOsVersion(), model.getOsName(), model.getEolEosSwId()));
 			eolAndEosSoftwareRepository.save(model);
-			return "Success";
+			responseModel.setResponseMessage("Success");
+			responseModel.setStatusCode(200);
+			responseModel.setResponseCode(HttpStatus.OK);
+		
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			responseModel.setStatusCode(500);
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 		}
-		return "Error";
+		return ResponseEntity.ok(model.getEolEosSwId());
 
 	}
 
-	public String update(EolAndEosSoftwareModel model) {
+	public ResponseEntity<?> update(EolAndEosSoftwareModel model) {
 		try {
-			EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository.findById(new EolAndEosSoftwareIdentityModel(model.getOsVersion(), model.getOsName())).orElse(null);
+			EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository.findById(new EolAndEosSoftwareIdentityModel(model.getOsVersion(), model.getOsName(), model.getEolEosSwId())).orElse(null);
 			existing.setSourceUrl(model.getSourceUrl());
 			existing.setEndOfLifeCycle(model.getEndOfLifeCycle());
 			existing.setOsType(model.getOsType());
@@ -39,12 +51,17 @@ public class EolAndEosSoftwareService {
 			existing.setActive(model.isActive());
 
 			eolAndEosSoftwareRepository.save(existing);
-			return "Success";
+			responseModel.setResponseMessage("Success");
+			responseModel.setStatusCode(200);
+			responseModel.setResponseCode(HttpStatus.OK);
+			
 
 		} catch (Exception e) {
-			// TODO: handle exception
-			return "Error";
+			e.printStackTrace();
+			responseModel.setStatusCode(500);
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 		}
+		return ResponseEntity.ok(model.getEolEosSwId());
 
 	}
 
