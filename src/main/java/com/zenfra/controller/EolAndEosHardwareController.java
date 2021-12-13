@@ -20,21 +20,21 @@ public class EolAndEosHardwareController {
 	private EolAndEosHardwareService eolAndEosHardwareService;
 
 	@PostMapping("/insert")
-	public ResponseEntity<String> insertData(@RequestBody EolAndEosHardwareModel model) {
+	public ResponseEntity<?> insertData(@RequestBody EolAndEosHardwareModel model) {
 		model.setActive(true);
 		return ResponseEntity.ok(eolAndEosHardwareService.saveData(model));
 
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<String> updatedata(@RequestBody EolAndEosHardwareModel model) {
+	public ResponseEntity<?> updatedata(@RequestBody EolAndEosHardwareModel model) {
 		model.setActive(true);
 		return ResponseEntity.ok(eolAndEosHardwareService.update(model));
 	}
 	
 
-	@DeleteMapping("/delete")
-	public ResponseEntity<String> deleteData(@RequestBody EolAndEosHardwareModel model) {
+	@PutMapping("/delete")
+	public ResponseEntity<?> deleteData(@RequestBody EolAndEosHardwareModel model) {
 		model.setActive(false);
 		return ResponseEntity.ok(eolAndEosHardwareService.update(model));
 

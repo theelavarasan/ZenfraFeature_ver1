@@ -22,7 +22,10 @@ public class EolAndEosHardwareModel {
 	private String endOfLifeCycle;
 	private String endOfExtendedSupport;
 	private String sourceLink;
+	
+	@Transient
 	private String eolEosHwId;
+	
 	private String userId;
 	private boolean active;
 
