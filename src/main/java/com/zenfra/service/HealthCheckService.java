@@ -26,6 +26,7 @@ import com.zenfra.model.HealthCheckModel;
 import com.zenfra.model.SiteModel;
 import com.zenfra.model.Users;
 import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.utils.CommonFunctions;
 
 @Service
@@ -42,7 +43,7 @@ public class HealthCheckService {
 	
 	
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 	
 	@Autowired
 	SiteService siteService;
@@ -61,7 +62,7 @@ public class HealthCheckService {
 	}
 
 
-	public JSONObject getHealthCheck(String healthCheckId, String authUserId) {
+	public JSONObject getHealthCheck(String healthCheckId, String authUserId) throws ParseException {
 		HealthCheck healthCheck= new HealthCheck();
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
@@ -82,7 +83,7 @@ public class HealthCheckService {
 		return healthCheckObj;
 	}
 
-	public JSONObject updateHealthCheck(HealthCheck healthCheck) {
+	public JSONObject updateHealthCheck(HealthCheck healthCheck) throws ParseException {
 		healthCheckDao.updateEntity(HealthCheck.class, healthCheck);
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.findEntityById(HealthCheck.class, healthCheck.getHealthCheckId());
 		JSONObject healthCheckModel = convertEntityToModel(savedObj);
@@ -152,8 +153,32 @@ public class HealthCheckService {
 	}
 	
 
-	private JSONObject convertEntityToModel(HealthCheck healthCheck) {
+	private JSONObject convertEntityToModel(HealthCheck healthCheck) throws ParseException {
 		JSONObject response=new JSONObject();
+		JSONParser parser = new JSONParser();
+		
+		JSONArray storageList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
+		JSONArray serverList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
+		JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
+		
+		/*String reportBy = "";
+		if (serverList.contains(healthCheck.getComponentType().toLowerCase())) {
+			reportBy = "Server";	
+		} else if (storageList.contains(healthCheck.getComponentType().toLowerCase())) {
+			reportBy = "Storage";
+		} else if (switchList.contains(healthCheck.getComponentType().toLowerCase())) {
+			reportBy = "Switch";
+		}
+		if (healthCheck.getReportBy().equalsIgnoreCase("End-To-End-Basic")) {
+			reportBy = "Server - Switch - Storage Summary";
+			
+		}
+		if (healthCheck.getReportBy().equalsIgnoreCase("End-To-End-Detail")) {
+			reportBy = "Server - Switch - Storage";
+		}*/
+
+		
+		
 		response.put("siteKey", healthCheck.getHealthCheckId());
 		response.put("healthCheckName", healthCheck.getHealthCheckName());
 		response.put("componentType", healthCheck.getComponentType());
@@ -181,7 +206,7 @@ public class HealthCheckService {
 		response.put("createdById", healthCheck.getCreateBy());
 		response.put("updatedById", healthCheck.getUpdateBy());
 		
-		Users user = userService.getUserByUserId(healthCheck.getCreateBy());
+		Users user = userCreateService.getUserByUserId(healthCheck.getCreateBy());
 		if(user != null) {
 			response.put("createdBy", user.getFirst_name() + " " + user.getLast_name());
 		}else {
@@ -192,7 +217,7 @@ public class HealthCheckService {
 		if(healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
 		} else if(!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())){
-			Users updateUser = userService.getUserByUserId(healthCheck.getUpdateBy());
+			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
 			if(updateUser != null) {
 				response.put("updatedBy", updateUser.getFirst_name() + " " + updateUser.getLast_name());
 			} else {
@@ -209,7 +234,7 @@ public class HealthCheckService {
 		if(healthCheck.getAuthUserId() != null) {
 			boolean isTenantAdmin = false;
 			
-			Users loginUser = userService.getUserByUserId(healthCheck.getAuthUserId());
+			Users loginUser = userCreateService.getUserByUserId(healthCheck.getAuthUserId());
 			if(loginUser != null && loginUser.isIs_tenant_admin()) {
 				isTenantAdmin = true;
 			}
@@ -256,9 +281,11 @@ public class HealthCheckService {
 	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId) {
 		JSONArray resultArray = new JSONArray();
 		try {
-			String query = "select * from health_check where site_key='"+siteKey+"' and is_active='true'";
+			String query = "select * from health_check where site_key='"+siteKey+"' and is_active='true' order by health_check_name";
 			if(!isTenantAdmin) {
-				query = "select * from health_check where is_active = 'true' and ((create_by = '"+userId+"' and site_key = '"+siteKey+"') or ((site_access_list like '%"+siteKey+"%' or site_access_list like '%All%') and (user_access_list like '%"+userId+"%' or user_access_list  like '%All%')))";
+				query = "select * from health_check where is_active = 'true' and ((create_by = '"+userId+"' and site_key = '"+siteKey+"') \r\n" + 
+						"or ((site_access_list like '%"+siteKey+"%' or site_access_list like '%All%') and (user_access_list like '%"+userId+"%' or user_access_list  like '%All%'))) \r\n" + 
+						"order by health_check_name";
 			}
 			
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
@@ -404,10 +431,34 @@ public class HealthCheckService {
 			//}
 			//System.out.println("listQuery:: "+listQuery);
 			JSONArray healthCheckList = getAllHealthCheck(siteKey, isTenantAdmin, userId);
-			
+			JSONParser parser = new JSONParser();
 			for (int i = 0; i < healthCheckList.size(); i++) {
 				JSONObject jObj = (JSONObject) healthCheckList.get(i);
+				JSONArray storageList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
+				JSONArray serverList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
+				JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
 				
+				String reportBy = "";
+				if (serverList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
+					reportBy = "Server";	
+					jObj.replace("reportName", reportBy);
+				} else if (storageList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
+					reportBy = "Storage";
+					jObj.replace("reportName", reportBy);
+				} else if (switchList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
+					reportBy = "Switch";
+					jObj.replace("reportName", reportBy);
+				}
+				
+				if (jObj.get("reportName").toString().equalsIgnoreCase("End-To-End-Basic")) {
+					reportBy = "Server - Switch - Storage Summary";
+					jObj.replace("reportName", reportBy);
+					
+				}
+				if (jObj.get("reportName").toString().equalsIgnoreCase("End-To-End-Detail")) {
+					reportBy = "Server - Switch - Storage";
+					jObj.replace("reportName", reportBy);
+				}
 				boolean isreadAccess = true;
 				boolean isWriteAccess = false;
 				Set<String> keys = jObj.keySet();
@@ -527,7 +578,7 @@ public class HealthCheckService {
 
 	private Map<String, JSONObject> getUserList(JSONArray jsonArray, boolean b) {
 		Map<String, JSONObject>  result = new HashMap<String, JSONObject> ();
-		List<Users> users = userService.getAllUsers();
+		List<Users> users = userCreateService.getAllUsers();
 		if(users != null && !users.isEmpty()) {
 			for(Users u : users) {				
 				result.put(u.getUser_id(), commonFunctions.convertEntityToJsonObject(u));

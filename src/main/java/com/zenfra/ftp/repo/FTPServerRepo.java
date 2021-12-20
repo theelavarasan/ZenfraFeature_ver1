@@ -22,7 +22,7 @@ public interface FTPServerRepo extends JpaRepository<FTPServerModel, String>{
 	
 	@Transactional
 	@Modifying
-	@Query("select s from FTPServerModel s where s.siteKey=:siteKey")
+	@Query("select s from FTPServerModel s where s.siteKey=:siteKey order by s.ftpName")
 	List<FTPServerModel> findConnectionsBySiteKey(@Param("siteKey") String siteKey);
 
 	@Transactional

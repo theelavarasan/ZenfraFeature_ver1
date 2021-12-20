@@ -82,7 +82,11 @@ public class ReportDao {
 	public List<String> getReportNumericalHeaders(String reportName, String deviceType, String reportBy,
 			String siteKey) {
 		List<String> result = new ArrayList<String>();
-		try {
+		try {			 
+		     if(deviceType.toLowerCase().contains("vmware")) {
+		    	 deviceType = "vmware";
+		     }
+		     
 			Map<String,Object> params=new HashMap<String, Object>();
 			params.put("report_name", reportName.toLowerCase());
 			params.put("device_type", deviceType.toLowerCase());
@@ -133,18 +137,19 @@ public class ReportDao {
 		JSONObject result = new JSONObject();
 		try {
 			Map<String,Object> params=new HashMap<String, Object>();
-			params.put("user_id", userId);
-			params.put("site_key", siteKey);
-			params.put("report_name", reportName.toLowerCase());			
+			params.put("user_id", userId.trim());
+			params.put("site_key", siteKey.trim());
+			params.put("report_name", reportName.trim().toLowerCase());		
+			
 			List<Map<String, Object>> rs = namedJdbc.queryForList(reportQueries.getReportUserCustomData(), params);	
+						
 			if(rs != null && rs.size() > 0) {
 				result.put("groupedColumns", commonFunctions.convertObjectToJsonArray(rs.get(0).get("grouped_columns")));
 				result.put("columnOrder", commonFunctions.convertObjectToJsonArray(rs.get(0).get("columns_visible")));
 				result.put("chartLayout", commonFunctions.formatJsonArrayr(rs.get(0).get("chart_layout")));
 				ObjectMapper mapper = new ObjectMapper();				
 				JSONObject health_check = mapper.readValue(rs.get(0).get("health_check").toString(), JSONObject.class);
-				result.put("health_check", health_check);				
-				
+				result.put("health_check", health_check);
 			} else {
 				JSONArray empty = new JSONArray();
 				JSONObject jSONObject = new JSONObject();
@@ -175,10 +180,19 @@ public class ReportDao {
 			} else if(reportName.toLowerCase().contains("windows") && reportName.toLowerCase().contains("windows")) {
 				deviceType = "windows";
 			}
-			JSONArray preOrder = (JSONArray) result.get("columnOrder");
+		
 			List<String> compatabilityOrder = getReportHeaderForCompatibility("Compatibility", deviceType);
+		
+		
 			if(!compatabilityOrder.isEmpty()) {
-				 result.put("columnOrder", compatabilityOrder);
+				List<String> existingVisibleColumns = (List<String>) result.get("columnOrder");			
+				if(existingVisibleColumns != null && !existingVisibleColumns.isEmpty()) {
+					compatabilityOrder.retainAll(existingVisibleColumns);				
+					 result.put("columnOrder", compatabilityOrder);
+				} else {					
+					 result.put("columnOrder", compatabilityOrder);
+				}
+				
 			}
 			
 		}
@@ -193,6 +207,41 @@ public class ReportDao {
 			params.put("device_type", deviceType.toLowerCase());						
 			result = namedJdbc.queryForList(reportQueries.getHeaderForCompatibility(), params, String.class);	
 				
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	public JSONObject getReportUserCustomDataBySiteKey(String siteKey, String userId) {
+		JSONObject result = new JSONObject();
+		try {
+			try {
+				Map<String,Object> params=new HashMap<String, Object>();				
+				params.put("site_key", siteKey);
+				params.put("user_id", userId);
+				List<Map<String, Object>> rs = namedJdbc.queryForList(reportQueries.getReportUserCustomDataBySiteKey(), params);	
+				if(rs != null && rs.size() > 0) {
+					result.put("groupedColumns", commonFunctions.convertObjectToJsonArray(rs.get(0).get("grouped_columns")));
+					result.put("columnOrder", commonFunctions.convertObjectToJsonArray(rs.get(0).get("columns_visible")));
+					result.put("chartLayout", commonFunctions.formatJsonArrayr(rs.get(0).get("chart_layout")));
+					ObjectMapper mapper = new ObjectMapper();				
+					JSONObject health_check = mapper.readValue(rs.get(0).get("health_check").toString(), JSONObject.class);
+					result.put("health_check", health_check);
+					
+					
+					
+				} else {
+					JSONArray empty = new JSONArray();
+					JSONObject jSONObject = new JSONObject();
+					result.put("groupedColumns", empty);
+					result.put("columnOrder", empty);
+					result.put("chartLayout", empty);
+					result.put("health_check", jSONObject);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}	
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

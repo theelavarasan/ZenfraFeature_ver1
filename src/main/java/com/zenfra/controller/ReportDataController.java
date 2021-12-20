@@ -34,6 +34,7 @@ import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.ZKConstants;
+import com.zenfra.service.ChartService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
 
@@ -54,6 +55,9 @@ public class ReportDataController {
 	
 	@Autowired
 	SparkSession sparkSession;
+	
+	@Autowired
+	ChartService chartService;
 	
 	@Autowired
 	EolService eolService;
@@ -158,7 +162,9 @@ public class ReportDataController {
 				  } catch (Exception e) {
 					e.printStackTrace();
 				}
-			
+			  if("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
+				  chartService.getChartDatas(siteKey, sourceType);
+			  }
 			        dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 	      			
@@ -166,6 +172,21 @@ public class ReportDataController {
 	      		
 	      		
 			} catch (Exception e) {
+				System.out.println("Not able to save local discovery in dataframe {}"+ e);
+			}   	
+	    	
+	      	 return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
+	    }
+	  
+	  
+
+	  @GetMapping("test")
+	    public ResponseEntity<String> test(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType) { 	     
+		  System.out.println("-------------test----------------" + sourceType + " : " + siteKey );
+		 
+		  try {
+			  chartService.getChartDatas(siteKey, sourceType);
+		  } catch (Exception e) {
 				System.out.println("Not able to save local discovery in dataframe {}"+ e);
 			}   	
 	    	
