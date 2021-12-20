@@ -30,13 +30,15 @@ public class EolAndEosHardwareService {
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
+			return ResponseEntity.ok(model.getEolEosHwId());
 		} catch (Exception e) {
 
 			e.printStackTrace();
 			responseModel.setStatusCode(500);
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			return (ResponseEntity<?>) ResponseEntity.badRequest();
 		}
-		return ResponseEntity.ok(model.getEolEosHwId());
+		
 
 	}
 
@@ -56,14 +58,16 @@ public class EolAndEosHardwareService {
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
+			return ResponseEntity.ok(model.getEolEosHwId());
 
 		} catch (Exception e) {
 
 			e.printStackTrace();
 			responseModel.setStatusCode(500);
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			return (ResponseEntity<?>) ResponseEntity.badRequest();
 		}
-		return ResponseEntity.ok(model.getEolEosHwId());
+		
 	}
 
 }
