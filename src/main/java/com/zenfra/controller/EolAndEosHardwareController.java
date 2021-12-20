@@ -1,5 +1,7 @@
 package com.zenfra.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -21,23 +23,26 @@ public class EolAndEosHardwareController {
 	private EolAndEosHardwareService eolAndEosHardwareService;
 
 	@PostMapping("/insert")
-	public ResponseEntity<?> insertData(@RequestBody EolAndEosHardwareModel model) {
-		model.setActive(true);
-		return ResponseEntity.ok(eolAndEosHardwareService.saveData(model));
+	public ResponseEntity<?> insertData(@RequestBody List<EolAndEosHardwareModel> models) {
+		for (EolAndEosHardwareModel model : models) 
+			model.setActive(true);
+		return ResponseEntity.ok(eolAndEosHardwareService.saveData(models));
 
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<?> updatedata(@RequestBody EolAndEosHardwareModel model) {
-		model.setActive(true);
-		return ResponseEntity.ok(eolAndEosHardwareService.update(model));
+	public ResponseEntity<?> updatedata(@RequestBody List<EolAndEosHardwareModel> models) {
+		for (EolAndEosHardwareModel model : models) 
+			model.setActive(true);
+		return ResponseEntity.ok(eolAndEosHardwareService.update(models));
 	}
 	
 
 	@PutMapping("/delete")
-	public ResponseEntity<?> deleteData(@RequestBody EolAndEosHardwareModel model) {
-		model.setActive(false);
-		return ResponseEntity.ok(eolAndEosHardwareService.update(model));
+	public ResponseEntity<?> deleteData(@RequestBody List<EolAndEosHardwareModel> models) {
+		for (EolAndEosHardwareModel model : models) 
+			model.setActive(false);
+		return ResponseEntity.ok(eolAndEosHardwareService.update(models));
 
 	}
 

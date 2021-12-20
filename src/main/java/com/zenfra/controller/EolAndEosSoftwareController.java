@@ -1,5 +1,7 @@
 package com.zenfra.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -21,22 +23,28 @@ public class EolAndEosSoftwareController {
 	private EolAndEosSoftwareService eolAndEosSoftwareService;
 
 	@PostMapping("/insert")
-	public ResponseEntity<?> insertData(@RequestBody EolAndEosSoftwareModel model) {
-		model.setActive(true);
-		return ResponseEntity.ok(eolAndEosSoftwareService.saveData(model));
+	public ResponseEntity<?> insertData(@RequestBody List<EolAndEosSoftwareModel> models) {
+		for (EolAndEosSoftwareModel model : models) {
+			model.setActive(true);
+		}
+		return ResponseEntity.ok(eolAndEosSoftwareService.saveData(models));
 
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<?> updateData(@RequestBody EolAndEosSoftwareModel model) {
-		model.setActive(true);
-		return ResponseEntity.ok(eolAndEosSoftwareService.update(model));
+	public ResponseEntity<?> updateData(@RequestBody List<EolAndEosSoftwareModel> models) {
+		for (EolAndEosSoftwareModel model : models) {
+			model.setActive(true);
+		}
+		return ResponseEntity.ok(eolAndEosSoftwareService.update(models));
 	}
 
 	@PutMapping("/delete")
-	public ResponseEntity<?> deletedata(@RequestBody EolAndEosSoftwareModel model) {
-		model.setActive(false);
-		return ResponseEntity.ok(eolAndEosSoftwareService.update(model));
+	public ResponseEntity<?> deletedata(@RequestBody List<EolAndEosSoftwareModel> models) {
+		for (EolAndEosSoftwareModel model : models) {
+			model.setActive(false);
+		}
+		return ResponseEntity.ok(eolAndEosSoftwareService.update(models));
 	}
 
 }

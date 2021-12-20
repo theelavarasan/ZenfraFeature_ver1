@@ -1,5 +1,6 @@
 package com.zenfra.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +21,20 @@ public class EolAndEosHardwareService {
 
 	ResponseModel_v2 responseModel = new ResponseModel_v2();
 
-	public ResponseEntity<?> saveData(EolAndEosHardwareModel model) {
-
+	public ResponseEntity<?> saveData(List<EolAndEosHardwareModel> models) {
 		try {
-			model.setEol_eos_hw_id(UUID.randomUUID().toString());
-			model.setEolAndEosHardwareIdentityModel(
-					new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel()));
-			eolAndEosHardwareRepository.save(model);
+			for (EolAndEosHardwareModel model : models) {
+				model.setEol_eos_hw_id(UUID.randomUUID().toString());
+				model.setEolAndEosHardwareIdentityModel(
+						new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel()));
+				eolAndEosHardwareRepository.save(model);
+			}
+
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
-			return ResponseEntity.ok(model.getEol_eos_hw_id());
+			responseModel.setjData(models);
+			return ResponseEntity.ok(responseModel);
 		} catch (Exception e) {
 
 			e.printStackTrace();
@@ -38,28 +42,31 @@ public class EolAndEosHardwareService {
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
 		}
-		
 
 	}
 
-	public ResponseEntity<?> update(EolAndEosHardwareModel model) {
+	public ResponseEntity<?> update(List<EolAndEosHardwareModel> models) {
 		try {
-			EolAndEosHardwareModel existing = eolAndEosHardwareRepository
-					.findById(new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel())).orElse(null);
-			
-			existing.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
-			existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
-			existing.setSource_link(model.getSource_link());
-			existing.setEol_eos_hw_id(model.getEol_eos_hw_id());
-			existing.setUser_id(model.getUser_id());
-			existing.setActive(model.isActive());
+			for (EolAndEosHardwareModel model : models) {
+				EolAndEosHardwareModel existing = eolAndEosHardwareRepository
+						.findById(new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel())).orElse(null);
 
-			eolAndEosHardwareRepository.save(existing);
+				existing.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
+				existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
+				existing.setSource_link(model.getSource_link());
+				existing.setEol_eos_hw_id(model.getEol_eos_hw_id());
+				existing.setUser_id(model.getUser_id());
+				existing.setActive(model.isActive());
+
+				eolAndEosHardwareRepository.save(existing);
+
+			}
 
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
-			return ResponseEntity.ok(model.getEol_eos_hw_id());
+			responseModel.setjData(models);
+			return ResponseEntity.ok(responseModel);
 
 		} catch (Exception e) {
 
@@ -68,7 +75,7 @@ public class EolAndEosHardwareService {
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
 		}
-		
+
 	}
 
 }
