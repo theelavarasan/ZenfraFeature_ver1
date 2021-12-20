@@ -13,11 +13,6 @@ public class EolAndEosHardwareIdentityModel implements Serializable {
 
 	 @NotNull
 	private String model;
-	 
-	 @NotNull
-	 private String eolEosHwId;
-	 
-	 
 
 	public String getVendor() {
 		return vendor;
@@ -35,25 +30,17 @@ public class EolAndEosHardwareIdentityModel implements Serializable {
 		this.model = model;
 	}
 
-	public String getEolEosHwId() {
-		return eolEosHwId;
-	}
-
-	public void setEolEosHwId(String eolEosHwId) {
-		this.eolEosHwId = eolEosHwId;
-	}
-
 	public EolAndEosHardwareIdentityModel() {
 		super();
 	}
 
-	public EolAndEosHardwareIdentityModel(@NotNull String vendor, @NotNull String model, @NotNull String eolEosHwId) {
+	public EolAndEosHardwareIdentityModel(@NotNull String vendor, @NotNull String model) {
 		super();
 		this.vendor = vendor;
 		this.model = model;
-		this.eolEosHwId = eolEosHwId;
 	}
-	 
+
+	
 	 
 
 	

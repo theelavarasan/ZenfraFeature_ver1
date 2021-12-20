@@ -6,54 +6,42 @@ import javax.persistence.Embeddable;
 import javax.validation.constraints.NotNull;
 
 @Embeddable
-public class EolAndEosSoftwareIdentityModel implements Serializable{
-	
+public class EolAndEosSoftwareIdentityModel implements Serializable {
+
 	@NotNull
-	private String osVersion;
-	
+	private String os_version;
+
 	@NotNull
-	private String osName;
-	
-	@NotNull
-	private String eolEosSwId;
+	private String os_name;
 
-	public String getOsVersion() {
-		return osVersion;
+	public String getOs_version() {
+		return os_version;
 	}
 
-	public void setOsVersion(String osVersion) {
-		this.osVersion = osVersion;
+	public void setOs_version(String os_version) {
+		this.os_version = os_version;
 	}
 
-	public String getOsName() {
-		return osName;
+	public String getOs_name() {
+		return os_name;
 	}
 
-	public void setOsName(String osName) {
-		this.osName = osName;
-	}
-
-	public String getEolEosSwId() {
-		return eolEosSwId;
-	}
-
-	public void setEolEosSwId(String eolEosSwId) {
-		this.eolEosSwId = eolEosSwId;
+	public void setOs_name(String os_name) {
+		this.os_name = os_name;
 	}
 
 	public EolAndEosSoftwareIdentityModel() {
 		super();
 	}
 
-	public EolAndEosSoftwareIdentityModel(@NotNull String osVersion, @NotNull String osName,
-			@NotNull String eolEosSwId) {
+	public EolAndEosSoftwareIdentityModel(@NotNull String os_version, @NotNull String os_name) {
 		super();
-		this.osVersion = osVersion;
-		this.osName = osName;
-		this.eolEosSwId = eolEosSwId;
+		this.os_version = os_version;
+		this.os_name = os_name;
 	}
 
 	
 	
 
+	
 }

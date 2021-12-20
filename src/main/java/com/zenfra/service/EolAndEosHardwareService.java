@@ -23,14 +23,14 @@ public class EolAndEosHardwareService {
 	public ResponseEntity<?> saveData(EolAndEosHardwareModel model) {
 
 		try {
-			model.setEolEosHwId(UUID.randomUUID().toString());
+			model.setEol_eos_hw_id(UUID.randomUUID().toString());
 			model.setEolAndEosHardwareIdentityModel(
-					new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel(), model.getEolEosHwId()));
+					new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel()));
 			eolAndEosHardwareRepository.save(model);
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
-			return ResponseEntity.ok(model.getEolEosHwId());
+			return ResponseEntity.ok(model.getEol_eos_hw_id());
 		} catch (Exception e) {
 
 			e.printStackTrace();
@@ -45,12 +45,13 @@ public class EolAndEosHardwareService {
 	public ResponseEntity<?> update(EolAndEosHardwareModel model) {
 		try {
 			EolAndEosHardwareModel existing = eolAndEosHardwareRepository
-					.findById(new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel(), model.getEolEosHwId())).orElse(null);
-			existing.setEndOfLifeCycle(model.getEndOfLifeCycle());
-			existing.setEndOfExtendedSupport(model.getEndOfExtendedSupport());
-			existing.setSourceLink(model.getSourceLink());
-			existing.setEolEosHwId(model.getEolEosHwId());
-			existing.setUserId(model.getUserId());
+					.findById(new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel())).orElse(null);
+			
+			existing.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
+			existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
+			existing.setSource_link(model.getSource_link());
+			existing.setEol_eos_hw_id(model.getEol_eos_hw_id());
+			existing.setUser_id(model.getUser_id());
 			existing.setActive(model.isActive());
 
 			eolAndEosHardwareRepository.save(existing);
@@ -58,7 +59,7 @@ public class EolAndEosHardwareService {
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
-			return ResponseEntity.ok(model.getEolEosHwId());
+			return ResponseEntity.ok(model.getEol_eos_hw_id());
 
 		} catch (Exception e) {
 

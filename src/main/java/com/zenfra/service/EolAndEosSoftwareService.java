@@ -22,14 +22,14 @@ public class EolAndEosSoftwareService {
 
 	public ResponseEntity<?> saveData(EolAndEosSoftwareModel model) {
 		try {
-			model.setEolEosSwId(UUID.randomUUID().toString());
+			model.setEol_eos_sw_id(UUID.randomUUID().toString());
 			model.setEolAndEosSoftwareIdentityModel(
-					new EolAndEosSoftwareIdentityModel(model.getOsVersion(), model.getOsName(), model.getEolEosSwId()));
+					new EolAndEosSoftwareIdentityModel(model.getOs_version(), model.getOs_name()));
 			eolAndEosSoftwareRepository.save(model);
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
-			return ResponseEntity.ok(model.getEolEosSwId());
+			return ResponseEntity.ok(model.getEol_eos_sw_id());
 		
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -43,20 +43,21 @@ public class EolAndEosSoftwareService {
 
 	public ResponseEntity<?> update(EolAndEosSoftwareModel model) {
 		try {
-			EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository.findById(new EolAndEosSoftwareIdentityModel(model.getOsVersion(), model.getOsName(), model.getEolEosSwId())).orElse(null);
-			existing.setSourceUrl(model.getSourceUrl());
-			existing.setEndOfLifeCycle(model.getEndOfLifeCycle());
-			existing.setOsType(model.getOsType());
-			existing.setUserId(model.getUserId());
-			existing.setOsName(model.getOsName());
-			existing.setEndOfExtendedSupport(model.getEndOfExtendedSupport());
+			EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository.findById(new EolAndEosSoftwareIdentityModel(model.getOs_version(), model.getOs_name())).orElse(null);
+			existing.setEol_eos_sw_id(model.getEol_eos_sw_id());
+			existing.setSource_url(model.getSource_url());
+			existing.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
+			existing.setOs_type(model.getOs_type());
+			existing.setUser_id(model.getUser_id());
+			existing.setOs_name(model.getOs_name());
+			existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
 			existing.setActive(model.isActive());
 
 			eolAndEosSoftwareRepository.save(existing);
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
-			return ResponseEntity.ok(model.getEolEosSwId());
+			return ResponseEntity.ok(model.getEol_eos_sw_id());
 			
 
 		} catch (Exception e) {
