@@ -436,14 +436,18 @@ public class HealthCheckService {
 				JSONArray serverList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
 				JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
 				
+			
 				String reportBy = "";
-				if (serverList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
-					reportBy = "Server";	
+				if (serverList.contains(jObj.get("componentType").toString().toLowerCase())
+						&& jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
+					reportBy = "Server";
 					jObj.replace("reportName", reportBy);
-				} else if (storageList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
+				} else if (storageList.contains(jObj.get("componentType").toString().toLowerCase())
+						&& jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
 					reportBy = "Storage";
 					jObj.replace("reportName", reportBy);
-				} else if (switchList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
+				} else if (switchList.contains(jObj.get("componentType").toString().toLowerCase())
+						&& jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
 					reportBy = "Switch";
 					jObj.replace("reportName", reportBy);
 				}
@@ -653,3 +657,4 @@ public class HealthCheckService {
 	}
 
 }
+
