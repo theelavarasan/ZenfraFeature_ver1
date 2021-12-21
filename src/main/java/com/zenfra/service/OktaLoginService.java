@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.OktaLoginRepository;
 import com.zenfra.model.OktaLoginModel;
 
-
 @Service
 public class OktaLoginService {
 
@@ -26,7 +25,7 @@ public class OktaLoginService {
 				oktaLoginModel.setActive(true);
 				res = oktaLoginRepository.save(oktaLoginModel);
 				result.put("data", res);
-				
+
 				return result;
 			} else {
 				return result;
@@ -47,6 +46,8 @@ public class OktaLoginService {
 			resObject.put("id", res.getId());
 			resObject.put("publisherUrl", res.getPublisherUrl());
 			resObject.put("clientId", res.getClientId());
+			resObject.put("defaultSiteName", res.getDefaultSiteName());
+			resObject.put("defaultPolicy", res.getDefaultPolicy());
 
 			return resObject;
 		} catch (Exception e) {
