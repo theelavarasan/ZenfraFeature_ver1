@@ -161,7 +161,7 @@ public class HealthCheckService {
 		JSONArray serverList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
 		JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
 		
-		/*String reportBy = "";
+		String reportBy = "";
 		if (serverList.contains(healthCheck.getComponentType().toLowerCase())) {
 			reportBy = "Server";	
 		} else if (storageList.contains(healthCheck.getComponentType().toLowerCase())) {
@@ -175,7 +175,7 @@ public class HealthCheckService {
 		}
 		if (healthCheck.getReportBy().equalsIgnoreCase("End-To-End-Detail")) {
 			reportBy = "Server - Switch - Storage";
-		}*/
+		}
 
 		
 		
@@ -183,7 +183,7 @@ public class HealthCheckService {
 		response.put("healthCheckName", healthCheck.getHealthCheckName());
 		response.put("componentType", healthCheck.getComponentType());
 		response.put("reportName", healthCheck.getReportName());
-		response.put("reportBy", healthCheck.getReportBy());
+		response.put("reportBy", reportBy);
 		try {
 			String s =  healthCheck.getReportCondition();
 			ObjectMapper mapper = new ObjectMapper();
@@ -281,11 +281,9 @@ public class HealthCheckService {
 	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId) {
 		JSONArray resultArray = new JSONArray();
 		try {
-			String query = "select * from health_check where site_key='"+siteKey+"' and is_active='true' order by health_check_name";
+			String query = "select * from health_check where site_key='"+siteKey+"' and is_active='true'";
 			if(!isTenantAdmin) {
-				query = "select * from health_check where is_active = 'true' and ((create_by = '"+userId+"' and site_key = '"+siteKey+"') \r\n" + 
-						"or ((site_access_list like '%"+siteKey+"%' or site_access_list like '%All%') and (user_access_list like '%"+userId+"%' or user_access_list  like '%All%'))) \r\n" + 
-						"order by health_check_name";
+				query = "select * from health_check where is_active = 'true' and ((create_by = '"+userId+"' and site_key = '"+siteKey+"') or ((site_access_list like '%"+siteKey+"%' or site_access_list like '%All%') and (user_access_list like '%"+userId+"%' or user_access_list  like '%All%')))";
 			}
 			
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
@@ -438,14 +436,18 @@ public class HealthCheckService {
 				JSONArray serverList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
 				JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
 				
+			
 				String reportBy = "";
-				if (serverList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
-					reportBy = "Server";	
+				if (serverList.contains(jObj.get("componentType").toString().toLowerCase())
+						&& jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
+					reportBy = "Server";
 					jObj.replace("reportName", reportBy);
-				} else if (storageList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
+				} else if (storageList.contains(jObj.get("componentType").toString().toLowerCase())
+						&& jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
 					reportBy = "Storage";
 					jObj.replace("reportName", reportBy);
-				} else if (switchList.contains(jObj.get("componentType").toString().toLowerCase()) && jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
+				} else if (switchList.contains(jObj.get("componentType").toString().toLowerCase())
+						&& jObj.get("reportName").toString().equalsIgnoreCase("Local")) {
 					reportBy = "Switch";
 					jObj.replace("reportName", reportBy);
 				}
@@ -655,3 +657,4 @@ public class HealthCheckService {
 	}
 
 }
+

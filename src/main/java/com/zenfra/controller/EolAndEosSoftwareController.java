@@ -1,8 +1,10 @@
 package com.zenfra.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.zenfra.model.EolAndEosSoftwareModel;
 import com.zenfra.service.EolAndEosSoftwareService;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/rest/eol-eos-sw")
 public class EolAndEosSoftwareController {
@@ -20,22 +23,28 @@ public class EolAndEosSoftwareController {
 	private EolAndEosSoftwareService eolAndEosSoftwareService;
 
 	@PostMapping("/insert")
-	public ResponseEntity<String> insertData(@RequestBody EolAndEosSoftwareModel model) {
-		model.setActive(true);
-		return ResponseEntity.ok(eolAndEosSoftwareService.saveData(model));
+	public ResponseEntity<?> insertData(@RequestBody List<EolAndEosSoftwareModel> models) {
+		for (EolAndEosSoftwareModel model : models) {
+			model.setActive(true);
+		}
+		return ResponseEntity.ok(eolAndEosSoftwareService.saveData(models));
 
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<String> updateData(@RequestBody EolAndEosSoftwareModel model) {
-		model.setActive(true);
-		return ResponseEntity.ok(eolAndEosSoftwareService.update(model));
+	public ResponseEntity<?> updateData(@RequestBody List<EolAndEosSoftwareModel> models) {
+		for (EolAndEosSoftwareModel model : models) {
+			model.setActive(true);
+		}
+		return ResponseEntity.ok(eolAndEosSoftwareService.update(models));
 	}
 
-	@DeleteMapping("/delete")
-	public ResponseEntity<String> deletedata(@RequestBody EolAndEosSoftwareModel model) {
-		model.setActive(false);
-		return ResponseEntity.ok(eolAndEosSoftwareService.update(model));
+	@PutMapping("/delete")
+	public ResponseEntity<?> deletedata(@RequestBody List<EolAndEosSoftwareModel> models) {
+		for (EolAndEosSoftwareModel model : models) {
+			model.setActive(false);
+		}
+		return ResponseEntity.ok(eolAndEosSoftwareService.update(models));
 	}
 
 }
