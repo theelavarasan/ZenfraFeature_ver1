@@ -1206,7 +1206,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			    	
 			        for(String column : numericalHeaders) {                        	
 			        	if(columns.contains(column)) { 
-			        		filteredData = filteredData.withColumn(column, filteredData.col(column).cast("float"));
+			        		filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
 			        	}
 			        }
 			        
@@ -1262,7 +1262,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			    	
 			        for(String column : numericalHeaders) {                        	
 			        	if(columns.contains(column)) { 
-			        		filteredData = filteredData.withColumn(column, filteredData.col(column).cast("float"));
+			        		filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
 			        	}
 			        }
 			        
@@ -2048,18 +2048,33 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        	
     	        }
     	        
-    	        
+    	        List<String> floatColumns = new ArrayList<String>();
+    	        floatColumns.add("AWS 1 Year Price");
+    	        floatColumns.add("AWS 3 Year Price");
+    	        floatColumns.add("AWS On Demand Price");
+    	        floatColumns.add("Google 1 Year Price");
+    	        floatColumns.add("Google 3 Year Price");
+    	        floatColumns.add("Google On Demand Price");
+    	        floatColumns.add("Azure 1 Year Price");
+    	        floatColumns.add("Azure 3 Year Price");
+    	        floatColumns.add("Azure On Demand Price");
+    	       
     	        List<String> numericalHeaders = getReportNumericalHeaders("Optimization", "All", "Optimization", siteKey);	    	
-    	    	
+    	        numericalHeaders.removeAll(floatColumns);
     	    	List<String> columns = Arrays.asList(dataCheck.columns());
     	    	
                 for(String column : numericalHeaders) {                        	
+                	if(columns.contains(column)) { 
+                		dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("integer"));
+                	}
+                	
+                }
+                for(String column : floatColumns) {                        	
                 	if(columns.contains(column)) { 
                 		dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("float"));
                 	}
                 	
                 }
-    	        
     	        
     	        
     	        logger.info("getReport Details Ends");
