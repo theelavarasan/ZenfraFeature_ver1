@@ -24,8 +24,11 @@ public class EolAndEosHardwareController {
 
 	@PostMapping("/insert")
 	public ResponseEntity<?> insertData(@RequestBody List<EolAndEosHardwareModel> models) {
-		for (EolAndEosHardwareModel model : models) 
+		for (EolAndEosHardwareModel model : models) {
 			model.setActive(true);
+			model.setManual(true);
+		}
+			
 		return ResponseEntity.ok(eolAndEosHardwareService.saveData(models));
 
 	}
