@@ -34,6 +34,7 @@ public class OktaLoginController {
 	public ResponseEntity<?> insertController(@RequestBody OktaLoginModel oktaLoginModel) {
 		ResponseModel_v2 rmodel = new ResponseModel_v2();
 		JSONObject resultObject = new JSONObject();
+		oktaLoginModel.setDefaultPolicy(oktaLoginModel.getDefaultPolicyName());
 		resultObject = oktaLoginService.saveData(oktaLoginModel);
 
 		rmodel.setjData(resultObject);
@@ -71,6 +72,7 @@ public class OktaLoginController {
 	@PutMapping("/update")
 	public ResponseEntity<?> updateController(@RequestBody OktaLoginModel oktaLoginModel) {
 		oktaLoginModel.setActive(true);
+		oktaLoginModel.setDefaultPolicy(oktaLoginModel.getDefaultPolicyName());
 		return ResponseEntity.ok(oktaLoginService.updateData(oktaLoginModel));
 	}
 
