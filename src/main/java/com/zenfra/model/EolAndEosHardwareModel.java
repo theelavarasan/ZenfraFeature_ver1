@@ -30,6 +30,8 @@ public class EolAndEosHardwareModel {
 	private String user_id;
 
 	private boolean active;
+	
+	private boolean manual;
 
 	public EolAndEosHardwareIdentityModel getEolAndEosHardwareIdentityModel() {
 		return eolAndEosHardwareIdentityModel;
@@ -102,6 +104,16 @@ public class EolAndEosHardwareModel {
 	public void setActive(boolean active) {
 		this.active = active;
 	}
+	
+	
+
+	public boolean isManual() {
+		return manual;
+	}
+
+	public void setManual(boolean manual) {
+		this.manual = manual;
+	}
 
 	public EolAndEosHardwareModel() {
 		super();
@@ -109,7 +121,7 @@ public class EolAndEosHardwareModel {
 
 	public EolAndEosHardwareModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel, String vendor,
 			String model, @NotNull String eol_eos_hw_id, String end_of_life_cycle, String end_of_extended_support,
-			String source_link, String user_id, boolean active) {
+			String source_link, String user_id, boolean active, boolean manual) {
 		super();
 		this.eolAndEosHardwareIdentityModel = eolAndEosHardwareIdentityModel;
 		this.vendor = vendor;
@@ -120,7 +132,10 @@ public class EolAndEosHardwareModel {
 		this.source_link = source_link;
 		this.user_id = user_id;
 		this.active = active;
+		this.manual = manual;
 	}
+
+	
 
 	
 	
