@@ -31,6 +31,9 @@ public class EolAndEosSoftwareModel {
 	private String end_of_extended_support;
 
 	private boolean active;
+	
+	private boolean manual;
+	
 
 	public EolAndEosSoftwareIdentityModel getEolAndEosSoftwareIdentityModel() {
 		return eolAndEosSoftwareIdentityModel;
@@ -111,6 +114,16 @@ public class EolAndEosSoftwareModel {
 	public void setActive(boolean active) {
 		this.active = active;
 	}
+	
+	
+
+	public boolean isManual() {
+		return manual;
+	}
+
+	public void setManual(boolean manual) {
+		this.manual = manual;
+	}
 
 	public EolAndEosSoftwareModel() {
 		super();
@@ -118,7 +131,7 @@ public class EolAndEosSoftwareModel {
 
 	public EolAndEosSoftwareModel(EolAndEosSoftwareIdentityModel eolAndEosSoftwareIdentityModel, String source_url,
 			String end_of_life_cycle, String os_type, @NotNull String eol_eos_sw_id, String os_version, String user_id,
-			String os_name, String end_of_extended_support, boolean active) {
+			String os_name, String end_of_extended_support, boolean active, boolean manual) {
 		super();
 		this.eolAndEosSoftwareIdentityModel = eolAndEosSoftwareIdentityModel;
 		this.source_url = source_url;
@@ -130,7 +143,10 @@ public class EolAndEosSoftwareModel {
 		this.os_name = os_name;
 		this.end_of_extended_support = end_of_extended_support;
 		this.active = active;
+		this.manual = manual;
 	}
+
+	
 
 
 
