@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
 @Table(name = "okta_login_details")
@@ -21,6 +22,9 @@ public class OktaLoginModel {
 	private String defaultSiteName;
 	@Column(name = "defaultpolicy")
 	private String defaultPolicy;
+	
+	@Transient
+	private String defaultPolicyName;
 
 	public String getId() {
 		return id;
@@ -71,14 +75,25 @@ public class OktaLoginModel {
 	}
 
 	public OktaLoginModel(String id, String publisherUrl, String clientId, boolean active, String defaultSiteName,
-			String defaultPolicy) {
+			String defaultPolicyName) {
 		super();
 		this.id = id;
 		this.publisherUrl = publisherUrl;
 		this.clientId = clientId;
 		this.active = active;
 		this.defaultSiteName = defaultSiteName;
-		this.defaultPolicy = defaultPolicy;
+		this.defaultPolicy = defaultPolicyName;
+		
+	}
+	
+	
+
+	public String getDefaultPolicyName() {
+		return defaultPolicyName;
+	}
+
+	public void setDefaultPolicyName(String defaultPolicyName) {
+		this.defaultPolicyName = defaultPolicyName;
 	}
 
 	public OktaLoginModel() {
