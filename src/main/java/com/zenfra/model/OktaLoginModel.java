@@ -22,7 +22,7 @@ public class OktaLoginModel {
 	private String defaultSiteName;
 	@Column(name = "defaultpolicy")
 	private String defaultPolicy;
-	
+
 	@Transient
 	private String defaultPolicyName;
 
@@ -75,7 +75,7 @@ public class OktaLoginModel {
 	}
 
 	public OktaLoginModel(String id, String publisherUrl, String clientId, boolean active, String defaultSiteName,
-			String defaultPolicyName) {
+			String defaultPolicyName, String defaultPolicy) {
 		super();
 		this.id = id;
 		this.publisherUrl = publisherUrl;
@@ -83,10 +83,8 @@ public class OktaLoginModel {
 		this.active = active;
 		this.defaultSiteName = defaultSiteName;
 		this.defaultPolicy = defaultPolicyName;
-		
+
 	}
-	
-	
 
 	public String getDefaultPolicyName() {
 		return defaultPolicyName;

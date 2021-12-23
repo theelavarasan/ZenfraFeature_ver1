@@ -15,6 +15,7 @@ public class OktaLoginService {
 	private OktaLoginRepository oktaLoginRepository;
 
 	public JSONObject saveData(OktaLoginModel oktaLoginModel) {
+		System.out.println("----------oktaLoginModel----------" + oktaLoginModel.getDefaultPolicyName());
 		JSONObject result = new JSONObject();
 		ObjectMapper mapper = new ObjectMapper();
 		System.out.println(oktaLoginModel);
@@ -43,12 +44,13 @@ public class OktaLoginService {
 		try {
 
 			OktaLoginModel res = oktaLoginRepository.findById(id).orElse(null);
-			resObject.put("id", res.getId());
-			resObject.put("publisherUrl", res.getPublisherUrl());
-			resObject.put("clientId", res.getClientId());
-			resObject.put("defaultSiteName", res.getDefaultSiteName());
-			resObject.put("defaultPolicy", res.getDefaultPolicy());
+//			resObject.put("id", res.getId());
+//			resObject.put("publisherUrl", res.getPublisherUrl());
+//			resObject.put("clientId", res.getClientId());
+//			resObject.put("defaultSiteName", res.getDefaultSiteName());
+//			resObject.put("defaultPolicy", res.getDefaultPolicy());
 
+			resObject.put("data", res);
 			return resObject;
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -58,19 +60,25 @@ public class OktaLoginService {
 
 	}
 
-	public String updateData(OktaLoginModel oktaLoginModel) {
+	public JSONObject updateData(OktaLoginModel oktaLoginModel) {
+		JSONObject resObject = new JSONObject();
 
 		try {
 			OktaLoginModel existingData = oktaLoginRepository.findById(oktaLoginModel.getId()).orElse(null);
 			existingData.setClientId(oktaLoginModel.getClientId());
 			existingData.setPublisherUrl(oktaLoginModel.getPublisherUrl());
+			existingData.setDefaultSiteName(oktaLoginModel.getDefaultSiteName());
+			existingData.setDefaultPolicy(oktaLoginModel.getDefaultPolicy());
 			existingData.setActive(oktaLoginModel.isActive());
 			oktaLoginRepository.save(existingData);
-			return "Success";
+			
+			resObject.put("data",existingData);
+			
+			return resObject;
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			return "Failure";
+			return resObject;
 		}
 	}
 
