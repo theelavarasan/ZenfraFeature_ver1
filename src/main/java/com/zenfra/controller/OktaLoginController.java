@@ -73,6 +73,7 @@ public class OktaLoginController {
 	public ResponseEntity<?> updateController(@RequestBody OktaLoginModel oktaLoginModel) {
 		oktaLoginModel.setActive(true);
 		oktaLoginModel.setDefaultPolicy(oktaLoginModel.getDefaultPolicyName());
+		System.out.println("!!!!! defaultsitename: " + oktaLoginModel.getDefaultSiteName());
 		return ResponseEntity.ok(oktaLoginService.updateData(oktaLoginModel));
 	}
 
