@@ -75,23 +75,31 @@ public class ValidationRuleService {
 		    }
 			
 			
-			
-			
 			if(actualDfFilePath != null) {
-				File f = new File(actualDfFilePath);
-				String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+				File f = new File(actualDfFilePath);			
 				
-			
-				
-				Dataset<Row> dataset = null;
+				Dataset<Row> dataset = sparkSession.emptyDataFrame();
+				boolean isPostgresDataframe = false;
 				try {
-					dataset = sparkSession.sql("select * from global_temp." + viewName);	
+					 String viewName = siteKey+"_"+deviceType.toLowerCase();
+					 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");	
+					dataset = sparkSession.sql("select * from global_temp." + viewName);
+					isPostgresDataframe = true;
 				} catch (Exception e) {
-					System.out.println("---------View Not exists--------");
-					dataframeService.createDataframeForJsonData(f.getAbsolutePath());
+					e.printStackTrace();
 				}
 				
-				dataset = sparkSession.sql("select data from global_temp." + viewName);
+				if(!isPostgresDataframe) {
+					String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+					
+					try {
+						dataset = sparkSession.sql("select * from global_temp." + viewName);	
+					} catch (Exception e) {
+						dataframeService.createDataframeForJsonData(f.getAbsolutePath());
+					}
+					dataset = sparkSession.sql("select data from global_temp." + viewName);
+				}
+				
 				dataset.printSchema();
 				String dataArray = dataset.toJSON().collectAsList().toString();		
 				
