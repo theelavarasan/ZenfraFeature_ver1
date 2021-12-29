@@ -2,7 +2,7 @@ package com.zenfra.model;
 
 import javax.persistence.Entity;
 
-@Entity
+
 public class ValidationModel {
 	
 	private String authUserId;
