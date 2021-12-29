@@ -52,15 +52,17 @@ public class EolAndEosHardwareService {
 			for (EolAndEosHardwareModel model : models) {
 				EolAndEosHardwareModel existing = eolAndEosHardwareRepository
 						.findById(new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel())).orElse(null);
-				existing.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
-				;
-				existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
-				existing.setSource_link(model.getSource_link());
-				existing.setEol_eos_hw_id(model.getEol_eos_hw_id());
-				existing.setUser_id(model.getUser_id());
-				existing.setActive(model.isActive());
-				massUpdate.add(existing);
-				//System.out.println("--------------------" + massUpdate);
+				if(existing!= null) {
+					existing.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
+					existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
+					existing.setSource_link(model.getSource_link());
+					existing.setEol_eos_hw_id(model.getEol_eos_hw_id());
+					existing.setUser_id(model.getUser_id());
+					existing.setActive(model.isActive());
+					massUpdate.add(existing);
+				}
+				
+				
 			}
 			eolAndEosHardwareRepository.saveAll(massUpdate);
 			responseModel.setResponseMessage("Success");

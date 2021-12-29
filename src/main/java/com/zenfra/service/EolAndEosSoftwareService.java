@@ -25,52 +25,54 @@ public class EolAndEosSoftwareService {
 
 	public ResponseEntity<?> saveData(List<EolAndEosSoftwareModel> models) {
 		try {
-			
-			for(EolAndEosSoftwareModel model : models) {
-				
+
+			for (EolAndEosSoftwareModel model : models) {
+
 				model.setEol_eos_sw_id(UUID.randomUUID().toString());
 				model.setEolAndEosSoftwareIdentityModel(
 						new EolAndEosSoftwareIdentityModel(model.getOs_version(), model.getOs_name()));
 				eolAndEosSoftwareRepository.save(model);
 			}
-						
+
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
-			responseModel.setResponseCode(HttpStatus.OK);	
+			responseModel.setResponseCode(HttpStatus.OK);
 			responseModel.setjData(models);
 			return ResponseEntity.ok(responseModel);
-			
+
 		}
-		
-		    catch (Exception e) {
+
+		catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setStatusCode(500);
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
 		}
-		
+
 	}
 
 	public ResponseEntity<?> update(List<EolAndEosSoftwareModel> models) {
 		List<EolAndEosSoftwareModel> massUpdate = new ArrayList();
 		try {
-			for(EolAndEosSoftwareModel model : models) {
+			for (EolAndEosSoftwareModel model : models) {
 				EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository
 						.findById(new EolAndEosSoftwareIdentityModel(model.getOs_version(), model.getOs_name()))
 						.orElse(null);
-				existing.setEol_eos_sw_id(model.getEol_eos_sw_id());
-				existing.setSource_url(model.getSource_url());
-				existing.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
-				existing.setOs_type(model.getOs_type());
-				existing.setUser_id(model.getUser_id());
-				existing.setOs_name(model.getOs_name());
-				existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
-				existing.setActive(model.isActive());
-				massUpdate.add(existing);
-				
-				
-			}	
-			eolAndEosSoftwareRepository.saveAll(massUpdate);	
+				if (existing != null) {
+					existing.setEol_eos_sw_id(model.getEol_eos_sw_id());
+					existing.setSource_url(model.getSource_url());
+					existing.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
+					existing.setOs_type(model.getOs_type());
+					existing.setUser_id(model.getUser_id());
+					existing.setOs_name(model.getOs_name());
+					existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
+					existing.setActive(model.isActive());
+					massUpdate.add(existing);
+
+				}
+
+			}
+			eolAndEosSoftwareRepository.saveAll(massUpdate);
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
