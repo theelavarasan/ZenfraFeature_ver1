@@ -1,5 +1,6 @@
 package com.zenfra.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.dao.EolAndEosSoftwareRepository;
+import com.zenfra.model.EolAndEosHardwareModel;
 import com.zenfra.model.EolAndEosSoftwareIdentityModel;
 import com.zenfra.model.EolAndEosSoftwareModel;
 import com.zenfra.model.ResponseModel_v2;
@@ -50,6 +52,7 @@ public class EolAndEosSoftwareService {
 	}
 
 	public ResponseEntity<?> update(List<EolAndEosSoftwareModel> models) {
+		List<EolAndEosSoftwareModel> massUpdate = new ArrayList();
 		try {
 			for(EolAndEosSoftwareModel model : models) {
 				EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository
@@ -63,8 +66,11 @@ public class EolAndEosSoftwareService {
 				existing.setOs_name(model.getOs_name());
 				existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
 				existing.setActive(model.isActive());
-				eolAndEosSoftwareRepository.save(existing);	
+				massUpdate.add(existing);
+				
+				
 			}	
+			eolAndEosSoftwareRepository.saveAll(massUpdate);	
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
