@@ -432,7 +432,7 @@ public class HealthCheckService {
 			JSONParser parser = new JSONParser();
 			for (int i = 0; i < healthCheckList.size(); i++) {
 				JSONObject jObj = (JSONObject) healthCheckList.get(i);
-				JSONArray storageList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
+				/*JSONArray storageList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
 				JSONArray serverList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
 				JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
 				
@@ -460,7 +460,7 @@ public class HealthCheckService {
 				if (jObj.get("reportName").toString().equalsIgnoreCase("End-To-End-Detail")) {
 					reportBy = "Server - Switch - Storage";
 					jObj.replace("reportName", reportBy);
-				}
+				}*/
 				boolean isreadAccess = true;
 				boolean isWriteAccess = false;
 				Set<String> keys = jObj.keySet();

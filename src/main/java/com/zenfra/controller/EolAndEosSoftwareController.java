@@ -26,6 +26,7 @@ public class EolAndEosSoftwareController {
 	public ResponseEntity<?> insertData(@RequestBody List<EolAndEosSoftwareModel> models) {
 		for (EolAndEosSoftwareModel model : models) {
 			model.setActive(true);
+			model.setManual(true);
 		}
 		return ResponseEntity.ok(eolAndEosSoftwareService.saveData(models));
 
