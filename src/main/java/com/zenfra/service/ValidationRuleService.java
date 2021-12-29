@@ -2,6 +2,7 @@ package com.zenfra.service;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,15 +43,15 @@ public class ValidationRuleService {
 	 private ObjectMapper mapper = new ObjectMapper();
 	 private JSONParser parser = new  JSONParser();
 
-	@SuppressWarnings("unchecked")
-	public  Map<String, List<String>> getDiscoveryReportValues(String siteKey, String reportBy, String columnName, String category,
+	
+	public  Map<String, List<Object>> getDiscoveryReportValues(String siteKey, String reportBy, String columnName, String category,
 			String deviceType, String reportList) {
 		
         String actualDfFolderPath = null;
         String actualDfFilePath = null;
 		String dataframePath = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator;
 		
-        Map<String, List<String>> resutData = new HashMap<>();
+        Map<String, List<Object>> resutData = new HashMap<>();
 		
 		File dir = new File(dataframePath);
 		for(File file : dir.listFiles()) {
@@ -92,42 +93,47 @@ public class ValidationRuleService {
 				
 				dataset = sparkSession.sql("select data from global_temp." + viewName);
 				dataset.printSchema();
-				String dataArray = dataset.toJSON().collectAsList().toString();				
+				String dataArray = dataset.toJSON().collectAsList().toString();		
+				
 				try {
-					JSONArray dataObj = (JSONArray) parser.parse(dataArray);					
+					JSONArray dataObj = (JSONArray) parser.parse(dataArray);	
+					
 					for(int i=0; i<dataObj.size(); i++) {
 						JSONObject jsonObject = (JSONObject) dataObj.get(i);					
-						JSONArray dataAry = (JSONArray) jsonObject.get("data");					
+						JSONArray dataAry = (JSONArray) jsonObject.get("data");	
+						
 						for(int j=0; j<dataAry.size(); j++) {
-							  JSONObject data = (JSONObject) dataAry.get(j);
-							  Set<String> keys =  data.keySet();						   
+							  JSONObject data = (JSONObject) dataAry.get(j);							
+							  Set<String> keys =  data.keySet();								 
 							  for(String key : keys) { 
-								  if(resutData.containsKey(key)) {
-									  List<String> values = resutData.get(key);
+								
+								  if(resutData.containsKey(key.trim())) {
+									
+									  List<Object> values = resutData.get(key.trim());
 									  if(!values.contains(data.get(key))) {
-										  values.add((String) data.get(key));
+										  values.add(data.get(key));
+										  values.removeAll(Arrays.asList("", null));
 										  resutData.put(key, values);
 									  }
 								  } else {
-									  List<String> values = new ArrayList<>();
-									  if(!values.contains(data.get(key))) {
-										  values.add((String) data.get(key));
+									
+									  List<Object> values = new ArrayList<>();									 
+										  values.add(data.get(key));
+										  values.removeAll(Arrays.asList("", null));
 										  resutData.put(key, values);
-									  }
 								  }
 							  }
+							
 						}
 					}
-				} catch (ParseException e) {					
+				} catch (Exception e) {					
 					e.printStackTrace();
 				}
 				
 				
 			}
 		}
-		
-	
-		//System.out.println("------------resultArray: " + resultArray);
+		 
 		return resutData;
 	}
 
