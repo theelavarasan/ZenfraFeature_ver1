@@ -1,11 +1,10 @@
 package com.zenfra.service;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.HashSet;
-import java.util.Properties;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.spark.sql.Dataset;
@@ -14,119 +13,122 @@ import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.parse.model.ZKConstants;
-import com.parse.model.ZKModel;
-import com.parse.serviceImpl.QueryExecutor;
-import com.parse.util.ZenfraJSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.dataframe.service.DataframeService;
+
+
+
+
 
 @Component
 public class ValidationRuleService {
 
 	@Autowired
 	SparkSession sparkSession;
+	
+	 @Value("${zenfra.path}")
+	 private String commonPath;
+	 
+	 @Autowired
+     DataframeService dataframeService;	
+	 
+	 private ObjectMapper mapper = new ObjectMapper();
+	 private JSONParser parser = new  JSONParser();
 
 	@SuppressWarnings("unchecked")
-	public JSONArray getDiscoveryReportValues(String siteKey, String reportBy, String columnName, String category,
+	public  Map<String, List<String>> getDiscoveryReportValues(String siteKey, String reportBy, String columnName, String category,
 			String deviceType, String reportList) {
-		System.out.println("---------------Inside Method");
-
-		JSONArray resultArray = new JSONArray();
-		String viewName = siteKey + "_" + deviceType.toLowerCase();
-
-		try {
-			Dataset<Row> dataset = sparkSession.sql("select * from global_temp." + viewName);
-			dataset = dataset.sqlContext().sql("select distinct(columnName) from global_temp." + viewName);
-			dataset = (Dataset<Row>) dataset.collectAsList();
-			System.out.println("--------------Dataset" + dataset);
-			resultArray.add(dataset);
-
-		} catch (Exception e) {
-			System.out.println("---------View Not exists--------");
-		}
-		String path = ZKModel.getProperty(ZKConstants.DISCOVERY_REPORT_PROPERTIES);
-		System.out.println("!!!!! path: " + path);
-		InputStream inputFile = null;
-		JSONArray resultArray = new JSONArray();
-		JSONParser parser = new JSONParser();
-		try {
-			ClassLoader classLoader = getClass().getClassLoader();
-			URL resources = classLoader.getResource(path);
-			inputFile = new FileInputStream(resources.getFile());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Properties prop = new Properties();
-		try {
-			prop.load(inputFile);
-		} catch (IOException e1) {
-
-			e1.printStackTrace();
-		}
-
-		String reportQuery = "";
-
-		System.out.println("===========Condition Values" + reportList + category);
-
-		if ((reportList.equalsIgnoreCase("local") || reportList.equalsIgnoreCase("End-To-End-Basic"))
-				&& !category.equalsIgnoreCase("Third Party Data") && !category.equalsIgnoreCase("Project")) {
-
-			try {
-				String key = reportList + "_" + deviceType + "_" + reportBy.replace(" ", "");
-				System.out.println("!!!!! query key: " + key);
-				System.out.println("---------------------" + prop);
-				if (prop.containsKey(key)) {
-					reportQuery = prop.getProperty(key);
-					reportQuery = reportQuery.replace("[%s]", siteKey);
-					reportQuery = reportQuery.replace("[%c]", deviceType.toLowerCase());
-					// System.out.println("--------------Report Query: "+ reportQuery);
-
-					JSONArray reportArray = new JSONArray();
-					// System.out.println("!!!!! reportQuery: " + reportQuery);
-					if (reportQuery.length() > 0) {
-						// System.out.println("!!!!! deviceType: " + deviceType);
-						if (deviceType.equalsIgnoreCase("AWS")) {
-							reportArray = filterServiceImpl.queryExecutorPostgressql(deviceType, reportQuery);
-							System.out.println("!!!!!**** SIZE: " + reportArray.size());
-						} else {
-							reportArray = QueryExecutor.orientDBQueryExecution(reportQuery);
-						}
-
-						Set<String> checkValue = new HashSet<String>();
-						// System.out.println("----------reportArray"+ reportArray);
-						for (int i = 0; i < reportArray.size(); i++) {
-							ZenfraJSONObject valueObject = (ZenfraJSONObject) reportArray.get(i);
-							JSONArray dataArray = (JSONArray) parser.parse(valueObject.get("data").toString());
-							if (dataArray != null && !dataArray.isEmpty()) {
-								JSONObject dataObject = (JSONObject) dataArray.get(0);
-								if (dataObject.containsKey(columnName)) {
-									if (dataObject.get(columnName) != null
-											&& !dataObject.get(columnName).toString().trim().equalsIgnoreCase("")) {
-										checkValue.add(dataObject.get(columnName).toString());
-									}
-
-								}
-							}
-
-						}
-
-						if (!checkValue.isEmpty()) {
-							resultArray.addAll(checkValue);
-							System.out.println("------------resultArray: " + resultArray);
+		
+        String actualDfFolderPath = null;
+        String actualDfFilePath = null;
+		String dataframePath = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator;
+		
+        Map<String, List<String>> resutData = new HashMap<>();
+		
+		File dir = new File(dataframePath);
+		for(File file : dir.listFiles()) {
+			
+		    if(file.isDirectory() && file.getName().equalsIgnoreCase(deviceType)) {
+		    	actualDfFolderPath = file.getAbsolutePath();
+		    	break;
+		    }
+	    }
+		
+		System.out.println("------actualDfFolderPath " +  actualDfFolderPath);
+		
+		if(actualDfFolderPath != null) {
+			File d = new File(actualDfFolderPath);
+			for(File file : d.listFiles()) {
+				
+			    if(file.isFile() && file.getName().toLowerCase().contains(reportList.toLowerCase())) { // && file.getName().toLowerCase().contains(category.toLowerCase())
+			    	actualDfFilePath = file.getAbsolutePath();
+			    	break;
+			    }
+		    }
+			
+			
+			
+			
+			if(actualDfFilePath != null) {
+				File f = new File(actualDfFilePath);
+				String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+				
+			
+				
+				Dataset<Row> dataset = null;
+				try {
+					dataset = sparkSession.sql("select * from global_temp." + viewName);	
+				} catch (Exception e) {
+					System.out.println("---------View Not exists--------");
+					dataframeService.createDataframeForJsonData(f.getAbsolutePath());
+				}
+				
+				dataset = sparkSession.sql("select data from global_temp." + viewName);
+				dataset.printSchema();
+				String dataArray = dataset.toJSON().collectAsList().toString();				
+				try {
+					JSONArray dataObj = (JSONArray) parser.parse(dataArray);					
+					for(int i=0; i<dataObj.size(); i++) {
+						JSONObject jsonObject = (JSONObject) dataObj.get(i);					
+						JSONArray dataAry = (JSONArray) jsonObject.get("data");					
+						for(int j=0; j<dataAry.size(); j++) {
+							  JSONObject data = (JSONObject) dataAry.get(j);
+							  Set<String> keys =  data.keySet();						   
+							  for(String key : keys) { 
+								  if(resutData.containsKey(key)) {
+									  List<String> values = resutData.get(key);
+									  if(!values.contains(data.get(key))) {
+										  values.add((String) data.get(key));
+										  resutData.put(key, values);
+									  }
+								  } else {
+									  List<String> values = new ArrayList<>();
+									  if(!values.contains(data.get(key))) {
+										  values.add((String) data.get(key));
+										  resutData.put(key, values);
+									  }
+								  }
+							  }
 						}
 					}
+				} catch (ParseException e) {					
+					e.printStackTrace();
 				}
-			}
-
-			catch (Exception e) {
-				e.printStackTrace();
+				
+				
 			}
 		}
-
-		System.out.println("------------resultArray: " + resultArray);
-		return resultArray;
+		
+	
+		//System.out.println("------------resultArray: " + resultArray);
+		return resutData;
 	}
 
 }

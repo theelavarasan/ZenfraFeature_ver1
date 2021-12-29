@@ -1,5 +1,8 @@
 package com.zenfra.controller;
 
+import java.util.List;
+import java.util.Map;
+
 import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +35,11 @@ public class ValidationRuleController {
 		System.out.println("----------Inside Controller");
 
 		JSONArray resultArray = new JSONArray();
-		resultArray = validationRuleService.getDiscoveryReportValues(siteKey, reportBy, columnName, category,
+		Map<String, List<String>> resultData = validationRuleService.getDiscoveryReportValues(siteKey, reportBy, columnName, category,
 				deviceType, reportList);
+		
+		System.out.println("----------resultData=------- " + resultData);
+		
 		return ResponseEntity.ok(resultArray);
 
 	}
