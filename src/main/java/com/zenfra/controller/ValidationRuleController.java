@@ -26,13 +26,15 @@ public class ValidationRuleController {
 
 	@RequestMapping(value = "/health-check/get-field-values", method = RequestMethod.POST)
 	public ResponseEntity<?> getFieldValues(@RequestBody ValidationModel model) {
-	
+	System.out.println("-------------1111-----------------");
 		Map<String, List<Object>> resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
 			   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList());	
 
 		if(resultData.containsKey(model.getColumnName())) {
+			System.out.println("-----------22222222333333--------------" + resultData.get(model.getColumnName()));
 			return ResponseEntity.ok(resultData.get(model.getColumnName()));
 		}
+		System.out.println("------------empty result----------------");
 		return ResponseEntity.ok(new JSONArray());
 
 	}
