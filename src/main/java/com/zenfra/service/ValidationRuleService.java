@@ -74,23 +74,24 @@ public class ValidationRuleService {
 			    	break;
 			    }
 		    }
+			System.out.println("-----1------------ " +  actualDfFolderPath);
+			System.out.println("---reportBy------------ " +  reportBy);
 			
 			
-			if(actualDfFilePath != null) {
+			if(actualDfFilePath != null || reportBy != null && reportBy.trim().equalsIgnoreCase("Server")) {
 				File f = new File(actualDfFilePath);			
 				
 				Dataset<Row> dataset = sparkSession.emptyDataFrame();
-				boolean isPostgresDataframe = false;
-				try {
-					 String viewName = siteKey+"_"+deviceType.toLowerCase();
-					 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");	
-					dataset = sparkSession.sql("select * from global_temp." + viewName);
-					isPostgresDataframe = true;
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
 				
-				if(!isPostgresDataframe) {
+				if(reportBy!= null && reportBy.trim().equalsIgnoreCase("Server")) { //postgres dataframes
+					try {
+						 String viewName = siteKey+"_"+deviceType.toLowerCase();
+						 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");	
+						dataset = sparkSession.sql("select * from global_temp." + viewName);						
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				} else {
 					String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
 					
 					try {
