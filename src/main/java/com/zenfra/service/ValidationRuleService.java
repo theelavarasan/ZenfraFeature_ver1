@@ -64,11 +64,12 @@ public class ValidationRuleService {
 		
 		System.out.println("------actualDfFolderPath " +  actualDfFolderPath);
 		
+		//dirPath+siteKey+"_"+reportType+"_"+category+"_"+providers+"_"+reportList+"_"+reportBy+".json";	
 		if(actualDfFolderPath != null) {
 			File d = new File(actualDfFolderPath);
 			for(File file : d.listFiles()) {
 				
-			    if(file.isFile() && file.getName().toLowerCase().contains(reportList.toLowerCase())) { // && file.getName().toLowerCase().contains(category.toLowerCase())
+			    if(file.isFile() && file.getName().toLowerCase().contains(reportList.toLowerCase()) &&  file.getName().toLowerCase().contains(reportBy.toLowerCase()+".json")) { // && file.getName().toLowerCase().contains(category.toLowerCase())
 			    	actualDfFilePath = file.getAbsolutePath();
 			    	break;
 			    }
