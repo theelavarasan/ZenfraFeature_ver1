@@ -51,7 +51,7 @@ public class ValidationRuleService {
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		Map<String, List<Object>> resutData = new HashMap<>(); 
 		
-		if(reportBy != null && reportBy.trim().equalsIgnoreCase("Server")) {
+		if(reportBy != null && reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server")) {
 			try {
 				 String viewName = siteKey+"_"+deviceType.toLowerCase();					
 				 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");	
