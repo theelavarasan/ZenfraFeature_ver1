@@ -1,5 +1,7 @@
 package com.zenfra.model;
 
+import java.util.Date;
+
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -32,6 +34,10 @@ public class EolAndEosHardwareModel {
 	private boolean active;
 	
 	private boolean manual;
+	
+	private Date create_date;
+	
+	private Date update_date;
 
 	public EolAndEosHardwareIdentityModel getEolAndEosHardwareIdentityModel() {
 		return eolAndEosHardwareIdentityModel;
@@ -117,6 +123,22 @@ public class EolAndEosHardwareModel {
 
 	public EolAndEosHardwareModel() {
 		super();
+	}	
+
+	public Date getCreate_date() {
+		return create_date;
+	}
+
+	public void setCreate_date(Date create_date) {
+		this.create_date = create_date;
+	}
+
+	public Date getUpdate_date() {
+		return update_date;
+	}
+
+	public void setUpdate_date(Date update_date) {
+		this.update_date = update_date;
 	}
 
 	public EolAndEosHardwareModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel, String vendor,

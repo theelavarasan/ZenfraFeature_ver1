@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.model.EolAndEosHardwareModel;
 import com.zenfra.service.EolAndEosHardwareService;
+import com.zenfra.utils.CommonFunctions;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -21,12 +22,17 @@ public class EolAndEosHardwareController {
 
 	@Autowired
 	private EolAndEosHardwareService eolAndEosHardwareService;
+	
+	@Autowired
+	CommonFunctions commonFunctions;
 
 	@PostMapping("/insert")
 	public ResponseEntity<?> insertData(@RequestBody List<EolAndEosHardwareModel> models) {
 		for (EolAndEosHardwareModel model : models) {
 			model.setActive(true);
 			model.setManual(true);
+			model.setCreate_date(commonFunctions.getUtcDateTime());
+			model.setUpdate_date(commonFunctions.getUtcDateTime());
 		}
 			
 		return ResponseEntity.ok(eolAndEosHardwareService.saveData(models));
@@ -35,16 +41,22 @@ public class EolAndEosHardwareController {
 
 	@PutMapping("/update")
 	public ResponseEntity<?> updatedata(@RequestBody List<EolAndEosHardwareModel> models) {
-		for (EolAndEosHardwareModel model : models) 
-			model.setActive(true);
+		for (EolAndEosHardwareModel model : models) {
+			model.setActive(true);			
+			model.setUpdate_date(commonFunctions.getUtcDateTime());
+		}
+			
 		return ResponseEntity.ok(eolAndEosHardwareService.update(models));
 	}
 	
 
 	@PutMapping("/delete")
 	public ResponseEntity<?> deleteData(@RequestBody List<EolAndEosHardwareModel> models) {
-		for (EolAndEosHardwareModel model : models) 
+		for (EolAndEosHardwareModel model : models) {
 			model.setActive(false);
+			model.setUpdate_date(commonFunctions.getUtcDateTime());
+		}
+			
 		return ResponseEntity.ok(eolAndEosHardwareService.update(models));
 
 	}

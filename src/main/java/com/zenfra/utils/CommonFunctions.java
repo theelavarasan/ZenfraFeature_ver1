@@ -620,4 +620,8 @@ public class CommonFunctions {
 				return utcTime;
 				
 			}
+		  
+		  public Date getUtcDateTime() {
+			 return  Date.from(Instant.now());
+		  }
 }

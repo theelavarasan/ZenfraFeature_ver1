@@ -66,6 +66,7 @@ public class EolAndEosSoftwareService {
 					existing.setOs_name(model.getOs_name());
 					existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
 					existing.setActive(model.isActive());
+					existing.setUpdate_date(model.getUpdate_date());
 					massUpdate.add(existing);
 
 				}

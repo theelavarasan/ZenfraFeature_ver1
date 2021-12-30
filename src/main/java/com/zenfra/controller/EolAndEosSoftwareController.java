@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zenfra.model.EolAndEosSoftwareModel;
 import com.zenfra.service.EolAndEosSoftwareService;
+import com.zenfra.utils.CommonFunctions;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -21,12 +22,17 @@ public class EolAndEosSoftwareController {
 
 	@Autowired
 	private EolAndEosSoftwareService eolAndEosSoftwareService;
+	
+	@Autowired
+	CommonFunctions commonFunctions;
 
 	@PostMapping("/insert")
 	public ResponseEntity<?> insertData(@RequestBody List<EolAndEosSoftwareModel> models) {
 		for (EolAndEosSoftwareModel model : models) {
 			model.setActive(true);
 			model.setManual(true);
+			model.setCreate_date(commonFunctions.getUtcDateTime());
+			model.setUpdate_date(commonFunctions.getUtcDateTime());
 		}
 		return ResponseEntity.ok(eolAndEosSoftwareService.saveData(models));
 
@@ -36,6 +42,7 @@ public class EolAndEosSoftwareController {
 	public ResponseEntity<?> updateData(@RequestBody List<EolAndEosSoftwareModel> models) {
 		for (EolAndEosSoftwareModel model : models) {
 			model.setActive(true);
+			model.setUpdate_date(commonFunctions.getUtcDateTime());
 		}
 		return ResponseEntity.ok(eolAndEosSoftwareService.update(models));
 	}
@@ -44,6 +51,7 @@ public class EolAndEosSoftwareController {
 	public ResponseEntity<?> deletedata(@RequestBody List<EolAndEosSoftwareModel> models) {
 		for (EolAndEosSoftwareModel model : models) {
 			model.setActive(false);
+			model.setUpdate_date(commonFunctions.getUtcDateTime());
 		}
 		return ResponseEntity.ok(eolAndEosSoftwareService.update(models));
 	}
