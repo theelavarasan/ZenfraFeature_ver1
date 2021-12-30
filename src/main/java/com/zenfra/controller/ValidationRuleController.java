@@ -30,8 +30,12 @@ public class ValidationRuleController {
 		Map<String, List<Object>> resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
 			   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList());	
 
-		if(resultData.containsKey(model.getColumnName())) {		
-			return ResponseEntity.ok(resultData.get(model.getColumnName()));
+		String colName = model.getColumnName();
+		if(colName.contains("_")) {
+			colName = colName.split("_")[1];
+		}
+		if(resultData.containsKey(colName)) {		
+			return ResponseEntity.ok(resultData.get(colName));
 		}
 		
 		return ResponseEntity.ok(new JSONArray());
