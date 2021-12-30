@@ -55,9 +55,8 @@ public class EolAndEosSoftwareService {
 		List<EolAndEosSoftwareModel> massUpdate = new ArrayList();
 		try {
 			for (EolAndEosSoftwareModel model : models) {
-				EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository
-						.findById(new EolAndEosSoftwareIdentityModel(model.getOs_version(), model.getOs_name()))
-						.orElse(null);
+				EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository.findBySwId(model
+						.getEol_eos_sw_id());
 				if (existing != null) {
 					existing.setEol_eos_sw_id(model.getEol_eos_sw_id());
 					existing.setSource_url(model.getSource_url());

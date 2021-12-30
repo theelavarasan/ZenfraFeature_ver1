@@ -50,8 +50,12 @@ public class EolAndEosHardwareService {
 		List<EolAndEosHardwareModel> massUpdate = new ArrayList();
 		try {
 			for (EolAndEosHardwareModel model : models) {
-				EolAndEosHardwareModel existing = eolAndEosHardwareRepository
-						.findById(new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel())).orElse(null);
+				/*
+				 * EolAndEosHardwareModel existing = eolAndEosHardwareRepository .findById(new
+				 * EolAndEosHardwareIdentityModel(model.getVendor(),
+				 * model.getModel())).orElse(null);
+				 */
+				EolAndEosHardwareModel existing = eolAndEosHardwareRepository.findByHwId(model.getEol_eos_hw_id());
 				if(existing!= null) {
 					existing.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
 					existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
