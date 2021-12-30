@@ -116,9 +116,9 @@ public class ValidationRuleService {
 				System.out.println("----d.listFiles()------- "  + d.listFiles());
 				for(File file : d.listFiles()) {
 					
-					System.out.println("---- file.getName()----- "  +  file.getName());
+					System.out.println("---- file.getName()----- "  +  file.getName().toLowerCase() + " : " + reportBy.toLowerCase());
 					
-				    if(file.isFile() && file.getName().toLowerCase().contains(reportList.toLowerCase()) &&  file.getName().toLowerCase().contains(reportBy.toLowerCase()+".json")) { // && file.getName().toLowerCase().contains(category.toLowerCase())
+				    if(file.isFile() && file.getName().toLowerCase().contains(category.toLowerCase()) &&  file.getName().toLowerCase().contains(reportBy.toLowerCase()+".json")) { // && file.getName().toLowerCase().contains(category.toLowerCase())
 				    	actualDfFilePath = file.getAbsolutePath();
 				    	break;
 				    }
