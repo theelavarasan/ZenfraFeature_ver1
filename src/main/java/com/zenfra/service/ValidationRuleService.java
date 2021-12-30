@@ -78,14 +78,18 @@ public class ValidationRuleService {
 			System.out.println("---reportBy------------ " +  reportBy);
 			
 			
-			if(actualDfFilePath != null || reportBy != null && reportBy.trim().equalsIgnoreCase("Server")) {
+			if(actualDfFilePath != null || (reportBy != null && reportBy.trim().equalsIgnoreCase("Server"))) {
 				File f = new File(actualDfFilePath);			
 				
 				Dataset<Row> dataset = sparkSession.emptyDataFrame();
 				
+				System.out.println("---emptyDF------------ " );
+				
 				if(reportBy!= null && reportBy.trim().equalsIgnoreCase("Server")) { //postgres dataframes
 					try {
 						 String viewName = siteKey+"_"+deviceType.toLowerCase();
+							
+							System.out.println("---viewName1------------ " + viewName );
 						 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");	
 						dataset = sparkSession.sql("select * from global_temp." + viewName);						
 					} catch (Exception e) {
@@ -93,7 +97,7 @@ public class ValidationRuleService {
 					}
 				} else {
 					String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
-					
+					System.out.println("---viewName2------------ " + viewName );
 					try {
 						dataset = sparkSession.sql("select * from global_temp." + viewName);	
 					} catch (Exception e) {
