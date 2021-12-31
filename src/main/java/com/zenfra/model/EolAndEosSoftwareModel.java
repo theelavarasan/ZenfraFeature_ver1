@@ -1,8 +1,12 @@
 package com.zenfra.model;
 
+import java.util.Date;
+
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
@@ -34,6 +38,9 @@ public class EolAndEosSoftwareModel {
 	
 	private boolean manual;
 	
+	
+	private String updated_time;
+	private String updated_by;
 
 	public EolAndEosSoftwareIdentityModel getEolAndEosSoftwareIdentityModel() {
 		return eolAndEosSoftwareIdentityModel;
@@ -89,6 +96,7 @@ public class EolAndEosSoftwareModel {
 
 	public void setUser_id(String user_id) {
 		this.user_id = user_id;
+		this.updated_by = user_id;
 	}
 
 	public String getOs_name() {
@@ -127,11 +135,29 @@ public class EolAndEosSoftwareModel {
 
 	public EolAndEosSoftwareModel() {
 		super();
+	}	
+
+	
+
+	public String getUpdated_time() {
+		return updated_time;
+	}
+
+	public void setUpdated_time(String updated_time) {
+		this.updated_time = updated_time;
+	}
+
+	public String getUpdated_by() {
+		return updated_by;
+	}
+
+	public void setUpdated_by(String updated_by) {
+		this.updated_by = updated_by;
 	}
 
 	public EolAndEosSoftwareModel(EolAndEosSoftwareIdentityModel eolAndEosSoftwareIdentityModel, String source_url,
 			String end_of_life_cycle, String os_type, @NotNull String eol_eos_sw_id, String os_version, String user_id,
-			String os_name, String end_of_extended_support, boolean active, boolean manual) {
+			String os_name, String end_of_extended_support, boolean active, boolean manual, String updated_by) {
 		super();
 		this.eolAndEosSoftwareIdentityModel = eolAndEosSoftwareIdentityModel;
 		this.source_url = source_url;
@@ -144,6 +170,7 @@ public class EolAndEosSoftwareModel {
 		this.end_of_extended_support = end_of_extended_support;
 		this.active = active;
 		this.manual = manual;
+		this.updated_by = user_id;
 	}
 
 	

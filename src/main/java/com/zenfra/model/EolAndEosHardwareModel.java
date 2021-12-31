@@ -1,8 +1,12 @@
 package com.zenfra.model;
 
+import java.util.Date;
+
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
@@ -31,7 +35,10 @@ public class EolAndEosHardwareModel {
 
 	private boolean active;
 	
-	private boolean manual;
+	private boolean manual;	
+	
+	private String updated_time;
+	private String updated_by;
 
 	public EolAndEosHardwareIdentityModel getEolAndEosHardwareIdentityModel() {
 		return eolAndEosHardwareIdentityModel;
@@ -95,6 +102,7 @@ public class EolAndEosHardwareModel {
 
 	public void setUser_id(String user_id) {
 		this.user_id = user_id;
+		this.updated_by = user_id;
 	}
 
 	public boolean isActive() {
@@ -117,11 +125,28 @@ public class EolAndEosHardwareModel {
 
 	public EolAndEosHardwareModel() {
 		super();
+	}	
+	
+
+	public String getUpdated_time() {
+		return updated_time;
+	}
+
+	public void setUpdated_time(String updated_time) {
+		this.updated_time = updated_time;
+	}
+
+	public String getUpdated_by() {
+		return updated_by;
+	}
+
+	public void setUpdated_by(String updated_by) {
+		this.updated_by = updated_by;
 	}
 
 	public EolAndEosHardwareModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel, String vendor,
 			String model, @NotNull String eol_eos_hw_id, String end_of_life_cycle, String end_of_extended_support,
-			String source_link, String user_id, boolean active, boolean manual) {
+			String source_link, String user_id, boolean active, boolean manual, String updated_by) {
 		super();
 		this.eolAndEosHardwareIdentityModel = eolAndEosHardwareIdentityModel;
 		this.vendor = vendor;
@@ -133,6 +158,7 @@ public class EolAndEosHardwareModel {
 		this.user_id = user_id;
 		this.active = active;
 		this.manual = manual;
+		this.updated_by = user_id;
 	}
 
 	
