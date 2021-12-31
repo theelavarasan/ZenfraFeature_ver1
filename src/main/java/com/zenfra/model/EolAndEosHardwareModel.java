@@ -5,6 +5,8 @@ import java.util.Date;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
@@ -35,6 +37,7 @@ public class EolAndEosHardwareModel {
 	
 	private boolean manual;	
 	
+	@Temporal(TemporalType.DATE)
 	private Date updated_time;
 	private String updated_by;
 
