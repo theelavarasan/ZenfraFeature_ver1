@@ -100,6 +100,7 @@ public class EolAndEosHardwareModel {
 
 	public void setUser_id(String user_id) {
 		this.user_id = user_id;
+		this.updated_by = user_id;
 	}
 
 	public boolean isActive() {
