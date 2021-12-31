@@ -30,9 +30,8 @@ public class EolAndEosHardwareController {
 	public ResponseEntity<?> insertData(@RequestBody List<EolAndEosHardwareModel> models) {
 		for (EolAndEosHardwareModel model : models) {
 			model.setActive(true);
-			model.setManual(true);
-			model.setCreate_date(commonFunctions.getUtcDateTime());
-			model.setUpdate_date(commonFunctions.getUtcDateTime());
+			model.setManual(true);			
+			model.setUpdated_time(commonFunctions.getUtcDateTime());
 		}
 			
 		return ResponseEntity.ok(eolAndEosHardwareService.saveData(models));
@@ -43,7 +42,7 @@ public class EolAndEosHardwareController {
 	public ResponseEntity<?> updatedata(@RequestBody List<EolAndEosHardwareModel> models) {
 		for (EolAndEosHardwareModel model : models) {
 			model.setActive(true);			
-			model.setUpdate_date(commonFunctions.getUtcDateTime());
+			model.setUpdated_time(commonFunctions.getUtcDateTime());
 		}
 			
 		return ResponseEntity.ok(eolAndEosHardwareService.update(models));
@@ -54,7 +53,7 @@ public class EolAndEosHardwareController {
 	public ResponseEntity<?> deleteData(@RequestBody List<EolAndEosHardwareModel> models) {
 		for (EolAndEosHardwareModel model : models) {
 			model.setActive(false);
-			model.setUpdate_date(commonFunctions.getUtcDateTime());
+			model.setUpdated_time(commonFunctions.getUtcDateTime());
 		}
 			
 		return ResponseEntity.ok(eolAndEosHardwareService.update(models));

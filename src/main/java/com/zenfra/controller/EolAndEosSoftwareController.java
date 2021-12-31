@@ -30,9 +30,8 @@ public class EolAndEosSoftwareController {
 	public ResponseEntity<?> insertData(@RequestBody List<EolAndEosSoftwareModel> models) {
 		for (EolAndEosSoftwareModel model : models) {
 			model.setActive(true);
-			model.setManual(true);
-			model.setCreate_date(commonFunctions.getUtcDateTime());
-			model.setUpdate_date(commonFunctions.getUtcDateTime());
+			model.setManual(true);			
+			model.setUpdated_time(commonFunctions.getUtcDateTime());
 		}
 		return ResponseEntity.ok(eolAndEosSoftwareService.saveData(models));
 
@@ -42,7 +41,7 @@ public class EolAndEosSoftwareController {
 	public ResponseEntity<?> updateData(@RequestBody List<EolAndEosSoftwareModel> models) {
 		for (EolAndEosSoftwareModel model : models) {
 			model.setActive(true);
-			model.setUpdate_date(commonFunctions.getUtcDateTime());
+			model.setUpdated_time(commonFunctions.getUtcDateTime());
 		}
 		return ResponseEntity.ok(eolAndEosSoftwareService.update(models));
 	}
@@ -51,7 +50,7 @@ public class EolAndEosSoftwareController {
 	public ResponseEntity<?> deletedata(@RequestBody List<EolAndEosSoftwareModel> models) {
 		for (EolAndEosSoftwareModel model : models) {
 			model.setActive(false);
-			model.setUpdate_date(commonFunctions.getUtcDateTime());
+			model.setUpdated_time(commonFunctions.getUtcDateTime());
 		}
 		return ResponseEntity.ok(eolAndEosSoftwareService.update(models));
 	}

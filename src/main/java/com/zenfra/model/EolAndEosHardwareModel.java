@@ -33,11 +33,10 @@ public class EolAndEosHardwareModel {
 
 	private boolean active;
 	
-	private boolean manual;
+	private boolean manual;	
 	
-	private Date create_date;
-	
-	private Date update_date;
+	private Date updated_time;
+	private String updated_by;
 
 	public EolAndEosHardwareIdentityModel getEolAndEosHardwareIdentityModel() {
 		return eolAndEosHardwareIdentityModel;
@@ -124,26 +123,27 @@ public class EolAndEosHardwareModel {
 	public EolAndEosHardwareModel() {
 		super();
 	}	
+	
 
-	public Date getCreate_date() {
-		return create_date;
+	public Date getUpdated_time() {
+		return updated_time;
 	}
 
-	public void setCreate_date(Date create_date) {
-		this.create_date = create_date;
+	public void setUpdated_time(Date updated_time) {
+		this.updated_time = updated_time;
 	}
 
-	public Date getUpdate_date() {
-		return update_date;
+	public String getUpdated_by() {
+		return updated_by;
 	}
 
-	public void setUpdate_date(Date update_date) {
-		this.update_date = update_date;
+	public void setUpdated_by(String updated_by) {
+		this.updated_by = updated_by;
 	}
 
 	public EolAndEosHardwareModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel, String vendor,
 			String model, @NotNull String eol_eos_hw_id, String end_of_life_cycle, String end_of_extended_support,
-			String source_link, String user_id, boolean active, boolean manual) {
+			String source_link, String user_id, boolean active, boolean manual, String updated_by) {
 		super();
 		this.eolAndEosHardwareIdentityModel = eolAndEosHardwareIdentityModel;
 		this.vendor = vendor;
@@ -155,6 +155,7 @@ public class EolAndEosHardwareModel {
 		this.user_id = user_id;
 		this.active = active;
 		this.manual = manual;
+		this.updated_by = user_id;
 	}
 
 	

@@ -36,9 +36,8 @@ public class EolAndEosSoftwareModel {
 	
 	private boolean manual;
 	
-	private Date create_date;
-	
-	private Date update_date;
+	private Date updated_time;
+	private String updated_by;
 
 	public EolAndEosSoftwareIdentityModel getEolAndEosSoftwareIdentityModel() {
 		return eolAndEosSoftwareIdentityModel;
@@ -134,25 +133,27 @@ public class EolAndEosSoftwareModel {
 		super();
 	}	
 
-	public Date getCreate_date() {
-		return create_date;
+	
+
+	public Date getUpdated_time() {
+		return updated_time;
 	}
 
-	public void setCreate_date(Date create_date) {
-		this.create_date = create_date;
+	public void setUpdated_time(Date updated_time) {
+		this.updated_time = updated_time;
 	}
 
-	public Date getUpdate_date() {
-		return update_date;
+	public String getUpdated_by() {
+		return updated_by;
 	}
 
-	public void setUpdate_date(Date update_date) {
-		this.update_date = update_date;
+	public void setUpdated_by(String updated_by) {
+		this.updated_by = updated_by;
 	}
 
 	public EolAndEosSoftwareModel(EolAndEosSoftwareIdentityModel eolAndEosSoftwareIdentityModel, String source_url,
 			String end_of_life_cycle, String os_type, @NotNull String eol_eos_sw_id, String os_version, String user_id,
-			String os_name, String end_of_extended_support, boolean active, boolean manual) {
+			String os_name, String end_of_extended_support, boolean active, boolean manual, String updated_by) {
 		super();
 		this.eolAndEosSoftwareIdentityModel = eolAndEosSoftwareIdentityModel;
 		this.source_url = source_url;
@@ -165,6 +166,7 @@ public class EolAndEosSoftwareModel {
 		this.end_of_extended_support = end_of_extended_support;
 		this.active = active;
 		this.manual = manual;
+		this.updated_by = user_id;
 	}
 
 	
