@@ -621,7 +621,10 @@ public class CommonFunctions {
 				
 			}
 		  
-		  public Date getUtcDateTime() {
-			 return  Date.from(Instant.now());
+		  public String getUtcDateTime() {
+			  DateFormat formatterUTC = new SimpleDateFormat("mm-DD-yyyy HH:mm:ss");
+			  formatterUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+			  Date date = new Date();
+			  return formatterUTC.format(date);
 		  }
 }

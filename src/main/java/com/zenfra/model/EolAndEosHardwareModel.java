@@ -37,8 +37,7 @@ public class EolAndEosHardwareModel {
 	
 	private boolean manual;	
 	
-	@Temporal(TemporalType.DATE)
-	private Date updated_time;
+	private String updated_time;
 	private String updated_by;
 
 	public EolAndEosHardwareIdentityModel getEolAndEosHardwareIdentityModel() {
@@ -129,11 +128,11 @@ public class EolAndEosHardwareModel {
 	}	
 	
 
-	public Date getUpdated_time() {
+	public String getUpdated_time() {
 		return updated_time;
 	}
 
-	public void setUpdated_time(Date updated_time) {
+	public void setUpdated_time(String updated_time) {
 		this.updated_time = updated_time;
 	}
 
