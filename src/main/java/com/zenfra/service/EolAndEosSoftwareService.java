@@ -64,6 +64,7 @@ public class EolAndEosSoftwareService {
 					existing.setOs_type(model.getOs_type());
 					existing.setUser_id(model.getUser_id());
 					existing.setOs_name(model.getOs_name());
+					existing.setOs_version(model.getOs_version());
 					existing.setEnd_of_extended_support(model.getEnd_of_extended_support());
 					existing.setActive(model.isActive());
 					existing.setUpdated_time(model.getUpdated_time());
