@@ -75,7 +75,6 @@ public class EolAndEosSoftwareService {
 					EolAndEosSoftwareModel newEntry = new EolAndEosSoftwareModel();
 					newEntry.setEol_eos_sw_id(UUID.randomUUID().toString());
 					newEntry.setEolAndEosSoftwareIdentityModel(new EolAndEosSoftwareIdentityModel(model.getOs_version(), model.getOs_name()));
-					newEntry.setEol_eos_sw_id(model.getEol_eos_sw_id());
 					newEntry.setSource_url(model.getSource_url());
 					newEntry.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
 					newEntry.setOs_type(model.getOs_type());

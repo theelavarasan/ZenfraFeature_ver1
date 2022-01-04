@@ -74,8 +74,7 @@ public class EolAndEosHardwareService {
 					newEntry.setEolAndEosHardwareIdentityModel(new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel()));
 					newEntry.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
 					newEntry.setEnd_of_extended_support(model.getEnd_of_extended_support());
-					newEntry.setSource_link(model.getSource_link());
-					newEntry.setEol_eos_hw_id(model.getEol_eos_hw_id());
+					newEntry.setSource_link(model.getSource_link());					
 					newEntry.setUser_id(model.getUser_id());
 					newEntry.setActive(model.isActive());
 					newEntry.setUpdated_time(model.getUpdated_time());
