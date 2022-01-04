@@ -156,8 +156,8 @@ public class HealthCheckService {
 	private JSONObject convertEntityToModel(HealthCheck healthCheck) throws ParseException {
 		JSONObject response=new JSONObject();
 		JSONParser parser = new JSONParser();
-		
-		JSONArray storageList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
+		String reportBy = "";
+		/*JSONArray storageList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
 		JSONArray serverList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
 		JSONArray switchList = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
 		
@@ -176,7 +176,7 @@ public class HealthCheckService {
 		if (healthCheck.getReportBy().equalsIgnoreCase("End-To-End-Detail")) {
 			reportBy = "Server - Switch - Storage";
 		}*/
-		}
+		
 
 		
 		
