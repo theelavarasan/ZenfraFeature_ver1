@@ -85,9 +85,9 @@ public class FavouriteApiService_v2 {
 								row.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
 					}
 					row = common.getFavViewCheckNull(row);
-					Map<String, Object> rowMap = row;					
-					rowMap = setDeviceType(rowMap);
-					viewArr.add(rowMap);
+					//Map<String, Object> rowMap = row;					
+					//rowMap = setDeviceType(rowMap);
+					viewArr.add(row);
 
 				} catch (Exception e) {
 					e.printStackTrace();
