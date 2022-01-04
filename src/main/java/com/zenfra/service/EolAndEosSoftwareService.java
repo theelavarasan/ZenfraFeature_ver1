@@ -71,6 +71,24 @@ public class EolAndEosSoftwareService {
 					existing.setUpdated_by(model.getUpdated_by());
 					massUpdate.add(existing);
 
+				} else {
+					EolAndEosSoftwareModel newEntry = new EolAndEosSoftwareModel();
+					newEntry.setEol_eos_sw_id(UUID.randomUUID().toString());
+					newEntry.setEolAndEosSoftwareIdentityModel(new EolAndEosSoftwareIdentityModel(model.getOs_version(), model.getOs_name()));
+					newEntry.setSource_url(model.getSource_url());
+					newEntry.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
+					newEntry.setOs_type(model.getOs_type());
+					newEntry.setUser_id(model.getUser_id());
+					newEntry.setOs_name(model.getOs_name());
+					newEntry.setOs_version(model.getOs_version());
+					newEntry.setEnd_of_extended_support(model.getEnd_of_extended_support());
+					newEntry.setActive(model.isActive());
+					newEntry.setUpdated_time(model.getUpdated_time());
+					newEntry.setUpdated_by(model.getUpdated_by());
+					newEntry.setActive(true);
+					newEntry.setManual(true);
+					massUpdate.add(newEntry);
+					
 				}
 
 			}
