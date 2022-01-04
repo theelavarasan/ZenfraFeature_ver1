@@ -462,7 +462,7 @@ public class HealthCheckService {
 					reportBy = "Server - Switch - Storage";
 					jObj.replace("reportName", reportBy);
 				}*/
-				*/
+				
 				boolean isreadAccess = true;
 				boolean isWriteAccess = false;
 				Set<String> keys = jObj.keySet();
