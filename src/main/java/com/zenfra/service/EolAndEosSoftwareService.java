@@ -86,6 +86,8 @@ public class EolAndEosSoftwareService {
 					newEntry.setActive(model.isActive());
 					newEntry.setUpdated_time(model.getUpdated_time());
 					newEntry.setUpdated_by(model.getUpdated_by());
+					newEntry.setActive(true);
+					newEntry.setManual(true);
 					massUpdate.add(newEntry);
 					
 				}

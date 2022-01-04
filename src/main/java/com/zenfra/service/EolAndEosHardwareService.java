@@ -81,7 +81,9 @@ public class EolAndEosHardwareService {
 					newEntry.setUpdated_time(model.getUpdated_time());
 					newEntry.setUpdated_by(model.getUpdated_by());
 					newEntry.setVendor(model.getVendor());
-					newEntry.setModel(model.getModel());
+					newEntry.setModel(model.getModel());					
+					newEntry.setActive(true);
+					newEntry.setManual(true);
 					massUpdate.add(newEntry);
 				}
 				
