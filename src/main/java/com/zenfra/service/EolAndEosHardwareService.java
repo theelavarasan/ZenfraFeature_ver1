@@ -68,6 +68,21 @@ public class EolAndEosHardwareService {
 					existing.setVendor(model.getVendor());
 					existing.setModel(model.getModel());
 					massUpdate.add(existing);
+				} else {
+					EolAndEosHardwareModel newEntry = new EolAndEosHardwareModel();
+					newEntry.setEol_eos_hw_id(UUID.randomUUID().toString());
+					newEntry.setEolAndEosHardwareIdentityModel(new EolAndEosHardwareIdentityModel(model.getVendor(), model.getModel()));
+					newEntry.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
+					newEntry.setEnd_of_extended_support(model.getEnd_of_extended_support());
+					newEntry.setSource_link(model.getSource_link());
+					newEntry.setEol_eos_hw_id(model.getEol_eos_hw_id());
+					newEntry.setUser_id(model.getUser_id());
+					newEntry.setActive(model.isActive());
+					newEntry.setUpdated_time(model.getUpdated_time());
+					newEntry.setUpdated_by(model.getUpdated_by());
+					newEntry.setVendor(model.getVendor());
+					newEntry.setModel(model.getModel());
+					massUpdate.add(newEntry);
 				}
 				
 				
