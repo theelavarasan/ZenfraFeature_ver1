@@ -107,4 +107,22 @@ public class EolAndEosHardwareService {
 
 	}
 
+	public ResponseEntity<?> delete(List<EolAndEosHardwareModel> models) {
+		try {
+			eolAndEosHardwareRepository.deleteAll(models);
+			responseModel.setResponseMessage("Success");
+			responseModel.setStatusCode(200);
+			responseModel.setResponseCode(HttpStatus.OK);
+			responseModel.setjData(models);
+			return ResponseEntity.ok(responseModel);
+		} catch(Exception e) {
+			e.printStackTrace();
+			e.printStackTrace();
+			responseModel.setStatusCode(500);
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			return (ResponseEntity<?>) ResponseEntity.badRequest();
+			
+		}
+	}
+
 }

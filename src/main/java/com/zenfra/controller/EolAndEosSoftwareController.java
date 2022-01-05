@@ -52,7 +52,7 @@ public class EolAndEosSoftwareController {
 			model.setActive(false);
 			model.setUpdated_time(commonFunctions.getUtcDateTime());
 		}
-		return ResponseEntity.ok(eolAndEosSoftwareService.update(models));
+		return ResponseEntity.ok(eolAndEosSoftwareService.delete(models));
 	}
 
 }
