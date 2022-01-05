@@ -67,6 +67,7 @@ public class EolAndEosHardwareService {
 					existing.setUpdated_by(model.getUpdated_by());
 					existing.setVendor(model.getVendor());
 					existing.setModel(model.getModel());
+					existing.setFrom_discovery(model.isFrom_discovery());
 					massUpdate.add(existing);
 				} else {
 					EolAndEosHardwareModel newEntry = new EolAndEosHardwareModel();
@@ -83,6 +84,7 @@ public class EolAndEosHardwareService {
 					newEntry.setModel(model.getModel());					
 					newEntry.setActive(true);
 					newEntry.setManual(true);
+					newEntry.setFrom_discovery(true);
 					massUpdate.add(newEntry);
 				}
 				

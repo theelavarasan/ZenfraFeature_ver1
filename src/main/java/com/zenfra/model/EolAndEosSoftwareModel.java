@@ -38,6 +38,8 @@ public class EolAndEosSoftwareModel {
 	
 	private boolean manual;
 	
+	private boolean from_discovery = false;	
+	
 	
 	private String updated_time;
 	private String updated_by;
@@ -122,8 +124,16 @@ public class EolAndEosSoftwareModel {
 	public void setActive(boolean active) {
 		this.active = active;
 	}
+
 	
-	
+
+	public boolean isFrom_discovery() {
+		return from_discovery;
+	}
+
+	public void setFrom_discovery(boolean from_discovery) {
+		this.from_discovery = from_discovery;
+	}
 
 	public boolean isManual() {
 		return manual;

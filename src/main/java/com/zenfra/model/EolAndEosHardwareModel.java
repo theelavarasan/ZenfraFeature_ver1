@@ -37,6 +37,8 @@ public class EolAndEosHardwareModel {
 	
 	private boolean manual;	
 	
+	private boolean from_discovery = false;	
+	
 	private String updated_time;
 	private String updated_by;
 
@@ -142,6 +144,15 @@ public class EolAndEosHardwareModel {
 
 	public void setUpdated_by(String updated_by) {
 		this.updated_by = updated_by;
+	}
+
+
+	public boolean isFrom_discovery() {
+		return from_discovery;
+	}
+
+	public void setFrom_discovery(boolean from_discovery) {
+		this.from_discovery = from_discovery;
 	}
 
 	public EolAndEosHardwareModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel, String vendor,

@@ -69,6 +69,7 @@ public class EolAndEosSoftwareService {
 					existing.setActive(model.isActive());
 					existing.setUpdated_time(model.getUpdated_time());
 					existing.setUpdated_by(model.getUpdated_by());
+					existing.setFrom_discovery(model.isFrom_discovery());
 					massUpdate.add(existing);
 
 				} else {
@@ -87,6 +88,7 @@ public class EolAndEosSoftwareService {
 					newEntry.setUpdated_by(model.getUpdated_by());
 					newEntry.setActive(true);
 					newEntry.setManual(true);
+					newEntry.setFrom_discovery(true);
 					massUpdate.add(newEntry);
 					
 				}
