@@ -167,7 +167,7 @@ public class EolAndEosSoftwareModel {
 
 	public EolAndEosSoftwareModel(EolAndEosSoftwareIdentityModel eolAndEosSoftwareIdentityModel, String source_url,
 			String end_of_life_cycle, String os_type, @NotNull String eol_eos_sw_id, String os_version, String user_id,
-			String os_name, String end_of_extended_support, boolean active, boolean manual, String updated_by) {
+			String os_name, String end_of_extended_support, boolean active, boolean manual, String updated_by, boolean from_discovery) {
 		super();
 		this.eolAndEosSoftwareIdentityModel = eolAndEosSoftwareIdentityModel;
 		this.source_url = source_url;
@@ -181,6 +181,7 @@ public class EolAndEosSoftwareModel {
 		this.active = active;
 		this.manual = manual;
 		this.updated_by = user_id;
+		this.from_discovery=from_discovery;
 	}
 
 	

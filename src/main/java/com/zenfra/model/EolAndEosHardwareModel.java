@@ -157,7 +157,7 @@ public class EolAndEosHardwareModel {
 
 	public EolAndEosHardwareModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel, String vendor,
 			String model, @NotNull String eol_eos_hw_id, String end_of_life_cycle, String end_of_extended_support,
-			String source_link, String user_id, boolean active, boolean manual, String updated_by) {
+			String source_link, String user_id, boolean active, boolean manual, String updated_by, boolean from_discovery) {
 		super();
 		this.eolAndEosHardwareIdentityModel = eolAndEosHardwareIdentityModel;
 		this.vendor = vendor;
@@ -170,6 +170,7 @@ public class EolAndEosHardwareModel {
 		this.active = active;
 		this.manual = manual;
 		this.updated_by = user_id;
+		this.from_discovery=from_discovery;
 	}
 
 	
