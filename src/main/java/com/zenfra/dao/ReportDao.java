@@ -185,14 +185,12 @@ public class ReportDao {
 		
 		
 			if(!compatabilityOrder.isEmpty()) {
-				List<String> existingVisibleColumns = (List<String>) result.get("columnOrder");			
-				if(existingVisibleColumns != null && !existingVisibleColumns.isEmpty()) {
-					compatabilityOrder.retainAll(existingVisibleColumns);				
-					 result.put("columnOrder", compatabilityOrder);
+				List<String> existingVisibleColumns = (List<String>) result.get("columnOrder");	
+				if(existingVisibleColumns != null && !existingVisibleColumns.isEmpty()) {					
+					 result.put("columnOrder", existingVisibleColumns);
 				} else {					
 					 result.put("columnOrder", compatabilityOrder);
-				}
-				
+				}				
 			}
 			
 		}
