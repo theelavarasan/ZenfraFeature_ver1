@@ -3,6 +3,7 @@ package com.zenfra.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -109,7 +110,13 @@ public class EolAndEosHardwareService {
 
 	public ResponseEntity<?> delete(List<EolAndEosHardwareModel> models) {
 		try {
-			eolAndEosHardwareRepository.deleteAll(models);
+			List<String> ids = new ArrayList<String>();
+			for(EolAndEosHardwareModel model : models) {
+				ids.add(model.getEol_eos_hw_id());
+			}
+
+			
+			eolAndEosHardwareRepository.deleteByEolEosHwId(ids);
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);

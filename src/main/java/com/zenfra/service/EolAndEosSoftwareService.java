@@ -112,7 +112,11 @@ public class EolAndEosSoftwareService {
 
 	public ResponseEntity<?> delete(List<EolAndEosSoftwareModel> models) {
 		try {
-			eolAndEosSoftwareRepository.deleteAll(models);
+			List<String> ids = new ArrayList<String>();
+			for(EolAndEosSoftwareModel model : models) {
+				ids.add(model.getEol_eos_sw_id());
+			}
+			eolAndEosSoftwareRepository.deleteByEolEosSwId(ids);
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
