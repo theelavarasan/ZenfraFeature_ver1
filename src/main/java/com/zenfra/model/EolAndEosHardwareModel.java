@@ -37,6 +37,8 @@ public class EolAndEosHardwareModel {
 	
 	private boolean manual;	
 	
+	private boolean from_discovery = false;	
+	
 	private String updated_time;
 	private String updated_by;
 
@@ -144,9 +146,18 @@ public class EolAndEosHardwareModel {
 		this.updated_by = updated_by;
 	}
 
+
+	public boolean isFrom_discovery() {
+		return from_discovery;
+	}
+
+	public void setFrom_discovery(boolean from_discovery) {
+		this.from_discovery = from_discovery;
+	}
+
 	public EolAndEosHardwareModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel, String vendor,
 			String model, @NotNull String eol_eos_hw_id, String end_of_life_cycle, String end_of_extended_support,
-			String source_link, String user_id, boolean active, boolean manual, String updated_by) {
+			String source_link, String user_id, boolean active, boolean manual, String updated_by, boolean from_discovery) {
 		super();
 		this.eolAndEosHardwareIdentityModel = eolAndEosHardwareIdentityModel;
 		this.vendor = vendor;
@@ -159,6 +170,7 @@ public class EolAndEosHardwareModel {
 		this.active = active;
 		this.manual = manual;
 		this.updated_by = user_id;
+		this.from_discovery=from_discovery;
 	}
 
 	

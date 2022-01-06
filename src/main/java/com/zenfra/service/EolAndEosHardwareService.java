@@ -3,6 +3,7 @@ package com.zenfra.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -67,6 +68,7 @@ public class EolAndEosHardwareService {
 					existing.setUpdated_by(model.getUpdated_by());
 					existing.setVendor(model.getVendor());
 					existing.setModel(model.getModel());
+					existing.setFrom_discovery(model.isFrom_discovery());
 					massUpdate.add(existing);
 				} else {
 					EolAndEosHardwareModel newEntry = new EolAndEosHardwareModel();
@@ -83,6 +85,7 @@ public class EolAndEosHardwareService {
 					newEntry.setModel(model.getModel());					
 					newEntry.setActive(true);
 					newEntry.setManual(true);
+					newEntry.setFrom_discovery(true);
 					massUpdate.add(newEntry);
 				}
 				
@@ -103,6 +106,30 @@ public class EolAndEosHardwareService {
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
 		}
 
+	}
+
+	public ResponseEntity<?> delete(List<EolAndEosHardwareModel> models) {
+		try {
+			List<String> ids = new ArrayList<String>();
+			for(EolAndEosHardwareModel model : models) {
+				ids.add(model.getEol_eos_hw_id());
+			}
+
+			
+			eolAndEosHardwareRepository.deleteByEolEosHwId(ids);
+			responseModel.setResponseMessage("Success");
+			responseModel.setStatusCode(200);
+			responseModel.setResponseCode(HttpStatus.OK);
+			responseModel.setjData(models);
+			return ResponseEntity.ok(responseModel);
+		} catch(Exception e) {
+			e.printStackTrace();
+			e.printStackTrace();
+			responseModel.setStatusCode(500);
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			return (ResponseEntity<?>) ResponseEntity.badRequest();
+			
+		}
 	}
 
 }

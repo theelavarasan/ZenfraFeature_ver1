@@ -69,6 +69,7 @@ public class EolAndEosSoftwareService {
 					existing.setActive(model.isActive());
 					existing.setUpdated_time(model.getUpdated_time());
 					existing.setUpdated_by(model.getUpdated_by());
+					existing.setFrom_discovery(model.isFrom_discovery());
 					massUpdate.add(existing);
 
 				} else {
@@ -87,6 +88,7 @@ public class EolAndEosSoftwareService {
 					newEntry.setUpdated_by(model.getUpdated_by());
 					newEntry.setActive(true);
 					newEntry.setManual(true);
+					newEntry.setFrom_discovery(true);
 					massUpdate.add(newEntry);
 					
 				}
@@ -106,6 +108,28 @@ public class EolAndEosSoftwareService {
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
 		}
 
+	}
+
+	public ResponseEntity<?> delete(List<EolAndEosSoftwareModel> models) {
+		try {
+			List<String> ids = new ArrayList<String>();
+			for(EolAndEosSoftwareModel model : models) {
+				ids.add(model.getEol_eos_sw_id());
+			}
+			eolAndEosSoftwareRepository.deleteByEolEosSwId(ids);
+			responseModel.setResponseMessage("Success");
+			responseModel.setStatusCode(200);
+			responseModel.setResponseCode(HttpStatus.OK);
+			responseModel.setjData(models);
+			return ResponseEntity.ok(responseModel);
+		} catch(Exception e) {
+			e.printStackTrace();
+			e.printStackTrace();
+			responseModel.setStatusCode(500);
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			return (ResponseEntity<?>) ResponseEntity.badRequest();
+			
+		}
 	}
 
 }

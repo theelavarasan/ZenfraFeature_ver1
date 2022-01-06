@@ -56,7 +56,7 @@ public class EolAndEosHardwareController {
 			model.setUpdated_time(commonFunctions.getUtcDateTime());
 		}
 			
-		return ResponseEntity.ok(eolAndEosHardwareService.update(models));
+		return ResponseEntity.ok(eolAndEosHardwareService.delete(models));
 
 	}
 
