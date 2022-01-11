@@ -132,6 +132,9 @@ public class HealthCheckService {
 			healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
 		}
 		
+		if(healthCheckModel.getAnalyticsType() != null) {
+			healthCheck.setAnalyticsType(healthCheckModel.getAnalyticsType());
+		}
 		
 		if(healthCheckModel.getReportCondition() != null) {
 			healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString()); 
