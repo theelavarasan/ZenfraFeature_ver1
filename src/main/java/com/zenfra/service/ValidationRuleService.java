@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -162,11 +163,11 @@ public class ValidationRuleService {
 				System.out.println("-dataObj----------  "+ dataObj.size());
 				
 				for(int i=0; i<dataObj.size(); i++) {
-					JSONObject jsonObject = (JSONObject) dataObj.get(i);					
-					JSONArray dataAry = (JSONArray) jsonObject.get("data");	
+					LinkedHashMap<String, Object> jsonObject = (LinkedHashMap) dataObj.get(i);					
+					List<Object> dataAry = (List<Object>) jsonObject.get("data");	
 					
 					for(int j=0; j<dataAry.size(); j++) {
-						  JSONObject data = (JSONObject) dataAry.get(j);							
+						LinkedHashMap<String, Object> data = (LinkedHashMap<String, Object>) dataAry.get(j);							
 						  Set<String> keys =  data.keySet();								 
 						  for(String key : keys) { 
 							
