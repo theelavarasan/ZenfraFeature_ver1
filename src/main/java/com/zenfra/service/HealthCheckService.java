@@ -185,6 +185,7 @@ public class HealthCheckService {
 		response.put("componentType", healthCheck.getComponentType());
 		response.put("reportName", healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
+		response.put("analyticsType", healthCheck.getAnalyticsType());
 		try {
 			String s =  healthCheck.getReportCondition();
 			ObjectMapper mapper = new ObjectMapper();
