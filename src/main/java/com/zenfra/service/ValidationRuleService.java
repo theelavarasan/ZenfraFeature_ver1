@@ -136,7 +136,7 @@ public class ValidationRuleService {
 				    	break;
 				    }
 			    }
-				
+				System.out.println("-actualDfFilePath----------  "+ actualDfFilePath);
 				
 				if(actualDfFilePath != null) {
 					File f = new File(actualDfFilePath);
@@ -153,9 +153,11 @@ public class ValidationRuleService {
 			}
 		
 			dataset.printSchema();
+			System.out.println("-dataset----------  "+ dataset.count());
 			String dataArray = dataset.toJSON().collectAsList().toString();		
 			
 			try {
+				System.out.println("-dataArray----------  "+ dataArray);
 				JSONArray dataObj = (JSONArray) parser.parse(dataArray);				
 				
 				for(int i=0; i<dataObj.size(); i++) {

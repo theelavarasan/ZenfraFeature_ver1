@@ -34,6 +34,9 @@ public class ValidationRuleController {
 		if(colName.contains("_")) {
 			colName = colName.split("_")[1];
 		}
+		
+		System.out.println("-------resultData------------ " + resultData);
+		
 		if(resultData.containsKey(colName)) {		
 			return ResponseEntity.ok(resultData.get(colName));
 		}
