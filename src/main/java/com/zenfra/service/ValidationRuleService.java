@@ -46,14 +46,35 @@ public class ValidationRuleService {
 	
 	public  Map<String, List<Object>> getDiscoveryReportValues(String siteKey, String reportBy, String columnName, String category,
 			String deviceType, String reportList) {
-		System.out.println("-----22222h " );
+	
 		
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		Map<String, List<Object>> resutData = new HashMap<>(); 
 		
-		if(reportBy != null && reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server")) {
+		 
+	       
+	      
+		
+		if(reportBy != null && ((reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server")) || 
+				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("Nutanix")) || 
+				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("Hyper-V")) ||
+				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("vmware")))) {
 			try {
-				 String viewName = siteKey+"_"+deviceType.toLowerCase();					
+				
+				deviceType = deviceType.toLowerCase();
+				if(deviceType != null && !deviceType.trim().isEmpty() && deviceType.contains("hyper")) {
+					deviceType = deviceType + "-" + reportBy.toLowerCase();
+				} else if(deviceType != null && !deviceType.trim().isEmpty() && (deviceType.contains("vmware") && reportBy.toLowerCase().contains("host"))) {
+					deviceType = deviceType + "-" + reportBy.toLowerCase();
+				} else if(deviceType != null && !deviceType.trim().isEmpty() && (deviceType.contains("nutanix") && reportBy.toLowerCase().contains("host"))) {
+					deviceType = deviceType + "-" + reportBy.toLowerCase();
+				} else if(deviceType != null && !deviceType.trim().isEmpty() && (deviceType.contains("nutanix") && reportBy.toLowerCase().equalsIgnoreCase("vm"))) {
+					deviceType = deviceType + "-" + "guest";
+				} 
+				
+				
+				 String viewName = siteKey+"_"+deviceType;	
+				 System.out.println("--------viewNameviewName---- " + viewName);
 				 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");	
 				dataset = sparkSession.sql("select * from global_temp." + viewName);	
 				
@@ -96,10 +117,7 @@ public class ValidationRuleService {
 	        String actualDfFilePath = null;
 			String dataframePath = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator;
 			
-			System.out.println("-----dataframePath "  + dataframePath);
-			File dir = new File(dataframePath);			
-			
-			System.out.println("-----dataframePath------12--------- "  +  dir.listFiles());
+			File dir = new File(dataframePath);				
 			
 			for(File file : dir.listFiles()) {
 				
@@ -108,55 +126,41 @@ public class ValidationRuleService {
 			    	break;
 			    }
 		    }
-			
-			System.out.println("----actualDfFolderPath------- "  + actualDfFolderPath);
+					
 			
 			if(actualDfFolderPath != null) {
-				File d = new File(actualDfFolderPath);
-				System.out.println("----d.listFiles()------- "  + d.listFiles());
-				for(File file : d.listFiles()) {
-					
-					System.out.println("---- file.getName()----- "  +  file.getName().toLowerCase() + " : " + reportBy.toLowerCase());
-					
+				File d = new File(actualDfFolderPath);			
+				for(File file : d.listFiles()) {					
 				    if(file.isFile() && file.getName().toLowerCase().contains(category.toLowerCase()) &&  file.getName().toLowerCase().contains(reportBy.toLowerCase()+".json")) { // && file.getName().toLowerCase().contains(category.toLowerCase())
 				    	actualDfFilePath = file.getAbsolutePath();
 				    	break;
 				    }
 			    }
 				
-				System.out.println("---actualDfFilePath---- "  +  actualDfFilePath);
 				
 				if(actualDfFilePath != null) {
 					File f = new File(actualDfFilePath);
-						String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
-						System.out.println("---viewName---- "  +  viewName);
+						String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");					
 						try {
 							dataset = sparkSession.sql("select * from global_temp." + viewName);	
 						} catch (Exception e) {
 							dataframeService.createDataframeForJsonData(f.getAbsolutePath());
-						}
-						
-						System.out.println("---viewName---- "  +  viewName);
+						}				
 						
 						dataset = sparkSession.sql("select data from global_temp." + viewName);
-						System.out.println("---viewName-121--- "  +  dataset.count());
+						
 				}
 			}
-			
-			System.out.println("---dataset>>>>---- "  +  dataset.count());
+		
 			dataset.printSchema();
 			String dataArray = dataset.toJSON().collectAsList().toString();		
 			
 			try {
-				JSONArray dataObj = (JSONArray) parser.parse(dataArray);	
-				
-				System.out.println("---dataObj>>>>---- "  +  dataObj.size());
+				JSONArray dataObj = (JSONArray) parser.parse(dataArray);				
 				
 				for(int i=0; i<dataObj.size(); i++) {
 					JSONObject jsonObject = (JSONObject) dataObj.get(i);					
 					JSONArray dataAry = (JSONArray) jsonObject.get("data");	
-					
-					System.out.println("---dataAry>>>>---- "  +  dataAry.size());
 					
 					for(int j=0; j<dataAry.size(); j++) {
 						  JSONObject data = (JSONObject) dataAry.get(j);							
