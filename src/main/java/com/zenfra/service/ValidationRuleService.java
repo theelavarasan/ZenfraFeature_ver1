@@ -158,7 +158,8 @@ public class ValidationRuleService {
 			
 			try {
 				System.out.println("-dataArray----------  "+ dataArray);
-				JSONArray dataObj = (JSONArray) parser.parse(dataArray);				
+				JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);	
+				System.out.println("-dataObj----------  "+ dataObj.size());
 				
 				for(int i=0; i<dataObj.size(); i++) {
 					JSONObject jsonObject = (JSONObject) dataObj.get(i);					
