@@ -41,6 +41,8 @@ public class HealthCheckModel {
 	
 	private Date updateDate;
 	
+	private String analyticsType;
+	
 	public String getAuthUserId() {
 		return authUserId;
 	}
@@ -154,7 +156,13 @@ public class HealthCheckModel {
 	public void setUserAccessList(List<String> userAccessList) {
 		this.userAccessList = userAccessList;
 	}
-	
-	
+
+	public String getAnalyticsType() {
+		return analyticsType;
+	}
+
+	public void setAnalyticsType(String analyticsType) {
+		this.analyticsType = analyticsType;
+	}
 
 }
