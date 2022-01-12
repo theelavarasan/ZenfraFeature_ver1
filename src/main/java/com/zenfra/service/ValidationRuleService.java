@@ -25,6 +25,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dataframe.service.DataframeService;
+import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 
 
 
@@ -223,10 +225,10 @@ public class ValidationRuleService {
 					"select distinct column_names, column_values from ( \r\n" + 
 					"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
 					"select data, json_object_keys(data) as keys from ( \r\n" + 
-					"select json_array_elements(pidata::json) as data from comp_data where sitekey = 'f0beccad-4a21-41bb-9dec-25d3e632a065' and \r\n" + 
-					"pidata is not null and pidata <> '[]' and lower(sourcetype) = lower('AIX') \r\n" + 
+					"select json_array_elements(pidata::json) as data from comp_data where sitekey = '" + siteKey + "' and \r\n" + 
+					"pidata is not null and pidata <> '[]' and lower(sourcetype) = lower('" + deviceType + "') \r\n" + 
 					") a \r\n" + 
-					") b where keys = 'Cluster_Native Cluster Exp Version'\r\n" + 
+					") b where keys = '" + columnName + "'\r\n" + 
 					") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
 					"order by column_names, column_values \r\n" + 
 					") d group by column_names";
@@ -295,12 +297,27 @@ public class ValidationRuleService {
 		System.out.println("!!!!! columnName: " + columnName);
 		System.out.println("!!!!! category: " + category);
 		System.out.println("!!!!! deviceType: " + deviceType);
+		JSONParser parser = new JSONParser();
 		
 		boolean isServer = false;
 		boolean isStorage = false;
 		boolean isSwitch = false;
 		
 		JSONArray resultArray = new JSONArray();
+		
+		JSONArray serverArray = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
+		JSONArray storageArray = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
+		JSONArray switchArray = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
+		
+		if(serverArray.contains(deviceType.toLowerCase())) {
+			isServer = true;
+		}
+		if(storageArray.contains(deviceType.toLowerCase())) {
+			isStorage = true;
+		}
+		if(switchArray.contains(deviceType.toLowerCase())) {
+			isSwitch = true;
+		}
 		
 		try {
 			String query = "select methods, json_agg(data_value) as data_value from (\r\n" + 
@@ -368,7 +385,7 @@ public class ValidationRuleService {
 			}
 			
 			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
-			JSONParser parser = new JSONParser();
+			//JSONParser parser = new JSONParser();
 			System.out.println("!!!!! valueArray: " + valueArray);
 			for(Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("columnValues").toString());
