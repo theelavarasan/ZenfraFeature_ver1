@@ -74,8 +74,7 @@ public class ValidationRuleService {
 				} 
 				
 				
-				 String viewName = siteKey+"_"+deviceType;	
-				 System.out.println("--------viewNameviewName---- " + viewName);
+				 String viewName = siteKey+"_"+deviceType;					
 				 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");	
 				dataset = sparkSession.sql("select * from global_temp." + viewName);	
 				
@@ -137,7 +136,6 @@ public class ValidationRuleService {
 				    	break;
 				    }
 			    }
-				System.out.println("-actualDfFilePath----------  "+ actualDfFilePath);
 				
 				if(actualDfFilePath != null) {
 					File f = new File(actualDfFilePath);
@@ -153,14 +151,11 @@ public class ValidationRuleService {
 				}
 			}
 		
-			dataset.printSchema();
-			System.out.println("-dataset----------  "+ dataset.count());
+			dataset.printSchema();			
 			String dataArray = dataset.toJSON().collectAsList().toString();		
 			
-			try {
-				System.out.println("-dataArray----------  "+ dataArray);
-				JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);	
-				System.out.println("-dataObj----------  "+ dataObj.size());
+			try {				
+				JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);
 				
 				for(int i=0; i<dataObj.size(); i++) {
 					LinkedHashMap<String, Object> jsonObject = (LinkedHashMap) dataObj.get(i);					
