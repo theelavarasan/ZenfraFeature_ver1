@@ -17,6 +17,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -39,6 +40,9 @@ public class ValidationRuleService {
 	 
 	 @Autowired
      DataframeService dataframeService;	
+	 
+	 @Autowired
+	 JdbcTemplate jdbc;
 	 
 	 private ObjectMapper mapper = new ObjectMapper();
 	 private JSONParser parser = new  JSONParser();
@@ -199,6 +203,102 @@ public class ValidationRuleService {
 		
 		 
 		return resutData;
+	}
+	
+	public  JSONArray getVR_Compatibility(String siteKey, String columnName, String category,
+			String deviceType, String model) throws ParseException {
+		
+		System.out.println("!!!!! siteKey: " + siteKey);
+		System.out.println("!!!!! columnName: " + columnName);
+		System.out.println("!!!!! category: " + category);
+		System.out.println("!!!!! deviceType: " + deviceType);
+		System.out.println("!!!!! model: " + model);
+		boolean isServer = false;
+		boolean isStorage = false;
+		boolean isSwitch = false;
+		
+		JSONArray resultArray = new JSONArray();
+		
+		try {
+			String query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
+					"select distinct column_names, column_values from ( \r\n" + 
+					"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
+					"select data, json_object_keys(data) as keys from ( \r\n" + 
+					"select json_array_elements(pidata::json) as data from comp_data where sitekey = 'f0beccad-4a21-41bb-9dec-25d3e632a065' and \r\n" + 
+					"pidata is not null and pidata <> '[]' and lower(sourcetype) = lower('AIX') \r\n" + 
+					") a \r\n" + 
+					") b where keys = 'Cluster_Native Cluster Exp Version'\r\n" + 
+					") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
+					"order by column_names, column_values \r\n" + 
+					") d group by column_names";
+			
+			if(isServer) {
+				query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
+						"select distinct column_names, column_values from ( \r\n" + 
+						"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
+						"select data, json_object_keys(data) as keys from ( \r\n" + 
+						"select json_array_elements(pidata::json) as data from comp_data where sitekey = '" + siteKey + "' and \r\n" + 
+						"pidata is not null and pidata <> '[]' and lower(sourcetype) = lower('" + deviceType + "') \r\n" + 
+						") a \r\n" + 
+						") b where keys = '" + columnName + "'\r\n" + 
+						") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
+						"order by column_names, column_values \r\n" + 
+						") d group by column_names";
+			}
+			
+			if(isStorage) {
+				query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
+						"select distinct column_names, column_values from ( \r\n" + 
+						"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
+						"select data, json_object_keys(data) as keys from ( \r\n" + 
+						"select json_array_elements(pidata::json) as data from comp_data where sitekey = '" + siteKey + "' and \r\n" + 
+						"pidata is not null and pidata <> '[]' and \r\n" + 
+						"lower(sourceid) in (select distinct source_id from storage_discovery where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "'))\r\n" + 
+						") a \r\n" + 
+						") b where keys = '" + columnName + "'\r\n" + 
+						") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
+						"order by column_names, column_values \r\n" + 
+						") d group by column_names";
+			}
+			
+			if(isSwitch) {
+				query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
+						"select distinct column_names, column_values from ( \r\n" + 
+						"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
+						"select data, json_object_keys(data) as keys from ( \r\n" + 
+						"select json_array_elements(pidata::json) as data from comp_data where sitekey = '" + siteKey + "' and \r\n" + 
+						"pidata is not null and pidata <> '[]' and \r\n" + 
+						"lower(sourceid) in (select distinct source_id from switch_discovery where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "'))\r\n" + 
+						") a \r\n" + 
+						") b where keys = '" + columnName + "'\r\n" + 
+						") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
+						"order by column_names, column_values \r\n" + 
+						") d group by column_names";
+			}
+			
+			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
+			JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for(Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("columnValues").toString());
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+	}
+	
+	public List<Map<String, Object>> getObjectFromQuery(String query) {
+		List<Map<String, Object>> obj = new ArrayList<>();
+		try {
+
+			obj = jdbc.queryForList(query);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return obj;
 	}
 
 }
