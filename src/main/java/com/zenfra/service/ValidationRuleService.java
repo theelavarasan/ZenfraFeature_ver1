@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,8 +78,7 @@ public class ValidationRuleService {
 				} 
 				
 				
-				 String viewName = siteKey+"_"+deviceType;	
-				 System.out.println("--------viewNameviewName---- " + viewName);
+				 String viewName = siteKey+"_"+deviceType;					
 				 viewName = viewName.replaceAll("-", "").replaceAll("\\s+","");	
 				dataset = sparkSession.sql("select * from global_temp." + viewName);	
 				
@@ -141,7 +141,6 @@ public class ValidationRuleService {
 				    }
 			    }
 				
-				
 				if(actualDfFilePath != null) {
 					File f = new File(actualDfFilePath);
 						String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");					
@@ -156,18 +155,18 @@ public class ValidationRuleService {
 				}
 			}
 		
-			dataset.printSchema();
+			dataset.printSchema();			
 			String dataArray = dataset.toJSON().collectAsList().toString();		
 			
-			try {
-				JSONArray dataObj = (JSONArray) parser.parse(dataArray);				
+			try {				
+				JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);
 				
 				for(int i=0; i<dataObj.size(); i++) {
-					JSONObject jsonObject = (JSONObject) dataObj.get(i);					
-					JSONArray dataAry = (JSONArray) jsonObject.get("data");	
+					LinkedHashMap<String, Object> jsonObject = (LinkedHashMap) dataObj.get(i);					
+					List<Object> dataAry = (List<Object>) jsonObject.get("data");	
 					
 					for(int j=0; j<dataAry.size(); j++) {
-						  JSONObject data = (JSONObject) dataAry.get(j);							
+						LinkedHashMap<String, Object> data = (LinkedHashMap<String, Object>) dataAry.get(j);							
 						  Set<String> keys =  data.keySet();								 
 						  for(String key : keys) { 
 							
