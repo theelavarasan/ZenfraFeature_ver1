@@ -25,6 +25,8 @@ public class ResponseModel_v2 implements Serializable{
 	@JsonProperty("headerInfo")
 	private List<GridHeader> headerInfo = null;
 	
+	private List<Object> groupedColumns;
+	
 	public String getResponseMessage() {
 		return responseMessage;
 	}
@@ -80,6 +82,12 @@ public class ResponseModel_v2 implements Serializable{
 	}
 	public void setHeaderInfo(List<GridHeader> headerInfo) {
 		this.headerInfo = headerInfo;
+	}
+	public List<Object> getGroupedColumns() {
+		return groupedColumns;
+	}
+	public void setGroupedColumns(List<Object> groupedColumns) {
+		this.groupedColumns = groupedColumns;
 	}
 	
 	
