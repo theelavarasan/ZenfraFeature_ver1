@@ -33,7 +33,8 @@ public class ValidationRuleController {
 		String colName = model.getColumnName();
 		if(colName.contains("_")) {
 			colName = colName.split("_")[1];
-		}
+		}	
+		
 		if(resultData.containsKey(colName)) {		
 			return ResponseEntity.ok(resultData.get(colName));
 		}
