@@ -220,6 +220,20 @@ public class ValidationRuleService {
 		
 		JSONArray resultArray = new JSONArray();
 		
+		JSONArray serverArray = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SERVER_LIST));
+		JSONArray storageArray = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST));
+		JSONArray switchArray = (JSONArray) parser.parse(ZKModel.getProperty(ZKConstants.SWITCH_LIST));
+		
+		if(serverArray.contains(deviceType.toLowerCase())) {
+			isServer = true;
+		}
+		if(storageArray.contains(deviceType.toLowerCase())) {
+			isStorage = true;
+		}
+		if(switchArray.contains(deviceType.toLowerCase())) {
+			isSwitch = true;
+		}
+		
 		try {
 			String query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
 					"select distinct column_names, column_values from ( \r\n" + 
