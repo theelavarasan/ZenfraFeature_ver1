@@ -18,6 +18,10 @@ public class ValidationModel {
 	private String deviceType;
 	
 	private String reportList;
+	
+	private String analyticsType;
+	
+	private String model;
 
 	public String getAuthUserId() {
 		return authUserId;
@@ -73,6 +77,22 @@ public class ValidationModel {
 
 	public void setReportList(String reportList) {
 		this.reportList = reportList;
+	}
+
+	public String getAnalyticsType() {
+		return analyticsType;
+	}
+
+	public void setAnalyticsType(String analyticsType) {
+		this.analyticsType = analyticsType;
+	}
+	
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
 	}
 
 	public ValidationModel() {

@@ -1,9 +1,11 @@
 package com.zenfra.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.json.simple.JSONArray;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +27,19 @@ public class ValidationRuleController {
 	ValidationRuleService validationRuleService;
 
 	@RequestMapping(value = "/health-check/get-field-values", method = RequestMethod.POST)
-	public ResponseEntity<?> getFieldValues(@RequestBody ValidationModel model) {
-	
-		Map<String, List<Object>> resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
-			   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList());	
+	public ResponseEntity<?> getFieldValues(@RequestBody ValidationModel model) throws ParseException {
+		
+		Map<String, List<Object>> resultData = new HashMap<String, List<Object>>();
+		JSONArray resultArray = new JSONArray();
+		if(model.getAnalyticsType().equalsIgnoreCase("Discovery")) {
+			resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
+				   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList());
+		} else if(model.getAnalyticsType().equalsIgnoreCase("Compatibility")) {
+			resultArray = validationRuleService.getVR_Compatibility(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getModel());
+		} else if(model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
+			resultArray = validationRuleService.getVR_MigrationMethod(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
+		}
+			
 
 		String colName = model.getColumnName();
 		if(colName.contains("_")) {
@@ -37,6 +48,15 @@ public class ValidationRuleController {
 		
 		if(resultData.containsKey(colName)) {		
 			return ResponseEntity.ok(resultData.get(colName));
+		}
+		if(model.getAnalyticsType().equalsIgnoreCase("Discovery")) {
+			if(resultData.containsKey(colName)) {		
+				return ResponseEntity.ok(resultData.get(colName));
+			}
+		}
+		
+		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
+			return ResponseEntity.ok(resultArray);
 		}
 		
 		return ResponseEntity.ok(new JSONArray());

@@ -288,6 +288,98 @@ public class ValidationRuleService {
 		return resultArray;
 	}
 	
+	public  JSONArray getVR_MigrationMethod(String siteKey, String columnName, String category,
+			String deviceType) throws ParseException {
+		
+		System.out.println("!!!!! siteKey: " + siteKey);
+		System.out.println("!!!!! columnName: " + columnName);
+		System.out.println("!!!!! category: " + category);
+		System.out.println("!!!!! deviceType: " + deviceType);
+		
+		boolean isServer = false;
+		boolean isStorage = false;
+		boolean isSwitch = false;
+		
+		JSONArray resultArray = new JSONArray();
+		
+		try {
+			String query = "select methods, json_agg(data_value) as data_value from (\r\n" + 
+					"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
+					"select distinct methods, dt.data_value from (\r\n" + 
+					"select methods from migration_method where lower(device) = lower('" + deviceType + "') \r\n" + 
+					") a\r\n" + 
+					"LEFT JOIN (select data, keys, data ->> keys as data_value from (\r\n" + 
+					"select data, json_object_keys(data) as keys from (\r\n" + 
+					"select json_array_elements(data::json) as data from migration_data \r\n" + 
+					"where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "')\r\n" + 
+					") a \r\n" + 
+					") b ) dt on lower(dt.keys) = (a.methods) \r\n" + 
+					") b \r\n" + 
+					") d group by methods order by methods";
+			
+			if(isServer) {
+				query = "select methods, json_agg(data_value) as data_value from (\r\n" + 
+						"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
+						"select distinct methods, dt.data_value from (\r\n" + 
+						"select methods from migration_method where lower(device) = lower('" + deviceType + "') \r\n" + 
+						") a\r\n" + 
+						"LEFT JOIN (select data, keys, data ->> keys as data_value from (\r\n" + 
+						"select data, json_object_keys(data) as keys from (\r\n" + 
+						"select json_array_elements(data::json) as data from migration_data \r\n" + 
+						"where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "')\r\n" + 
+						") a \r\n" + 
+						") b ) dt on lower(dt.keys) = (a.methods) \r\n" + 
+						") b \r\n" + 
+						") d group by methods order by methods";
+			}
+			
+			if(isStorage) {
+				query = "select methods, json_agg(data_value) as data_value from (\r\n" + 
+						"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
+						"select distinct methods, dt.data_value from (\r\n" + 
+						"select methods from migration_method where lower(device) = lower('" + deviceType + "') \r\n" + 
+						") a\r\n" + 
+						"LEFT JOIN (select data, keys, data ->> keys as data_value from (\r\n" + 
+						"select data, json_object_keys(data) as keys from (\r\n" + 
+						"select json_array_elements(data::json) as data from migration_data \r\n" + 
+						"where site_key = '" + siteKey + "' and lower(source_id) in (select distinct source_id from storage_discovery where site_key = '" + siteKey + "' " +
+						"and lower(source_type) = lower('" + deviceType + "'))\r\n" + 
+						") a \r\n" + 
+						") b ) dt on lower(dt.keys) = (a.methods) \r\n" + 
+						") b \r\n" + 
+						") d group by methods order by methods";
+			}
+			
+			if(isSwitch) {
+				query = "select methods, json_agg(data_value) as data_value from (\r\n" + 
+						"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
+						"select distinct methods, dt.data_value from (\r\n" + 
+						"select methods from migration_method where lower(device) = lower('" + deviceType + "') \r\n" + 
+						") a\r\n" + 
+						"LEFT JOIN (select data, keys, data ->> keys as data_value from (\r\n" + 
+						"select data, json_object_keys(data) as keys from (\r\n" + 
+						"select json_array_elements(data::json) as data from migration_data \r\n" + 
+						"where site_key = '" + siteKey + "' and lower(source_id) in (select distinct source_id from switch_discovery where site_key = '" + siteKey + "' " +
+						"and lower(source_type) = lower('" + deviceType + "'))\r\n" + 
+						") a \r\n" + 
+						") b ) dt on lower(dt.keys) = (a.methods) \r\n" + 
+						") b \r\n" + 
+						") d group by methods order by methods";
+			}
+			
+			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
+			JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for(Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("columnValues").toString());
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+	}
+	
 	public List<Map<String, Object>> getObjectFromQuery(String query) {
 		List<Map<String, Object>> obj = new ArrayList<>();
 		try {
