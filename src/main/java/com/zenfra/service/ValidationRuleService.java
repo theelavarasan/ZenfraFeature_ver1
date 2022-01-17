@@ -234,6 +234,9 @@ public class ValidationRuleService {
 			isSwitch = true;
 		}
 		
+		if(deviceType != null && !deviceType.isEmpty() && deviceType.equalsIgnoreCase("vmware")) {
+			deviceType = "vmware-host";
+		}
 		try {
 			String query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
 					"select distinct column_names, column_values from ( \r\n" + 
