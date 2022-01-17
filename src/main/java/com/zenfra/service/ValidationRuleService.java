@@ -398,6 +398,7 @@ public class ValidationRuleService {
 						") d group by methods order by methods";
 			}
 			
+			System.out.println("!!!!! query: " + query);
 			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
 			//JSONParser parser = new JSONParser();
 			System.out.println("!!!!! valueArray: " + valueArray);
