@@ -137,6 +137,12 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				log.setUpdatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
 				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
 				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
+				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("AWS") || log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+					log.setCreatedDateTime(log.getCreatedDateTime());
+					log.setUpdatedDateTime(log.getCreatedDateTime());
+					log.setParsedDateTime(log.getCreatedDateTime());
+					log.setParsingStartTime(log.getCreatedDateTime());
+				}
 				logFileUpdate.add(log);
 			}
 
