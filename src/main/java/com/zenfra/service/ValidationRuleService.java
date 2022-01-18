@@ -235,7 +235,8 @@ public class ValidationRuleService {
 		}
 		
 		try {
-			String query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
+			String query = "select column_names, column_values::jsonb || '[\"Data Not Available\"]' as column_values from ( \r\n" +
+					"select column_names, json_agg(column_values) as column_values from ( \r\n" + 
 					"select distinct column_names, column_values from ( \r\n" + 
 					"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
 					"select data, json_object_keys(data) as keys from ( \r\n" + 
@@ -245,10 +246,11 @@ public class ValidationRuleService {
 					") b where keys = '" + columnName + "'\r\n" + 
 					") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
 					"order by column_names, column_values \r\n" + 
-					") d group by column_names";
+					") d group by column_names )e";
 			
 			if(isServer) {
-				query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
+				query = "select column_names, column_values::jsonb || '[\"Data Not Available\"]' as column_values from ( \r\n" + 
+			            "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
 						"select distinct column_names, column_values from ( \r\n" + 
 						"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
 						"select data, json_object_keys(data) as keys from ( \r\n" + 
@@ -258,11 +260,12 @@ public class ValidationRuleService {
 						") b where keys = '" + columnName + "'\r\n" + 
 						") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
 						"order by column_names, column_values \r\n" + 
-						") d group by column_names";
+						") d group by column_names ) e";
 			}
 			
 			if(isStorage) {
-				query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
+				query = "select column_names, column_values::jsonb || '[\"Data Not Available\"]' as column_values from ( \r\n " +
+						"select column_names, json_agg(column_values) as column_values from ( \r\n" + 
 						"select distinct column_names, column_values from ( \r\n" + 
 						"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
 						"select data, json_object_keys(data) as keys from ( \r\n" + 
@@ -273,11 +276,12 @@ public class ValidationRuleService {
 						") b where keys = '" + columnName + "'\r\n" + 
 						") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
 						"order by column_names, column_values \r\n" + 
-						") d group by column_names";
+						") d group by column_names ) e";
 			}
 			
 			if(isSwitch) {
-				query = "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
+				query = "select column_names, column_values::jsonb || '[\"Data Not Available\"]' as column_values from ( \r\n " +
+						"select column_names, json_agg(column_values) as column_values from ( \r\n" + 
 						"select distinct column_names, column_values from ( \r\n" + 
 						"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
 						"select data, json_object_keys(data) as keys from ( \r\n" + 
@@ -288,7 +292,7 @@ public class ValidationRuleService {
 						") b where keys = '" + columnName + "'\r\n" + 
 						") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
 						"order by column_names, column_values \r\n" + 
-						") d group by column_names";
+						") d group by column_names )e";
 			}
 			
 			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
