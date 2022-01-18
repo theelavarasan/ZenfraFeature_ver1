@@ -608,10 +608,11 @@ public class ValidationRuleService {
 		JSONArray resultArray = new JSONArray();
 		
 		try {
-			String query = "select json_agg(column_name) as column_name from (\r\n" + 
+			String query = "select json_agg(column_name) as column_name from ( \r\n" +
+					"select json_object_agg(column_name,'') as column_name from (\r\n" + 
 					"select distinct(column_name), seq::integer from report_columns where report_name = 'Compatibility' and lower(device_type) = '" + device.toLowerCase() + "' \r\n" + 
 					"order by seq::integer\r\n" + 
-					") a";
+					") a ) b";
 			
 			System.out.println("!!!!! query: " + query);
 			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
