@@ -46,13 +46,13 @@ public class ValidationRuleController {
 			colName = colName.split("_")[1];
 		}	
 		
-		if(resultData.containsKey(colName)) {		
-			return ResponseEntity.ok(resultData.get(colName));
-		}
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery")) {
 			if(resultData.containsKey(colName)) {		
 				return ResponseEntity.ok(resultData.get(colName));
-			}
+			} else if(resultData.containsKey(model.getColumnName())) {		
+				return ResponseEntity.ok(resultData.get(model.getColumnName()));
+			} 
+			
 		}
 		
 		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
