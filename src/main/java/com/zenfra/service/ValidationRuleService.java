@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
+import com.zenfra.utils.CommonFunctions;
 
 
 
@@ -47,6 +48,9 @@ public class ValidationRuleService {
 	 @Autowired
 	 JdbcTemplate jdbc;
 	 
+	 @Autowired
+	 CommonFunctions commonFunctions;
+	 
 	 private ObjectMapper mapper = new ObjectMapper();
 	 private JSONParser parser = new  JSONParser();
 
@@ -55,16 +59,19 @@ public class ValidationRuleService {
 			String deviceType, String reportList) {
 	
 		
+	System.out.println("------deviceType---------" + deviceType);	
+		  
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		Map<String, List<Object>> resutData = new HashMap<>(); 
 		
-		List<String> serverList = new ArrayList<String>(Arrays.asList(ZKModel.getProperty(ZKConstants.SERVER_LIST).split(",")));
-		List<String> storageList =  new ArrayList<String>(Arrays.asList(ZKModel.getProperty(ZKConstants.STORAGE_LIST).split(",")));
-		List<String> switchList =  new ArrayList<String>(Arrays.asList(ZKModel.getProperty(ZKConstants.SWITCH_LIST).split(",")));
+		List<String> serverList = commonFunctions.convertToArrayList(ZKModel.getProperty(ZKConstants.SERVER_LIST), ",");
+		List<String> storageList =  commonFunctions.convertToArrayList(ZKModel.getProperty(ZKConstants.STORAGE_LIST), ",");
+		List<String> switchList = commonFunctions.convertToArrayList(ZKModel.getProperty(ZKConstants.SWITCH_LIST), ","); 
 	       
 	System.out.println("------serverList---------" + serverList);	
 	System.out.println("------storageList---------" + storageList);	
 	System.out.println("------switchList---------" + switchList);	
+	  System.out.println("------deviceType---------" + deviceType.toLowerCase());
 	   if(serverList.contains(deviceType.toLowerCase())) {
 		   category = "Server";
 	   }else if(storageList.contains(deviceType.toLowerCase())) {

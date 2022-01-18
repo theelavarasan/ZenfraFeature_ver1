@@ -625,4 +625,18 @@ public class CommonFunctions {
 			  Instant instant = Instant.now();	
 			  return instant.toString();
 		  }
+		  
+		  
+		  public List<String> convertToArrayList(String value, String separator) {
+
+				List<String> list = new ArrayList<String>();
+				value = value.replace("[", "").replace("]", "").replace("\"", "");
+				String[] valueArray = value.split(separator);
+
+				for (int i = 0; i < valueArray.length; i++) {
+					list.add(valueArray[i].trim());
+				}
+
+				return list;
+			}
 }
