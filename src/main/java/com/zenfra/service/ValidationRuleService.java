@@ -31,6 +31,7 @@ import com.parse.util.ZenfraJSONObject;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
+import com.zenfra.utils.CommonFunctions;
 
 
 
@@ -51,6 +52,9 @@ public class ValidationRuleService {
 	 @Autowired
 	 JdbcTemplate jdbc;
 	 
+	 @Autowired
+	 CommonFunctions commonFunctions;
+	 
 	 private ObjectMapper mapper = new ObjectMapper();
 	 private JSONParser parser = new  JSONParser();
 
@@ -59,19 +63,30 @@ public class ValidationRuleService {
 			String deviceType, String reportList) {
 	
 		
+
+		  
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		Map<String, List<Object>> resutData = new HashMap<>(); 
 		
-		 
-	       
-	      
+		List<String> serverList = commonFunctions.convertToArrayList(ZKModel.getProperty(ZKConstants.SERVER_LIST), ",");
+		List<String> storageList =  commonFunctions.convertToArrayList(ZKModel.getProperty(ZKConstants.STORAGE_LIST), ",");
+		List<String> switchList = commonFunctions.convertToArrayList(ZKModel.getProperty(ZKConstants.SWITCH_LIST), ","); 
+	       	
+	   if(serverList.contains(deviceType.toLowerCase())) {
+		   category = "Server";
+	   }else if(storageList.contains(deviceType.toLowerCase())) {
+		   category = "Storage";
+	   } else if(switchList.contains(deviceType.toLowerCase())) {
+		   category = "Switch";
+	   }
 		
+	   System.out.println("------category---------" + category);	
+	   
 		if(reportBy != null && ((reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server")) || 
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("Nutanix")) || 
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("Hyper-V")) ||
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("vmware")))) {
-			try {
-				
+			try {				  
 				deviceType = deviceType.toLowerCase();
 				if(deviceType != null && !deviceType.trim().isEmpty() && deviceType.contains("hyper")) {
 					deviceType = deviceType + "-" + reportBy.toLowerCase();
@@ -122,7 +137,7 @@ public class ValidationRuleService {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else {
+		} else {			 
 			String actualDfFolderPath = null;
 	        String actualDfFilePath = null;
 			String dataframePath = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator;
@@ -141,12 +156,12 @@ public class ValidationRuleService {
 			if(actualDfFolderPath != null) {
 				File d = new File(actualDfFolderPath);			
 				for(File file : d.listFiles()) {					
-				    if(file.isFile() && file.getName().toLowerCase().contains(category.toLowerCase()) &&  file.getName().toLowerCase().contains(reportBy.toLowerCase()+".json")) { // && file.getName().toLowerCase().contains(category.toLowerCase())
+				    if(file.isFile() && file.getName().toLowerCase().contains(category.toLowerCase()) &&  file.getName().toLowerCase().contains(reportBy.toLowerCase()+".json") && file.getName().toLowerCase().contains(reportList.toLowerCase())) { // && file.getName().toLowerCase().contains(category.toLowerCase())
 				    	actualDfFilePath = file.getAbsolutePath();
 				    	break;
 				    }
 			    }
-				
+				System.out.println("-------actualDfFilePath------------ " + actualDfFilePath);
 				if(actualDfFilePath != null) {
 					File f = new File(actualDfFilePath);
 						String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");					
