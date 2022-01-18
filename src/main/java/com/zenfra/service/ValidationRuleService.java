@@ -1,6 +1,9 @@
 package com.zenfra.service;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,6 +27,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.parse.util.ZenfraJSONObject;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
@@ -238,64 +242,128 @@ public class ValidationRuleService {
 			deviceType = "vmware-host";
 		}
 		try {
-			String query = "select column_names, column_values::jsonb || '[\"Data Not Available\"]' as column_values from ( \r\n" +
-					"select column_names, json_agg(column_values) as column_values from ( \r\n" + 
-					"select distinct column_names, column_values from ( \r\n" + 
-					"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
-					"select data, json_object_keys(data) as keys from ( \r\n" + 
-					"select json_array_elements(pidata::json) as data from comp_data where sitekey = '" + siteKey + "' and \r\n" + 
-					"pidata is not null and pidata <> '[]' and lower(sourcetype) = lower('" + deviceType + "') \r\n" + 
-					") a \r\n" + 
-					") b where keys = '" + columnName + "'\r\n" + 
-					") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
-					"order by column_names, column_values \r\n" + 
-					") d group by column_names )e";
+			String query = "select keys, json_agg(column_values) from ( \r\n" + 
+					"select distinct keys, column_values from ( \r\n" + 
+					"select keys, data ->> keys as column_values from (\r\n" + 
+					"select data, json_object_keys(data) as keys from (\r\n" + 
+					"select json_array_elements(pidata::json) as data from ( select site_key, source_type, source_id, source_id as server_name, coalesce(metricsdate, 'Data Not Available') as metrics_date, \r\n" + 
+					"coalesce(destinationtype, 'Data Not Available') as array_type, coalesce(pidata, '\" + defaultArray + \"') as pidata, coalesce(vm_name, '') as vm_name, \r\n" + 
+					"coalesce(vcenter, '') as vcenter,  \r\n" + 
+					"coalesce(os_version, 'Data Not Available') as os_version, row_number() over(partition by source_id) as row_num  from (  \r\n" + 
+					"select site_key, source_type, coalesce(server_name, source_id) as source_id, coalesce(vm_name, '') as vm_name, coalesce(vcenter, '') as vcenter, \r\n" + 
+					"(case when lower(source_type) = 'vmware' then esx_version else os_version end) as os_version from (  \r\n" + 
+					"select site_key, source_type, source_id, json_array_elements(coalesce(data_temp, data_new::json)) ->> 'Server Name' as server_name,  \r\n" + 
+					"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'VM' as vm_name, \r\n" + 
+					"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'vCenter' as vcenter, \r\n" + 
+					"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'OS Version' as os_version, \r\n" + 
+					"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'ESX Version' as esx_version, \r\n" + 
+					"row_number() over(partition by site_key, server_name order by log_date desc)  as row_num  \r\n" + 
+					"from local_discovery where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "')  \r\n" + 
+					") a where row_num = 1  \r\n" + 
+					") ld  \r\n" + 
+					"LEFT JOIN(select sitekey, sourceid, sourcetype, metricsdate, destinationtype, pidata from comp_data  \r\n" + 
+					"where sitekey = '" + siteKey + "' and lower(sourcetype) = lower('AIX') and lower(destinationtype) = lower('" + model + "') \r\n" + 
+					"and metricsdate in (select max(metrics_date) from comp_destination where lower(model) = lower('" + model + "') and lower(device) = lower('" + deviceType + "'))) cd on  \r\n" + 
+					"cd.sitekey = ld.site_key and lower(cd.sourceid) = lower(ld.source_id) order by source_id ) b where row_num = 1 \r\n" + 
+					") e ) f where keys = '" + columnName + "' order by keys ) g ) h group by keys";
 			
 			if(isServer) {
-				query = "select column_names, column_values::jsonb || '[\"Data Not Available\"]' as column_values from ( \r\n" + 
-			            "select column_names, json_agg(column_values) as column_values from ( \r\n" + 
-						"select distinct column_names, column_values from ( \r\n" + 
-						"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
-						"select data, json_object_keys(data) as keys from ( \r\n" + 
-						"select json_array_elements(pidata::json) as data from comp_data where sitekey = '" + siteKey + "' and \r\n" + 
-						"pidata is not null and pidata <> '[]' and lower(sourcetype) = lower('" + deviceType + "') \r\n" + 
-						") a \r\n" + 
-						") b where keys = '" + columnName + "'\r\n" + 
-						") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
-						"order by column_names, column_values \r\n" + 
-						") d group by column_names ) e";
+				JSONArray defaultArray = getDefaultPIData("project", model);
+				query = "select keys, json_agg(column_values) from ( \r\n" + 
+						"select distinct keys, column_values from ( \r\n" + 
+						"select keys, data ->> keys as column_values from (\r\n" + 
+						"select data, json_object_keys(data) as keys from (\r\n" + 
+						"select json_array_elements(pidata::json) as data from ( select site_key, source_type, source_id, source_id as server_name, coalesce(metricsdate, 'Data Not Available') as metrics_date, \r\n" + 
+						"coalesce(destinationtype, 'Data Not Available') as array_type, coalesce(pidata, '" + defaultArray + "') as pidata, coalesce(vm_name, '') as vm_name, \r\n" + 
+						"coalesce(vcenter, '') as vcenter,  \r\n" + 
+						"coalesce(os_version, 'Data Not Available') as os_version, row_number() over(partition by source_id) as row_num  from (  \r\n" + 
+						"select site_key, source_type, coalesce(server_name, source_id) as source_id, coalesce(vm_name, '') as vm_name, coalesce(vcenter, '') as vcenter, \r\n" + 
+						"(case when lower(source_type) = 'vmware' then esx_version else os_version end) as os_version from (  \r\n" + 
+						"select site_key, source_type, source_id, json_array_elements(coalesce(data_temp, data_new::json)) ->> 'Server Name' as server_name,  \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'VM' as vm_name, \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'vCenter' as vcenter, \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'OS Version' as os_version, \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'ESX Version' as esx_version, \r\n" + 
+						"row_number() over(partition by site_key, server_name order by log_date desc)  as row_num  \r\n" + 
+						"from local_discovery where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "')  \r\n" + 
+						") a where row_num = 1  \r\n" + 
+						") ld  \r\n" + 
+						"LEFT JOIN(select sitekey, sourceid, sourcetype, metricsdate, destinationtype, pidata from comp_data  \r\n" + 
+						"where sitekey = '" + siteKey + "' and lower(sourcetype) = lower('AIX') and lower(destinationtype) = lower('" + model + "') \r\n" + 
+						"and metricsdate in (select max(metrics_date) from comp_destination where lower(model) = lower('" + model + "') and lower(device) = lower('" + deviceType + "'))) cd on  \r\n" + 
+						"cd.sitekey = ld.site_key and lower(cd.sourceid) = lower(ld.source_id) order by source_id ) b where row_num = 1 \r\n" + 
+						") e ) f where keys = '" + columnName + "' order by keys ) g ) h group by keys";
 			}
 			
 			if(isStorage) {
-				query = "select column_names, column_values::jsonb || '[\"Data Not Available\"]' as column_values from ( \r\n " +
-						"select column_names, json_agg(column_values) as column_values from ( \r\n" + 
-						"select distinct column_names, column_values from ( \r\n" + 
-						"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
+				
+				JSONArray defaultArray = getDefaultPIData("project", model);
+				query = "select keys, json_agg(column_values) from ( \r\n" + 
+						"select distinct keys, column_values from ( \r\n" + 
+						"select keys, data ->> keys as column_values from ( \r\n" + 
 						"select data, json_object_keys(data) as keys from ( \r\n" + 
-						"select json_array_elements(pidata::json) as data from comp_data where sitekey = '" + siteKey + "' and \r\n" + 
-						"pidata is not null and pidata <> '[]' and \r\n" + 
-						"lower(sourceid) in (select distinct source_id from storage_discovery where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "'))\r\n" + 
-						") a \r\n" + 
-						") b where keys = '" + columnName + "'\r\n" + 
-						") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
-						"order by column_names, column_values \r\n" + 
-						") d group by column_names ) e";
+						"select json_array_elements(pidata::json) as data from ( \r\n" +
+						"select site_key, coalesce(source_type, 'Not Discovered') as source_type, source_id, coalesce(metricsdate, 'Data Not Available') as metricsdate,\r\n" + 
+						"coalesce(destinationtype, 'Data Not Available') as array_type, coalesce(vm_name, '') as vm_name, coalesce(vcenter, '') as vcenter,\r\n" + 
+						"coalesce(pidata, '" + defaultArray + "') as pidata, coalesce(os_version, 'Data Not Available') as os_version  from (\r\n" + 
+						"select site_key, source_type, source_id, vm_name, vcenter, os_version from (\r\n" + 
+						"select site_key, ld.source_type, sd.source_id, vm_name, vcenter, (case when lower(ld.source_type) = 'vmware' then esx_version else os_version end) as os_version, \r\n" + 
+						"row_number() over(partition by site_key, sd.source_id order by log_date desc)  as row_num\r\n" + 
+						"from storage_discovery sd \r\n" + 
+						"LEFT JOIN (select source_id, source_type, coalesce(server_name, source_id) as server_name, coalesce(vm_name, '') as vm_name,\r\n" + 
+						"coalesce(vcenter, '') as vcenter, os_version, esx_version from (select source_id, lower(source_type) as source_type, \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'Server Name' as server_name,\r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'VM' as vm_name, \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'vCenter' as vcenter, \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'OS Version' as os_version, \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'ESX Version' as esx_version, \r\n" + 
+						"row_number() over(partition by source_id order by log_date desc) as row_num from local_discovery \r\n" + 
+						"where site_key = '" + siteKey + "') a ) ld on lower(ld.source_id) = lower(sd.source_id)\r\n" + 
+						"where site_key = '" + siteKey + "' \r\n" + 
+						"and lower(sd.source_type) = lower('" + deviceType + "')\r\n" + 
+						") a where row_num = 1\r\n" + 
+						") ld\r\n" + 
+						"LEFT JOIN(select sitekey, sourceid, sourcetype, metricsdate, destinationtype, pidata from comp_data\r\n" + 
+						"where sitekey = '" + siteKey + "' and lower(destinationtype) = lower('" + model + "')) cd on\r\n" + 
+						"cd.sitekey = ld.site_key and lower(cd.sourceid) = lower(ld.source_id)\r\n" + 
+						"order by source_id ) e ) f ) g where keys = '" + columnName + "' order by keys) h ) k group by keys";
 			}
 			
 			if(isSwitch) {
-				query = "select column_names, column_values::jsonb || '[\"Data Not Available\"]' as column_values from ( \r\n " +
-						"select column_names, json_agg(column_values) as column_values from ( \r\n" + 
-						"select distinct column_names, column_values from ( \r\n" + 
-						"select keys as column_names, data ->> keys as column_values from ( \r\n" + 
-						"select data, json_object_keys(data) as keys from ( \r\n" + 
-						"select json_array_elements(pidata::json) as data from comp_data where sitekey = '" + siteKey + "' and \r\n" + 
-						"pidata is not null and pidata <> '[]' and \r\n" + 
-						"lower(sourceid) in (select distinct source_id from switch_discovery where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "'))\r\n" + 
-						") a \r\n" + 
-						") b where keys = '" + columnName + "'\r\n" + 
-						") c where column_values <> 'null' and column_values <> '' and column_values <> 'N/A'\r\n" + 
-						"order by column_names, column_values \r\n" + 
-						") d group by column_names )e";
+				
+				JSONArray defaultArray = getDefaultPIData("project", model);
+				query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
+						"select distinct keys, column_values from ( \r\n" + 
+						"select keys, data ->> keys as column_values from (\r\n" + 
+						"select data, json_object_keys(data) as keys from (\r\n" + 
+						"select json_array_elements(pidata::json) as data from ( \r\n" + 
+						"select site_key, coalesce(source_type, 'Not Discovered') as source_type, source_id, coalesce(metricsdate, 'Data Not Available') as metricsdate,  \r\n" + 
+						"coalesce(destinationtype, 'Data Not Available') as array_type, coalesce(vm_name, '') as vm_name, coalesce(vcenter, '') as vcenter,  \r\n" + 
+						"coalesce(pidata, '" + defaultArray + "') as pidata, coalesce(os_version, 'Data Not Available') as os_version  from (  \r\n" + 
+						"select site_key, source_type, source_id, vm_name, vcenter, os_version from (  \r\n" + 
+						"select site_key, ld.source_type, sd.source_id, vm_name, vcenter, (case when (ld.source_type) = 'vmware' then esx_version else os_version end) as os_version, \r\n" + 
+						"row_number() over(partition by site_key, sd.source_id order by log_date desc)  as row_num  \r\n" + 
+						"from switch_discovery sd  \r\n" + 
+						"LEFT JOIN (select source_id, source_type, coalesce(server_name, source_id) as server_name, coalesce(vm_name, '') as vm_name,  \r\n" + 
+						"coalesce(vcenter, '') as vcenter, os_version, esx_version from (select source_id, lower(source_type) as source_type,  \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'Server Name' as server_name,  \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'VM' as vm_name,  \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'vCenter' as vcenter,  \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'OS Version' as os_version,  \r\n" + 
+						"json_array_elements(coalesce(data_temp, data_new::json)) ->> 'ESX Version' as esx_version,  \r\n" + 
+						"row_number() over(partition by source_id order by log_date desc) as row_num from local_discovery  \r\n" + 
+						"where site_key = '" + siteKey + "') a ) ld on lower(ld.source_id) = lower(sd.source_id)  \r\n" + 
+						"where site_key = '" + siteKey + "'  \r\n" + 
+						"and lower(sd.source_type) = lower('" + deviceType + "')  \r\n" + 
+						") a where row_num = 1  \r\n" + 
+						") ld  \r\n" + 
+						"LEFT JOIN(select sitekey, sourceid, sourcetype, metricsdate, destinationtype, pidata from comp_data  \r\n" + 
+						"where sitekey = '" + siteKey + "' and  \r\n" + 
+						" lower(destinationtype) = lower('" + model + "')) cd on  \r\n" + 
+						"cd.sitekey = ld.site_key and lower(cd.sourceid) = lower(ld.source_id)  \r\n" + 
+						"where source_id != ''  \r\n" + 
+						"order by source_id\r\n" + 
+						") e ) f ) g where keys = '" + columnName + "' order by keys) h ) k group by keys";
 			}
 			
 			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
@@ -399,6 +467,7 @@ public class ValidationRuleService {
 			}
 			
 			if(isStorage) {
+				
 				query = "select methods, json_agg(data_value) as data_value from (\r\n" + 
 						"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
 						"select distinct methods, dt.data_value from (\r\n" + 
@@ -482,6 +551,32 @@ public class ValidationRuleService {
 			e.printStackTrace();
 		}
 		return obj;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private JSONArray getDefaultPIData(String device, String destinationType) {
+		
+		JSONParser parser = new JSONParser();
+		JSONArray resultArray = new JSONArray();
+		
+		try {
+			String query = "select json_agg(column_name) as column_name from (\r\n" + 
+					"select distinct(column_name), seq::integer from report_columns where report_name = 'Compatibility' and lower(device_type) = '" + device.toLowerCase() + "' \r\n" + 
+					"order by seq::integer\r\n" + 
+					") a";
+			
+			System.out.println("!!!!! query: " + query);
+			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
+			//JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for(Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_name").toString());
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
 	}
 
 }
