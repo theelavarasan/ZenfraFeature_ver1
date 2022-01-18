@@ -62,6 +62,9 @@ public class ValidationRuleService {
 		List<String> storageList =  new ArrayList<String>(Arrays.asList(ZKModel.getProperty(ZKConstants.STORAGE_LIST).split(",")));
 		List<String> switchList =  new ArrayList<String>(Arrays.asList(ZKModel.getProperty(ZKConstants.SWITCH_LIST).split(",")));
 	       
+	System.out.println("------serverList---------" + serverList);	
+	System.out.println("------storageList---------" + storageList);	
+	System.out.println("------switchList---------" + switchList);	
 	   if(serverList.contains(deviceType.toLowerCase())) {
 		   category = "Server";
 	   }else if(storageList.contains(deviceType.toLowerCase())) {
@@ -70,12 +73,16 @@ public class ValidationRuleService {
 		   category = "Switch";
 	   }
 		
+	   System.out.println("------category---------" + category);	
+	   
 		if(reportBy != null && ((reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server")) || 
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("Nutanix")) || 
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("Hyper-V")) ||
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("vmware")))) {
 			try {
 				
+				  System.out.println("------if---------");
+				  
 				deviceType = deviceType.toLowerCase();
 				if(deviceType != null && !deviceType.trim().isEmpty() && deviceType.contains("hyper")) {
 					deviceType = deviceType + "-" + reportBy.toLowerCase();
@@ -127,6 +134,7 @@ public class ValidationRuleService {
 				e.printStackTrace();
 			}
 		} else {
+			  System.out.println("------else---------");
 			String actualDfFolderPath = null;
 	        String actualDfFilePath = null;
 			String dataframePath = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator;
