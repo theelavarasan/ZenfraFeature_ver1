@@ -242,12 +242,13 @@ public class ValidationRuleService {
 			deviceType = "vmware-host";
 		}
 		try {
-			String query = "select keys, json_agg(column_values) from ( \r\n" + 
+			JSONArray defaultArray = getDefaultPIData(deviceType, model);
+			String query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
 					"select distinct keys, column_values from ( \r\n" + 
 					"select keys, data ->> keys as column_values from (\r\n" + 
 					"select data, json_object_keys(data) as keys from (\r\n" + 
 					"select json_array_elements(pidata::json) as data from ( select site_key, source_type, source_id, source_id as server_name, coalesce(metricsdate, 'Data Not Available') as metrics_date, \r\n" + 
-					"coalesce(destinationtype, 'Data Not Available') as array_type, coalesce(pidata, '\" + defaultArray + \"') as pidata, coalesce(vm_name, '') as vm_name, \r\n" + 
+					"coalesce(destinationtype, 'Data Not Available') as array_type, coalesce(pidata, '" + defaultArray + "') as pidata, coalesce(vm_name, '') as vm_name, \r\n" + 
 					"coalesce(vcenter, '') as vcenter,  \r\n" + 
 					"coalesce(os_version, 'Data Not Available') as os_version, row_number() over(partition by source_id) as row_num  from (  \r\n" + 
 					"select site_key, source_type, coalesce(server_name, source_id) as source_id, coalesce(vm_name, '') as vm_name, coalesce(vcenter, '') as vcenter, \r\n" + 
@@ -268,8 +269,8 @@ public class ValidationRuleService {
 					") e ) f where keys = '" + columnName + "' order by keys ) g ) h group by keys";
 			
 			if(isServer) {
-				JSONArray defaultArray = getDefaultPIData("project", model);
-				query = "select keys, json_agg(column_values) from ( \r\n" + 
+				//JSONArray defaultArray = getDefaultPIData(deviceType, model);
+				query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
 						"select distinct keys, column_values from ( \r\n" + 
 						"select keys, data ->> keys as column_values from (\r\n" + 
 						"select data, json_object_keys(data) as keys from (\r\n" + 
@@ -297,8 +298,8 @@ public class ValidationRuleService {
 			
 			if(isStorage) {
 				
-				JSONArray defaultArray = getDefaultPIData("project", model);
-				query = "select keys, json_agg(column_values) from ( \r\n" + 
+				//JSONArray defaultArray = getDefaultPIData("project", model);
+				query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
 						"select distinct keys, column_values from ( \r\n" + 
 						"select keys, data ->> keys as column_values from ( \r\n" + 
 						"select data, json_object_keys(data) as keys from ( \r\n" + 
@@ -331,7 +332,7 @@ public class ValidationRuleService {
 			
 			if(isSwitch) {
 				
-				JSONArray defaultArray = getDefaultPIData("project", model);
+				//JSONArray defaultArray = getDefaultPIData("project", model);
 				query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
 						"select distinct keys, column_values from ( \r\n" + 
 						"select keys, data ->> keys as column_values from (\r\n" + 
