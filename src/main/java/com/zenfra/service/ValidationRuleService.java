@@ -59,7 +59,7 @@ public class ValidationRuleService {
 			String deviceType, String reportList) {
 	
 		
-	System.out.println("------deviceType---------" + deviceType);	
+
 		  
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		Map<String, List<Object>> resutData = new HashMap<>(); 
@@ -67,11 +67,7 @@ public class ValidationRuleService {
 		List<String> serverList = commonFunctions.convertToArrayList(ZKModel.getProperty(ZKConstants.SERVER_LIST), ",");
 		List<String> storageList =  commonFunctions.convertToArrayList(ZKModel.getProperty(ZKConstants.STORAGE_LIST), ",");
 		List<String> switchList = commonFunctions.convertToArrayList(ZKModel.getProperty(ZKConstants.SWITCH_LIST), ","); 
-	       
-	System.out.println("------serverList---------" + serverList);	
-	System.out.println("------storageList---------" + storageList);	
-	System.out.println("------switchList---------" + switchList);	
-	  System.out.println("------deviceType---------" + deviceType.toLowerCase());
+	       	
 	   if(serverList.contains(deviceType.toLowerCase())) {
 		   category = "Server";
 	   }else if(storageList.contains(deviceType.toLowerCase())) {
@@ -86,10 +82,7 @@ public class ValidationRuleService {
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("Nutanix")) || 
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("Hyper-V")) ||
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("vmware")))) {
-			try {
-				
-				  System.out.println("------if---------");
-				  
+			try {				  
 				deviceType = deviceType.toLowerCase();
 				if(deviceType != null && !deviceType.trim().isEmpty() && deviceType.contains("hyper")) {
 					deviceType = deviceType + "-" + reportBy.toLowerCase();
@@ -140,8 +133,7 @@ public class ValidationRuleService {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else {
-			  System.out.println("------else---------");
+		} else {			 
 			String actualDfFolderPath = null;
 	        String actualDfFilePath = null;
 			String dataframePath = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator;
