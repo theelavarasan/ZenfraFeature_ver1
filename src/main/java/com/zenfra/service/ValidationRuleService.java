@@ -345,28 +345,55 @@ public class ValidationRuleService {
 					"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
 					"select distinct methods, dt.data_value from (\r\n" + 
 					"select methods from migration_method where lower(device) = lower('" + deviceType + "') \r\n" + 
+					"union all\r\n" + 
+					"select 'Server Name' as methods \r\n" + 
+					"union all \r\n" + 
+					"select 'Source' as methods \r\n" + 
+					"union all \r\n" + 
+					"select 'OS Version' as methods\r\n" + 
 					") a\r\n" + 
 					"LEFT JOIN (select data, keys, data ->> keys as data_value from (\r\n" + 
-					"select data, json_object_keys(data) as keys from (\r\n" + 
-					"select json_array_elements(data::json) as data from migration_data \r\n" + 
-					"where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "')\r\n" + 
+					"select  data, json_object_keys(data::json) as keys from (\r\n" + 
+					"select data from (\r\n" + 
+					"select data, row_number() over(partition by data) as row_num from ( \r\n" + 
+					"select server_name::jsonb || data::jsonb as data from (\r\n" + 
+					"select json_build_object('Server Name', source_id, 'OS Version', os_version, 'Source', lower(source)) as server_name, \r\n" + 
+					"json_array_elements(data::json) as data from migration_data \r\n" + 
+					"where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "') \r\n" + 
+					") b \r\n" + 
+					") c\r\n" + 
+					") d where row_num = 1\r\n" + 
 					") a \r\n" + 
-					") b ) dt on lower(dt.keys) = (a.methods) \r\n" + 
+					") b ) dt on lower(dt.keys) = lower(a.methods) \r\n" + 
 					") b \r\n" + 
 					") d group by methods order by methods";
 			
 			if(isServer) {
+				
 				query = "select methods, json_agg(data_value) as data_value from (\r\n" + 
 						"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
 						"select distinct methods, dt.data_value from (\r\n" + 
 						"select methods from migration_method where lower(device) = lower('" + deviceType + "') \r\n" + 
+						"union all\r\n" + 
+						"select 'Server Name' as methods \r\n" + 
+						"union all \r\n" + 
+						"select 'Source' as methods \r\n" + 
+						"union all \r\n" + 
+						"select 'OS Version' as methods\r\n" + 
 						") a\r\n" + 
 						"LEFT JOIN (select data, keys, data ->> keys as data_value from (\r\n" + 
-						"select data, json_object_keys(data) as keys from (\r\n" + 
-						"select json_array_elements(data::json) as data from migration_data \r\n" + 
-						"where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "')\r\n" + 
+						"select  data, json_object_keys(data::json) as keys from (\r\n" + 
+						"select data from (\r\n" + 
+						"select data, row_number() over(partition by data) as row_num from ( \r\n" + 
+						"select server_name::jsonb || data::jsonb as data from (\r\n" + 
+						"select json_build_object('Server Name', source_id, 'OS Version', os_version, 'Source', lower(source)) as server_name, \r\n" + 
+						"json_array_elements(data::json) as data from migration_data \r\n" + 
+						"where site_key = '" + siteKey + "' and lower(source_type) = lower('" + deviceType + "') \r\n" + 
+						") b \r\n" + 
+						") c\r\n" + 
+						") d where row_num = 1\r\n" + 
 						") a \r\n" + 
-						") b ) dt on lower(dt.keys) = (a.methods) \r\n" + 
+						") b ) dt on lower(dt.keys) = lower(a.methods) \r\n" + 
 						") b \r\n" + 
 						") d group by methods order by methods";
 			}
@@ -376,14 +403,27 @@ public class ValidationRuleService {
 						"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
 						"select distinct methods, dt.data_value from (\r\n" + 
 						"select methods from migration_method where lower(device) = lower('" + deviceType + "') \r\n" + 
+						"union all\r\n" + 
+						"select 'Server Name' as methods \r\n" + 
+						"union all \r\n" + 
+						"select 'Source' as methods \r\n" + 
+						"union all \r\n" + 
+						"select 'OS Version' as methods\r\n" + 
 						") a\r\n" + 
 						"LEFT JOIN (select data, keys, data ->> keys as data_value from (\r\n" + 
-						"select data, json_object_keys(data) as keys from (\r\n" + 
-						"select json_array_elements(data::json) as data from migration_data \r\n" + 
-						"where site_key = '" + siteKey + "' and lower(source_id) in (select distinct source_id from storage_discovery where site_key = '" + siteKey + "' " +
-						"and lower(source_type) = lower('" + deviceType + "'))\r\n" + 
+						"select  data, json_object_keys(data::json) as keys from (\r\n" + 
+						"select data from (\r\n" + 
+						"select data, row_number() over(partition by data) as row_num from ( \r\n" + 
+						"select server_name::jsonb || data::jsonb as data from (\r\n" + 
+						"select json_build_object('Server Name', source_id, 'OS Version', os_version, 'Source', lower(source)) as server_name, \r\n" + 
+						"json_array_elements(data::json) as data from migration_data \r\n" + 
+						"where site_key = '" + siteKey + "' and lower(source_id) in (select distinct source_id from storage_discovery where site_key = '" + siteKey + "'  \r\n" + 
+						"and lower(source_type) = lower('" + deviceType + "')) \r\n" + 
+						") b \r\n" + 
+						") c\r\n" + 
+						") d where row_num = 1\r\n" + 
 						") a \r\n" + 
-						") b ) dt on lower(dt.keys) = (a.methods) \r\n" + 
+						") b ) dt on lower(dt.keys) = lower(a.methods) \r\n" + 
 						") b \r\n" + 
 						") d group by methods order by methods";
 			}
@@ -393,14 +433,27 @@ public class ValidationRuleService {
 						"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
 						"select distinct methods, dt.data_value from (\r\n" + 
 						"select methods from migration_method where lower(device) = lower('" + deviceType + "') \r\n" + 
+						"union all\r\n" + 
+						"select 'Server Name' as methods \r\n" + 
+						"union all \r\n" + 
+						"select 'Source' as methods \r\n" + 
+						"union all \r\n" + 
+						"select 'OS Version' as methods\r\n" + 
 						") a\r\n" + 
 						"LEFT JOIN (select data, keys, data ->> keys as data_value from (\r\n" + 
-						"select data, json_object_keys(data) as keys from (\r\n" + 
-						"select json_array_elements(data::json) as data from migration_data \r\n" + 
-						"where site_key = '" + siteKey + "' and lower(source_id) in (select distinct source_id from switch_discovery where site_key = '" + siteKey + "' " +
-						"and lower(source_type) = lower('" + deviceType + "'))\r\n" + 
+						"select  data, json_object_keys(data::json) as keys from (\r\n" + 
+						"select data from (\r\n" + 
+						"select data, row_number() over(partition by data) as row_num from ( \r\n" + 
+						"select server_name::jsonb || data::jsonb as data from (\r\n" + 
+						"select json_build_object('Server Name', source_id, 'OS Version', os_version, 'Source', lower(source)) as server_name, \r\n" + 
+						"json_array_elements(data::json) as data from migration_data \r\n" + 
+						"where site_key = '" + siteKey + "' and lower(source_id) in (select distinct source_id from switch_discovery where site_key = '" + siteKey + "'  \r\n" + 
+						"and lower(source_type) = lower('" + deviceType + "')) \r\n" + 
+						") b \r\n" + 
+						") c\r\n" + 
+						") d where row_num = 1\r\n" + 
 						") a \r\n" + 
-						") b ) dt on lower(dt.keys) = (a.methods) \r\n" + 
+						") b ) dt on lower(dt.keys) = lower(a.methods) \r\n" + 
 						") b \r\n" + 
 						") d group by methods order by methods";
 			}
