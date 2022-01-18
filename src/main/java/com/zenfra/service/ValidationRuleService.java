@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.parse.util.Utilities;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
@@ -58,9 +59,17 @@ public class ValidationRuleService {
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		Map<String, List<Object>> resutData = new HashMap<>(); 
 		
-		 
+		List<String> serverList = new ArrayList<String>(Arrays.asList(ZKModel.getProperty(ZKConstants.SERVER_LIST).split(",")));
+		List<String> storageList =  new ArrayList<String>(Arrays.asList(ZKModel.getProperty(ZKConstants.STORAGE_LIST).split(",")));
+		List<String> switchList =  new ArrayList<String>(Arrays.asList(ZKModel.getProperty(ZKConstants.SWITCH_LIST).split(",")));
 	       
-	      
+	   if(serverList.contains(deviceType.toLowerCase())) {
+		   category = "Server";
+	   }else if(storageList.contains(deviceType.toLowerCase())) {
+		   category = "Storage";
+	   } else if(switchList.contains(deviceType.toLowerCase())) {
+		   category = "Switch";
+	   }
 		
 		if(reportBy != null && ((reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server")) || 
 				((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host")) && deviceType.equalsIgnoreCase("Nutanix")) || 
@@ -137,12 +146,12 @@ public class ValidationRuleService {
 			if(actualDfFolderPath != null) {
 				File d = new File(actualDfFolderPath);			
 				for(File file : d.listFiles()) {					
-				    if(file.isFile() && file.getName().toLowerCase().contains(category.toLowerCase()) &&  file.getName().toLowerCase().contains(reportBy.toLowerCase()+".json")) { // && file.getName().toLowerCase().contains(category.toLowerCase())
+				    if(file.isFile() && file.getName().toLowerCase().contains(category.toLowerCase()) &&  file.getName().toLowerCase().contains(reportBy.toLowerCase()+".json") && file.getName().toLowerCase().contains(reportList.toLowerCase())) { // && file.getName().toLowerCase().contains(category.toLowerCase())
 				    	actualDfFilePath = file.getAbsolutePath();
 				    	break;
 				    }
 			    }
-				
+				System.out.println("-------actualDfFilePath------------ " + actualDfFilePath);
 				if(actualDfFilePath != null) {
 					File f = new File(actualDfFilePath);
 						String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");					
