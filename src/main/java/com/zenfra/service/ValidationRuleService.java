@@ -376,6 +376,7 @@ public class ValidationRuleService {
 						") e ) f ) g where keys = '" + columnName + "' order by keys) h ) k group by keys";
 			}
 			
+			System.out.println("!!!! compatibility validation query: " + query);
 			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
 			JSONParser parser = new JSONParser();
 			System.out.println("!!!!! valueArray: " + valueArray);
