@@ -312,7 +312,7 @@ public class ValidationRuleService {
 						"select distinct keys, column_values from ( \r\n" + 
 						"select keys, data ->> keys as column_values from ( \r\n" + 
 						"select data, json_object_keys(data) as keys from ( \r\n" + 
-						"select json_array_elements(pidata::json) as data from ( \r\n" +
+						"select json_array_elements(replace(pidata, '\"Host_Host Name\":\"\"', concat('\"Host_Host Name\":\"', source_id,'\"'))::json) as data from ( \r\n" +
 						"select site_key, coalesce(source_type, 'Not Discovered') as source_type, source_id, coalesce(metricsdate, 'Data Not Available') as metricsdate,\r\n" + 
 						"coalesce(destinationtype, 'Data Not Available') as array_type, coalesce(vm_name, '') as vm_name, coalesce(vcenter, '') as vcenter,\r\n" + 
 						"coalesce(pidata, '" + defaultArray + "') as pidata, coalesce(os_version, 'Data Not Available') as os_version  from (\r\n" + 
