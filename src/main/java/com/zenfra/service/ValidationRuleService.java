@@ -307,7 +307,7 @@ public class ValidationRuleService {
 			
 			if(isStorage) {
 				
-				//JSONArray defaultArray = getDefaultPIData("project", model);
+				defaultArray = getDefaultPIData("project", model);
 				query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
 						"select distinct keys, column_values from ( \r\n" + 
 						"select keys, data ->> keys as column_values from ( \r\n" + 
@@ -341,7 +341,7 @@ public class ValidationRuleService {
 			
 			if(isSwitch) {
 				
-				//JSONArray defaultArray = getDefaultPIData("project", model);
+				defaultArray = getDefaultPIData("project", model);
 				query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
 						"select distinct keys, column_values from ( \r\n" + 
 						"select keys, data ->> keys as column_values from (\r\n" + 
