@@ -461,7 +461,7 @@ public class ValidationRuleService {
 					") c  \r\n" + 
 					") d where source_id != '' group by source_id, site_key, os_version, source_type, source, vcenter  \r\n" + 
 					"order by source_id \r\n" + 
-					") e ) f ) d ) g ) h ) i ) j order by keys ) k group by keys";
+					") e ) f ) d ) g ) h ) i where keys = '" + columnName + "' ) j order by keys ) k group by keys";
 			
 			if(isServer) {
 				
@@ -498,7 +498,7 @@ public class ValidationRuleService {
 						") c  \r\n" + 
 						") d where source_id != '' group by source_id, site_key, os_version, source_type, source, vcenter  \r\n" + 
 						"order by source_id \r\n" + 
-						") e ) f ) d ) g ) h ) i ) j order by keys ) k group by keys";
+						") e ) f ) d ) g ) h ) i where keys = '" + columnName + "') j order by keys ) k group by keys";
 			}
 			
 			if(isStorage) {
@@ -540,37 +540,48 @@ public class ValidationRuleService {
 						") c \r\n" + 
 						") d where source_id != '' group by source_id, site_key, os_version, source_type, source \r\n" + 
 						"order by source_id \r\n" + 
-						") e ) f ) d ) g ) h ) i ) j order by keys ) k group by keys ";
+						") e ) f ) d ) g ) h ) i where keys = '" + columnName + "' ) j order by keys ) k group by keys ";
 			}
 			
 			if(isSwitch) {
-				query = "select methods, json_agg(data_value) as data_value from (\r\n" + 
-						"select methods, (case when data_value is null or data_value = '' or data_value = 'null' then 'Not Applicable' else data_value end) as data_value from (\r\n" + 
-						"select distinct methods, dt.data_value from (\r\n" + 
-						"select methods from migration_method where lower(device) = lower('" + deviceType + "') \r\n" + 
-						"union all\r\n" + 
-						"select 'Server Name' as methods \r\n" + 
-						"union all \r\n" + 
-						"select 'Source' as methods \r\n" + 
-						"union all \r\n" + 
-						"select 'OS Version' as methods\r\n" + 
-						") a\r\n" + 
-						"LEFT JOIN (select data, keys, data ->> keys as data_value from (\r\n" + 
-						"select  data, json_object_keys(data::json) as keys from (\r\n" + 
-						"select data from (\r\n" + 
-						"select data, row_number() over(partition by data) as row_num from ( \r\n" + 
-						"select server_name::jsonb || data::jsonb as data from (\r\n" + 
-						"select json_build_object('Server Name', source_id, 'OS Version', os_version, 'Source', lower(source)) as server_name, \r\n" + 
-						"json_array_elements(data::json) as data from migration_data \r\n" + 
-						"where site_key = '" + siteKey + "' and lower(source_id) in (select distinct source_id from switch_discovery where site_key = '" + siteKey + "'  \r\n" + 
-						"and lower(source_type) = lower('" + deviceType + "')) \r\n" + 
+				query = "select keys, json_agg(column_values) as column_values from (  \r\n" + 
+						"select distinct keys, column_values from (  \r\n" + 
+						"select keys, data::json ->> keys as column_values from (  \r\n" + 
+						"select data, json_object_keys(data::json) as keys from ( \r\n" + 
+						"select replace(data, '}{', ',') as data from (  \r\n" + 
+						"select data::jsonb || concat('{\"Server Name\":\"', source_id, '\",\"OS Version\":\"', os_version, '\",\"Source\":\"', source_type, '\"}') as data from (  \r\n" + 
+						"select source_id, source_type, os_version, json_array_elements(data::json) as data from (  \r\n" + 
+						"select source_id, source_type, os_version, replace(replace(data::text, '}, {', ','), '},{', ',') as data from (\r\n" + 
+						"select source_id, site_key, coalesce(os_version, 'Data Not Available') as os_version, coalesce(source_type, 'Data Not Available') as source_type, \r\n" + 
+						"coalesce(source, 'Data Not Available') as source, json_agg(data) as data from ( \r\n" + 
+						"select source_id, site_key, os_version, source_type, source, json_build_object(methods, column_values) as data from ( \r\n" + 
+						"select device, methods, source_id, site_key, os_version, source_type, source, coalesce(column_values, 'Not Applicable') as column_values from ( \r\n" + 
+						"select device, methods, source_id, site_key, os_version, source_type, source, \r\n" + 
+						"json_array_elements(data::json) ->> methods as column_values from ( \r\n" + 
+						"select mm.device, mm.methods, dt.source_id, dt.site_key, dt.os_version, dt.source_type, dt.source, coalesce(dt.data, concat('[{\"', mm.methods, '\":\"', 'Not Applicable' , '\"}]')) as data  from migration_method mm \r\n" + 
+						"LEFT JOIN (select b.site_key, b.source_id, b.os_version, b.source_type, md.source, md.data from ( \r\n" + 
+						"select site_key, source_id, os_version, source_type, vcenter from (select sd.source_id, sd.site_key, data, ld.os_version, ld.source_type, ld.vcenter, \r\n" + 
+						"row_number() over(partition by sd.source_id order by log_date desc) as row_num \r\n" + 
+						"from switch_discovery sd \r\n" + 
+						"LEFT JOIN (select site_key, source_id, source_type, coalesce(os_version, 'Data Not Available') as os_version,  \r\n" + 
+						"coalesce(vcenter, 'Data Not Available') as vcenter from ( \r\n" + 
+						"select site_key,source_id, lower(source_type) as source_type, json_array_elements(data_temp::json) ->> 'OS Version' as os_version, \r\n" + 
+						"json_array_elements(data_temp::json) ->> 'vCenter' as vcenter,  \r\n" + 
+						"row_number() over(partition by source_id order by log_date desc) as row_num \r\n" + 
+						"from local_discovery where site_key = '" + siteKey + "' \r\n" + 
+						") a1 where row_num = 1) ld on lower(ld.source_id) = lower(sd.source_id) and ld.site_key = sd.site_key \r\n" + 
+						"where sd.site_key = '" + siteKey + "' and \r\n" + 
+						"lower(sd.source_type) = '" + deviceType.toLowerCase() + "') a  where row_num = 1 \r\n" + 
 						") b \r\n" + 
-						") c\r\n" + 
-						") d where row_num = 1\r\n" + 
-						") a \r\n" + 
-						") b ) dt on lower(dt.keys) = lower(a.methods) \r\n" + 
+						"LEFT JOIN(select source_id, site_key, os_version, source_type, source, data from migration_data \r\n" + 
+						"where site_key = '" + siteKey + "') md on lower(md.source_id) = lower(b.source_id)) \r\n" + 
+						"dt on 1 = 1 \r\n" + 
+						" and lower(method_name) in (select lower(method_name) from migration_method) and lower(mode_name) in (select lower(mode_name) from migration_method)) a \r\n" + 
 						") b \r\n" + 
-						") d group by methods order by methods";
+						") c \r\n" + 
+						") d where source_id != '' group by source_id, site_key, os_version, source_type, source \r\n" + 
+						"order by source_id \r\n" + 
+						") e ) f ) d ) g ) h ) i where keys = '" + columnName + "') j order by keys ) k group by keys";
 			}
 			
 			System.out.println("!!!!! query: " + query);
