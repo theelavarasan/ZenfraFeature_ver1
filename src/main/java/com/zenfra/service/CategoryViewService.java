@@ -27,7 +27,7 @@ public class CategoryViewService {
 	CommonFunctions functions;
 	
 	@Autowired
-	UserService userSerice;
+	UserCreateService userSerice;
 	
 	
 	@Autowired

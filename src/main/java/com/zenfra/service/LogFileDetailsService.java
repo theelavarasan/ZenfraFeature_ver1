@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -48,7 +49,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	LogFileDetailsDao logDao;
 
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 
 	@Autowired
 	CommonFunctions common;
@@ -105,7 +106,17 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logFileIds) {
 		try {
-			return logDao.getLogFileDetailsByLogids(logFileIds);
+			List<LogFileDetails> logFile = logDao.getLogFileDetailsByLogids(logFileIds);
+			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
+			for (LogFileDetails log : logFile) {							
+				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getCreatedDateTime()));
+				log.setUpdatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
+				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
+				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
+				logFileUpdate.add(log);
+			}
+
+			return logFileUpdate;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -115,13 +126,17 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	public Object getLogFileDetailsBySiteKey(String siteKey) {
 		try {
 
-			Map<String, String> userList = userService.getUserNames();
+			Map<String, String> userList = userCreateService.getUserNames();
 			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKey(siteKey);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 			for (LogFileDetails log : logFile) {
 				if (userList.containsKey(log.getUploadedBy())) {
 					log.setUploadedBy(userList.get(log.getUploadedBy()));
-				}
+				}				
+				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getCreatedDateTime()));
+				log.setUpdatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
+				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
+				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
 				logFileUpdate.add(log);
 			}
 

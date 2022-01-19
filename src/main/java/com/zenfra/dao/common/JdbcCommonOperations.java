@@ -214,4 +214,16 @@ public abstract class JdbcCommonOperations {
 		}
 		return obj;
 	}
+	
+	public Map<String, Object> getResultAsMap(String query) {
+		Map<String, Object> obj = new HashMap<>();
+		try {
+
+			obj = jdbc.queryForMap(query);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return obj;
+	}
 }

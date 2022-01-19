@@ -44,7 +44,7 @@ import com.zenfra.model.ZKConstants;
 import com.zenfra.service.CategoryMappingService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.HealthCheckService;
-import com.zenfra.service.UserService;
+import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
@@ -60,7 +60,7 @@ public class FavouriteController_v2 {
 	CommonFunctions functions;
 	
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 	
 	@Autowired
 	HealthCheckService healthCheckService;
@@ -103,7 +103,7 @@ public class FavouriteController_v2 {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
-			Users user=userService.getUserByUserId(favouriteModel.getAuthUserId());
+			Users user=userCreateService.getUserByUserId(favouriteModel.getAuthUserId());
 			if(user==null) {
 				responseModel.setResponseDescription("User id is invalid");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);

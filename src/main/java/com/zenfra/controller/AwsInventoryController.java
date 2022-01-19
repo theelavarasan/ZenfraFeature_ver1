@@ -1,5 +1,6 @@
 package com.zenfra.controller;
 
+import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,7 +37,7 @@ import com.zenfra.model.Users;
 import com.zenfra.model.ftp.ProcessingStatus;
 import com.zenfra.service.LogFileDetailsService;
 import com.zenfra.service.ProcessService;
-import com.zenfra.service.UserService;
+import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
 import com.zenfra.utils.DBUtils;
@@ -54,7 +56,7 @@ public class AwsInventoryController {
 	ProcessService serivce;
 	
 	@Autowired
-	UserService userService;
+	UserCreateService userCreateService;
 	
 	@Autowired
 	LogFileDetailsService logFileService;
@@ -242,6 +244,20 @@ public class AwsInventoryController {
 				};
 				new Thread(myrunnable).start();
 				model.setResponseCode(HttpStatus.OK);
+				
+				//delete AWS dataframe
+				  try { //remove orient db dataframe
+						String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator; // + sourceType + File.separator;
+						File[] directories = new File(dataframePath).listFiles(File::isDirectory);
+						for(File dir : directories) {					
+							if(dir.getName().equalsIgnoreCase("AWS")) {							
+								FileSystemUtils.deleteRecursively(dir);
+							}
+						}
+						
+					  } catch (Exception e) {
+						e.printStackTrace();
+					}
 			} else {
 				model.setResponseCode(HttpStatus.NOT_FOUND);
 				return model;
@@ -329,7 +345,7 @@ public class AwsInventoryController {
 		LogFileDetails logFile=new LogFileDetails();
 		try {
 			
-			Users saveUser = userService.getUserByUserId(userId);
+			Users saveUser = userCreateService.getUserByUserId(userId);
 			
 				logFile.setActive(true);
 				logFile.setCreatedDateTime(common.getCurrentDateWithTime());

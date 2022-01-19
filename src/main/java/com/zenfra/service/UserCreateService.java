@@ -13,7 +13,7 @@ import com.zenfra.dao.UserDao;
 import com.zenfra.model.Users;
 
 @Service
-public class UserService{
+public class UserCreateService{
 
 	@Autowired
 	CommonQueriesData queries;
@@ -64,6 +64,16 @@ public class UserService{
 			e.printStackTrace();
 		}
 		return users;
+	}
+	
+	public Users getUserByEmail(String username) {
+		Users user=new Users();
+		try {			
+			user=(Users)userDao.getEntityByColumn(queries.userTable().getGetUserByEmail().replace(":email", username),Users.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return user;
 	}
 	
 }

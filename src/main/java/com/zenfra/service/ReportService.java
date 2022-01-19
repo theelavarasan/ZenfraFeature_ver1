@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +16,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+
+import javax.validation.constraints.NotBlank;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -120,7 +123,7 @@ public class ReportService {
 	        String reportLabel = label + " " + deviceType + " by " + reportBy;
 	        return reportLabel;
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		
 		return "";
@@ -501,5 +504,17 @@ public class ReportService {
 		refreshViews("mview_localdiscovery");
 		refreshViews("mview_aws_cost_report");
 		
+	}
+
+
+	public JSONObject getReportUserCutomBySiteKey(String siteKey, String userId) {
+		 JSONObject result = new JSONObject();
+		try {
+			result = reportDao.getReportUserCustomDataBySiteKey(siteKey, userId);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 }
