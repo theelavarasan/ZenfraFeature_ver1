@@ -578,7 +578,7 @@ public class ValidationRuleService {
 			//JSONParser parser = new JSONParser();
 			System.out.println("!!!!! valueArray: " + valueArray);
 			for(Map<String, Object> list : valueArray) {
-				resultArray = (JSONArray) parser.parse(list.get("data_value").toString());
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
