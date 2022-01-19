@@ -308,7 +308,7 @@ public class ValidationRuleService {
 			if(isStorage) {
 				
 				defaultArray = getDefaultPIData("project", model);
-				query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
+				query = "select keys, json_agg(column_values)::jsonb || '[\"N/A\"]' as column_values from ( \r\n" + 
 						"select distinct keys, column_values from ( \r\n" + 
 						"select keys, data ->> keys as column_values from ( \r\n" + 
 						"select data, json_object_keys(data) as keys from ( \r\n" + 
@@ -607,7 +607,7 @@ public class ValidationRuleService {
 		
 		try {
 			String query = "select json_agg(column_name) as column_name from ( \r\n" +
-					"select json_object_agg(column_name,'') as column_name from (\r\n" + 
+					"select json_object_agg(column_name,'Data Not Available') as column_name from (\r\n" + 
 					"select distinct(column_name), seq::integer from report_columns where report_name = 'Compatibility' and lower(device_type) = '" + device.toLowerCase() + "' \r\n" + 
 					"order by seq::integer\r\n" + 
 					") a ) b";
