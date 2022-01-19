@@ -342,7 +342,7 @@ public class ValidationRuleService {
 			if(isSwitch) {
 				
 				defaultArray = getDefaultPIData("project", model);
-				query = "select keys, json_agg(column_values)::jsonb || '[\"N/A\"]' as column_values as column_values from ( \r\n" + 
+				query = "select keys, json_agg(column_values)::jsonb || '[\"N/A\"]' as column_values from ( \r\n" + 
 						"select distinct keys, column_values from ( \r\n" + 
 						"select keys, data ->> keys as column_values from (\r\n" + 
 						"select data, json_object_keys(data) as keys from (\r\n" + 
