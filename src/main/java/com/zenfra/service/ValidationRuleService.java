@@ -273,7 +273,7 @@ public class ValidationRuleService {
 					") ld  \r\n" + 
 					"LEFT JOIN(select sitekey, sourceid, sourcetype, metricsdate, destinationtype, pidata from comp_data  \r\n" + 
 					"where sitekey = '" + siteKey + "' and lower(sourcetype) = lower('" + deviceType + "') and lower(destinationtype) = lower('" + model + "') \r\n" + 
-					"and metricsdate in (select max(metrics_date) from comp_destination where lower(model) = lower('" + model + "') and lower(device) = lower('" + deviceType + "'))) cd on  \r\n" + 
+					"and metricsdate in (select max(to_date(metrics_date,'MM-dd-yyyy')) from comp_destination where lower(model) = lower('" + model + "') and lower(device) = lower('" + deviceType + "'))) cd on  \r\n" + 
 					"cd.sitekey = ld.site_key and lower(cd.sourceid) = lower(ld.source_id) order by source_id ) b where row_num = 1 \r\n" + 
 					") e ) f where keys = '" + columnName + "' order by keys ) g ) h group by keys";
 			
@@ -300,7 +300,7 @@ public class ValidationRuleService {
 						") ld  \r\n" + 
 						"LEFT JOIN(select sitekey, sourceid, sourcetype, metricsdate, destinationtype, pidata from comp_data  \r\n" + 
 						"where sitekey = '" + siteKey + "' and lower(sourcetype) = lower('" + deviceType + "') and lower(destinationtype) = lower('" + model + "') \r\n" + 
-						"and metricsdate in (select max(metrics_date) from comp_destination where lower(model) = lower('" + model + "') and lower(device) = lower('" + deviceType + "'))) cd on  \r\n" + 
+						"and metricsdate in (select max(to_date(metrics_date,'MM-dd-yyyy')) from comp_destination where lower(model) = lower('" + model + "') and lower(device) = lower('" + deviceType + "'))) cd on  \r\n" + 
 						"cd.sitekey = ld.site_key and lower(cd.sourceid) = lower(ld.source_id) order by source_id ) b where row_num = 1 \r\n" + 
 						") e ) f where keys = '" + columnName + "' order by keys ) g ) h group by keys";
 			}
@@ -334,7 +334,8 @@ public class ValidationRuleService {
 						") a where row_num = 1\r\n" + 
 						") ld\r\n" + 
 						"LEFT JOIN(select sitekey, sourceid, sourcetype, metricsdate, destinationtype, pidata from comp_data\r\n" + 
-						"where sitekey = '" + siteKey + "' and lower(destinationtype) = lower('" + model + "')) cd on\r\n" + 
+						"where sitekey = '" + siteKey + "' and lower(destinationtype) = lower('" + model + "') \r\n" +
+						"and metricsdate in (select max(to_date(metrics_date,'MM-dd-yyyy')) from comp_destination where lower(model) = lower('" + model + "'))) cd on\r\n" + 
 						"cd.sitekey = ld.site_key and lower(cd.sourceid) = lower(ld.source_id)\r\n" + 
 						"order by source_id ) e ) f ) g where keys = '" + columnName + "' order by keys) h ) k group by keys";
 			}
@@ -369,7 +370,8 @@ public class ValidationRuleService {
 						") ld  \r\n" + 
 						"LEFT JOIN(select sitekey, sourceid, sourcetype, metricsdate, destinationtype, pidata from comp_data  \r\n" + 
 						"where sitekey = '" + siteKey + "' and  \r\n" + 
-						" lower(destinationtype) = lower('" + model + "')) cd on  \r\n" + 
+						" lower(destinationtype) = lower('" + model + "') \r\n" +
+						"and metricsdate in (select max(to_date(metrics_date,'MM-dd-yyyy')) from comp_destination where lower(model) = lower('" + model + "'))) cd on  \r\n" + 
 						"cd.sitekey = ld.site_key and lower(cd.sourceid) = lower(ld.source_id)  \r\n" + 
 						"where source_id != ''  \r\n" + 
 						"order by source_id\r\n" + 
