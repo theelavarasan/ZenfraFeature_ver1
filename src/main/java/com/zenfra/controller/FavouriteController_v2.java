@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -210,6 +211,52 @@ public class FavouriteController_v2 {
 			} else {
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				responseModel.setResponseDescription("Favourite Id not found ");
+			}
+			
+			try {
+				if(favouriteModel.getReportName().equalsIgnoreCase("healthcheck")) {
+					JSONArray filterProperty = favouriteModel.getFilterProperty();
+					for(int i=0; i<filterProperty.size(); i++) {
+						JSONObject prop = (JSONObject) filterProperty.get(i);
+						System.out.println("---prop------" + prop);
+						if(prop.containsKey("name") && prop.get("name").toString().equalsIgnoreCase("healthCheck")) {
+							String healthCheckId = prop.get("selection").toString();
+							HealthCheck healthCheck = healthCheckService.getHealthCheckObject(healthCheckId);	
+							
+							System.out.println("---healthCheckId------" + healthCheckId + " : " + healthCheck.getHealthCheckId());
+							
+							if(healthCheck != null) {
+								List<String> favSites = favouriteModel.getSiteAccessList();
+								List<String> favUsers = favouriteModel.getUserAccessList();
+								
+								List<String> healthCheckSites = new ArrayList<>((Arrays.asList(healthCheck.getSiteAccessList().split("\\s*,\\s*"))));
+								List<String> healthCheckUsers = new ArrayList<>((Arrays.asList(healthCheck.getUserAccessList().split("\\s*,\\s*"))));
+								
+								System.out.println("---favSites------" + favSites);
+								System.out.println("---favUsers------" + favUsers);
+								
+								System.out.println("---healthCheckSites------" + healthCheckSites);
+								System.out.println("---healthCheckUsers------" + healthCheckUsers);
+								
+								favSites.remove(healthCheckSites);
+								favSites.addAll(healthCheckSites);
+								
+								favUsers.remove(healthCheckUsers);
+								favUsers.addAll(healthCheckUsers);
+								
+								System.out.println("---1------" + StringUtils.join(favSites, ','));
+								System.out.println("---2------" + StringUtils.join(favUsers, ','));
+								
+								healthCheck.setSiteAccessList(StringUtils.join(favSites, ','));
+								healthCheck.setUserAccessList(StringUtils.join(favUsers, ','));
+								healthCheckService.updateHealthCheck(healthCheck);
+								break;								
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
 			}
 
 			responseModel.setResponseMessage("Success!");
