@@ -250,6 +250,13 @@ public class ValidationRuleService {
 		if(deviceType != null && !deviceType.isEmpty() && deviceType.equalsIgnoreCase("vmware")) {
 			deviceType = "vmware-host";
 		}
+		
+		if(deviceType != null && !deviceType.isEmpty() && deviceType.equalsIgnoreCase("7-mode")) {
+			deviceType = "7-mode server";
+		}
+		if(deviceType != null && !deviceType.isEmpty() && deviceType.equalsIgnoreCase("c-mode")) {
+			deviceType = "c-mode server";
+		}
 		try {
 			JSONArray defaultArray = getDefaultPIData(deviceType, model);
 			String query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
