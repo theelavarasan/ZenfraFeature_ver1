@@ -214,38 +214,35 @@ public class FavouriteController_v2 {
 			}
 			
 			try {
+				
 				if(favouriteModel.getReportName().equalsIgnoreCase("healthcheck")) {
 					JSONArray filterProperty = favouriteModel.getFilterProperty();
 					for(int i=0; i<filterProperty.size(); i++) {
-						JSONObject prop = (JSONObject) filterProperty.get(i);
-						System.out.println("---prop------" + prop);
+						LinkedHashMap<String, String> prop = (LinkedHashMap<String, String>) filterProperty.get(i);
+
 						if(prop.containsKey("name") && prop.get("name").toString().equalsIgnoreCase("healthCheck")) {
 							String healthCheckId = prop.get("selection").toString();
 							HealthCheck healthCheck = healthCheckService.getHealthCheckObject(healthCheckId);	
-							
-							System.out.println("---healthCheckId------" + healthCheckId + " : " + healthCheck.getHealthCheckId());
-							
+						
 							if(healthCheck != null) {
 								List<String> favSites = favouriteModel.getSiteAccessList();
 								List<String> favUsers = favouriteModel.getUserAccessList();
 								
-								List<String> healthCheckSites = new ArrayList<>((Arrays.asList(healthCheck.getSiteAccessList().split("\\s*,\\s*"))));
-								List<String> healthCheckUsers = new ArrayList<>((Arrays.asList(healthCheck.getUserAccessList().split("\\s*,\\s*"))));
+								List<String> healthCheckSites = new ArrayList<>();
+								List<String> healthCheckUsers = new ArrayList<>();
+								if(healthCheck.getSiteAccessList() != null && !healthCheck.getSiteAccessList().trim().isEmpty()) {
+									healthCheckSites.addAll(Arrays.asList(healthCheck.getSiteAccessList().toString().split(",")));
+								}
+								if(healthCheck.getUserAccessList() != null && !healthCheck.getUserAccessList().trim().isEmpty()) {
+									healthCheckUsers.addAll(Arrays.asList(healthCheck.getUserAccessList().toString().split(",")));
+								}
+							
 								
-								System.out.println("---favSites------" + favSites);
-								System.out.println("---favUsers------" + favUsers);
+								healthCheckSites.remove(favSites);
+								healthCheckSites.addAll(favSites);
 								
-								System.out.println("---healthCheckSites------" + healthCheckSites);
-								System.out.println("---healthCheckUsers------" + healthCheckUsers);
-								
-								favSites.remove(healthCheckSites);
-								favSites.addAll(healthCheckSites);
-								
-								favUsers.remove(healthCheckUsers);
-								favUsers.addAll(healthCheckUsers);
-								
-								System.out.println("---1------" + StringUtils.join(favSites, ','));
-								System.out.println("---2------" + StringUtils.join(favUsers, ','));
+								healthCheckUsers.remove(favUsers);
+								healthCheckUsers.addAll(favUsers);							
 								
 								healthCheck.setSiteAccessList(StringUtils.join(favSites, ','));
 								healthCheck.setUserAccessList(StringUtils.join(favUsers, ','));
@@ -256,7 +253,7 @@ public class FavouriteController_v2 {
 					}
 				}
 			} catch (Exception e) {
-				// TODO: handle exception
+				e.printStackTrace();
 			}
 
 			responseModel.setResponseMessage("Success!");
