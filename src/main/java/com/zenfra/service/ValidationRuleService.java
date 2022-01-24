@@ -646,4 +646,9 @@ public class ValidationRuleService {
 		return resultArray;
 	}
 
+	public JSONArray getCloudCostReportValues(String siteKey, String columnName, String category, String deviceType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
