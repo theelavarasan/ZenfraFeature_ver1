@@ -1,9 +1,14 @@
 package com.zenfra.model;
 
+import java.util.Date;
+
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "eol_eos_hardware")
@@ -19,12 +24,23 @@ public class EolAndEosHardwareModel {
 	@Transient
 	private String model;
 
-	private String endOfLifeCycle;
-	private String endOfExtendedSupport;
-	private String sourceLink;
-	private String eolEosHwId;
-	private String userId;
+	@NotNull
+	private String eol_eos_hw_id;
+
+	private String end_of_life_cycle;
+	private String end_of_extended_support;
+	private String source_link;
+
+	private String user_id;
+
 	private boolean active;
+	
+	private boolean manual;	
+	
+	private boolean from_discovery = false;	
+	
+	private String updated_time;
+	private String updated_by;
 
 	public EolAndEosHardwareIdentityModel getEolAndEosHardwareIdentityModel() {
 		return eolAndEosHardwareIdentityModel;
@@ -50,44 +66,45 @@ public class EolAndEosHardwareModel {
 		this.model = model;
 	}
 
-	public String getEndOfLifeCycle() {
-		return endOfLifeCycle;
+	public String getEol_eos_hw_id() {
+		return eol_eos_hw_id;
 	}
 
-	public void setEndOfLifeCycle(String endOfLifeCycle) {
-		this.endOfLifeCycle = endOfLifeCycle;
+	public void setEol_eos_hw_id(String eol_eos_hw_id) {
+		this.eol_eos_hw_id = eol_eos_hw_id;
 	}
 
-	public String getEndOfExtendedSupport() {
-		return endOfExtendedSupport;
+	public String getEnd_of_life_cycle() {
+		return end_of_life_cycle;
 	}
 
-	public void setEndOfExtendedSupport(String endOfExtendedSupport) {
-		this.endOfExtendedSupport = endOfExtendedSupport;
+	public void setEnd_of_life_cycle(String end_of_life_cycle) {
+		this.end_of_life_cycle = end_of_life_cycle;
 	}
 
-	public String getSourceLink() {
-		return sourceLink;
+	public String getEnd_of_extended_support() {
+		return end_of_extended_support;
 	}
 
-	public void setSourceLink(String sourceLink) {
-		this.sourceLink = sourceLink;
+	public void setEnd_of_extended_support(String end_of_extended_support) {
+		this.end_of_extended_support = end_of_extended_support;
 	}
 
-	public String getEolEosHwId() {
-		return eolEosHwId;
+	public String getSource_link() {
+		return source_link;
 	}
 
-	public void setEolEosHwId(String eolEosHwId) {
-		this.eolEosHwId = eolEosHwId;
+	public void setSource_link(String source_link) {
+		this.source_link = source_link;
 	}
 
-	public String getUserId() {
-		return userId;
+	public String getUser_id() {
+		return user_id;
 	}
 
-	public void setUserId(String userId) {
-		this.userId = userId;
+	public void setUser_id(String user_id) {
+		this.user_id = user_id;
+		this.updated_by = user_id;
 	}
 
 	public boolean isActive() {
@@ -97,24 +114,67 @@ public class EolAndEosHardwareModel {
 	public void setActive(boolean active) {
 		this.active = active;
 	}
+	
+	
+
+	public boolean isManual() {
+		return manual;
+	}
+
+	public void setManual(boolean manual) {
+		this.manual = manual;
+	}
 
 	public EolAndEosHardwareModel() {
 		super();
+	}	
+	
+
+	public String getUpdated_time() {
+		return updated_time;
+	}
+
+	public void setUpdated_time(String updated_time) {
+		this.updated_time = updated_time;
+	}
+
+	public String getUpdated_by() {
+		return updated_by;
+	}
+
+	public void setUpdated_by(String updated_by) {
+		this.updated_by = updated_by;
+	}
+
+
+	public boolean isFrom_discovery() {
+		return from_discovery;
+	}
+
+	public void setFrom_discovery(boolean from_discovery) {
+		this.from_discovery = from_discovery;
 	}
 
 	public EolAndEosHardwareModel(EolAndEosHardwareIdentityModel eolAndEosHardwareIdentityModel, String vendor,
-			String model, String endOfLifeCycle, String endOfExtendedSupport, String sourceLink, String eolEosHwId,
-			String userId, boolean active) {
+			String model, @NotNull String eol_eos_hw_id, String end_of_life_cycle, String end_of_extended_support,
+			String source_link, String user_id, boolean active, boolean manual, String updated_by, boolean from_discovery) {
 		super();
 		this.eolAndEosHardwareIdentityModel = eolAndEosHardwareIdentityModel;
 		this.vendor = vendor;
 		this.model = model;
-		this.endOfLifeCycle = endOfLifeCycle;
-		this.endOfExtendedSupport = endOfExtendedSupport;
-		this.sourceLink = sourceLink;
-		this.eolEosHwId = eolEosHwId;
-		this.userId = userId;
+		this.eol_eos_hw_id = eol_eos_hw_id;
+		this.end_of_life_cycle = end_of_life_cycle;
+		this.end_of_extended_support = end_of_extended_support;
+		this.source_link = source_link;
+		this.user_id = user_id;
 		this.active = active;
+		this.manual = manual;
+		this.updated_by = user_id;
+		this.from_discovery=from_discovery;
 	}
 
+	
+
+	
+	
 }

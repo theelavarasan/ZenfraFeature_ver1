@@ -181,8 +181,7 @@ public class ReportDao {
 				deviceType = "windows";
 			}
 		
-			List<String> compatabilityOrder = getReportHeaderForCompatibility("Compatibility", deviceType);
-		
+			List<String> compatabilityOrder = getReportHeaderForCompatibility("Compatibility", deviceType);		
 		
 			if(!compatabilityOrder.isEmpty()) {
 				List<String> existingVisibleColumns = (List<String>) result.get("columnOrder");	

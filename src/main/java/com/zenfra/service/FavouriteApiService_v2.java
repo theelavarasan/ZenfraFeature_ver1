@@ -10,11 +10,14 @@ import org.apache.spark.sql.functions;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.jsoup.parser.Parser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.zenfra.configuration.CommonQueriesData;
@@ -42,6 +45,11 @@ public class FavouriteApiService_v2 {
 	@Autowired
 	CommonFunctions common;	
 	
+	@Autowired
+	ReportService reportService;
+	
+	private ObjectMapper objectMapper = new ObjectMapper();
+	private JSONParser jSONParser = new JSONParser();
 	
 	public JSONObject getFavView(String userId, String siteKey, String reportName, String projectId) {
 
@@ -63,18 +71,23 @@ public class FavouriteApiService_v2 {
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
 			List<Map<String, Object>> rows = daoFav.getJsonarray(favourite_view_query);
 
-			System.out.println(favourite_view_query);
+			//System.out.println(favourite_view_query);
 			ObjectMapper map = new ObjectMapper();
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
+			
+			//System.out.println(rows.size() + " :: " + rows);
+			
 			rows.forEach(row -> {
 				try {
 					if (row.get("userAccessList") != null) {
 						row.put("userAccessList",
 								row.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
 					}
-					row=common.getFavViewCheckNull(row);
-					viewArr.add(map.convertValue(row, JSONObject.class));
+					row = common.getFavViewCheckNull(row);
+					//Map<String, Object> rowMap = row;					
+					//rowMap = setDeviceType(rowMap);
+					viewArr.add(row);
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -377,6 +390,72 @@ public class FavouriteApiService_v2 {
 		}
 		return object;
 	}
+	
+	
+	private Map<String, Object> setDeviceType(Map<String, Object> favArray) {
+		Map<String, Object> resultArray = new HashMap<String, Object>();	
+		
+		
+		
+		for (Map.Entry<String, Object> map : favArray.entrySet()) {
+			String key = map.getKey();
+			if(key.equalsIgnoreCase("filterProperty")) {
+				JSONArray filterData = new JSONArray();	
+				JSONArray filterArray = new JSONArray();
+				try {
+					filterArray = objectMapper.readValue(map.getValue().toString(), JSONArray.class);
+					
+					String deviceType = null;
+					boolean isDeviceTypeSet = false;
+					for(int i=0; i<filterArray.size(); i++) {
+						try {
+							String jsonString = objectMapper.writeValueAsString(filterArray.get(i));
+							JSONObject jsonObject = (JSONObject) jSONParser.parse(jsonString);	
+							
+							if(jsonObject.containsKey("name") && jsonObject.get("name").toString().equalsIgnoreCase("category")) {
+								deviceType = (String) jsonObject.get("selection");
+							}
+						
+							if(jsonObject.containsKey("name") && jsonObject.get("name").toString().equalsIgnoreCase("reportList") && deviceType != null && !deviceType.trim().isEmpty()) {
+								jsonObject.put("selection", deviceType);
+								isDeviceTypeSet = true;
+							}
+							filterData.add(jsonObject);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					
+					if(!isDeviceTypeSet) {
+						for(int i=0; i<resultArray.size(); i++) {
+							try {
+								String jsonString = objectMapper.writeValueAsString(resultArray.get(i));
+								JSONObject jsonObject = (JSONObject) jSONParser.parse(jsonString);
+								if(jsonObject.containsKey("name") && jsonObject.get("name").toString().equalsIgnoreCase("reportList") && deviceType != null && !deviceType.trim().isEmpty()) {
+									jsonObject.put("selection", deviceType);
+								}
+								filterData.add(jsonObject);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+						
+					}
+				
+					resultArray.put(map.getKey(), filterData);
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				} 
+				
+			} else {
+				resultArray.put(map.getKey(), map.getValue());
+			}
+		}
+		
+		
+		
+			return resultArray;
+		}
 
 }
 
