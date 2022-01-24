@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import com.zenfra.utils.ZenfraFeaturesRestApis;
 
 
-@Service(value = "userService")
+@Service
 public class UserServiceImpl implements UserDetailsService {
 
 	@Autowired
