@@ -2969,6 +2969,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						}
 						
 					}
+					
+					
+					public void createCloudCostDataframeFromJsonData(String filePath, String viewName) {
+						
+						try {	
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("mode", "PERMISSIVE").json(filePath);														
+							dataset.createOrReplaceGlobalTempView(viewName);							
+							System.out.println("------------cloud cost view----------" + viewName);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
 							
 					
 	    

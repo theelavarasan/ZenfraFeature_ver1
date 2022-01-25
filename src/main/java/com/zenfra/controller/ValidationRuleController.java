@@ -38,7 +38,7 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getVR_Compatibility(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
 			resultArray = validationRuleService.getVR_MigrationMethod(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
-		}else if(model.getAnalyticsType().equalsIgnoreCase("optimization")) {
+		}else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
 			resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
 		}
 			
@@ -57,7 +57,7 @@ public class ValidationRuleController {
 			
 		}
 		
-		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
+		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method") || model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
 			return ResponseEntity.ok(resultArray);
 		}
 		

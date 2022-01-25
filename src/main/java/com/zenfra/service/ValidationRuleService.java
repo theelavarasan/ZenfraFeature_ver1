@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
@@ -647,8 +648,36 @@ public class ValidationRuleService {
 	}
 
 	public JSONArray getCloudCostReportValues(String siteKey, String columnName, String category, String deviceType) {
-		// TODO Auto-generated method stub
-		return null;
+		JSONArray resultData = new JSONArray();		
+		try {
+			Dataset<Row> dataset = sparkSession.emptyDataFrame();
+			String viewName = siteKey+"_cloud-cost";	
+			
+			if (deviceType.equalsIgnoreCase("All")) {
+           	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";           	
+            } else {           
+           	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";
+            }
+			
+			try {
+				dataset = sparkSession.sql("select "+columnName+" from global_temp." + viewName + " where "+deviceType).distinct();	
+			} catch (Exception e) {
+				dataframeService.createCloudCostDataframeFromJsonData("", viewName);
+				dataset = sparkSession.sql("select "+columnName+" from global_temp." + viewName + " where "+deviceType).distinct();	
+			}				
+			List<String> data = dataset.as(Encoders.STRING()).collectAsList();
+			if(data != null && !data.isEmpty()) {
+				for(String str : data) {
+					resultData.add(str);
+				}
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultData;
 	}
 
 }
