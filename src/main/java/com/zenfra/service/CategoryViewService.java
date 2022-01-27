@@ -85,6 +85,8 @@ public class CategoryViewService {
 
 				 	 view.setCreatedTime(dateFormat(view.getCreatedTime()));
 				 	 view.setUpdatedTime(dateFormat(view.getUpdatedTime()));
+				 	 System.out.println("-*-*-*-*-*-*--* CreatedTime :"+dateFormat(view.getCreatedTime()));
+				 	System.out.println("-*-*-*-*-*-*--* updatedTime :"+dateFormat(view.getUpdatedTime()));
 				 arr.add(functions.convertEntityToJsonObject(view));
 			 }
 		} catch (Exception e) {
@@ -106,6 +108,7 @@ public class CategoryViewService {
 	 	if(dateFormat != null && !dateFormat.isEmpty()) {
 	 	formatterUTC.setTimeZone(TimeZone.getTimeZone("UTC")); // UTC timezone
 	 	}
+	 	System.out.println("date format : "+formatterUTC.format(date));
 		return formatterUTC.format(date);
 	}
 
