@@ -651,7 +651,7 @@ public class ValidationRuleService {
 		JSONArray resultData = new JSONArray();		
 		try {
 			Dataset<Row> dataset = sparkSession.emptyDataFrame();
-			String viewName = siteKey+"_cloud-cost";	
+			String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost";	
 			
 			if (deviceType.equalsIgnoreCase("All")) {
            	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";           	
