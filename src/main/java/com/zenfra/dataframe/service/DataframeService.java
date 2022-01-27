@@ -2523,10 +2523,16 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 										f.mkdir();
 									}			
 									 
-									 Path resultFilePath = Paths.get(f.getAbsolutePath());
-									    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
-								                .lookupPrincipalByName("zenuser");
-								        Files.setOwner(resultFilePath, owner);
+									try {
+										 Path resultFilePath = Paths.get(f.getAbsolutePath());
+										    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
+									                .lookupPrincipalByName("zenuser");
+									        Files.setOwner(resultFilePath, owner);
+									} catch (Exception e) {
+										// TODO: handle exception
+									}
+									
+								        
 								        
 									dataframeBySiteKey.write().option("ignoreNullFields", false)
 											.format("org.apache.spark.sql.json")
