@@ -665,10 +665,9 @@ public class ValidationRuleService {
 				dataframeService.createCloudCostDataframeFromJsonData("", viewName);
 				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType).distinct();	
 			}		
-			dataset.printSchema();
-			dataset.show();
+			
 			List<String> data = dataset.as(Encoders.STRING()).collectAsList();
-			System.out.println("--------data---------" + data);
+			
 			if(data != null && !data.isEmpty()) {
 				for(String str : data) {
 					resultData.add(str);
