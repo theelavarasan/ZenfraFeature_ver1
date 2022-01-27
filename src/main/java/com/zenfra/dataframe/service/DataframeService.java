@@ -2080,7 +2080,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        
     	        
     	        logger.info("getReport Details Ends");
-    	        dataCheck.createOrReplaceGlobalTempView(siteKey+"_cloudcost");
+    	        dataCheck.createOrReplaceGlobalTempView(siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost");
                 
                 request.setStartRow(0);
                 request.setEndRow((int)dataCheck.count());
