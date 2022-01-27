@@ -69,13 +69,18 @@ public class CategoryViewService {
 		JSONArray arr=new JSONArray();
 		
 		try {
-			
+			System.out.println("-*-*-*-*-*-*-*-*-*-Log 3-*-*-*-*-*-*-*-*-**-*-*-*--*");
+
 			String query=queries.categoryViewQueries().getGetCategoryViewBySiteKey().replace(":site_key",siteKey);
-			
+			System.out.println("-*-*-*-*-*-*-*-*-**--* Query  : "+query);
+
 			List<Object> list=dao.getEntityListByColumn(query, CategoryView.class);
+			System.out.println("-*-*-*-*-*-*-*-*-*-Log 4-*-*-*-*-*-*-*-*-**-*-*-*--*");
+
 			Map<String,String> userList=userSerice.getUserNames();
 			 for(Object obj:list) {
-				
+					System.out.println("-*-*-*-*-*-*-*-*-*-Log 5-*-*-*-*-*-*-*-*-**-*-*-*--*");
+
 				 CategoryView view=(CategoryView)obj;
 				 //System.out.println("report::"+view.getReportBy());
 				 //System.out.println("updateBY::"+view.getUpdatedBy());
@@ -97,6 +102,8 @@ public class CategoryViewService {
 	}
 	
 	public String dateFormat(String dateFormat) throws ParseException {
+		System.out.println("-*-*-*-*-*-*-*-*-*-Log 6-*-*-*-*-*-*-*-*-**-*-*-*--*");
+
 		String df = "yyyy/MM/dd HH:mm:ss";
 	 	if(dateFormat.contains("-")) {
 	 	df="yyyy-MM-dd HH:mm:ss";
