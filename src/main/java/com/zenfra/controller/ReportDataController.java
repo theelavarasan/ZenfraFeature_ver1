@@ -128,7 +128,13 @@ public class ReportDataController {
 	      			 String result = "Success";	      			 			
 	      			//result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
 	      			result = dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
-	      			
+	      			try {
+	      				String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost";
+		      			sparkSession.sql("delete from global_temp." + viewName);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+	      		    
 	      			//verify default fav is present or not
 	      			//favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
 	      			
