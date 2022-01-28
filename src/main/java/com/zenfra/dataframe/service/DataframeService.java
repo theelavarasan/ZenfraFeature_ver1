@@ -14,8 +14,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.UserPrincipal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -2078,6 +2080,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        
     	        
     	        logger.info("getReport Details Ends");
+    	        dataCheck.createOrReplaceGlobalTempView(siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost");
                 
                 request.setStartRow(0);
                 request.setEndRow((int)dataCheck.count());
@@ -2520,6 +2523,17 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 										f.mkdir();
 									}			
 									 
+									try {
+										 Path resultFilePath = Paths.get(f.getAbsolutePath());
+										    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
+									                .lookupPrincipalByName("zenuser");
+									        Files.setOwner(resultFilePath, owner);
+									} catch (Exception e) {
+										// TODO: handle exception
+									}
+									
+								        
+								        
 									dataframeBySiteKey.write().option("ignoreNullFields", false)
 											.format("org.apache.spark.sql.json")
 											.mode(SaveMode.Overwrite).save(f.getPath());
@@ -2956,6 +2970,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							dataset.createOrReplaceGlobalTempView(viewName);
 							dataset.show();
 							System.out.println("------------ODB View Name create------------" + viewName);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
+					
+					
+					public void createCloudCostDataframeFromJsonData(String filePath, String viewName) {
+						
+						try {	
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("mode", "PERMISSIVE").json(filePath);														
+							dataset.createOrReplaceGlobalTempView(viewName);							
+							System.out.println("------------cloud cost view----------" + viewName);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}

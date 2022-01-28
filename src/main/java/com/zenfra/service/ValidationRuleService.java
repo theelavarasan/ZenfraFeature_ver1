@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
@@ -22,6 +23,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
@@ -644,6 +646,48 @@ public class ValidationRuleService {
 		}
 		
 		return resultArray;
+	}
+
+	public JSONArray getCloudCostReportValues(String siteKey, String columnName, String category, String deviceType) {
+		JSONArray resultData = new JSONArray();		
+		try {
+			Dataset<Row> dataset = sparkSession.emptyDataFrame();
+			String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost";	
+			
+			if (deviceType.equalsIgnoreCase("All")) {
+           	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";           	
+            } else {           
+           	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";
+            }
+			
+			try {
+				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType).distinct();	
+			} catch (Exception e) {
+				ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
+				request.setSiteKey(siteKey);
+				request.setReportType("optimization");
+				request.setDeviceType("All");
+				request.setCategoryOpt("All");
+				request.setSource("All");
+				request.setCategory("price");
+				dataframeService.getOptimizationReport(request);
+				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType).distinct();	
+			}		
+			
+			List<String> data = dataset.as(Encoders.STRING()).collectAsList();
+			
+			if(data != null && !data.isEmpty()) {
+				for(String str : data) {
+					resultData.add(str);
+				}
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultData;
 	}
 
 }
