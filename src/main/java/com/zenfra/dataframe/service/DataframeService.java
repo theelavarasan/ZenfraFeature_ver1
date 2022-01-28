@@ -2082,7 +2082,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        logger.info("getReport Details Ends");
     	        String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost";
     	        dataCheck.createOrReplaceGlobalTempView(viewName);
-                Dataset<Row> resultData = sparkSession.sql("select * from global_temp." + viewName + " where "+deviceType).distinct();	
+    	        String deviceInput = request.getDeviceType();
+    	        if (deviceInput.equalsIgnoreCase("All")) {
+    	        	deviceInput = " lcase(`Server Type`) in ('windows','linux', 'vmware')";               	
+                } else {               	
+                	deviceInput = "lcase(`Server Type`)='" + deviceInput.toLowerCase() + "'";
+                }
+                Dataset<Row> resultData = sparkSession.sql("select * from global_temp." + viewName + " where "+deviceInput).distinct();	
                 request.setStartRow(0);
                 request.setEndRow((int)resultData.count());
                 rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
