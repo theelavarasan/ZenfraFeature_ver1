@@ -23,6 +23,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
@@ -662,7 +663,14 @@ public class ValidationRuleService {
 			try {
 				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType).distinct();	
 			} catch (Exception e) {
-				dataframeService.createCloudCostDataframeFromJsonData("", viewName);
+				ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
+				request.setSiteKey(siteKey);
+				request.setReportType("optimization");
+				request.setDeviceType("All");
+				request.setCategoryOpt("All");
+				request.setSource("All");
+				request.setCategory("price");
+				dataframeService.getOptimizationReport(request);
 				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType).distinct();	
 			}		
 			
