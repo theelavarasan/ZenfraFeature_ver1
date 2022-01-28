@@ -71,7 +71,7 @@ public class ReportService {
 			String report_label = getReportLabelName(category, reportList, deviceType, reportBy);
 	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	 
 	        if(reportName.equalsIgnoreCase("optimization")) {
-	        	report_label = "Cloud Cost Comparison Report";
+	        	report_label = "Cloud Cost Comparison Report "+ deviceType;
 	        	report_name =  "optimization"+ "_" + deviceType;
 	        }
 	        
