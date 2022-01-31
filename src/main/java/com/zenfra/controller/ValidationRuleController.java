@@ -39,7 +39,7 @@ public class ValidationRuleController {
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
 			resultArray = validationRuleService.getVR_MigrationMethod(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
 		}else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
-			resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
+			resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
 		}
 			
 
