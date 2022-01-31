@@ -72,7 +72,7 @@ public class ReportService {
 	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	 
 	        if(reportName.equalsIgnoreCase("optimization")) {
 	        	report_label = "Cloud Cost Comparison Report "+ reportCategory+ " " + actualDeviceType;
-	        	report_name =  "optimization"+ "_" + actualDeviceType;
+	        	report_name =  "optimization" + "_" + reportCategory + "_" + actualDeviceType;
 	        }
 	        
 	        JSONObject resultObject = new JSONObject();
