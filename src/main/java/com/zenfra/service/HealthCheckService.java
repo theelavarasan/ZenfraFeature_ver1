@@ -311,7 +311,7 @@ public class HealthCheckService {
 	public JSONArray getHealthCheckNames(String siteKey) {
 		JSONArray resultArray = new JSONArray();
 		try {
-			List<Object> resultList = healthCheckDao.getEntityListByColumn("select * from health_check where site_key='"+siteKey+"'", HealthCheck.class);
+			List<Object> resultList = healthCheckDao.getEntityListByColumn("select * from health_check where site_key='"+siteKey+"' order by health_check_name ASC", HealthCheck.class);
 			if(resultList != null && !resultList.isEmpty()) {
 				for(Object obj : resultList) {
 					if(obj instanceof HealthCheck) {						
