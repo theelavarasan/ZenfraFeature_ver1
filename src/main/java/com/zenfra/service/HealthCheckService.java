@@ -284,7 +284,8 @@ public class HealthCheckService {
 
 
 	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId) {
-		JSONArray resultArray = new JSONArray();
+		 JSONArray resultArray = new JSONArray();
+		 
 		try {
 			String query = "select * from health_check where site_key='"+siteKey+"' and is_active='true' order by health_check_name ASC";
 			if(!isTenantAdmin) {
