@@ -284,11 +284,12 @@ public class HealthCheckService {
 
 
 	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId) {
-		JSONArray resultArray = new JSONArray();
+		 JSONArray resultArray = new JSONArray();
+		 
 		try {
-			String query = "select * from health_check where site_key='"+siteKey+"' and is_active='true'";
+			String query = "select * from health_check where site_key='"+siteKey+"' and is_active='true' order by health_check_name ASC";
 			if(!isTenantAdmin) {
-				query = "select * from health_check where is_active = 'true' and ((create_by = '"+userId+"' and site_key = '"+siteKey+"') or ((site_access_list like '%"+siteKey+"%' or site_access_list like '%All%') and (user_access_list like '%"+userId+"%' or user_access_list  like '%All%')))";
+				query = "select * from health_check where is_active = 'true' and ((create_by = '"+userId+"' and site_key = '"+siteKey+"') or ((site_access_list like '%"+siteKey+"%' or site_access_list like '%All%') and (user_access_list like '%"+userId+"%' or user_access_list  like '%All%')))order by health_check_name ASC";
 			}
 			
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
