@@ -648,7 +648,7 @@ public class ValidationRuleService {
 		return resultArray;
 	}
 
-	public JSONArray getCloudCostReportValues(String siteKey, String columnName, String category, String deviceType) {
+	public JSONArray getCloudCostReportValues(String siteKey, String columnName, String category, String deviceType, String report_by) {
 		JSONArray resultData = new JSONArray();		
 		try {
 			Dataset<Row> dataset = sparkSession.emptyDataFrame();
@@ -661,7 +661,7 @@ public class ValidationRuleService {
             }
 			
 			try {
-				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType).distinct();	
+				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and report_by='"+report_by+"'").distinct();	
 			} catch (Exception e) {
 				ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
 				request.setSiteKey(siteKey);

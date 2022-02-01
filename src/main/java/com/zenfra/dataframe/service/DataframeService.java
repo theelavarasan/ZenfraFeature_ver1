@@ -1910,7 +1910,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
                  String sql = "select * from (" +
                          " select " +
-                         " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank," +
+                         " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by," +
                          " lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
                          " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
                          " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
@@ -1939,7 +1939,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                  if (dataCount == 0) {
                      sql = "select * from (" +
                              " select " +
-                             " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank," +
+                             " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by, " +
                              "lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
                              " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
                              " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
@@ -2274,7 +2274,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									String instanceId = mem+"_"+vcpu;
 									System.out.println("--------<<>>------" + serverType.toLowerCase());
 									if(deviceList.contains(serverType.toLowerCase()) && !physicalServerNames.stream().anyMatch(d -> d.equalsIgnoreCase((String)json.get(mappingNames.get("name"))))) {
-										AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType, (String)json.get(mappingNames.get("serverType")));
+										AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType, (String)json.get(mappingNames.get("serverType")), "Custom Excel Data");
 										row.add(awsInstanceData);
 									}
 									//
@@ -2337,7 +2337,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 }
 			 try {
 				String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"+siteKey+"' and  "+ deviceType; //i.sitekey='"+siteKey+" and  // + " group by it.instancetype, it.vcpuinfo, it.memoryinfo";
-				System.out.println("----------------query------------------" + query);
+			 
 				conn = AwsInventoryPostgresConnection.dataSource.getConnection();
 				 stmt = conn.createStatement();				 
 				 ResultSet rs = stmt.executeQuery(query);		
@@ -2463,7 +2463,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			            row.put(colName, value);
 			           
 			        }
-			        AwsInstanceData awsInstanceData = new AwsInstanceData(row.get("region"), row.get("instancetype"),row.get("memoryinfo"),row.get("vcpuinfo"),row.get("platformdetails"),row.get("description"), row.get("instanceid"), row.get("updated_date"), row.get("actualOsType"), "");
+			        AwsInstanceData awsInstanceData = new AwsInstanceData(row.get("region"), row.get("instancetype"),row.get("memoryinfo"),row.get("vcpuinfo"),row.get("platformdetails"),row.get("description"), row.get("instanceid"), row.get("updated_date"), row.get("actualOsType"), "", "AWS Instances");
 			    	//System.out.println("----json----------" +awsInstanceData.toString() );
 			        rows.add(awsInstanceData);
 			    }
