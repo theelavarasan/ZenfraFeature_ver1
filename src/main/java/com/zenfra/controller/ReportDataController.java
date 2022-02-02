@@ -102,8 +102,9 @@ public class ReportDataController {
 		      			return new ResponseEntity<>(resultData.toString(), HttpStatus.OK);
 		      		 }
 		      		 */
+				 
 				  
-				  DataResult data = dataframeService.getOptimizationReport(request);
+				  DataResult data = dataframeService.getCloudCostData(request);
 				  if(data != null) {
 		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 		      		 }
