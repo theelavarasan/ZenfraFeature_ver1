@@ -1882,7 +1882,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 
 				 String category = request.getCategoryOpt();
 				 
-				 System.out.println("----category-----  " + category + " : " + deviceType);
+				 System.out.println("----category-----  " + category + " : " + deviceType + " : " + viewName);
 				 
 				 if(category.equalsIgnoreCase("All")) {
 					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType);
@@ -2188,13 +2188,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        
     	        
     	        logger.info("getReport Details Ends");
-    	        String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost";
-    	        dataCheck.createOrReplaceGlobalTempView(viewName);
-    	        dataCheck.printSchema();
-    	        dataCheck.show();
-    	        
+    	      
     	        try {
-    	        	 File ccrPath = new File(cloudCostDfPath+siteKey);
+    	        	 File ccrPath = new File(cloudCostDfPath+siteKey+File.separator);
     	    	     ccrPath.delete();
 				} catch (Exception e) {
 				   e.printStackTrace();
@@ -2204,8 +2200,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        
     	        System.out.println("----------------------------121------------------");
     	      
+    	        String viewName = siteKey.replaceAll("\\s", "")+"_cloudcost";
     	        dataCheck.coalesce(1).write().json(cloudCostDfPath+siteKey);
-    	        dataCheck.createOrReplaceGlobalTempView(siteKey.replaceAll("\\s", "")+"_cloudcost");
+    	        dataCheck.createOrReplaceGlobalTempView(viewName);
     	        
     	        Path resultFilePath = Paths.get(cloudCostDfPath+siteKey);
     		    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
