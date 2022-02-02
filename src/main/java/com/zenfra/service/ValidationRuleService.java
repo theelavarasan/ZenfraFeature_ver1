@@ -667,7 +667,7 @@ public class ValidationRuleService {
 			}
 			
 			try {
-				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and report_by='"+report_by+"'").distinct();	
+				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and "+report_by+"").distinct();	
 			} catch (Exception e) {
 				ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
 				request.setSiteKey(siteKey);
@@ -678,7 +678,7 @@ public class ValidationRuleService {
 				request.setCategory("price");				
 				dataframeService.getCloudCostData(request);
 				
-				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and report_by='"+report_by+"'").distinct();
+				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and "+report_by+"").distinct();
 			}		
 			
 			List<String> data = dataset.as(Encoders.STRING()).collectAsList();
