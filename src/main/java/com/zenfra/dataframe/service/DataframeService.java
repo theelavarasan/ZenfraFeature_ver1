@@ -1987,6 +1987,15 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
              File file = new File(cloudCostDfPath);
              if(!file.exists()) {
             	file.mkdir(); 
+            	try {
+            		Path resultFilePath = Paths.get(cloudCostDfPath);
+          		    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
+          	                .lookupPrincipalByName("zenuser");
+          	        Files.setOwner(resultFilePath, owner);	
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+            	
              }
              
           
