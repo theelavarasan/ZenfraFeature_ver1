@@ -1829,7 +1829,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
 		public DataResult getCloudCostData(ServerSideGetRowsRequest request) {
 			Dataset<Row> dataset = sparkSession.emptyDataFrame();
-			 String viewName = request.getSiteKey().replaceAll("\\s", "")+"_cloudcost";	
+			 String viewName = request.getSiteKey().replaceAll("\\s+","").replaceAll("-", "")+"_cloudcost";	
 			 System.out.println("--------viewName----------  " + viewName);
 			 try {				
 				 dataset = sparkSession.sql("select * from global_temp."+viewName);					
@@ -1843,6 +1843,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 
 				 if(filePath.exists())	 {
 					 dataset = sparkSession.read().json(cloudCostDfPath); 
+					 dataset.createOrReplaceGlobalTempView(viewName);
 					 System.out.println("--------view created from json file-------  ");
 				 } else {
 					 getOptimizationReport(request);
@@ -1887,7 +1888,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 if(category.equalsIgnoreCase("All")) {
 					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType);
 				 } else {
-					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category+"'");
+					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category.toLowerCase()+"'");
 				 }
 				 
 				 dataset.printSchema();
@@ -2198,10 +2199,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        
     	       
     	        
-    	        System.out.println("----------------------------121------------------");
     	      
-    	        String viewName = siteKey.replaceAll("\\s", "")+"_cloudcost";
+    	      
+    	        String viewName = siteKey.replaceAll("\\s+","").replaceAll("-", "")+"_cloudcost";
     	        dataCheck.coalesce(1).write().json(cloudCostDfPath+siteKey);
+    	        
+    	        System.out.println("----------------------------1viewName21------------------" + viewName);
     	        dataCheck.createOrReplaceGlobalTempView(viewName);
     	        
     	        Path resultFilePath = Paths.get(cloudCostDfPath+siteKey);

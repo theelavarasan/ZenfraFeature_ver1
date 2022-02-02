@@ -669,8 +669,9 @@ public class ValidationRuleService {
 				request.setDeviceType("All");
 				request.setCategoryOpt("All");
 				request.setSource("All");
-				request.setCategory("price");
-				dataframeService.getOptimizationReport(request);
+				request.setCategory("price");				
+				dataframeService.getCloudCostData(request);
+				
 				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType).distinct();	
 			}		
 			
