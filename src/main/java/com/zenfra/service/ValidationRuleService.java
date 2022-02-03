@@ -655,7 +655,7 @@ public class ValidationRuleService {
 		try {
 			
 			String query = "select keys, json_agg(column_values) as column_values from (\r\n" + 
-					"select distinct keys, column_values from (\r\n" + 
+					"select distinct concat('Server Data~', keys) as keys, column_values from (\r\n" + 
 					"select keys, json_array_elements(data::json) ->> keys as column_values from ( \r\n" + 
 					"select data, json_object_keys(data_object) as keys from (\r\n" + 
 					"select data, json_array_elements(data::json) as data_object from privillege_data  \r\n" + 
@@ -663,8 +663,8 @@ public class ValidationRuleService {
 					") a \r\n" + 
 					") b\r\n" + 
 					"union all \r\n" + 
-					"select keys, data::json ->> keys as column_values from ( \r\n" + 
-					"select data, json_object_keys(data::json) as keys from (  \r\n" + 
+					"select concat(source_name, '~', keys) as keys, data::json ->> keys as column_values from ( \r\n" + 
+					"select source_name, data, json_object_keys(data::json) as keys from (  \r\n" + 
 					"select sd.source_id, s.source_name, primary_key_value, data, row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num \r\n" +
 					"from source_data sd  \r\n" + 
 					"LEFT JOIN source s on s.source_id = sd.source_id and s.site_key = '" + siteKey + "'  \r\n" + 
