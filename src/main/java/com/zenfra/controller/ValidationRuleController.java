@@ -31,13 +31,15 @@ public class ValidationRuleController {
 		
 		Map<String, List<Object>> resultData = new HashMap<String, List<Object>>();
 		JSONArray resultArray = new JSONArray();
-		if(model.getAnalyticsType().equalsIgnoreCase("Discovery")) {
+		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access")) {
 			resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
 				   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Compatibility")) {
 			resultArray = validationRuleService.getVR_Compatibility(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
 			resultArray = validationRuleService.getVR_MigrationMethod(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
+		} else if (model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Privileged Access")) {
+			resultArray = validationRuleService.getVR_PrivilledgeData(model.getSiteKey(), model.getColumnName());
 		}
 			
 
