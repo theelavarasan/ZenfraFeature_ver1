@@ -156,10 +156,10 @@ public class ReportDataController {
 		  System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : " + siteKey + " : "+userId);
 		 
 		  try {	
-			  if(sourceType != null && !sourceType.trim().isEmpty() && sourceType.trim().equalsIgnoreCase("Tanium")) {
+			/*  if(sourceType != null && !sourceType.trim().isEmpty() && sourceType.trim().equalsIgnoreCase("Tanium")) {
 				  sourceType="Linux";
 			  }
-			
+			*/
 			  try { //remove orient db dataframe
 					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator; // + sourceType + File.separator;
 					File[] directories = new File(dataframePath).listFiles(File::isDirectory);
