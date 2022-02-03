@@ -150,10 +150,12 @@ public class CategoryViewController {
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
 
+			System.out.println("-*-*-*-*-*-*-*-*-*-Log 1-*-*-*-*-*-*-*-*-**-*-*-*--*");
 			JSONArray arr = categoryService.getCategoryViewAll(siteKey);
 			responseModel.setResponseMessage("Success");
 			if (arr != null) {
 				responseModel.setResponseCode(HttpStatus.OK);
+				System.out.println("-*-*-*-*-*-*-*-*-*-Log 2-*-*-*-*-*-*-*-*-**-*-*-*--*");
 				responseModel.setjData(arr);
 			} else {
 				responseModel.setResponseCode(HttpStatus.NOT_FOUND);

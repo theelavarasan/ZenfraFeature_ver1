@@ -56,7 +56,7 @@ public class ReportService {
 	 @Autowired
 	 private FavouriteDao_v2 favouriteDao_v2;
 	 
-	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String reportList, String category) {
+	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String reportList, String category, String actualDeviceType, String reportCategory) {
 		JSONArray result = new JSONArray();
 		if(reportName.equalsIgnoreCase("migrationautomation")) { //get headers from dataframe
 			 
@@ -72,7 +72,7 @@ public class ReportService {
 	        String report_name = reportList + "_" + deviceType + "_by_"+  reportBy;	 
 	        if(reportName.equalsIgnoreCase("optimization")) {
 	        	report_label = "Cloud Cost Comparison Report";
-	        	report_name =  "optimization"+ "_" + deviceType;
+	        	report_name =  "optimization" + "_" + reportCategory + "_" + actualDeviceType+"_"+reportBy;
 	        }
 	        
 	        JSONObject resultObject = new JSONObject();

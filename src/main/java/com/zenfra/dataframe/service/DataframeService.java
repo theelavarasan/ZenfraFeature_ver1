@@ -14,8 +14,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.UserPrincipal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -1871,7 +1873,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 }
 	        
            
-             if (deviceType.equalsIgnoreCase("All")) {
+             if (deviceType.equalsIgnoreCase("All") || !deviceType.isEmpty()) {
             	 deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
             	 discoveryFilterqry = " lcase(source_type) in ('windows','linux', 'vmware')";
              } else {
@@ -1908,7 +1910,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
                  String sql = "select * from (" +
                          " select " +
-                         " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank," +
+                         " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by," +
                          " lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
                          " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
                          " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
@@ -1937,7 +1939,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                  if (dataCount == 0) {
                      sql = "select * from (" +
                              " select " +
-                             " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank," +
+                             " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by, " +
                              "lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
                              " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
                              " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
@@ -2078,9 +2080,17 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        
     	        
     	        logger.info("getReport Details Ends");
-                
+    	        String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost";
+    	        dataCheck.createOrReplaceGlobalTempView(viewName);
+    	        String deviceInput = request.getDeviceType();
+    	        if (deviceInput.equalsIgnoreCase("All")) {
+    	        	deviceInput = " lcase(`Server Type`) in ('windows','linux', 'vmware')";               	
+                } else {               	
+                	deviceInput = "lcase(`Server Type`)='" + deviceInput.toLowerCase() + "'";
+                }
+                Dataset<Row> resultData = sparkSession.sql("select * from global_temp." + viewName + " where "+deviceInput).distinct();	
                 request.setStartRow(0);
-                request.setEndRow((int)dataCheck.count());
+                request.setEndRow((int)resultData.count());
                 rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
      	        groupKeys = request.getGroupKeys();
      	        valueColumns = request.getValueCols();
@@ -2090,7 +2100,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
      	        isPivotMode = request.isPivotMode();
      	        isGrouping = rowGroups.size() > groupKeys.size();   
     	    
-                return paginate(dataCheck, request);
+                return paginate(resultData, request);
                  
              } catch (Exception ex) {
                  logger.error("Exception in getReport ", ex);
@@ -2264,7 +2274,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									String instanceId = mem+"_"+vcpu;
 									System.out.println("--------<<>>------" + serverType.toLowerCase());
 									if(deviceList.contains(serverType.toLowerCase()) && !physicalServerNames.stream().anyMatch(d -> d.equalsIgnoreCase((String)json.get(mappingNames.get("name"))))) {
-										AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType, (String)json.get(mappingNames.get("serverType")));
+										AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType, (String)json.get(mappingNames.get("serverType")), "Custom Excel Data");
 										row.add(awsInstanceData);
 									}
 									//
@@ -2327,7 +2337,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 }
 			 try {
 				String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"+siteKey+"' and  "+ deviceType; //i.sitekey='"+siteKey+" and  // + " group by it.instancetype, it.vcpuinfo, it.memoryinfo";
-				System.out.println("----------------query------------------" + query);
+			 
 				conn = AwsInventoryPostgresConnection.dataSource.getConnection();
 				 stmt = conn.createStatement();				 
 				 ResultSet rs = stmt.executeQuery(query);		
@@ -2453,7 +2463,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			            row.put(colName, value);
 			           
 			        }
-			        AwsInstanceData awsInstanceData = new AwsInstanceData(row.get("region"), row.get("instancetype"),row.get("memoryinfo"),row.get("vcpuinfo"),row.get("platformdetails"),row.get("description"), row.get("instanceid"), row.get("updated_date"), row.get("actualOsType"), "");
+			        AwsInstanceData awsInstanceData = new AwsInstanceData(row.get("region"), row.get("instancetype"),row.get("memoryinfo"),row.get("vcpuinfo"),row.get("platformdetails"),row.get("description"), row.get("instanceid"), row.get("updated_date"), row.get("actualOsType"), "", "AWS Instances");
 			    	//System.out.println("----json----------" +awsInstanceData.toString() );
 			        rows.add(awsInstanceData);
 			    }
@@ -2520,6 +2530,17 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 										f.mkdir();
 									}			
 									 
+									try {
+										 Path resultFilePath = Paths.get(f.getAbsolutePath());
+										    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
+									                .lookupPrincipalByName("zenuser");
+									        Files.setOwner(resultFilePath, owner);
+									} catch (Exception e) {
+										// TODO: handle exception
+									}
+									
+								        
+								        
 									dataframeBySiteKey.write().option("ignoreNullFields", false)
 											.format("org.apache.spark.sql.json")
 											.mode(SaveMode.Overwrite).save(f.getPath());
@@ -2956,6 +2977,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							dataset.createOrReplaceGlobalTempView(viewName);
 							dataset.show();
 							System.out.println("------------ODB View Name create------------" + viewName);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
+					
+					
+					public void createCloudCostDataframeFromJsonData(String filePath, String viewName) {
+						
+						try {	
+							Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("mode", "PERMISSIVE").json(filePath);														
+							dataset.createOrReplaceGlobalTempView(viewName);							
+							System.out.println("------------cloud cost view----------" + viewName);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
