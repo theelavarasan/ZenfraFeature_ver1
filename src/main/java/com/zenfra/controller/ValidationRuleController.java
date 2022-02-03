@@ -50,7 +50,7 @@ public class ValidationRuleController {
 			colName = colName.split("_")[1];
 		}	
 		
-		if(model.getAnalyticsType().equalsIgnoreCase("Discovery")) {
+		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access")) {
 			if(resultData.containsKey(colName)) {		
 				return ResponseEntity.ok(resultData.get(colName));
 			} else if(resultData.containsKey(model.getColumnName())) {		
