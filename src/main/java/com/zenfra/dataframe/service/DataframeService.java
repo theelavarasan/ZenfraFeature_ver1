@@ -1238,6 +1238,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 dataset.createOrReplaceTempView("tmpView");
 				 Dataset<Row> filteredData = sparkSession.emptyDataFrame();
 				 
+				 dataset.printSchema();
+				 dataset.show();
+				 System.out.println("----dataset-----" + dataset.count());
 				// select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1
 				 
 				 String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"+
@@ -1245,9 +1248,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			     try {			   	        		
 					 dataset = sparkSession.sql(sql);	
 					 dataset.createOrReplaceTempView("datawithoutFilter");
-					  filteredData =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
+					 filteredData =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
 				} catch (Exception e) {
-					sql = "select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1";
+					 e.printStackTrace();
+					 sql = "select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1";
 					 dataset.createOrReplaceTempView("datawithoutFilter");
 					 filteredData =  sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
 											   		         
