@@ -544,7 +544,7 @@ public class HealthCheckService {
 					gridData.add(jObj);
 				}
 			}
-			System.out.println("gridData : " + gridData);
+			//System.out.println("gridData : " + gridData);
 			for (int i = 0; i < gridData.size(); i++) {
 				JSONObject site = (JSONObject) gridData.get(i);
 				if (userMap.containsKey(site.get("createdBy"))) {
