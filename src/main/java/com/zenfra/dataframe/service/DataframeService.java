@@ -1240,6 +1240,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 
 				 dataset.printSchema();
 				 dataset.show();
+				 System.out.println("----viewName-----" + viewName + " : " + dataframeFilePath);
+				 
 				 System.out.println("----dataset-----" + dataset.count());
 				// select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1
 				 
