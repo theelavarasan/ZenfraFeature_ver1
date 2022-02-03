@@ -709,8 +709,14 @@ public class ValidationRuleService {
            	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";
             }
 			
+			if(report_by.equalsIgnoreCase("All")) {
+				report_by = "report_by in ('Physical Servers','AWS Instances','Custom Excel Data')";
+			} else {
+				report_by = "report_by='"+report_by+"'";
+			}
+			
 			try {
-				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and report_by='"+report_by+"'").distinct();	
+				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and "+report_by+"").distinct();	
 			} catch (Exception e) {
 				ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
 				request.setSiteKey(siteKey);
@@ -718,9 +724,10 @@ public class ValidationRuleService {
 				request.setDeviceType("All");
 				request.setCategoryOpt("All");
 				request.setSource("All");
-				request.setCategory("price");
-				dataframeService.getOptimizationReport(request);
-				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType).distinct();	
+				request.setCategory("price");				
+				dataframeService.getCloudCostData(request);
+				
+				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and "+report_by+"").distinct();
 			}		
 			
 			List<String> data = dataset.as(Encoders.STRING()).collectAsList();
