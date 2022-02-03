@@ -655,8 +655,8 @@ public class ValidationRuleService {
 		try {
 			
 			String query = "select keys, json_agg(column_values) as column_values from (\r\n" + 
-					"select distinct concat('Server Data~', keys) as keys, column_values from (\r\n" + 
-					"select keys, json_array_elements(data::json) ->> keys as column_values from ( \r\n" + 
+					"select distinct keys, column_values from (\r\n" + 
+					"select concat('Server Data~', keys) as keys, json_array_elements(data::json) ->> keys as column_values from ( \r\n" + 
 					"select data, json_object_keys(data_object) as keys from (\r\n" + 
 					"select data, json_array_elements(data::json) as data_object from privillege_data  \r\n" + 
 					"where site_key = '" + siteKey + "'  \r\n" + 
