@@ -709,7 +709,7 @@ public class ValidationRuleService {
            	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";
            	 
            	 if(category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
-        		 deviceType = "lcase(`Server Type`)='ec2'  and lcase(`OS Name`) = "+deviceType.toLowerCase();
+        		 deviceType = "lcase(`Server Type`)='ec2'  and lcase(`OS Name`) = '"+deviceType.toLowerCase()+"'";
         	 }
            	 
             }
