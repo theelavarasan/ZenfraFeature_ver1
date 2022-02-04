@@ -1859,14 +1859,18 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			} 
 			 
 			 try {
+				 String category = request.getCategoryOpt();
 				 
 				 String siteKey = request.getSiteKey();
 		         String deviceType = request.getDeviceType();
 		         
 				 if (deviceType.equalsIgnoreCase("All")) {
-	            	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";	            	
+	            	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware', 'ec2')";	            	
 	             } else {            	
-	            	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";	            	
+	            	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";	            	 
+	            	 if(category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
+	            		 deviceType = "lcase(`Server Type`)='ec2'";
+	            	 }
 	             }
 				 
 				 List<String> taskListServers = new ArrayList<>();
@@ -1887,9 +1891,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 	            	 deviceType =  " lcase(`Server Name`) in ("+serverNames+")";	            	
 	             }
 				 
-				 String category = request.getCategoryOpt();
+			
 				 
-				 System.out.println("----category-----  " + category + " : " + deviceType + " : " + viewName);
+				 System.out.println("----category-----  " + category + " : " + deviceType + " : " + viewName + " : " + category.toLowerCase());
+				 
+				 dataset.show(false);
 				 
 				 if(category.equalsIgnoreCase("All")) {
 					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType);
