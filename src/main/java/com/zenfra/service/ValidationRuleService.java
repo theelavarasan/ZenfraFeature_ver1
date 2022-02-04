@@ -707,6 +707,11 @@ public class ValidationRuleService {
            	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";           	
             } else {           
            	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";
+           	 
+           	 if(category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
+        		 deviceType = "lcase(`Server Type`)='ec2'";
+        	 }
+           	 
             }
 			
 			if(report_by.equalsIgnoreCase("All")) {
