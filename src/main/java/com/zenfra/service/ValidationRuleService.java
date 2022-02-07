@@ -700,6 +700,7 @@ public class ValidationRuleService {
 	public JSONArray getCloudCostReportValues(String siteKey, String columnName, String category, String deviceType, String report_by) {
 		JSONArray resultData = new JSONArray();		
 		try {
+			String inputDeviceType = deviceType;
 			Dataset<Row> dataset = sparkSession.emptyDataFrame();
 			String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost";	
 			
@@ -707,6 +708,11 @@ public class ValidationRuleService {
            	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";           	
             } else {           
            	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";
+           	 
+           	 if(category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
+        		 deviceType = "lcase(`Server Type`)='ec2'  and lcase(`OS Name`) = '"+inputDeviceType.toLowerCase()+"'";
+        	 }
+           	 
             }
 			
 			if(report_by.equalsIgnoreCase("All")) {

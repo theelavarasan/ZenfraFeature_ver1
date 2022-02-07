@@ -1836,37 +1836,35 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		public DataResult getCloudCostData(ServerSideGetRowsRequest request) {
 			Dataset<Row> dataset = sparkSession.emptyDataFrame();
 			 String viewName = request.getSiteKey().replaceAll("\\s+","").replaceAll("-", "")+"_cloudcost";	
-			 System.out.println("--------viewName----------  " + viewName);
+			
 			 try {				
-				 dataset = sparkSession.sql("select * from global_temp."+viewName);					
-				 System.out.println("--------viewName- eixts---------  " + viewName);
+				 dataset = sparkSession.sql("select * from global_temp."+viewName);	
 			 } catch (Exception e) {
 				 String cloudCostDfPath = commonPath + File.separator + "Dataframe" + File.separator + "CCR" + File.separator + request.getSiteKey() + File.separator+ "*.json";	
 				 File filePath = new File(commonPath + File.separator + "Dataframe" + File.separator + "CCR" + File.separator + request.getSiteKey());
 				
-				 System.out.println("--------cloudCostDfPath-------  " + cloudCostDfPath);
-				 System.out.println("--------filePath-------  " + filePath);
-				 
 				 if(filePath.exists())	 {
 					 dataset = sparkSession.read().json(cloudCostDfPath); 
-					 dataset.createOrReplaceGlobalTempView(viewName);
-					 System.out.println("--------view created from json file-------  ");
+					 dataset.createOrReplaceGlobalTempView(viewName);					
 				 } else {
-					 getOptimizationReport(request);
-					 System.out.println("--------view created from database-----  ");
+					 getOptimizationReport(request);					
 				 }
 				 
 			} 
 			 
 			 try {
+				 String category = request.getCategoryOpt();
 				 
 				 String siteKey = request.getSiteKey();
 		         String deviceType = request.getDeviceType();
 		         
 				 if (deviceType.equalsIgnoreCase("All")) {
-	            	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";	            	
+	            	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware', 'ec2')";	            	
 	             } else {            	
-	            	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";	            	
+	            	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";	            	 
+	            	 if(category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
+	            		 deviceType = "lcase(`Server Type`)='ec2' and lcase(`OS Name`) = '"+request.getDeviceType().toLowerCase()+"'";
+	            	 }
 	             }
 				 
 				 List<String> taskListServers = new ArrayList<>();
@@ -1886,10 +1884,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 	 			            .collect(Collectors.toList()));
 	            	 deviceType =  " lcase(`Server Name`) in ("+serverNames+")";	            	
 	             }
-				 
-				 String category = request.getCategoryOpt();
-				 
-				 System.out.println("----category-----  " + category + " : " + deviceType + " : " + viewName);
+				 					 
+				 dataset.show(false);
 				 
 				 if(category.equalsIgnoreCase("All")) {
 					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType);
@@ -2121,7 +2117,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
         	   }
         	  
     	        	
-               if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {            	 
+               if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {   
+            	   System.out.println("-----------src 1---------------");
             	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList, request.getDeviceType(), physicalServerNames);
             	               	   
             	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
@@ -2338,9 +2335,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					
 					String getAllSourceSql = "select source_id, fields from source where is_active='true' and (link_to='All' or site_key='"+siteKey+"') and fields like '%memory%' and fields like '%numberOfCores%' and fields like '%osType%' and fields like '%name%' and fields like '%serverType%'";
 					
-					List<Map<String, Object>> allSource = favouriteDao_v2.getFavouriteList(getAllSourceSql);
+									
+					List<Map<String, Object>> allSource = favouriteDao_v2.getFavouriteList(getAllSourceSql);					
 					
-					  
 					Map<String, JSONArray> sourceMap = new HashMap<String, JSONArray>();
 					if(allSource != null && !allSource.isEmpty()) {						
 						for(Map<String, Object> map : allSource) {
@@ -2356,7 +2353,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					            .map(source -> ("'" + source + "'"))
 					            .collect(Collectors.toList()));
 						sql = "select source_id, data from source_data where source_id in ("+sources+") and site_key='"+siteKey+"'";
-					}
+					}					
 					
 					List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(sql);
 				
@@ -2369,8 +2366,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					} else {
 						deviceList.add(deviceType.toLowerCase());		
 					}
-					
-					
+										
 					
 					if(!obj.isEmpty()) {
 						for(Map<String, Object> o : obj) {
@@ -2385,7 +2381,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							  mappingNames.put((String)sourceFiledMap.get("primaryKey"), (String)sourceFiledMap.get("displayLabel"));
 						  }
 						
+						
 								if(json.containsKey(mappingNames.get("memory")) && json.containsKey(mappingNames.get("numberOfCores")) && json.containsKey(mappingNames.get("osType")) && json.containsKey(mappingNames.get("name")) && json.containsKey(mappingNames.get("serverType"))) {
+									
 									
 									String actualOsType = "";			
 									
@@ -2410,9 +2408,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 						        		}
 									float mem = Float.parseFloat((String)json.get(mappingNames.get("memory")));
 									float vcpu = Float.parseFloat((String)json.get(mappingNames.get("numberOfCores")));
-									String instanceId = mem+"_"+vcpu;
-									System.out.println("--------<<>>------" + serverType.toLowerCase());
-									if(deviceList.contains(serverType.toLowerCase()) && !physicalServerNames.stream().anyMatch(d -> d.equalsIgnoreCase((String)json.get(mappingNames.get("name"))))) {
+									String instanceId = mem+"_"+vcpu;									
+									if(deviceList.contains(serverType.toLowerCase())) { // && !physicalServerNames.stream().anyMatch(d -> d.equalsIgnoreCase((String)json.get(mappingNames.get("name"))))
 										AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType, (String)json.get(mappingNames.get("serverType")), "Custom Excel Data");
 										row.add(awsInstanceData);
 									}
