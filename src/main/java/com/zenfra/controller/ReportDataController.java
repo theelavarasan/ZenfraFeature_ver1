@@ -235,7 +235,7 @@ public class ReportDataController {
 	      		 
 	      		
 			} catch (Exception e) {
-				
+				e.printStackTrace();
 				System.out.println("Not able to get report headers {}"+ e);
 			}   	
 	    	
