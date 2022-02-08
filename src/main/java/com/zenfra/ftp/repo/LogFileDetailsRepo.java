@@ -3,6 +3,7 @@ package com.zenfra.ftp.repo;
 import java.util.List;
 
 import javax.persistence.NamedNativeQueries;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -33,5 +34,8 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 	void updateLogFileIdsActive(List<String> logFileIds);
 
 	long countBySiteKey(String siteKey);
+
+	@Query(value="select * from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status" ,nativeQuery = true)
+	List<LogFileDetails> getBySiteKeyAndStatusIsActive(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive, @Param("status") String status);
 
 }

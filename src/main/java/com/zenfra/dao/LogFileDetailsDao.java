@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.validation.constraints.NotEmpty;
+
 import org.json.simple.JSONArray;
 import org.postgresql.replication.fluent.CommonOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -238,6 +240,18 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 			e.printStackTrace();
 			return 0;
 		}
+	}
+
+	public List<LogFileDetails> getLogFileDetailsBySiteKeyAndStatusIsActive(String siteKey) {
+		 List<LogFileDetails> log = new ArrayList<LogFileDetails>();
+			try {
+				
+				log=logRepo.getBySiteKeyAndStatusIsActive(siteKey,true, "success");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			return log;
 	}
 
 
