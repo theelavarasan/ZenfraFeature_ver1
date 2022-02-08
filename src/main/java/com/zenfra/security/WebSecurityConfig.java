@@ -71,6 +71,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(HttpMethod.POST, "/rest/df/createDataframeOdbData").permitAll()
             .antMatchers(HttpMethod.POST, "/rest/df/saveDefaultFavView").permitAll()
             .antMatchers(HttpMethod.POST, "/rest/df/getReportData").permitAll() 
+            .antMatchers(HttpMethod.POST, "/rest/df/getReportHeader").permitAll() 
             //.antMatchers(HttpMethod.DELETE, "/rest/api/log-file/**").permitAll()
             // Our private endpoints
             .anyRequest().authenticated();
