@@ -707,13 +707,18 @@ public class ValidationRuleService {
 			if (deviceType.equalsIgnoreCase("All")) {
            	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";           	
             } else {           
-           	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";
-           	 
-           	 if(category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
-        		 deviceType = "lcase(`Server Type`)='ec2'  and lcase(`OS Name`) = '"+inputDeviceType.toLowerCase()+"'";
-        	 }
-           	 
+           	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";           	 
             }
+			
+
+          	 if(category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
+          		if (deviceType.equalsIgnoreCase("All")) {
+                  	 deviceType = " lcase(`Server Type`)='ec2'  and lcase(`OS Name`) in ('windows','linux', 'vmware')";           	
+                   } else {           
+                	  deviceType = "lcase(`Server Type`)='ec2'  and lcase(`OS Name`) = '"+inputDeviceType.toLowerCase()+"'";     	 
+                   }
+       		  
+       	     }
 			
 			if(report_by.equalsIgnoreCase("All")) {
 				report_by = "report_by in ('Physical Servers','AWS Instances','Custom Excel Data')";
@@ -738,9 +743,18 @@ public class ValidationRuleService {
 			
 			List<String> data = dataset.as(Encoders.STRING()).collectAsList();
 			
+			boolean isPriceColumn = false;
+			if(columnName.toLowerCase().contains("price")) {
+				isPriceColumn = true;
+			}
 			if(data != null && !data.isEmpty()) {
 				for(String str : data) {
-					resultData.add(str);
+					if(!isPriceColumn) {
+						resultData.add(str);
+					} else {
+						resultData.add("$"+str);
+					}
+					
 				}
 			}
 			
