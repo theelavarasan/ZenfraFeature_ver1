@@ -42,9 +42,7 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getVR_PrivilledgeData(model.getSiteKey(), model.getColumnName());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
 			resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
-		} else if(model.getAnalyticsType().equalsIgnoreCase("Project")) {
-			resultArray = validationRuleService.getUniqueValues(model.getSiteKey(), null, model.getColumnName());
-		}
+		} 
 			
 
 		String colName = model.getColumnName();
@@ -65,6 +63,9 @@ public class ValidationRuleController {
 			return ResponseEntity.ok(resultArray);
 		} else if((model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Privileged Access"))) {
 			System.out.println("!!!!! Privileged Access access result: " + resultArray);
+			return ResponseEntity.ok(resultArray);
+		} else if(model.getAnalyticsType().equalsIgnoreCase("Project")) {
+			resultArray = validationRuleService.getUniqueValues(model.getSiteKey(), null, model.getColumnName());
 			return ResponseEntity.ok(resultArray);
 		}
 		
