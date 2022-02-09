@@ -40,8 +40,10 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getVR_MigrationMethod(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
 		} else if (model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Privileged Access")) {
 			resultArray = validationRuleService.getVR_PrivilledgeData(model.getSiteKey(), model.getColumnName());
-		}else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
+		} else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
 			resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
+		} else if(model.getAnalyticsType().equalsIgnoreCase("Project")) {
+			resultArray = validationRuleService.getUniqueValues(model.getSiteKey(), null, model.getColumnName());
 		}
 			
 
