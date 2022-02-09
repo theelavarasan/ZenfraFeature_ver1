@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -48,12 +49,17 @@ public class FavouriteApiService_v2 {
 	@Autowired
 	ReportService reportService;
 	
+	@Autowired
+	HealthCheckService healthCheckService;
+	
+	
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private JSONParser jSONParser = new JSONParser();
 	
 	public JSONObject getFavView(String userId, String siteKey, String reportName, String projectId) {
 
 		JSONObject arr = new JSONObject();
+		String reportNameRef = reportName;
 		try {
 			JSONObject obj = new JSONObject();
  
@@ -103,6 +109,62 @@ public class FavouriteApiService_v2 {
 				arr.put("order",new JSONArray());
 			}
 			
+			
+			if(reportNameRef.equalsIgnoreCase("healthcheck")) {
+				JSONArray hcFilterArray = new JSONArray();
+				
+				for(int i=0; i<viewArr.size(); i++) {					
+					LinkedCaseInsensitiveMap hcData = (LinkedCaseInsensitiveMap) viewArr.get(i);					
+					String reportLabled = (String) hcData.get("reportLabel");					
+					String[] sa = reportLabled.split("-");
+					String hcId ="";
+					for(int j=0; j<=4; j++) {						
+						if(hcId.isEmpty()) {
+							hcId = sa[j];
+						}else {
+							hcId = hcId + "-"+sa[j];
+						}
+					}
+						JSONObject healthCheck = healthCheckService.getHealthCheck(hcId, null);					
+						if(healthCheck != null ) {
+							JSONArray filterArray = (JSONArray) hcData.get("filterProperty");
+							
+							JSONObject componentType = new JSONObject();
+							componentType.put("label", "Component Type");
+							componentType.put("name", "componentType");
+							componentType.put("selection",healthCheck.get("componentType"));
+							
+							JSONObject analyticsType = new JSONObject();
+							analyticsType.put("label", "Analytics Type");
+							analyticsType.put("name", "analyticsType");
+							analyticsType.put("selection",healthCheck.get("analyticsType"));
+							
+							JSONObject reportListType = new JSONObject();
+							reportListType.put("label", "Discovery Type");
+							reportListType.put("name", "reportList");
+							reportListType.put("selection",healthCheck.get("reportName"));
+							
+							JSONObject reportBy = new JSONObject();
+							reportBy.put("label", "Analytics By");
+							reportBy.put("name", "reportBy");
+							reportBy.put("selection",healthCheck.get("reportBy"));
+							
+							filterArray.add(componentType);
+							filterArray.add(analyticsType);
+							filterArray.add(reportListType);
+							filterArray.add(reportBy);
+							
+							hcData.put("filterProperty", filterArray);
+							hcFilterArray.add(hcData);
+							
+							System.out.println("---filterArray-----------" + filterArray);
+							
+						}
+						
+					
+				}
+				arr.put("view", hcFilterArray);			
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
