@@ -22,6 +22,8 @@ public class ValidationModel {
 	private String analyticsType;
 	
 	private String model;
+	
+	private String projectId;
 
 	public String getAuthUserId() {
 		return authUserId;
@@ -95,12 +97,21 @@ public class ValidationModel {
 		this.model = model;
 	}
 
+	
+	public String getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
+	}
+
 	public ValidationModel() {
 		super();
 	}
 
 	public ValidationModel(String authUserId, String siteKey, String reportBy, String columnName, String category,
-			String deviceType, String reportList) {
+			String deviceType, String reportList, String projectId) {
 		super();
 		this.authUserId = authUserId;
 		this.siteKey = siteKey;
@@ -109,6 +120,7 @@ public class ValidationModel {
 		this.category = category;
 		this.deviceType = deviceType;
 		this.reportList = reportList;
+		this.projectId = projectId;
 	}
 	
 	

@@ -766,10 +766,10 @@ public class ValidationRuleService {
 		return resultData;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public JSONArray getUniqueValues(String siteKey,String projectId,String columnName) throws ParseException {
 		JSONParser parser = new JSONParser();
 		JSONArray resultArray = new JSONArray();
+		
 		
 		try {
 			String uniqueFilterQuery = "select keys, json_agg(data) as data from (\r\n"
@@ -799,16 +799,16 @@ public class ValidationRuleService {
 					+ "json_array_elements(system_fields::json) ->> 'type' as column_type,\r\n"
 					+ "json_array_elements(system_fields::json) ->> 'reportConfig' as report_config,\r\n"
 					+ "json_array_elements(system_fields::json) ->> 'options' as options from project\r\n"
-					+ "where 1 = 1 and site_key = '"+siteKey+"' and project_id = '"+projectId+"'\r\n"
+					+ "where 1 = 1 and site_key = '" + siteKey + "' and project_id = '" + projectId + "'\r\n"
 					+ ") a\r\n"
 					+ ") b\r\n"
 					+ "LEFT JOIN (select project_id, field_id, field_value as option_id, field_value as option_value from project_tasklist\r\n"
-					+ "where project_id = '\"+projectId+\"' and (field_value != 'null' and trim(field_value) != '') and field_label not ilike '%_largeDataArr'\r\n"
+					+ "where project_id = '" + projectId + "' and (field_value != 'null' and trim(field_value) != '') and field_label not ilike '%_largeDataArr'\r\n"
 					+ "order by project_id, field_id, field_value) ptl on ptl.project_id = b.project_id and b.column_id = ptl.field_id\r\n"
 					+ "where report_config = 'filterBy' ) c\r\n"
 					+ ") rt on rt.project_id = pr.project_id\r\n"
 					+ "LEFT JOIN project_custom_field pcf on pcf.field_id = rt.column_id\r\n"
-					+ "where rt.column_id is not null and pr.site_key = '"+siteKey+"' and pr.project_id = '"+projectId+"'\r\n"
+					+ "where rt.column_id is not null and pr.site_key = '" + siteKey + "' and pr.project_id = '"  + projectId + "'\r\n"
 					+ "order by rt.column_label\r\n"
 					+ ") b\r\n"
 					+ ") c\r\n"
@@ -821,16 +821,16 @@ public class ValidationRuleService {
 					+ "'select' as column_type, option_id, option_value from (\r\n"
 					+ "select pr.project_id, id, group_name, profile_id as option_id, profile_name as option_value from (\r\n"
 					+ "select tenant_group_fields_id as id, group_name from tenant_group_fields where\r\n"
-					+ "tenant_group_fields_id not in (select tenant_group_fields_id from site_group_fields where site_key = '"+siteKey+"' and\r\n"
+					+ "tenant_group_fields_id not in (select tenant_group_fields_id from site_group_fields where site_key = '" + siteKey + "' and\r\n"
 					+ "tenant_group_fields_id is not null) and\r\n"
-					+ "tenant_group_fields_id not in (select ref_id from project_group_fields where ref_id is not null and site_key = '"+siteKey+"' and project_id = '\"+projectId+\"' )\r\n"
+					+ "tenant_group_fields_id not in (select ref_id from project_group_fields where ref_id is not null and site_key = '" + siteKey + "' and project_id = '" + projectId + "' )\r\n"
 					+ "union all\r\n"
 					+ "select site_group_fields_id as id, group_name from site_group_fields where\r\n"
-					+ "tenant_group_fields_id not in (select ref_id from project_group_fields where ref_id is not null and site_key = '"+siteKey+"' and project_id = '\"+projectId+\"' )\r\n"
+					+ "tenant_group_fields_id not in (select ref_id from project_group_fields where ref_id is not null and site_key = '" + siteKey + "' and project_id = '" + projectId + "' )\r\n"
 					+ "union all\r\n"
-					+ "select ref_id as id, group_name from project_group_fields where site_key = '"+siteKey+"' and project_id = '"+projectId+"'\r\n"
+					+ "select ref_id as id, group_name from project_group_fields where site_key = '" + siteKey + "' and project_id = '" + projectId + "'\r\n"
 					+ ") a\r\n"
-					+ "JOIN destination_profile pr on pr.migration_group_id = a.id and pr.project_id = '"+projectId+"'\r\n"
+					+ "JOIN destination_profile pr on pr.migration_group_id = a.id and pr.project_id = '" + projectId + "'\r\n"
 					+ ") b\r\n"
 					+ ") c\r\n"
 					+ ") d where row_num = 1\r\n"

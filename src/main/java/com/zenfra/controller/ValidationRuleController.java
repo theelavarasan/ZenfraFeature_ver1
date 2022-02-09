@@ -65,7 +65,7 @@ public class ValidationRuleController {
 			System.out.println("!!!!! Privileged Access access result: " + resultArray);
 			return ResponseEntity.ok(resultArray);
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Project")) {
-			resultArray = validationRuleService.getUniqueValues(model.getSiteKey(), null, model.getColumnName());
+			resultArray = validationRuleService.getUniqueValues(model.getSiteKey(), model.getProjectId(), model.getColumnName());
 			return ResponseEntity.ok(resultArray);
 		}
 		
