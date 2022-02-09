@@ -63,6 +63,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.FileSystemUtils;
 
 import com.google.common.collect.Sets;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
@@ -2162,7 +2163,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        	
     	        }
     	        
-    	        List<String> floatColumns = new ArrayList<String>();
+    	        /*List<String> floatColumns = new ArrayList<String>();
     	        floatColumns.add("AWS 1 Year Price");
     	        floatColumns.add("AWS 3 Year Price");
     	        floatColumns.add("AWS On Demand Price");
@@ -2172,24 +2173,30 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        floatColumns.add("Azure 1 Year Price");
     	        floatColumns.add("Azure 3 Year Price");
     	        floatColumns.add("Azure On Demand Price");
+    	        */
     	       
     	        List<String> numericalHeaders = getReportNumericalHeaders("Optimization", "All", "Optimization", siteKey);	    	
-    	        numericalHeaders.removeAll(floatColumns);
+    	       // numericalHeaders.removeAll(floatColumns);
     	    	List<String> columns = Arrays.asList(dataCheck.columns());
     	    	
                 for(String column : numericalHeaders) {                        	
                 	if(columns.contains(column)) { 
-                		dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("integer"));
+                		if(column.toLowerCase().contains("price")) {
+                			dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("double"));
+                		}else {
+                			dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("integer"));
+                		}
+                		
                 	}
                 	
                 }
-                for(String column : floatColumns) {                        	
+               /* for(String column : floatColumns) {                        	
                 	if(columns.contains(column)) { 
                 		dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("float"));
                 	}
                 	
                 }
-    	        
+    	        */
     	        
     	        logger.info("getReport Details Ends");
     	      
@@ -2199,15 +2206,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				} catch (Exception e) {
 				   e.printStackTrace();
 				}
-    	        
-    	       
-    	        
-    	      
+    	            	      
     	      
     	        String viewName = siteKey.replaceAll("\\s+","").replaceAll("-", "")+"_cloudcost";
     	        dataCheck.coalesce(1).write().json(cloudCostDfPath+siteKey);
-    	        
-    	        System.out.println("----------------------------1viewName21------------------" + viewName);
+    	       
     	        dataCheck.createOrReplaceGlobalTempView(viewName);
     	        
     	        Path resultFilePath = Paths.get(cloudCostDfPath+siteKey);
@@ -2218,9 +2221,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        Path resultFilePath1 = Paths.get(cloudCostDfPath);
     		    UserPrincipal owner1 = resultFilePath.getFileSystem().getUserPrincipalLookupService()
     	                .lookupPrincipalByName("zenuser");
-    	        Files.setOwner(resultFilePath1, owner1);	
-    	        
-    	        System.out.println("----------------------------121-----22-------------" + dataCheck.count());
+    	        Files.setOwner(resultFilePath1, owner1);    	     
     	        
                 request.setStartRow(0);
                 request.setEndRow((int)dataCheck.count());
@@ -3127,6 +3128,21 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 							Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("mode", "PERMISSIVE").json(filePath);														
 							dataset.createOrReplaceGlobalTempView(viewName);							
 							System.out.println("------------cloud cost view----------" + viewName);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
+
+
+
+					public void destroryCloudCostDataframe(String siteKey) {
+						try {
+							 String viewName = siteKey.replaceAll("\\s+","").replaceAll("-", "")+"_cloudcost";	
+							 sparkSession.catalog().dropGlobalTempView(viewName);
+							  String cloudCostDfPath = commonPath + File.separator + "Dataframe" + File.separator + "CCR" + File.separator + siteKey + File.separator;
+							  File dfFolder = new File(cloudCostDfPath);
+							  FileSystemUtils.deleteRecursively(dfFolder);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
