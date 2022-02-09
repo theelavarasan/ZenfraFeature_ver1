@@ -129,12 +129,7 @@ public class ReportDataController {
 	      			 String result = "Success";	      			 			
 	      			//result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
 	      			result = dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
-	      			try {
-	      				String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost";
-		      			sparkSession.sql("delete from global_temp." + viewName);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+	      			
 	      		    
 	      			//verify default fav is present or not
 	      			//favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
@@ -172,6 +167,11 @@ public class ReportDataController {
 				  } catch (Exception e) {
 					e.printStackTrace();
 				}
+			  String sourceTypeRef = sourceType.toLowerCase();
+			  if(sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows")) {
+				  dataframeService.destroryCloudCostDataframe(siteKey);
+			  }
+			 
 			  if("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
 				  chartService.getChartDatas(siteKey, sourceType);
 			  }
@@ -317,6 +317,11 @@ public class ReportDataController {
 	   @GetMapping("createEolEodDf")
 	   public void createEolEodDf(HttpServletRequest request) {
 		   eolService.recreateEolEosDataframe();
+	   }
+	   
+	   @GetMapping("deleteCloudCostDf")
+	   public void deleteCloudCostDf(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {
+		   dataframeService.destroryCloudCostDataframe(siteKey);
 	   }
 	 
 }
