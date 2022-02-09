@@ -845,6 +845,7 @@ public class ValidationRuleService {
 			for(Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("data").toString());
 			}
+			System.out.println("------------ resultArray : " + resultArray);
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
