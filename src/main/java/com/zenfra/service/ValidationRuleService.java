@@ -847,7 +847,7 @@ public class ValidationRuleService {
 			}
 			System.out.println("------------ resultArray : " + resultArray);
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 		
 		
