@@ -2182,7 +2182,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                 for(String column : numericalHeaders) {                        	
                 	if(columns.contains(column)) { 
                 		if(column.toLowerCase().contains("price")) {
-                			dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("double"));
+                			dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast(DataTypes.createDecimalType(32,2)));
                 		}else {
                 			dataCheck = dataCheck.withColumn(column, dataCheck.col(column).cast("integer"));
                 		}
