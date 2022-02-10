@@ -1858,6 +1858,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 
 				 String siteKey = request.getSiteKey();
 		         String deviceType = request.getDeviceType();
+		         String sourceId = request.getSource();
 		         
 				 if (deviceType.equalsIgnoreCase("All")) {
 	            	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware', 'ec2')";	            	
@@ -1888,10 +1889,16 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 					 
 				 dataset.show(false);
 				 
+				 String sourceQuery = "";
+				 
+				 if(sourceId != null && !sourceId.isEmpty() && !sourceId.equalsIgnoreCase("All")) {
+					 sourceQuery = " and customExcelSrcId='"+sourceId+"'";
+				 }
+				 
 				 if(category.equalsIgnoreCase("All")) {
-					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType);
+					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + sourceQuery);
 				 } else {
-					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category.toLowerCase()+"'");
+					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category.toLowerCase()+"'" + sourceQuery);
 				 }
 				 
 				 dataset.printSchema();
@@ -2019,7 +2026,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 
                  String sql = "select * from (" +
                          " select " +
-                         " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by," +
+                         " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by, '0' as custom_excel_src_id," +
                          " lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
                          " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
                          " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
@@ -2048,7 +2055,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                  if (dataCount == 0) {
                      sql = "select * from (" +
                              " select " +
-                             " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by, " +
+                             " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by, '0' as custom_excel_src_id, " +
                              "lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`," +
                              " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, " +
                              " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, " +
@@ -2119,7 +2126,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
         	  
     	        	
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {   
-            	   System.out.println("-----------src 1---------------");
+            	
             	   Dataset<Row> thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList, request.getDeviceType(), physicalServerNames);
             	               	   
             	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
@@ -2411,7 +2418,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									float vcpu = Float.parseFloat((String)json.get(mappingNames.get("numberOfCores")));
 									String instanceId = mem+"_"+vcpu;									
 									if(deviceList.contains(serverType.toLowerCase())) { // && !physicalServerNames.stream().anyMatch(d -> d.equalsIgnoreCase((String)json.get(mappingNames.get("name"))))
-										AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType, (String)json.get(mappingNames.get("serverType")), "Custom Excel Data");
+										AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "", (String)json.get(mappingNames.get("memory")), (String)json.get(mappingNames.get("numberOfCores")), value, (String)json.get(mappingNames.get("name")), (String)json.get(mappingNames.get("name")), "", actualOsType, (String)json.get(mappingNames.get("serverType")), "Custom Excel Data", sourceId);
 										row.add(awsInstanceData);
 									}
 									//
@@ -2600,9 +2607,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			            row.put(colName, value);
 			           
 			        }
-			        AwsInstanceData awsInstanceData = new AwsInstanceData(row.get("region"), row.get("instancetype"),row.get("memoryinfo"),row.get("vcpuinfo"),row.get("platformdetails"),row.get("description"), row.get("instanceid"), row.get("updated_date"), row.get("actualOsType"), "", "AWS Instances");
+			        AwsInstanceData awsInstanceData = new AwsInstanceData(row.get("region"), row.get("instancetype"),row.get("memoryinfo"),row.get("vcpuinfo"),row.get("platformdetails"),row.get("description"), row.get("instanceid"), row.get("updated_date"), row.get("actualOsType"), "", "AWS Instances", "0");
 			    	//System.out.println("----json----------" +awsInstanceData.toString() );
 			        awsInstanceData.setReport_by("AWS Instances");
+			        awsInstanceData.setCustomExcelSrcId("0");			       
 			        rows.add(awsInstanceData);
 			    }
 			    return rows;
