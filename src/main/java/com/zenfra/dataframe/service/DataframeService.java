@@ -1853,7 +1853,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					 dataset = sparkSession.read().json(cloudCostDfPath); 
 					 dataset.createOrReplaceGlobalTempView(viewName);					
 				 } else {
-					 dataset =  getOptimizationReport(request);					
+					 getOptimizationReport(request);					
 				 }
 				 
 			} 
@@ -1938,7 +1938,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 
 		}
 
-		public Dataset<Row> getOptimizationReport(ServerSideGetRowsRequest request) {
+		public DataResult getOptimizationReport(ServerSideGetRowsRequest request) {
 			 
 			 String siteKey = request.getSiteKey();
 	         String deviceType = request.getDeviceType();
@@ -2305,12 +2305,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        
     	       // dataCheck.write().json(cloudCostDfPath+siteKey);
     	       
-				/*
-				 * dataCheck .write().option("escape", "").option("quotes",
-				 * "").option("ignoreLeadingWhiteSpace", true)
-				 * .format("org.apache.spark.sql.json")
-				 * .mode(SaveMode.Overwrite).save(cloudCostDfPath+siteKey);
-				 */
+				
+				  dataCheck .write().option("escape", "").option("quotes",
+				  "").option("ignoreLeadingWhiteSpace", true)
+				  .format("org.apache.spark.sql.json")
+				  .mode(SaveMode.Overwrite).save(cloudCostDfPath+siteKey);
+				 
     	        
     	        System.out.println("--------------after write--------------- "+ new Date());
     	        
@@ -2319,7 +2319,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        System.out.println("--------------after create view--------------- "+ new Date());
     	        
     	        
-    	      /*  Path resultFilePath = Paths.get(cloudCostDfPath+siteKey);
+    	       Path resultFilePath = Paths.get(cloudCostDfPath+siteKey);
     		    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
     	                .lookupPrincipalByName("zenuser");
     	        Files.setOwner(resultFilePath, owner);	
@@ -2341,9 +2341,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
      	        isGrouping = rowGroups.size() > groupKeys.size();   
     	    
                 return paginate(dataCheck, request);
-                */
-    	        
-    	        return dataCheck;
+    	    
                  
              } catch (Exception ex) {
             	 ex.printStackTrace();
@@ -2352,7 +2350,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
              }
              
              dataCheck = sparkSession.emptyDataFrame();
-             return dataCheck; //paginate(dataCheck, request);
+             return paginate(dataCheck, request); //paginate(dataCheck, request);
 		}
 		
 		
