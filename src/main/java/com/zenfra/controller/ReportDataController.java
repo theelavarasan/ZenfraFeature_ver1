@@ -83,7 +83,7 @@ public class ReportDataController {
 	 */
 	 
 	 @PostMapping("getReportData")
-	    public ResponseEntity<String> getReportData(@RequestBody ServerSideGetRowsRequest request) { 		
+	    public ResponseEntity<?> getReportData(@RequestBody ServerSideGetRowsRequest request) { 		
 		  		 
 		  try {
 			  if(request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") ) {
@@ -104,10 +104,11 @@ public class ReportDataController {
 		      		 */
 				 
 				  
-				  DataResult data = dataframeService.getCloudCostData(request);
-				  if(data != null) {
-		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
-		      		 }
+				  DataResult  data = dataframeService.getCloudCostData(request);
+				  System.out.println("----------------->>>>>>>>>--------------------");
+				 // if(data != null) {
+		      			return new ResponseEntity<>(data, HttpStatus.OK);
+		      	//	 }
 			  }
 	      		
 	 	        

@@ -27,6 +27,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -512,10 +513,14 @@ public class DataframeService{
 	    	
 	        // save schema to recreate data frame
 	        StructType schema = df.schema();
+	        
+	       	System.out.println("-------------dataset----last-rc---------- " + new Date());
 
 	        // obtain row count
 	        long rowCount = df.count();
 
+	      	System.out.println("-------------after----last-rc---------- " + new Date());
+	      	
 	        // convert data frame to RDD and introduce a row index so we can filter results by range
 	        JavaPairRDD<Row, Long> zippedRows = df.toJavaRDD().zipWithIndex();
 
@@ -1848,7 +1853,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					 dataset = sparkSession.read().json(cloudCostDfPath); 
 					 dataset.createOrReplaceGlobalTempView(viewName);					
 				 } else {
-					 getOptimizationReport(request);					
+					 dataset =  getOptimizationReport(request);					
 				 }
 				 
 			} 
@@ -1887,7 +1892,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 	            	 deviceType =  " lcase(`Server Name`) in ("+serverNames+")";	            	
 	             }
 				 					 
-				 dataset.show(false);
+				 //dataset.show(false);
 				 
 				 String sourceQuery = "";
 				 
@@ -1895,15 +1900,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					 sourceQuery = " and customExcelSrcId='"+sourceId+"'";
 				 }
 				 
-				 if(category.equalsIgnoreCase("All")) {
-					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + sourceQuery);
-				 } else {
-					 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category.toLowerCase()+"'" + sourceQuery);
-				 }
+					System.out.println("-------------dataset-------before-------- " + new Date());
+					
+					
+						 if(category.equalsIgnoreCase("All")) {
+							 dataset =  dataset.sqlContext().sql("select * from global_temp."+viewName + " where "+ deviceType + sourceQuery);
+						 } else {
+							 dataset =  dataset.sqlContext().sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category.toLowerCase()+"'" + sourceQuery);
+						 }
 				 
-				 dataset.printSchema();
-				 dataset.show();
-				   request.setStartRow(0);
+				System.out.println("-------------dataset-------final-------- " + new Date());
+			
+				 
+				    request.setStartRow(0);
 	                request.setEndRow((int)dataset.count());
 	                rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
 	     	        groupKeys = request.getGroupKeys();
@@ -1914,6 +1923,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 	     	        isPivotMode = request.isPivotMode();
 	     	        isGrouping = rowGroups.size() > groupKeys.size();   
 	    	    
+	     	   	System.out.println("-------------dataset----last----------- " + new Date());
+	     	   	
 	                return paginate(dataset, request);
 	            
 			    
@@ -1927,7 +1938,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			 
 		}
 
-		public DataResult getOptimizationReport(ServerSideGetRowsRequest request) {
+		public Dataset<Row> getOptimizationReport(ServerSideGetRowsRequest request) {
 			 
 			 String siteKey = request.getSiteKey();
 	         String deviceType = request.getDeviceType();
@@ -2011,11 +2022,19 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
              
           
              try {
+            	 
+            	 System.out.println("---------------before constrct----------------- "+ new Date());
+            	 
                  constructReport(siteKey, discoveryFilterqry);
+                 
+            	 System.out.println("---------------after constrct----------------- "+ new Date());
 
                  int dataCount = getEOLEOSCount(siteKey);
 
-                 int eolHwcount = getEOLEHWCount(siteKey);               
+                 int eolHwcount = getEOLEHWCount(siteKey);    
+                 
+             	 System.out.println("---------------after constrct eol eos----------------- "+ new Date());
+             	 
                
                  String hwJoin = "";
                  String hwdata = ",'' as `End Of Life - HW`,'' as `End Of Extended Support - HW`";
@@ -2103,7 +2122,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					 dataCheck = sparkSession.emptyDataFrame();
 				 }     
     	        
-              
+				 System.out.println("---------------before constrct aws----------------- "+ new Date());
+				 
 				 Dataset<Row> awsInstanceData = null;
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("AWS Instances"))) {            	   
             	   awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
@@ -2118,12 +2138,16 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                }
                
 
+          	 System.out.println("---------------after constrct aws----------------- "+ new Date());
+          	 
                List<String> physicalServerNames = new ArrayList<String>();
         	   if(categoryList.contains("All")) {
         		  List<Row> serverNames =  dataCheck.select(functions.col("Server Name")).collectAsList();
         		  serverNames.forEach((Consumer<? super Row>) row -> physicalServerNames.add(row.getAs("Server Name")));
         	   }
         	  
+        		 System.out.println("---------------before constrct third party----------------- "+ new Date());
+        		 
         	   Dataset<Row> thirdPartyData = null;
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {   
             	
@@ -2138,8 +2162,24 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                    }*/
             	   
             	   
-               }               
+               }       
+          	 System.out.println("---------------after constrct third party----------------- "+ new Date());
+          	 
+          	 sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
+          	 sparkSession.catalog().dropGlobalTempView("awsReportForThirdParty");
+          	 sparkSession.catalog().dropGlobalTempView("eoleosDataDF");
+          	 sparkSession.catalog().dropGlobalTempView("eolHWData");
+          	 sparkSession.catalog().dropGlobalTempView("awsReport");
+          	 sparkSession.catalog().dropGlobalTempView("azureReport");
+          	 sparkSession.catalog().dropGlobalTempView("googleReport");
+           	 sparkSession.catalog().dropGlobalTempView("azureReportForAWSInstance");
+           	 sparkSession.catalog().dropGlobalTempView("awsReportForThirdParty");
+          	 sparkSession.catalog().dropGlobalTempView("googleReportForAWSInstance");
+          	 
                dataCheck = dataCheck.unionByName(awsInstanceData).unionByName(thirdPartyData);
+               
+          	 System.out.println("---------------after union---------------- "+ new Date());
+          	 
               // dataCheck.printSchema();
               // dataCheck.show();
                 
@@ -2189,7 +2229,8 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	        		;
     	        
     	        
-    	        
+    	   	 System.out.println("---------------after N/A----------------- "+ new Date());
+    	   	 
     	        if(!taskListServers.isEmpty()) { //add server~ for task list call    	        	
     	        	List<String> allServers = dataCheck.select("Server Name").as(Encoders.STRING()).collectAsList();    
     	        	
@@ -2258,12 +2299,27 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				}
     	            	      
     	      
+    	    	 System.out.println("--------------before write--------------- "+ new Date());
+    	    	 
     	        String viewName = siteKey.replaceAll("\\s+","").replaceAll("-", "")+"_cloudcost";
-    	        //dataCheck.coalesce(10).write().json(cloudCostDfPath+siteKey);
+    	        
+    	       // dataCheck.write().json(cloudCostDfPath+siteKey);
     	       
+				/*
+				 * dataCheck .write().option("escape", "").option("quotes",
+				 * "").option("ignoreLeadingWhiteSpace", true)
+				 * .format("org.apache.spark.sql.json")
+				 * .mode(SaveMode.Overwrite).save(cloudCostDfPath+siteKey);
+				 */
+    	        
+    	        System.out.println("--------------after write--------------- "+ new Date());
+    	        
     	        dataCheck.createOrReplaceGlobalTempView(viewName);
     	        
-    	        /*Path resultFilePath = Paths.get(cloudCostDfPath+siteKey);
+    	        System.out.println("--------------after create view--------------- "+ new Date());
+    	        
+    	        
+    	      /*  Path resultFilePath = Paths.get(cloudCostDfPath+siteKey);
     		    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
     	                .lookupPrincipalByName("zenuser");
     	        Files.setOwner(resultFilePath, owner);	
@@ -2272,7 +2328,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     		    UserPrincipal owner1 = resultFilePath.getFileSystem().getUserPrincipalLookupService()
     	                .lookupPrincipalByName("zenuser");
     	        Files.setOwner(resultFilePath1, owner1);    	     
-    	        */
+    	        
                 request.setStartRow(0);
                 request.setEndRow((int)dataCheck.count());
                 rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
@@ -2285,6 +2341,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
      	        isGrouping = rowGroups.size() > groupKeys.size();   
     	    
                 return paginate(dataCheck, request);
+                */
+    	        
+    	        return dataCheck;
                  
              } catch (Exception ex) {
             	 ex.printStackTrace();
@@ -2293,7 +2352,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
              }
              
              dataCheck = sparkSession.emptyDataFrame();
-             return paginate(dataCheck, request);
+             return dataCheck; //paginate(dataCheck, request);
 		}
 		
 		
@@ -2761,7 +2820,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 									  }
 					   	        	
 					   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
-					   		         dataset.cache();	
+					   		        // dataset.cache();	
 					   		         
 					   		      //dataset.printSchema();
 					   		 	
@@ -3073,7 +3132,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
 				                if (dataCount > 0) {
 				                    dataCheck.createOrReplaceGlobalTempView("eoleosDataDF");
-				                    dataCheck.cache();
+				                    //dataCheck.cache();
 				                }
 				            }
 				        } catch (Exception ex) {
@@ -3108,7 +3167,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				                dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
 				                if (dataCount > 0) {
 				                    dataCheck.createOrReplaceGlobalTempView("eolHWData");
-				                    dataCheck.cache();
+				                    //dataCheck.cache();
 				                }
 				            }
 				        } catch (Exception ex) {
