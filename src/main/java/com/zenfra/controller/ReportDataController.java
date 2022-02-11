@@ -102,9 +102,8 @@ public class ReportDataController {
 		      			return new ResponseEntity<>(resultData.toString(), HttpStatus.OK);
 		      		 }
 		      		 */
-				 
 				  
-				  DataResult data = dataframeService.getCloudCostData(request);
+				  DataResult data = dataframeService.getOptimizationReport(request);
 				  if(data != null) {
 		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 		      		 }
@@ -130,7 +129,6 @@ public class ReportDataController {
 	      			//result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
 	      			result = dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			
-	      		    
 	      			//verify default fav is present or not
 	      			//favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
 	      			
@@ -154,7 +152,8 @@ public class ReportDataController {
 			/*  if(sourceType != null && !sourceType.trim().isEmpty() && sourceType.trim().equalsIgnoreCase("Tanium")) {
 				  sourceType="Linux";
 			  }
-			*/
+			  */
+			
 			  try { //remove orient db dataframe
 					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator; // + sourceType + File.separator;
 					File[] directories = new File(dataframePath).listFiles(File::isDirectory);
@@ -167,11 +166,6 @@ public class ReportDataController {
 				  } catch (Exception e) {
 					e.printStackTrace();
 				}
-			  String sourceTypeRef = sourceType.toLowerCase();
-			  if(sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows")) {
-				  dataframeService.destroryCloudCostDataframe(siteKey);
-			  }
-			 
 			  if("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
 				  chartService.getChartDatas(siteKey, sourceType);
 			  }
@@ -227,7 +221,7 @@ public class ReportDataController {
 			  }
 			  
 				if(reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
-		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt());
+		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList, request.getCategory());
 		      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 		        }  else {
 	      			 return new ResponseEntity<>(ZKConstants.PARAMETER_MISSING, HttpStatus.OK);	      		
@@ -235,7 +229,7 @@ public class ReportDataController {
 	      		 
 	      		
 			} catch (Exception e) {
-				e.printStackTrace();
+				
 				System.out.println("Not able to get report headers {}"+ e);
 			}   	
 	    	
@@ -317,11 +311,6 @@ public class ReportDataController {
 	   @GetMapping("createEolEodDf")
 	   public void createEolEodDf(HttpServletRequest request) {
 		   eolService.recreateEolEosDataframe();
-	   }
-	   
-	   @GetMapping("deleteCloudCostDf")
-	   public void deleteCloudCostDf(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {
-		   dataframeService.destroryCloudCostDataframe(siteKey);
 	   }
 	 
 }

@@ -34,7 +34,7 @@ public class DBUtils {
 			data.put("aws_jdbc_url", aws_jdbc_url);
 			data.put("CLOUD_PYTHON", CLOUD_PYTHON);
 			
-			System.out.println(data);
+			//System.out.println(data);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

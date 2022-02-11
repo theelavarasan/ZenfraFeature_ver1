@@ -646,6 +646,55 @@ public class ValidationRuleService {
 		}
 		
 		return resultArray;
+	} 
+	
+public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {
+		
+		JSONArray resultArray = new JSONArray();
+		
+		try {
+			
+			String query = "select keys, json_agg(column_values) as column_values from (\r\n" + 
+					"select distinct keys, column_values from (\r\n" + 
+					"select concat('Server Data~', keys) as keys, json_array_elements(data::json) ->> keys as column_values from ( \r\n" + 
+					"select data, json_object_keys(data_object) as keys from (\r\n" + 
+					"select data, json_array_elements(data::json) as data_object from privillege_data  \r\n" + 
+					"where site_key = '" + siteKey + "'  \r\n" + 
+					") a \r\n" + 
+					") b\r\n" + 
+					"union all \r\n" + 
+					"select concat(source_name, '~', keys) as keys, data::json ->> keys as column_values from ( \r\n" + 
+					"select source_name, data, json_object_keys(data::json) as keys from (  \r\n" + 
+					"select sd.source_id, s.source_name, primary_key_value, replace(data, '.0\",', '\",') as data, row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num \r\n" +
+					"from source_data sd  \r\n" + 
+					"LEFT JOIN source s on s.source_id = sd.source_id and s.site_key = '" + siteKey + "'  \r\n" + 
+					"where sd.site_key = '" + siteKey + "' and sd.source_id in ( \r\n" + 
+					"select source_id from (  \r\n" + 
+					"select source_id, json_array_elements(fields::json) ->> 'primary' as is_primary,  \r\n" + 
+					"json_array_elements(fields::json) ->> 'primaryKey' as primary_key from source  \r\n" + 
+					"where site_key = '" + siteKey + "'  \r\n" + 
+					") a where is_primary::boolean = true and primary_key = 'userName' ) \r\n" + 
+					") b  \r\n" + 
+					"where row_num = 1  \r\n" + 
+					") c \r\n" + 
+					") d where keys <> 'sourceId' and keys <> 'siteKey'\r\n" + 
+					") e where keys = '" + columnName + "' \r\n" + 
+					"group by keys ";
+			
+			System.out.println("!!!!! query: " + query);
+			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
+			//JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for(Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+		
 	}
 	
 	public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {

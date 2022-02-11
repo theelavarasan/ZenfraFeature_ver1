@@ -33,6 +33,7 @@ public class RedisConfiguration {
 		Properties properties = new Properties();
 		properties.load(input);
         RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration(properties.getProperty(ZKConstants.SERVER), REDIS_PORT);
+        configuration.setPassword(properties.getProperty(ZKConstants.REDISPASS));
         JedisClientConfiguration jedisClientConfiguration = JedisClientConfiguration.builder().usePooling().build();
         JedisConnectionFactory factory = new JedisConnectionFactory(configuration, jedisClientConfiguration);
         factory.afterPropertiesSet();
