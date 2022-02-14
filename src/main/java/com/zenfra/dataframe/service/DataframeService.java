@@ -1904,9 +1904,9 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					
 					
 						 if(category.equalsIgnoreCase("All")) {
-							 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + sourceQuery).toDF();
+							 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + sourceQuery);
 						 } else {
-							 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category.toLowerCase()+"'" + sourceQuery).toDF();
+							 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category.toLowerCase()+"'" + sourceQuery);
 						 }
 				 
 				System.out.println("-------------dataset-------final-------- " + dataset.count());
@@ -2116,6 +2116,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     			 }
     			
     			 dataCheck = sparkSession.sql(sql).toDF();    
+    			 dataCheck.createOrReplaceGlobalTempView("ccrPhysicalDF");
     			 List<String> colHeaders = Arrays.asList(dataCheck.columns());  
 					
 				 if(!isTaskListReport && !categoryList.contains("All") && !categoryList.contains("Physical Servers")) {
@@ -2127,14 +2128,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 Dataset<Row> awsInstanceData = null;
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("AWS Instances"))) {            	   
             	   awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
-            	   if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
+            	 /*  if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
             		   if(dataCheck.isEmpty()) {
             			   dataCheck = awsInstanceData;
             		   } else {
             			   dataCheck = dataCheck.unionByName(awsInstanceData);
             		   }
                    	
-                   }
+                   }*/
                }
                
 
@@ -2153,13 +2154,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
             	
             	   thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList, request.getDeviceType(), physicalServerNames);
             	               	   
-            	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
+            	  /* if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
                     if(dataCheck.isEmpty()) {
          			   dataCheck = thirdPartyData;
          		   } else {         			 
          			  dataCheck = dataCheck.unionByName(thirdPartyData);
          		   }
-                   }
+                   }*/
             	   
             	   
                }       
@@ -2176,9 +2177,11 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
            	 sparkSession.catalog().dropGlobalTempView("awsReportForThirdParty");
           	 sparkSession.catalog().dropGlobalTempView("googleReportForAWSInstance");
           	 */
-              // dataCheck = dataCheck.unionByName(awsInstanceData).unionByName(thirdPartyData);
+               dataCheck = dataCheck.unionByName(awsInstanceData).unionByName(thirdPartyData);
+          	//dataCheck = sparkSession.sql("SELECT * FROM global_temp.ccrPhysicalDF UNION ALL SELECT * FROM global_temp.awsInstanceDF UNION ALL SELECT * FROM global_temp.thirdPartyDataDF");
+          	 
                
-          	 System.out.println("---------------after union---------------- "+ new Date());
+          	 System.out.println("---------------after union---------------- "+ dataCheck.count());
           	 
               // dataCheck.printSchema();
               // dataCheck.show();
@@ -2388,27 +2391,27 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 getGooglePricingForAWS();		
 				 
 				 Dataset<Row> data1 = data.drop("instanceid");
-				 data1.createOrReplaceGlobalTempView("awsInstanceDF");	
+				 data1.createOrReplaceGlobalTempView("thirdPartyDataDF");	
 				 
 				 
 				 try {
 					
 					// Dataset<Row> dataCheck1 = sparkSession.sql("select * from (select g.`Google Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`, g.`Google 3 Year Price`, ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, ai.`OS Name`, round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`,  ROW_NUMBER () over (partition BY ai.`instanceid` ORDER BY a.`PricePerUnit` ASC) AS my_rank, concat_ws(',', concat('Processor: ',a.`Physical Processor`),concat('vCPU: ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor Architecture: ',a.`Processor Architecture`) ,concat('Memory: ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance: ',a.`Network Performance`)) as `AWS Specs`, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a  where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 3 Year Price`, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`)  and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 1 Year Price`, round((a.`PricePerUnit` * 730),2) as `AWS On Demand Price` from global_temp.awsInstanceDF ai left join global_temp.googleReportForAWSInstance g on ai.instanceid=g.instanceid  left join global_temp.azureReportForAWSInstance azure on lower(azure.`OS Name`) = lower(ai.`actualOsType`) and cast(azure.Memory as float ) = cast(ai.Memory as float)  and cast(azure.VCPUs as int ) = cast(ai.`Number of Cores` as int)  left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)= lower(a.`Instance Type`) and a.`License Model` = 'No License required' and a.Location = 'US East (Ohio)' and a.Tenancy <> 'Host' and a.TermType = 'OnDemand' and lower(a.`Operating System`) = lower(ai.`OS Name`) and cast(a.`PricePerUnit` as float ) > 0.0 and (  a.`Product Family` = 'Compute Instance (bare metal)'   or a.`Product Family` = 'Compute Instance'  )) AWS where AWS.my_rank = 1").toDF();
-					 Dataset<Row> dataCheck1 = sparkSession.sql("select * from (select    'N/A' as `End Of Extended Support - HW`, 'N/A' as `End Of Life - HW`, 'N/A' as `End Of Life - OS`, 'N/A' as `End Of Extended Support - OS`, 'N/A' as `HBA Speed`, 'N/A' as `Processor Name`, 'N/A' as `DB Service`, 'N/A' as `CPU GHz`, 'N/A' as `OS Version`, 'N/A' as `Host`, 'N/A' as `Number of Ports`, 'N/A' as `Number of Processors`, 'N/A' as `Logical Processor Count`, 'N/A' as `Total Size`, 'N/A' as `Server Model`,  ROW_NUMBER() OVER (PARTITION BY ai.`Server Name` order by ai.`Server Name` asc) as my_rank, 'Custom Excel Data' as report_by, ai.customExcelSrcId, g.`Google Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`, g.`Google 3 Year Price`, a.`AWS Region`, a.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, a.`OS Name`, ai.`Server Type`, round( azure.`Azure On Demand Price`, 2 ) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`, 2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`, 2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`, round(a.`AWS On Demand Price`,2) as `AWS On Demand Price`, round(a.`AWS 3 Year Price`,2) as `AWS 3 Year Price`, round(a.`AWS 1 Year Price`,2) as `AWS 1 Year Price`, a.`AWS Specs` from global_temp.awsInstanceDF ai left join global_temp.googleReportForAWSInstance g on ai.`Server Name` = g.`instanceid` left join global_temp.azureReportForAWSInstance azure on ai.`Server Name` = azure.`instanceid` left join global_temp.awsReportForThirdParty a on  ai.`Server Name` = a.`Server Name`) thirdParty where thirdParty.my_rank = 1").toDF();
+					 result = sparkSession.sql("select * from (select    'N/A' as `End Of Extended Support - HW`, 'N/A' as `End Of Life - HW`, 'N/A' as `End Of Life - OS`, 'N/A' as `End Of Extended Support - OS`, 'N/A' as `HBA Speed`, 'N/A' as `Processor Name`, 'N/A' as `DB Service`, 'N/A' as `CPU GHz`, 'N/A' as `OS Version`, 'N/A' as `Host`, 'N/A' as `Number of Ports`, 'N/A' as `Number of Processors`, 'N/A' as `Logical Processor Count`, 'N/A' as `Total Size`, 'N/A' as `Server Model`,  ROW_NUMBER() OVER (PARTITION BY ai.`Server Name` order by ai.`Server Name` asc) as my_rank, 'Custom Excel Data' as report_by, ai.customExcelSrcId, g.`Google Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`, g.`Google 3 Year Price`, a.`AWS Region`, a.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, a.`OS Name`, ai.`Server Type`, round( azure.`Azure On Demand Price`, 2 ) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`, 2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`, 2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`, round(a.`AWS On Demand Price`,2) as `AWS On Demand Price`, round(a.`AWS 3 Year Price`,2) as `AWS 3 Year Price`, round(a.`AWS 1 Year Price`,2) as `AWS 1 Year Price`, a.`AWS Specs` from global_temp.thirdPartyDataDF ai left join global_temp.googleReportForAWSInstance g on ai.`Server Name` = g.`instanceid` left join global_temp.azureReportForAWSInstance azure on ai.`Server Name` = azure.`instanceid` left join global_temp.awsReportForThirdParty a on  ai.`Server Name` = a.`Server Name`) thirdParty where thirdParty.my_rank = 1").toDF();
 					
-					 List<String> dup = new ArrayList<>();
+					/* List<String> dup = new ArrayList<>();
 					 dup.addAll(Arrays.asList(dataCheck1.columns()));
 					 List<String> original = new ArrayList<>();
 					 original.addAll(columnHeaders);
 					 original.removeAll(dup);
-					 
+					 */
 					/* for(String col : original) {		
 						
 							 dataCheck1 = dataCheck1.withColumn(col, lit("N/A"));
 						
 					 }		*/
 					
-					 result = dataCheck1.toDF();	
+					// result = dataCheck1.toDF();	
 					 
 						/*
 						 * Collections.sort(columnHeaders); List<String> tmp = new ArrayList<String>();
