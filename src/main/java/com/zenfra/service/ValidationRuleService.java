@@ -648,7 +648,7 @@ public class ValidationRuleService {
 		return resultArray;
 	} 
 	
-public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {
+/*public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {
 		
 		JSONArray resultArray = new JSONArray();
 		
@@ -696,7 +696,7 @@ public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {
 		return resultArray;
 		
 	}
-	
+*/	
 	public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {
 		
 		JSONArray resultArray = new JSONArray();
