@@ -102,13 +102,11 @@ public class ReportDataController {
 		      			return new ResponseEntity<>(resultData.toString(), HttpStatus.OK);
 		      		 }
 		      		 */
-				 
-				  
+
 				  DataResult  data = dataframeService.getCloudCostData(request);
-				  System.out.println("----------------->>>>>>>>>--------------------");
-				 // if(data != null) {
-		      			return new ResponseEntity<>(data, HttpStatus.OK);
-		      	//	 }
+				  System.out.println("------------last pointer for CCR----------------");
+		       return new ResponseEntity<>(data, HttpStatus.OK);
+
 			  }
 	      		
 	 	        
@@ -131,7 +129,6 @@ public class ReportDataController {
 	      			//result = dataframeService.appendLocalDiscovery(siteKey, sourceType, localDiscoveryData);	
 	      			result = dataframeService.recreateLocalDiscovery(siteKey, sourceType);	
 	      			
-	      		    
 	      			//verify default fav is present or not
 	      			//favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, localDiscoveryData.get("userId").toString());
 	      			
@@ -155,7 +152,8 @@ public class ReportDataController {
 			/*  if(sourceType != null && !sourceType.trim().isEmpty() && sourceType.trim().equalsIgnoreCase("Tanium")) {
 				  sourceType="Linux";
 			  }
-			*/
+			  */
+			
 			  try { //remove orient db dataframe
 					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator; // + sourceType + File.separator;
 					File[] directories = new File(dataframePath).listFiles(File::isDirectory);
@@ -168,11 +166,14 @@ public class ReportDataController {
 				  } catch (Exception e) {
 					e.printStackTrace();
 				}
+			  
 			  String sourceTypeRef = sourceType.toLowerCase();
 			  if(sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows")) {
 				  dataframeService.destroryCloudCostDataframe(siteKey);
 			  }
 			 
+			  
+			  
 			  if("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
 				  chartService.getChartDatas(siteKey, sourceType);
 			  }
@@ -213,6 +214,7 @@ public class ReportDataController {
 			  String reportBy = "";
 			  String siteKey = "";
 			  String reportList = "";
+			  
 			  if(request.getReportType().equalsIgnoreCase("discovery")) {
 				  reportName = request.getReportType();
 				  deviceType = request.getOstype();
@@ -236,7 +238,7 @@ public class ReportDataController {
 	      		 
 	      		
 			} catch (Exception e) {
-				e.printStackTrace();
+				
 				System.out.println("Not able to get report headers {}"+ e);
 			}   	
 	    	

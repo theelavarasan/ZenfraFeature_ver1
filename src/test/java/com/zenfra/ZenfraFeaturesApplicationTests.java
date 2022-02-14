@@ -13,6 +13,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataTypes;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -51,17 +52,21 @@ class ZenfraFeaturesApplicationTests {
 		
 		
 		 createDataframeForJsonData("", sparkSession);
-		 getMigrationReport("", sparkSession);
+		// getMigrationReport("", sparkSession);
 	}
 	
 	
 	public static void createDataframeForJsonData(String filePath, SparkSession sparkSession) {
 		try {		
 			filePath = "C:\\Senthil\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Storage_3PAR_Host WWN.json";
-			Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath); 	 
-			File f = new File(filePath);
-			String viewName = f.getName().replace(".json", "").replace("-", "").replace(" ", "");
-			dataset.createOrReplaceGlobalTempView(viewName);
+			Dataset<Row> dataset = sparkSession.read().option("multiline", true).json("C:\\Users\\Aravind\\Documents\\opt\\ZENfra\\Dataframe\\CCR\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e\\ss.json"); 	 
+			dataset.createOrReplaceGlobalTempView("Test");
+			//dataset.show();
+			//Dataset<Row> resset = dataset.sqlContext().sql("select `AWS 1 Year Price` from global_temp.Test where `Server Name`='vcx0001l0d.kf.local'");
+			
+			dataset = dataset.withColumn("AWS 1 Year Price", dataset.col("AWS 1 Year Price").cast(DataTypes.createDecimalType(32,2)));
+			
+			dataset.show();
 			System.out.println("-----------DF created------------");
 		} catch (Exception e) {
 			e.printStackTrace();

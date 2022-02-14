@@ -2303,7 +2303,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
     	    	 
     	        String viewName = siteKey.replaceAll("\\s+","").replaceAll("-", "")+"_cloudcost";
     	        
-    	       // dataCheck.write().json(cloudCostDfPath+siteKey);
+    	         dataCheck.write().json(cloudCostDfPath+siteKey);
     	       
 				
 				  dataCheck .write().option("escape", "").option("quotes",
