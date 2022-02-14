@@ -2904,6 +2904,10 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
 		            dataCheck.createOrReplaceGlobalTempView("awsReport");				            
 		            dataCheck.cache();
+		            System.out.println("----------------------Brocae Test------------------------------");
+		            dataCheck.show(false);
+		            
+		            System.out.println("----------------------Brocae Test------------------------------");
 		        } catch (Exception ex) {
 		            ex.printStackTrace();
 		        }

@@ -798,11 +798,14 @@ public class ValidationRuleService {
 			}
 			if(data != null && !data.isEmpty()) {
 				for(String str : data) {
-					if(!isPriceColumn) {
-						resultData.add(str);
-					} else {
-						resultData.add("$"+str);
+					if(str != null && !str.isEmpty()) {
+						if(!isPriceColumn) {
+							resultData.add(str);
+						} else {
+							resultData.add("$"+str);
+						}
 					}
+					
 					
 				}
 			}
