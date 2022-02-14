@@ -67,7 +67,7 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer{
 	                .builder()
 	                .sparkContext(javaSparkContextNew().sc())
 	                .appName("ZenfraV2Df")
-	                .config("spark.driver.memory", "491859200")
+	                .config("spark.driver.memory", "571859200")
 	                .config("spark.testing.memory", "2147480000")
 	                .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
 	                .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
