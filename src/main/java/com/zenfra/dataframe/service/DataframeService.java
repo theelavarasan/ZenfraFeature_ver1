@@ -1850,7 +1850,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 File filePath = new File(commonPath + File.separator + "Dataframe" + File.separator + "CCR" + File.separator + request.getSiteKey());
 				
 				 if(filePath.exists())	 {
-					 dataset = sparkSession.read().json(cloudCostDfPath); 
+					 dataset = sparkSession.read().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true).option("multiline", true).option("nullValue", "").option("mode", "PERMISSIVE").json(cloudCostDfPath); 
 					 dataset.createOrReplaceGlobalTempView(viewName);					
 				 } else {
 					 getOptimizationReport(request);					
@@ -1904,12 +1904,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					
 					
 						 if(category.equalsIgnoreCase("All")) {
-							 dataset =  dataset.sqlContext().sql("select * from global_temp."+viewName + " where "+ deviceType + sourceQuery);
+							 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + sourceQuery).toDF();
 						 } else {
-							 dataset =  dataset.sqlContext().sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category.toLowerCase()+"'" + sourceQuery);
+							 dataset =  sparkSession.sql("select * from global_temp."+viewName + " where "+ deviceType + " and lcase(report_by)='"+category.toLowerCase()+"'" + sourceQuery).toDF();
 						 }
 				 
-				System.out.println("-------------dataset-------final-------- " + new Date());
+				System.out.println("-------------dataset-------final-------- " + dataset.count());
 			
 				 
 				    request.setStartRow(0);
@@ -2127,14 +2127,14 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				 Dataset<Row> awsInstanceData = null;
                if(!isTaskListReport && (categoryList.contains("All") || categoryList.contains("AWS Instances"))) {            	   
             	   awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
-            	  /* if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
+            	   if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
             		   if(dataCheck.isEmpty()) {
             			   dataCheck = awsInstanceData;
             		   } else {
             			   dataCheck = dataCheck.unionByName(awsInstanceData);
             		   }
                    	
-                   }*/
+                   }
                }
                
 
@@ -2153,13 +2153,13 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
             	
             	   thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList, request.getDeviceType(), physicalServerNames);
             	               	   
-            	   /*if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
+            	   if(thirdPartyData != null && !thirdPartyData.isEmpty()) {                   	
                     if(dataCheck.isEmpty()) {
          			   dataCheck = thirdPartyData;
          		   } else {         			 
          			  dataCheck = dataCheck.unionByName(thirdPartyData);
          		   }
-                   }*/
+                   }
             	   
             	   
                }       
@@ -2176,7 +2176,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
            	 sparkSession.catalog().dropGlobalTempView("awsReportForThirdParty");
           	 sparkSession.catalog().dropGlobalTempView("googleReportForAWSInstance");
           	 */
-               dataCheck = dataCheck.unionByName(awsInstanceData).unionByName(thirdPartyData);
+              // dataCheck = dataCheck.unionByName(awsInstanceData).unionByName(thirdPartyData);
                
           	 System.out.println("---------------after union---------------- "+ new Date());
           	 
@@ -2299,22 +2299,31 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 				}
     	            	      
     	      
-    	    	 System.out.println("--------------before write--------------- "+ new Date());
+    	    	 System.out.println("--------------before write--------------- "+ dataCheck.count());
     	    	 
     	        String viewName = siteKey.replaceAll("\\s+","").replaceAll("-", "")+"_cloudcost";
-    	        
-    	         dataCheck.write().json(cloudCostDfPath+siteKey);
+    	        dataCheck.createOrReplaceGlobalTempView(viewName);
+    	        // dataCheck.coalesce(1).write().json(cloudCostDfPath+siteKey);
+    	         dataCheck.coalesce(1).write().option("escape", "").option("quotes",
+    					  "").option("ignoreLeadingWhiteSpace", true)
+    					  .format("org.apache.spark.sql.json")
+    					  .mode(SaveMode.Overwrite).save(cloudCostDfPath+siteKey);
+    	         
     	       
-				
-				  dataCheck .write().option("escape", "").option("quotes",
-				  "").option("ignoreLeadingWhiteSpace", true)
-				  .format("org.apache.spark.sql.json")
-				  .mode(SaveMode.Overwrite).save(cloudCostDfPath+siteKey);
+    	         
+					/*
+					 * dataCheck.write().option("escape", "").option("quotes",
+					 * "").option("ignoreLeadingWhiteSpace", true)
+					 * .format("org.apache.spark.sql.json")
+					 * .mode(SaveMode.Overwrite).save(cloudCostDfPath+siteKey);
+					 */
 				 
     	        
     	        System.out.println("--------------after write--------------- "+ new Date());
     	        
-    	        dataCheck.createOrReplaceGlobalTempView(viewName);
+    	      
+    	        
+    	       ////dataCheck.write().option("escape", "").option("quotes", "").option("ignoreLeadingWhiteSpace", true).option("multiline", true).option("nullValue", "").option("mode", "PERMISSIVE").json(cloudCostDfPath+siteKey);
     	        
     	        System.out.println("--------------after create view--------------- "+ new Date());
     	        
