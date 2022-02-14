@@ -2165,7 +2165,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
                }       
           	 System.out.println("---------------after constrct third party----------------- "+ new Date());
           	 
-          	 sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
+          	/* sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
           	 sparkSession.catalog().dropGlobalTempView("awsReportForThirdParty");
           	 sparkSession.catalog().dropGlobalTempView("eoleosDataDF");
           	 sparkSession.catalog().dropGlobalTempView("eolHWData");
@@ -2175,7 +2175,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
            	 sparkSession.catalog().dropGlobalTempView("azureReportForAWSInstance");
            	 sparkSession.catalog().dropGlobalTempView("awsReportForThirdParty");
           	 sparkSession.catalog().dropGlobalTempView("googleReportForAWSInstance");
-          	 
+          	 */
                dataCheck = dataCheck.unionByName(awsInstanceData).unionByName(thirdPartyData);
                
           	 System.out.println("---------------after union---------------- "+ new Date());
