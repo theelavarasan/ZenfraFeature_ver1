@@ -105,7 +105,7 @@ public class ReportDataController {
 
 				  DataResult  data = dataframeService.getCloudCostData(request);
 				  System.out.println("------------last pointer for CCR----------------");
-		       return new ResponseEntity<>(data, HttpStatus.OK);
+		       return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 
 			  }
 	      		
