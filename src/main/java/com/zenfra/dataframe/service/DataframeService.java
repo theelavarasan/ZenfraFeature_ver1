@@ -2432,7 +2432,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					
 					String sql = "select source_id, data from source_data where source_id in ("+sources+") and site_key='"+siteKey+"'";
 					
-					String getAllSourceSql = "select source_id, fields from source where is_active='true' and (link_to='All' or site_key='"+siteKey+"') and fields like '%memory%' and fields like '%numberOfCores%' and fields like '%osType%' and fields like '%name%' and fields like '%serverType%'";
+					String getAllSourceSql = "select source_id, fields from source where is_active='true' and site_key='"+siteKey+"' and fields like '%memory%' and fields like '%numberOfCores%' and fields like '%osType%' and fields like '%name%' and fields like '%serverType%'";   //(link_to='All' or 
 					
 									
 					List<Map<String, Object>> allSource = favouriteDao_v2.getFavouriteList(getAllSourceSql);					
