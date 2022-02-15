@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -37,8 +39,11 @@ public class ValidationRuleService {
 	@Autowired
 	SparkSession sparkSession;
 	
-	 @Value("${zenfra.path}")
-	 private String commonPath;
+	private String commonPath;
+	 @PostConstruct
+	 public void init() {
+		 commonPath = ZKModel.getProperty(ZKConstants.DATAFRAME_PATH);		
+	  }
 	 
 	 @Autowired
      DataframeService dataframeService;	

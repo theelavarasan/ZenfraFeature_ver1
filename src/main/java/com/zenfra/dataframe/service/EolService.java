@@ -3,6 +3,8 @@ package com.zenfra.dataframe.service;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -12,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.utils.DBUtils;
 
 
@@ -21,8 +25,11 @@ public class EolService {
 
 	public static final Logger logger = LoggerFactory.getLogger(EolService.class);
 	  
-	 @Value("${zenfra.path}")
-	 private String commonPath;
+	private String commonPath;
+	 @PostConstruct
+	 public void init() {
+		 commonPath = ZKModel.getProperty(ZKConstants.DATAFRAME_PATH);		
+	  }
 	
 	@Autowired
 	SparkSession sparkSession;
