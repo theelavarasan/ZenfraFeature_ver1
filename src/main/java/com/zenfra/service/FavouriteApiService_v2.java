@@ -77,7 +77,7 @@ public class FavouriteApiService_v2 {
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
 			List<Map<String, Object>> rows = daoFav.getJsonarray(favourite_view_query);
 
-			//System.out.println(favourite_view_query);
+			System.out.println("*****************************!!!!!!!!!!!!!!!!!!!!!!!!favourite_view_query!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*********************************"+favourite_view_query);
 			ObjectMapper map = new ObjectMapper();
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
