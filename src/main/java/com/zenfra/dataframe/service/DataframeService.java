@@ -1845,6 +1845,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 			
 			 try {				
 				 dataset = sparkSession.sql("select * from global_temp."+viewName);	
+				 dataset.cache();
 			 } catch (Exception e) {
 				 String cloudCostDfPath = commonPath  + "Dataframe" + File.separator + "CCR" + File.separator + request.getSiteKey() + File.separator;	
 				 File filePath = new File(commonPath  + "Dataframe" + File.separator + "CCR" + File.separator + request.getSiteKey()+ File.separator);
@@ -1854,10 +1855,12 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 					 dataset.createOrReplaceGlobalTempView(viewName);
 					 dataset.cache();
 				 } else {
-					 dataset = getOptimizationReport(request);					
+					 dataset = getOptimizationReport(request);		
+					 dataset.cache();
 				 }
 				 
 			} 
+			
 			 
 			 try {
 				 String category = request.getCategoryOpt();
