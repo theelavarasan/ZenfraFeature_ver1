@@ -37,6 +37,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -77,6 +79,7 @@ import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.utils.DBUtils;
 
 
@@ -107,8 +110,14 @@ public class DataframeService{
 	 //@Value("${db.url}")
 	// private String dbUrl;
 	 
-	 @Value("${zenfra.path}")
 	 private String commonPath;
+	 @PostConstruct
+	 public void init() {
+		 commonPath = ZKModel.getProperty(ZKConstants.DATAFRAME_PATH);		
+	  }
+	 
+	// @Value("${zenfra.path}")
+	// private String commonPath;
 	 
 	 @Value("${zenfra.permisssion}")
 	 private String fileOwnerGroupName;
