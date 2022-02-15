@@ -623,7 +623,7 @@ public class DataframeService{
 					
 					File f = new File(path + siteKey);
 					if (!f.exists()) {
-						f.mkdir();
+						f.mkdirs();
 					}
 					
 					
