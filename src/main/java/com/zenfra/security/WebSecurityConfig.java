@@ -70,6 +70,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(HttpMethod.GET, "/rest/df/createEolEodDf").permitAll()
             .antMatchers(HttpMethod.POST, "/rest/df/createDataframeOdbData").permitAll()
             .antMatchers(HttpMethod.POST, "/rest/df/saveDefaultFavView").permitAll()
+            .antMatchers(HttpMethod.POST, "/rest/df/getReportData").permitAll() 
             //.antMatchers(HttpMethod.DELETE, "/rest/api/log-file/**").permitAll()
             // Our private endpoints
             .anyRequest().authenticated();
@@ -82,7 +83,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public BCryptPasswordEncoder encoder(){
+    public static BCryptPasswordEncoder encoder(){
         return new BCryptPasswordEncoder();
     }
     

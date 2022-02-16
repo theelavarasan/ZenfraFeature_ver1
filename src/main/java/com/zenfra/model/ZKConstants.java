@@ -125,4 +125,7 @@ public class ZKConstants {
 	public static String UNCOMPRESS_PATH = "uncompressPath";
 
 	public static String PREDICTION_PATH = "predictionPath";
+	public static String REDISPASS = "redis";
+	
+	public static String DATAFRAME_PATH = "dataframePath";
 }

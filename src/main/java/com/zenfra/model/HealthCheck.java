@@ -90,6 +90,9 @@ public class HealthCheck implements Serializable {
 	@Transient
 	private String authUserId;
 	
+	@Column
+	private String analyticsType;
+	
 
 	public String getCreateBy() {
 		return createBy;
@@ -218,9 +221,13 @@ public class HealthCheck implements Serializable {
 	public void setAuthUserId(String authUserId) {
 		this.authUserId = authUserId;
 	}
-	
-	
 
-	
+	public String getAnalyticsType() {
+		return analyticsType;
+	}
+
+	public void setAnalyticsType(String analyticsType) {
+		this.analyticsType = analyticsType;
+	}	
 	
 }

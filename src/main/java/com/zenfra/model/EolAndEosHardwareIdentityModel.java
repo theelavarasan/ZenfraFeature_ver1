@@ -14,20 +14,6 @@ public class EolAndEosHardwareIdentityModel implements Serializable {
 	 @NotNull
 	private String model;
 
-	public EolAndEosHardwareIdentityModel(String vendor, String model) {
-		super();
-		this.vendor = vendor;
-		this.model = model;
-	}
-	
-	
-
-	public EolAndEosHardwareIdentityModel() {
-		super();
-	}
-
-
-
 	public String getVendor() {
 		return vendor;
 	}
@@ -44,4 +30,18 @@ public class EolAndEosHardwareIdentityModel implements Serializable {
 		this.model = model;
 	}
 
+	public EolAndEosHardwareIdentityModel() {
+		super();
+	}
+
+	public EolAndEosHardwareIdentityModel(@NotNull String vendor, @NotNull String model) {
+		super();
+		this.vendor = vendor;
+		this.model = model;
+	}
+
+	
+	 
+
+	
 }

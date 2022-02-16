@@ -118,6 +118,7 @@ public class LogFileDetailsController {
 			response.setResponseMessage("Successfully retrieved");
 			JSONObject reportUserCustom = reportService.getReportUserCutomBySiteKey(siteKey, userId);			
 			response.setColumnOrder((List<Object>)reportUserCustom.get("columnOrder"));
+			response.setGroupedColumns((List<Object>)reportUserCustom.get("groupedColumns"));
 			
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
 		} catch (Exception e) {
