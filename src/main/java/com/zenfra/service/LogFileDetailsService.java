@@ -442,4 +442,21 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			return 0;
 		}
 	}
+
+	public JSONArray getParsedLogFileDetailsBySiteKey(String siteKey) {
+		JSONArray jsonArray = new JSONArray();
+		try {
+			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKeyAndStatusIsActive(siteKey);
+			for(LogFileDetails log : logFile) {
+				JSONObject json = new JSONObject();
+				json.put("id", log.getLogType().toLowerCase());
+				json.put("name", log.getLogType().toUpperCase());
+				jsonArray.add(json);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return jsonArray;
+	}
 }

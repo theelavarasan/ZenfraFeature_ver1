@@ -15,6 +15,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.BeanUtils;
@@ -517,6 +518,12 @@ public class LogFileDetailsController {
 			e.printStackTrace();
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
+	}
+	
+	
+	@PostMapping("/getProcessedLogs")
+	public JSONArray getProcessedLogs( @RequestParam("siteKey") String siteKey) {
+		return service.getParsedLogFileDetailsBySiteKey(siteKey);
 	}
 	
 	
