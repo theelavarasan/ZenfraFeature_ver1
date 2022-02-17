@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotBlank;
 
 import org.apache.spark.sql.Dataset;
@@ -50,8 +51,11 @@ public class ReportService {
 	 @Autowired
 	 ChartService chartService;
 	 
-	 @Value("${zenfra.path}")
 	 private String commonPath;
+	 @PostConstruct
+	 public void init() {
+		 commonPath = ZKModel.getProperty(ZKConstants.DATAFRAME_PATH);		
+	  }
 	 
 	 @Autowired
 	 private FavouriteDao_v2 favouriteDao_v2;
