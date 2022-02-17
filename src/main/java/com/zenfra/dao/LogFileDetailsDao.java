@@ -242,8 +242,8 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 		}
 	}
 
-	public List<LogFileDetails> getLogFileDetailsBySiteKeyAndStatusIsActive(String siteKey) {
-		 List<LogFileDetails> log = new ArrayList<LogFileDetails>();
+	public List<String> getLogFileDetailsBySiteKeyAndStatusIsActive(String siteKey) {
+		 List<String> log = new ArrayList<String>();
 			try {
 				
 				log=logRepo.getBySiteKeyAndStatusIsActive(siteKey,true, "success");
@@ -251,8 +251,7 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 				e.printStackTrace();
 			}
 			
-			return log;
-	}
+	 return log;
 
 
 	
