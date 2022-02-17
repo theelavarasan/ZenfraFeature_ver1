@@ -446,11 +446,11 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	public JSONArray getParsedLogFileDetailsBySiteKey(String siteKey) {
 		JSONArray jsonArray = new JSONArray();
 		try {
-			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKeyAndStatusIsActive(siteKey);
-			for(LogFileDetails log : logFile) {
+			List<String> logFile = logDao.getLogFileDetailsBySiteKeyAndStatusIsActive(siteKey);
+			for(String log : logFile) {
 				JSONObject json = new JSONObject();
-				json.put("id", log.getLogType().toLowerCase());
-				json.put("name", log.getLogType().toUpperCase());
+				json.put("id", log.toLowerCase());
+				json.put("name", log.toUpperCase());
 				jsonArray.add(json);
 			}
 			
