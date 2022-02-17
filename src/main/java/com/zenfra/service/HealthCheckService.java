@@ -607,7 +607,7 @@ public class HealthCheckService {
 			
 			String string = toReturnHeader.getActualName();
 			if(string == "createdTime" || string == "updatedTime") {
-				toReturnHeader.setDataType("Date");
+				toReturnHeader.setDataType("date");
 			}else {
 				toReturnHeader.setDataType("String");
 			}
