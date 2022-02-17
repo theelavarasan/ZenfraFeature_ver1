@@ -114,6 +114,15 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
 				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
 				logFileUpdate.add(log);
+				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("AWS") || log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+					log.setCreatedDateTime(log.getCreatedDateTime());
+					log.setUpdatedDateTime(log.getCreatedDateTime());
+					log.setParsedDateTime(log.getCreatedDateTime());
+					log.setParsingStartTime(log.getCreatedDateTime());
+					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+						log.setStatus("import_success");
+					}
+				}
 			}
 
 			return logFileUpdate;
@@ -142,6 +151,9 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 					log.setUpdatedDateTime(log.getCreatedDateTime());
 					log.setParsedDateTime(log.getCreatedDateTime());
 					log.setParsingStartTime(log.getCreatedDateTime());
+					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+						log.setStatus("import_success");
+					}
 				}
 				logFileUpdate.add(log);
 			}

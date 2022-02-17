@@ -311,6 +311,10 @@ public class CommonFunctions {
 			if(favouriteModel.getGroupByPeriod()!=null && !favouriteModel.getGroupByPeriod().isEmpty()) {
 				query=query+", group_by_period='"+ favouriteModel.getGroupByPeriod() + "'";
 			}
+			if(favouriteModel.getProjectId()!=null && !favouriteModel.getProjectId().isEmpty()) {
+				query=query+", project_id='"+ favouriteModel.getProjectId() + "'";
+			}
+		
 			
 			
 		} catch (Exception e) {

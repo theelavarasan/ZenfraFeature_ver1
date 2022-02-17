@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
@@ -24,6 +25,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
@@ -651,7 +653,7 @@ public class ValidationRuleService {
 		return resultArray;
 	} 
 	
-public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {
+/*public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {
 		
 		JSONArray resultArray = new JSONArray();
 		
@@ -698,6 +700,127 @@ public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {
 		
 		return resultArray;
 		
+	}
+*/	
+	public JSONArray getVR_PrivilledgeData(String siteKey, String columnName) {
+		
+		JSONArray resultArray = new JSONArray();
+		
+		try {
+			
+			String query = "select keys, json_agg(column_values) as column_values from (\r\n" + 
+					"select distinct keys, column_values from (\r\n" + 
+					"select concat('Server Data~', keys) as keys, json_array_elements(data::json) ->> keys as column_values from ( \r\n" + 
+					"select data, json_object_keys(data_object) as keys from (\r\n" + 
+					"select data, json_array_elements(data::json) as data_object from privillege_data  \r\n" + 
+					"where site_key = '" + siteKey + "'  \r\n" + 
+					") a \r\n" + 
+					") b\r\n" + 
+					"union all \r\n" + 
+					"select concat(source_name, '~', keys) as keys, data::json ->> keys as column_values from ( \r\n" + 
+					"select source_name, data, json_object_keys(data::json) as keys from (  \r\n" + 
+					"select sd.source_id, s.source_name, primary_key_value, replace(data, '.0\",', '\",') as data, row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num \r\n" +
+					"from source_data sd  \r\n" + 
+					"LEFT JOIN source s on s.source_id = sd.source_id and s.site_key = '" + siteKey + "'  \r\n" + 
+					"where sd.site_key = '" + siteKey + "' and sd.source_id in ( \r\n" + 
+					"select source_id from (  \r\n" + 
+					"select source_id, json_array_elements(fields::json) ->> 'primary' as is_primary,  \r\n" + 
+					"json_array_elements(fields::json) ->> 'primaryKey' as primary_key from source  \r\n" + 
+					"where site_key = '" + siteKey + "'  \r\n" + 
+					") a where is_primary::boolean = true and primary_key = 'userName' ) \r\n" + 
+					") b  \r\n" + 
+					"where row_num = 1  \r\n" + 
+					") c \r\n" + 
+					") d where keys <> 'sourceId' and keys <> 'siteKey'\r\n" + 
+					") e where keys = '" + columnName + "' \r\n" + 
+					"group by keys ";
+			
+			System.out.println("!!!!! query: " + query);
+			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
+			//JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for(Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+		
+	}
+
+	public JSONArray getCloudCostReportValues(String siteKey, String columnName, String category, String deviceType, String report_by) {
+		JSONArray resultData = new JSONArray();		
+		try {
+			String inputDeviceType = deviceType;
+			Dataset<Row> dataset = sparkSession.emptyDataFrame();
+			String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "")+"_cloudcost";	
+			
+			if (deviceType.equalsIgnoreCase("All")) {
+           	 deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";           	
+            } else {           
+           	 deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";           	 
+            }
+			
+
+          	 if(category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
+          		if (deviceType.equalsIgnoreCase("All")) {
+                  	 deviceType = " lcase(`Server Type`)='ec2'  and lcase(`OS Name`) in ('windows','linux', 'vmware')";           	
+                   } else {           
+                	  deviceType = "lcase(`Server Type`)='ec2'  and lcase(`OS Name`) = '"+inputDeviceType.toLowerCase()+"'";     	 
+                   }
+       		  
+       	     }
+			
+			if(report_by.equalsIgnoreCase("All")) {
+				report_by = "report_by in ('Physical Servers','AWS Instances','Custom Excel Data')";
+			} else {
+				report_by = "report_by='"+report_by+"'";
+			}
+			
+			try {
+				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and "+report_by+"").distinct();	
+			} catch (Exception e) {
+				ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
+				request.setSiteKey(siteKey);
+				request.setReportType("optimization");
+				request.setDeviceType("All");
+				request.setCategoryOpt("All");
+				request.setSource("All");
+				request.setCategory("price");				
+				dataframeService.getCloudCostData(request);
+				
+				dataset = sparkSession.sql("select `"+columnName+"` from global_temp." + viewName + " where "+deviceType + " and "+report_by+"").distinct();
+			}		
+			
+			List<String> data = dataset.as(Encoders.STRING()).collectAsList();
+			
+			boolean isPriceColumn = false;
+			if(columnName.toLowerCase().contains("price")) {
+				isPriceColumn = true;
+			}
+			if(data != null && !data.isEmpty()) {
+				for(String str : data) {
+					if(str != null && !str.isEmpty()) {
+						if(!isPriceColumn) {
+							resultData.add(str);
+						} else {
+							resultData.add("$"+str);
+						}
+					}
+					
+					
+				}
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultData;
 	}
 
 }

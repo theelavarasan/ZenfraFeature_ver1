@@ -83,7 +83,7 @@ public class ReportDataController {
 	 */
 	 
 	 @PostMapping("getReportData")
-	    public ResponseEntity<String> getReportData(@RequestBody ServerSideGetRowsRequest request) { 		
+	    public ResponseEntity<?> getReportData(@RequestBody ServerSideGetRowsRequest request) { 		
 		  		 
 		  try {
 			  if(request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") ) {
@@ -102,11 +102,11 @@ public class ReportDataController {
 		      			return new ResponseEntity<>(resultData.toString(), HttpStatus.OK);
 		      		 }
 		      		 */
-				  
-				  DataResult data = dataframeService.getOptimizationReport(request);
-				  if(data != null) {
-		      			return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
-		      		 }
+
+				  DataResult  data = dataframeService.getCloudCostData(request);
+				  System.out.println("------------last pointer for CCR----------------");
+		       return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+
 			  }
 	      		
 	 	        
@@ -166,6 +166,14 @@ public class ReportDataController {
 				  } catch (Exception e) {
 					e.printStackTrace();
 				}
+			  
+			  String sourceTypeRef = sourceType.toLowerCase();
+			  if(sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows")) {
+				  dataframeService.destroryCloudCostDataframe(siteKey);
+			  }
+			 
+			  
+			  
 			  if("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
 				  chartService.getChartDatas(siteKey, sourceType);
 			  }
@@ -206,6 +214,7 @@ public class ReportDataController {
 			  String reportBy = "";
 			  String siteKey = "";
 			  String reportList = "";
+			  
 			  if(request.getReportType().equalsIgnoreCase("discovery")) {
 				  reportName = request.getReportType();
 				  deviceType = request.getOstype();
@@ -221,7 +230,7 @@ public class ReportDataController {
 			  }
 			  
 				if(reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty() && reportBy != null && !reportBy.isEmpty()) {
-		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList, request.getCategory());
+		      			String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey, reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt());
 		      			return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 		        }  else {
 	      			 return new ResponseEntity<>(ZKConstants.PARAMETER_MISSING, HttpStatus.OK);	      		
@@ -311,6 +320,11 @@ public class ReportDataController {
 	   @GetMapping("createEolEodDf")
 	   public void createEolEodDf(HttpServletRequest request) {
 		   eolService.recreateEolEosDataframe();
+	   }
+	   
+	   @GetMapping("deleteCloudCostDf")
+	   public void deleteCloudCostDf(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {
+		   dataframeService.destroryCloudCostDataframe(siteKey);
 	   }
 	 
 }

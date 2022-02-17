@@ -40,6 +40,8 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getVR_MigrationMethod(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
 		} else if (model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Privileged Access")) {
 			resultArray = validationRuleService.getVR_PrivilledgeData(model.getSiteKey(), model.getColumnName());
+		}else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
+			resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
 		}
 			
 
@@ -57,7 +59,7 @@ public class ValidationRuleController {
 			
 		}
 		
-		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
+		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method") || model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
 			return ResponseEntity.ok(resultArray);
 		} else if((model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Privileged Access"))) {
 			System.out.println("!!!!! Privileged Access access result: " + resultArray);
