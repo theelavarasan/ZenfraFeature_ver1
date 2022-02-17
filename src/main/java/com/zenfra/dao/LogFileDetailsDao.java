@@ -252,6 +252,7 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 			}
 			
 	 return log;
+	}
 
 
 	
