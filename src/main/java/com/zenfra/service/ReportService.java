@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotBlank;
 
 import org.apache.spark.sql.Dataset;
@@ -50,8 +51,11 @@ public class ReportService {
 	 @Autowired
 	 ChartService chartService;
 	 
-	 @Value("${zenfra.path}")
 	 private String commonPath;
+	 @PostConstruct
+	 public void init() {
+		 commonPath = ZKModel.getProperty(ZKConstants.DATAFRAME_PATH);		
+	  }
 	 
 	 @Autowired
 	 private FavouriteDao_v2 favouriteDao_v2;
@@ -188,7 +192,6 @@ public class ReportService {
             } else if (reportName.trim().equalsIgnoreCase("project")) {
                 JSONArray columnsNameArray = new JSONArray();
                 columnsNameArray.add("Server Name");
-                columnsNameArray.add("vCenter");
                 columnsNameArray.add("VM");
                 columnsNameArray.add("Host Name");
                 columnsNameArray.add("Host_Host Name");
@@ -328,10 +331,8 @@ public class ReportService {
                             if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
     							if(deviceType.equalsIgnoreCase("vmware")) {
     								postDataColumnArray.add("VM");
-    								postDataColumnArray.add("vCenter");
     							} else if(deviceType.equalsIgnoreCase("vmwarehost")) {
     								postDataColumnArray.add("Server Name");
-    								postDataColumnArray.add("vCenter");
     							} else {
     								postDataColumnArray.add(columnsNameArray.get(j));
     							}
