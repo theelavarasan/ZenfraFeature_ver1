@@ -43,7 +43,8 @@ public class ExceptionHandlerMail {
 		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		headers1.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<JSONObject> requestEntity1 = new HttpEntity<JSONObject>(errorObj, headers1);
-		String sendMailUrl = "http://localhost:8081/mailservice/mail/send-error-mail";
+		String sendMailUrl = ZKModel.getProperty(ZKConstants.SEND_ERROR_MAIL_URL).replaceAll("<HOSTNAME>",
+				ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
 		System.out.println("----------Send Mail Url---" + sendMailUrl);
 		ResponseEntity<String> uri = restTemplate.exchange(sendMailUrl, HttpMethod.POST, requestEntity1, String.class);
 

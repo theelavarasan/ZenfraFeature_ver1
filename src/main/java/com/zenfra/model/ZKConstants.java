@@ -125,4 +125,5 @@ public class ZKConstants {
 	public static String DATAFRAME_PATH = "dataframePath";
 
 	public static String To_ERROR_MAIL_ADDRESS = "toErrorMailAddress";
+	public static String SEND_ERROR_MAIL_URL = "sendErrorMailUrl";
 }
