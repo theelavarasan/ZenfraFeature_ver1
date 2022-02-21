@@ -20,7 +20,7 @@ public class ExceptionHandlerMail {
 	@SuppressWarnings("unchecked")
 	public static ResponseEntity<String> errorTriggerMail(String stackTrace) {
 
-		System.err.println("--------In Java Exception Handler---------");
+		System.out.println("--------In Java Exception Handler---------");
 
 		RestTemplate restTemplate = new RestTemplate();
 		Response response = new Response();
