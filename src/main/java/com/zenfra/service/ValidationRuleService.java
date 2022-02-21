@@ -823,4 +823,30 @@ public class ValidationRuleService {
 		return resultData;
 	}
 
+public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName) {
+		
+		JSONArray resultArray = new JSONArray();
+		
+		try {
+			
+			String query = "select json_agg(values) as column_values from"
+					+ " (select distinct values from (select json_array_elements(data_temp) ->> '" +columnName+ "' as values "
+					+ "from local_discovery where site_key = '" +siteKey+ "') a "
+					+ "where values is not null and trim(values) <> order by values) b";
+			
+			System.out.println("!!!!! query: " + query);
+			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
+			//JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for(Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+		
+	}
 }
