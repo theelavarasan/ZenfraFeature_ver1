@@ -42,6 +42,8 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getVR_PrivilledgeData(model.getSiteKey(), model.getColumnName());
 		}else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
 			resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
+		} else if (model.getAnalyticsType().equalsIgnoreCase("onpremises-cost") && !model.getReportBy().equalsIgnoreCase("Privileged Access")) {
+			resultArray = validationRuleService.getOnpremisesCostFieldType(model.getSiteKey(), model.getColumnName());
 		}
 			
 
