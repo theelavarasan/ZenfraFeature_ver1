@@ -104,28 +104,34 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 		return logDao.findOne(id);
 	}
 
-	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logFileIds) {
+	public JSONArray getLogFileDetailsByLogids(List<String> logFileIds) {
+		JSONArray resultArray = new JSONArray();
 		try {
 			List<LogFileDetails> logFile = logDao.getLogFileDetailsByLogids(logFileIds);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 			for (LogFileDetails log : logFile) {							
-				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getCreatedDateTime()));
+				/*log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getCreatedDateTime()));
 				log.setUpdatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
 				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
 				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
 				logFileUpdate.add(log);
+				*/
 				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("AWS") || log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
-					log.setCreatedDateTime(log.getCreatedDateTime());
+					/*log.setCreatedDateTime(log.getCreatedDateTime());
 					log.setUpdatedDateTime(log.getCreatedDateTime());
 					log.setParsedDateTime(log.getCreatedDateTime());
-					log.setParsingStartTime(log.getCreatedDateTime());
+					log.setParsingStartTime(log.getCreatedDateTime());*/
 					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("import_success");
 					}
 				}
+				JSONObject json = new JSONObject();
+				json.put("status", log.getStatus());
+				json.put("logFileId", log.getLogFileId());
+				resultArray.add(json);
 			}
 
-			return logFileUpdate;
+			return resultArray;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
