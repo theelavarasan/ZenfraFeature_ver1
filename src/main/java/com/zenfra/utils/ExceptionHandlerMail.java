@@ -48,9 +48,10 @@ public class ExceptionHandlerMail {
 		// String sendMailUrl =
 		// ZKModel.getProperty(ZKConstants.SEND_ERROR_MAIL_URL).replaceAll("<HOSTNAME>",
 		// ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
-		String sendMailUrl = "http://jdev3.zenfra.co:8080/mailservice/mail/send-error-mail";
+		String sendMailUrl = "http://192.168.1.175:8080/mailservice/mail/send-error-mail";
 		System.out.println("----------Send Mail Url---" + sendMailUrl);
 		ResponseEntity<String> uri = restTemplate.exchange(sendMailUrl, HttpMethod.POST, requestEntity1, String.class);
+		System.out.println("------------uri----------"+uri);
 
 		if (uri != null && uri.getBody() != null) {
 			if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
