@@ -29,8 +29,8 @@ public class ExceptionHandlerMail {
 		// String url = request.getRequestURL().toString();
 		// System.out.println("------------url---------" + url);
 		String fromAddress = "zenfra.alerts@zenfra.co";
-		String[] toMail = { ZKModel.getProperty(ZKConstants.To_ERROR_MAIL_ADDRESS) };
-
+		//String[] toMail = { ZKModel.getProperty(ZKConstants.To_ERROR_MAIL_ADDRESS) };
+		String[] toMail = { "ahmed.mohammed@virtualtechgurus.com" };
 		JSONObject errorObj = new JSONObject();
 
 		errorObj.put("category", "Java");
