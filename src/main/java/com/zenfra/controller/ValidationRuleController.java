@@ -61,7 +61,8 @@ public class ValidationRuleController {
 			
 		}
 		
-		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method") || model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
+		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method") 
+				|| model.getAnalyticsType().equalsIgnoreCase("cloud-cost") || model.getAnalyticsType().equalsIgnoreCase("onpremises-cost")) {
 			return ResponseEntity.ok(resultArray);
 		} else if((model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Privileged Access"))) {
 			System.out.println("!!!!! Privileged Access access result: " + resultArray);
