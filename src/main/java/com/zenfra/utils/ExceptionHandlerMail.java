@@ -28,16 +28,16 @@ public class ExceptionHandlerMail {
 		// HttpServletRequest request;
 		// String url = request.getRequestURL().toString();
 		// System.out.println("------------url---------" + url);
-		String fromAddress = "zenfra.alerts@zenfra.co";
+		//String fromAddress = "zenfra.alerts@zenfra.co";
 		// String[] toMail = { ZKModel.getProperty(ZKConstants.To_ERROR_MAIL_ADDRESS) };
-		String[] toMail = { "ahmed.mohammed@virtualtechgurus.com" };
+		//String[] toMail = { "ahmed.mohammed@virtualtechgurus.com" };
 		JSONObject errorObj = new JSONObject();
 
 		errorObj.put("category", "Java");
 		errorObj.put("repoName", "Zenfra-Features");
 		errorObj.put("stackTrace", stackTrace);
-		errorObj.put("fromAddress", fromAddress);
-		errorObj.put("toEmail", toMail);
+		//errorObj.put("fromAddress", fromAddress);
+		//errorObj.put("toEmail", toMail);
 
 		HttpHeaders headers1 = new HttpHeaders();
 		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
