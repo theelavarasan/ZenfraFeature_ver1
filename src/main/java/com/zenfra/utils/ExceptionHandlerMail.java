@@ -36,7 +36,7 @@ public class ExceptionHandlerMail {
 		errorObj.put("category", "Java");
 		errorObj.put("repoName", "Zenfra-Features");
 		errorObj.put("stackTrace", stackTrace);
-		errorObj.put("description", "Error Occured");
+		errorObj.put("subject", "Error Occured");
 		
 		//errorObj.put("fromAddress", fromAddress);
 		//errorObj.put("toEmail", toMail);
