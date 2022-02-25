@@ -611,6 +611,15 @@ public class HealthCheckService {
 			toReturnHeader.setActualName(key);
 			// String dataType = data.getClass().getSimpleName();
 			toReturnHeader.setDataType("String");
+			//String dataType = data.getClass().getSimpleName();
+			
+			String string = toReturnHeader.getActualName();
+			if(string == "createdTime" || string == "updatedTime") {
+				toReturnHeader.setDataType("date");
+			}else {
+				toReturnHeader.setDataType("String");
+			}			
+
 			String displayName = commonFunctions.convertCamelCase(key);
 
 			/*
