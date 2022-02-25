@@ -1287,10 +1287,10 @@ public class DataframeService {
 							"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
 				} catch (Exception e) {
 					e.printStackTrace();
-					StringWriter errors = new StringWriter();
+					/*StringWriter errors = new StringWriter();
 					e.printStackTrace(new PrintWriter(errors));
 					String ex = errors.toString();
-					ExceptionHandlerMail.errorTriggerMail(ex);
+					ExceptionHandlerMail.errorTriggerMail(ex);*/
 					sql = "select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1";
 					dataset.createOrReplaceTempView("datawithoutFilter");
 					filteredData = sparkSession.sql(
@@ -1323,10 +1323,10 @@ public class DataframeService {
 				System.out.println("---------View created-------- :: " + viewName);
 			} catch (Exception e) {
 				e.printStackTrace();
-				StringWriter errors = new StringWriter();
+			/*	StringWriter errors = new StringWriter();
 				e.printStackTrace(new PrintWriter(errors));
 				String ex = errors.toString();
-				ExceptionHandlerMail.errorTriggerMail(ex);
+				ExceptionHandlerMail.errorTriggerMail(ex);*/
 			}
 
 		}

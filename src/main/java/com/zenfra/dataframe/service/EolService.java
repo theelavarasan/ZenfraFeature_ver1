@@ -94,10 +94,10 @@ public class EolService {
 				}
 			} catch (Exception ex) {
 				e.printStackTrace();
-				StringWriter errors = new StringWriter();
+				/*StringWriter errors = new StringWriter();
 				e.printStackTrace(new PrintWriter(errors));
 				String ex1 = errors.toString();
-				ExceptionHandlerMail.errorTriggerMail(ex1);
+				ExceptionHandlerMail.errorTriggerMail(ex1);*/
 				logger.error("Exception in generating dataframe for EOL/EOS HW data", ex);
 			}
 		}
