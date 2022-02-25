@@ -2902,7 +2902,7 @@ private void createDataframeOnTheFly(String siteKey, String source_type) {
 		                    " join (Select localDiscoveryDF1.site_key, localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
 		                    " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
 		                    " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key" +
-		                    " left join (select `Operating System`,Memory,min(PricePerUnit) as pricePerUnit, vCPU,TermType from global_temp.awsPricingDF where `License Model`='No License required'" +
+		                    " left join (select `Operating System`,cast(Memory as int), min(cast(PricePerUnit as float)) as pricePerUnit, cast(vCPU as int),TermType from global_temp.awsPricingDF where `License Model`='No License required'" +
 		                    " and Location='US East (Ohio)' and Tenancy <> 'Host' and (`Product Family` = 'Compute Instance (bare metal)' or `Product Family` = 'Compute Instance') and cast(PricePerUnit as float) > 0 group by `Operating System`,Memory,vCPU,TermType) awsPricing on" +
 		                    " lcase(awsPricing.`Operating System`) = lcase((case when localDiscoveryDF.OS like '%Red Hat%' then 'RHEL'" +
 		                    " when localDiscoveryDF.OS like '%SUSE%' then 'SUSE' when localDiscoveryDF.OS like '%Linux%' OR localDiscoveryDF.OS like '%CentOS%' then 'Linux'" +
