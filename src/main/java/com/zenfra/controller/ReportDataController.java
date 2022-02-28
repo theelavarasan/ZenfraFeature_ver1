@@ -79,7 +79,6 @@ public class ReportDataController {
 	public ResponseEntity<?> getReportData(@RequestBody ServerSideGetRowsRequest request) {
 
 		try {
-			request = null;
 
 			if (request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery")) {
 				DataResult data = dataframeService.getReportData(request);
