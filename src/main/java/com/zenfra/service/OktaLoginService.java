@@ -1,5 +1,8 @@
 package com.zenfra.service;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -7,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.OktaLoginRepository;
 import com.zenfra.model.OktaLoginModel;
+import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
 public class OktaLoginService {
@@ -35,6 +39,10 @@ public class OktaLoginService {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return result;
 	}
@@ -52,11 +60,15 @@ public class OktaLoginService {
 			resObject.put("defaultPolicy", res.getDefaultPolicy());
 			resObject.put("defaultPolicyName", res.getDefaultPolicy());
 
-			//resObject.put("data", res);
+			// resObject.put("data", res);
 			return resObject;
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return resObject;
 		}
 
@@ -73,13 +85,17 @@ public class OktaLoginService {
 			existingData.setDefaultPolicy(oktaLoginModel.getDefaultPolicy());
 			existingData.setActive(oktaLoginModel.isActive());
 			oktaLoginRepository.save(existingData);
-			
-			resObject.put("data",existingData);
-			
+
+			resObject.put("data", existingData);
+
 			return resObject;
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return resObject;
 		}
 	}
@@ -92,6 +108,10 @@ public class OktaLoginService {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return "Failure";
 		}
 	}

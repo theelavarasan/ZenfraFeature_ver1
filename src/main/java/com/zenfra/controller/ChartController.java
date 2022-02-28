@@ -1,19 +1,17 @@
 package com.zenfra.controller;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
 import org.json.simple.JSONArray;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +24,7 @@ import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.service.CategoryMappingService;
 import com.zenfra.service.ChartService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.ExceptionHandlerMail;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 @RestController
@@ -53,7 +52,7 @@ public class ChartController {
 				chartModel.setChartId(functions.generateRandomId());
 				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
 				chartModel.setActive(true);
-			
+
 			} else {
 
 				chartModel.setActive(true);
@@ -74,6 +73,10 @@ public class ChartController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
 			responseModel.setResponseDescription(e.getMessage());
@@ -106,7 +109,7 @@ public class ChartController {
 				responseModel.setjData(functions.convertEntityToJsonObject(chartExit));
 				responseModel.setResponseDescription("Chart Successfully saved");
 				responseModel.setResponseCode(HttpStatus.OK);
-				if(chartModel.getCategoryList()!=null && !chartModel.getCategoryList().isEmpty()) {
+				if (chartModel.getCategoryList() != null && !chartModel.getCategoryList().isEmpty()) {
 					mapService.deleteCategoryMappingFavouriteIdOrChartId(chartModel.getChartId());
 					mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
 				}
@@ -117,6 +120,10 @@ public class ChartController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
 			responseModel.setResponseDescription(e.getMessage());
@@ -146,6 +153,10 @@ public class ChartController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
 			responseModel.setResponseDescription(e.getMessage());
@@ -174,6 +185,10 @@ public class ChartController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
 			responseModel.setResponseDescription(e.getMessage());
@@ -208,6 +223,10 @@ public class ChartController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
 			responseModel.setResponseDescription(e.getMessage());
@@ -235,6 +254,10 @@ public class ChartController {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			responseModel.setResponseDescription(e.getMessage());
@@ -265,6 +288,10 @@ public class ChartController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setResponseMessage("Failed");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
 			responseModel.setResponseDescription(e.getMessage());

@@ -1,5 +1,7 @@
 package com.zenfra.service;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 import com.zenfra.dao.ResourceCrudRepository;
 import com.zenfra.model.ResourceCrudModel;
 import com.zenfra.model.ResponseModel_v2;
+import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
 @Component
@@ -36,6 +39,10 @@ public class ResourceCrudService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setStatusCode(500);
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
@@ -57,6 +64,10 @@ public class ResourceCrudService {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
 				responseModel.setStatusCode(500);
 				responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 				return (ResponseEntity<?>) ResponseEntity.badRequest();
@@ -74,6 +85,10 @@ public class ResourceCrudService {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
 				responseModel.setStatusCode(500);
 				responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 				return (ResponseEntity<?>) ResponseEntity.badRequest();
@@ -129,6 +144,10 @@ public class ResourceCrudService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setStatusCode(500);
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
@@ -137,24 +156,27 @@ public class ResourceCrudService {
 	}
 
 	public ResponseEntity<?> delete(String resourceDataId) {
-			try {
-				ResourceCrudModel resourceCrudModel = resourceCrudRepository.findById(resourceDataId).orElse(null);
-				resourceCrudRepository.delete(resourceCrudModel);
-				System.out.println("-------------------" + resourceCrudModel);
+		try {
+			ResourceCrudModel resourceCrudModel = resourceCrudRepository.findById(resourceDataId).orElse(null);
+			resourceCrudRepository.delete(resourceCrudModel);
+			System.out.println("-------------------" + resourceCrudModel);
 
-				responseModel.setResponseMessage("Success");
-				responseModel.setStatusCode(200);
-				responseModel.setResponseCode(HttpStatus.OK);
-				responseModel.setjData(resourceCrudModel);
-				return ResponseEntity.ok(responseModel);
+			responseModel.setResponseMessage("Success");
+			responseModel.setStatusCode(200);
+			responseModel.setResponseCode(HttpStatus.OK);
+			responseModel.setjData(resourceCrudModel);
+			return ResponseEntity.ok(responseModel);
 
-			} catch (Exception e) {
-				e.printStackTrace();
-				responseModel.setStatusCode(500);
-				responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
-				return (ResponseEntity<?>) ResponseEntity.badRequest();
-			}
-
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+			responseModel.setStatusCode(500);
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			return (ResponseEntity<?>) ResponseEntity.badRequest();
 		}
-	}
 
+	}
+}

@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -13,28 +13,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPCommand;
 import org.apache.commons.net.ftp.FTPFile;
-import org.apache.spark.sql.functions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.zenfra.dao.common.CommonEntityManager;
-import com.zenfra.model.ftp.CheckSumDetails;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.ExceptionHandlerMail;
 
 @Component
 public class FTPClientConfiguration extends CommonEntityManager {
 
-		@Autowired
-		CommonFunctions functions;
-	
+	@Autowired
+	CommonFunctions functions;
+
 	public static FTPClient loginClient(FTPServerModel server) {
 
 		try {
@@ -55,6 +53,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			return ftpClient;
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 	}
@@ -79,6 +81,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			return "Test Connection Success!";
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return e.getMessage().toString();
 		}
 	}
@@ -90,6 +96,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 	}
@@ -100,20 +110,24 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 			List<FileWithPath> fileList = new ArrayList<FileWithPath>();
 
-			Map<String,List<String>> existCheckSums = getCheckSumDetails(server.getSiteKey());
+			Map<String, List<String>> existCheckSums = getCheckSumDetails(server.getSiteKey());
 
 			System.out.println("Start iStream FTP" + path);
 			FTPClient ftpClient = getConnection(server);
 			fileList = getAllFilesFromPath(server, path, existCheckSums);
 
 			System.out.println("file read END");
-			
+
 			ftpClient.logout();
 			ftpClient.disconnect();
 			System.out.println("End iStream FTP" + path);
 			return fileList;
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 	}
@@ -141,6 +155,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				ftpClient.retrieveFile(fileName, fos);
 			} catch (IOException e) {
 				e.printStackTrace();
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
 				getFileFromFtp(server, path, toPath, fileName);
 				return e.getMessage().toString();
 			}
@@ -152,6 +170,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			return str;
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return e.getMessage().toString();
 		}
 
@@ -178,6 +200,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					ftpClient.retrieveFile(fileName, fos);
 				} catch (IOException e) {
 					e.printStackTrace();
+					StringWriter errors = new StringWriter();
+					e.printStackTrace(new PrintWriter(errors));
+					String ex = errors.toString();
+					ExceptionHandlerMail.errorTriggerMail(ex);
 					return null;
 				}
 
@@ -194,13 +220,17 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 		return statusList;
 	}
 
 	public List<FileWithPath> getAllFilesFromPath(FTPServerModel server, String parentDir,
-			Map<String,List<String>> existChecksums) {
+			Map<String, List<String>> existChecksums) {
 
 		List<FileWithPath> files = new ArrayList<FileWithPath>();
 		try {
@@ -213,13 +243,17 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			return files;
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 	}
 
 	public List<FileWithPath> getAllFilesFromPath(FTPClient ftpClient, String parentDir, String currentDir, int level,
-			FTPServerModel server, List<FileWithPath> fileList, Map<String, List<String>> existChecksums, boolean subFolder)
-			throws IOException {
+			FTPServerModel server, List<FileWithPath> fileList, Map<String, List<String>> existChecksums,
+			boolean subFolder) throws IOException {
 
 		try {
 			String dirToList = parentDir;
@@ -245,7 +279,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 							subFolder);
 					subFolder = false;
 				} else {
-					
+
 					System.out.println(currentFileName);
 
 					if (aFile.getName().equalsIgnoreCase(".") || aFile.getName().equalsIgnoreCase("..")) {
@@ -253,28 +287,29 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					}
 					String details = aFile.getName();
 					System.out.println("Stream path::" + dirToList + "/" + aFile.getName());
-					//InputStream iStream = ftpClient.retrieveFileStream(dirToList + "/" + aFile.getName());
-					//if (iStream != null) {
-						Map<String,Object> map=new HashMap<String, Object>();
-							map.put("serverId", server.getServerId());
-							map.put("fileName", aFile.getName());
-							map.put("siteKey", server.getSiteKey());
-							map.put("fileSize", String.valueOf(aFile.getSize()));
-							map.put("createDate", aFile.getTimestamp().getTime());
-						System.out.println("map::"+map);
-						//File file1 = File.createTempFile("tmp", null);
-						//FileUtils.copyInputStreamToFile(iStream, file1);
-						//iStream.close();
-						//chkSumFTP = getFileChecksum(file1);
-						//file1.delete();
-						System.out.println("start start check sum");
-						//ftpClient.completePendingCommand();
-						System.out.println("start end check sum");
-						if (copyStatus(map,existChecksums)) {
-							continue;
-						}
+					// InputStream iStream = ftpClient.retrieveFileStream(dirToList + "/" +
+					// aFile.getName());
+					// if (iStream != null) {
+					Map<String, Object> map = new HashMap<String, Object>();
+					map.put("serverId", server.getServerId());
+					map.put("fileName", aFile.getName());
+					map.put("siteKey", server.getSiteKey());
+					map.put("fileSize", String.valueOf(aFile.getSize()));
+					map.put("createDate", aFile.getTimestamp().getTime());
+					System.out.println("map::" + map);
+					// File file1 = File.createTempFile("tmp", null);
+					// FileUtils.copyInputStreamToFile(iStream, file1);
+					// iStream.close();
+					// chkSumFTP = getFileChecksum(file1);
+					// file1.delete();
+					System.out.println("start start check sum");
+					// ftpClient.completePendingCommand();
+					System.out.println("start end check sum");
+					if (copyStatus(map, existChecksums)) {
+						continue;
+					}
 
-					//}
+					// }
 					FileWithPath path1 = new FileWithPath();
 					path1.setPath(dirToList + "/" + aFile.getName());
 					path1.setName(aFile.getName());
@@ -283,7 +318,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					}
 					path1.setSubFolder(subFolder);
 					fileList.add(path1);
-							System.out.println("complelete ftp");
+					System.out.println("complelete ftp");
 
 				}
 			}
@@ -291,6 +326,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			return fileList;
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 	}
@@ -333,54 +372,64 @@ public class FTPClientConfiguration extends CommonEntityManager {
 	public boolean copyStatus(Map<String, Object> currentMap, Map<String, List<String>> existMap) {
 
 		try {
-			
+
 			System.out.println("start check sum function");
-			CommonFunctions functions=new CommonFunctions();
-			if (currentMap != null && existMap.containsKey(currentMap.get("fileName")) &&
-					(existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize")) &&  existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))  ) {			
+			CommonFunctions functions = new CommonFunctions();
+			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
+					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
+							&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {
 				System.out.println("check test");
-			return true;
+				return true;
 			}
-			
+
 			System.out.println("start check sum end");
-			
-			String query="INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
-				query=query.replace(":check_sum_id",functions.generateRandomId())
-						.replace(":file_size", currentMap.get("fileSize").toString())
-						.replace(":create_date", currentMap.get("createDate").toString())
-						.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
-						.replace(":file_name", currentMap.get("fileName").toString())
-						.replace(":site_key", currentMap.get("siteKey").toString());
-			System.out.println("CheckSum query::"+query);
-			excuteByUpdateQueryNew(query);			
+
+			String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
+			query = query.replace(":check_sum_id", functions.generateRandomId())
+					.replace(":file_size", currentMap.get("fileSize").toString())
+					.replace(":create_date", currentMap.get("createDate").toString())
+					.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
+					.replace(":file_name", currentMap.get("fileName").toString())
+					.replace(":site_key", currentMap.get("siteKey").toString());
+			System.out.println("CheckSum query::" + query);
+			excuteByUpdateQueryNew(query);
 			return false;
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return false;
 		}
 
 	}
 
-	public Map<String,List<String>> getCheckSumDetails(String sitekey) {
-		Map<String,List<String>> list = new HashMap<String, List<String>>();
+	public Map<String, List<String>> getCheckSumDetails(String sitekey) {
+		Map<String, List<String>> list = new HashMap<String, List<String>>();
 		try {
-			String query="select * from check_sum_details where site_key='"+sitekey+"'";
-			
-			List<Map<String,Object>> map=getListObjectsByQueryNew(query);
-			//List<Object> objList = getEntityListByColumn("select * from check_sum_details where site_key='"+sitekey+"'", CheckSumDetails.class);
-		
-			for (Map<String,Object> obj : map) {				
-				//list.add(obj.get("check_sum").toString());
-					List<String> temList=new ArrayList<String>();
-						temList.add(obj.get("file_size")!=null ? obj.get("file_size").toString() : "");
-						temList.add(obj.get("create_date")!=null ? obj.get("create_date").toString() : "");
-			list.put(obj.get("file_name")!=null ? obj.get("file_name").toString() : "", temList);
+			String query = "select * from check_sum_details where site_key='" + sitekey + "'";
+
+			List<Map<String, Object>> map = getListObjectsByQueryNew(query);
+			// List<Object> objList = getEntityListByColumn("select * from check_sum_details
+			// where site_key='"+sitekey+"'", CheckSumDetails.class);
+
+			for (Map<String, Object> obj : map) {
+				// list.add(obj.get("check_sum").toString());
+				List<String> temList = new ArrayList<String>();
+				temList.add(obj.get("file_size") != null ? obj.get("file_size").toString() : "");
+				temList.add(obj.get("create_date") != null ? obj.get("create_date").toString() : "");
+				list.put(obj.get("file_name") != null ? obj.get("file_name").toString() : "", temList);
 			}
 
-			System.out.println("Exist checksum::"+list);
+			System.out.println("Exist checksum::" + list);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return list;
 	}
