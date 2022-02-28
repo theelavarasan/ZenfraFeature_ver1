@@ -2911,86 +2911,82 @@ public class DataframeService {
 		logger.info("ConstructReport Ends");
 	}
 
-	private void getLocalDiscovery(String siteKey, String discoveryFilterqry) {
-
-		try {
-			sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
+	private void getLocalDiscovery(String siteKey, String discoveryFilterqry) {			
+	       
+        try {			        	
+        	sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
 			Map<String, String> options = new HashMap<String, String>();
-			options.put("url", dbUrl);
-			options.put("dbtable", "local_discovery");
-
+			options.put("url", dbUrl);						
+			options.put("dbtable", "local_discovery");						
+			
 			sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
-			Dataset<Row> localDiscoveryDF = sparkSession.sql(
-					"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
-							+ siteKey + "' and " + discoveryFilterqry);
-			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
-
+			Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and " + discoveryFilterqry);
+			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");				
+			
 			try {
 				Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
-						"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
-								+ siteKey + "'");
-				String path = commonPath + File.separator + "cloud_cost" + File.separator + siteKey;
+						"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
+			   String path = commonPath + File.separator + "cloud_cost" + File.separator + siteKey;
 				File f = new File(path);
-
+				
 				if (!f.exists()) {
 					f.mkdir();
-				}
-
+				}			
+				 
 				try {
-					Path resultFilePath = Paths.get(f.getAbsolutePath());
-					UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
-							.lookupPrincipalByName("zenuser");
-					Files.setOwner(resultFilePath, owner);
+					 Path resultFilePath = Paths.get(f.getAbsolutePath());
+					    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
+				                .lookupPrincipalByName("zenuser");
+				        Files.setOwner(resultFilePath, owner);
 				} catch (Exception e) {
 					// TODO: handle exception
 				}
-
-				dataframeBySiteKey.write().option("ignoreNullFields", false).format("org.apache.spark.sql.json")
+				
+			        
+			        
+				dataframeBySiteKey.write().option("ignoreNullFields", false)
+						.format("org.apache.spark.sql.json")
 						.mode(SaveMode.Overwrite).save(f.getPath());
-
+				
 				File[] files = new File(path).listFiles();
 				if (files != null) {
 					DataframeUtil.formatJsonFile(files);
 				}
+				
+				
+				 Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json"); 
+   	        	 dataset.createOrReplaceTempView("tmpView");
+   	        	 dataset = sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
+   	        	//following three conditions only applied for windows logs. windows only following 3 fields, other logs should have column with empty
+   	        	
+   	        	 List<String> columns = Arrays.asList(dataset.columns());
+   	        	 if(!columns.contains("Logical Processor Count")) {
+   	        		dataset = dataset.withColumn("Logical Processor Count", lit(""));
+   	        	 }
+				 if(!columns.contains("DB Service")) {
+					 dataset = dataset.withColumn("DB Service", lit(""));			   	        		 
+					}
+				 if(!columns.contains("Processor Name")) {
+					 dataset =  dataset.withColumn("Processor Name", lit("")); 
+				  }
+				 
+				 if(!columns.contains("Host")) {
+					 dataset =  dataset.withColumn("Host", lit("")); 
+				  }
+   	        	
+   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
+   		        // dataset.cache();	
+   		         
+   		      //dataset.printSchema();
+   		 	
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        } catch (Exception e) {
+        	e.printStackTrace();
+        }
+}
 
-				Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json");
-				dataset.createOrReplaceTempView("tmpView");
-				dataset = sparkSession.sql(
-						"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-				// following three conditions only applied for windows logs. windows only
-				// following 3 fields, other logs should have column with empty
-
-				List<String> columns = Arrays.asList(dataset.columns());
-				if (!columns.contains("Logical Processor Count")) {
-					dataset = dataset.withColumn("Logical Processor Count", lit(""));
-				}
-				if (!columns.contains("DB Service")) {
-					dataset = dataset.withColumn("DB Service", lit(""));
-				}
-				if (!columns.contains("Processor Name")) {
-					dataset = dataset.withColumn("Processor Name", lit(""));
-				}
-
-				if (!columns.contains("Host")) {
-					dataset = dataset.withColumn("Host", lit(""));
-				}
-
-				dataset.createOrReplaceGlobalTempView("localDiscoveryTemp");
-				// dataset.cache();
-
-				// dataset.printSchema();
-
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-	}
 
 	public void getAWSPricingForThirdParty() {
 		try {
@@ -3071,11 +3067,7 @@ public class DataframeService {
 					+ " awsPricing2.Memory and awsPricing.vCPU = awsPricing2.vCPU and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData"
 					+ " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
 			dataCheck.createOrReplaceGlobalTempView("awsReport");
-			dataCheck.cache();
-			System.out.println("----------------------Brocae Test------------------------------");
-			dataCheck.show(false);
-
-			System.out.println("----------------------Brocae Test------------------------------");
+			
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
