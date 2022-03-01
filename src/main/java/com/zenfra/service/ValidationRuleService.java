@@ -861,23 +861,18 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 				System.out.println("!!!!! valueArray: " + valueArray);
 				for(Map<String, Object> list : valueArray) {
 					resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
-			}
-			/*String query = "select json_agg(values) as column_values from (\r\n "
-					+ "select distinct coalesce(values, values1) as values from (\r\n "
-					+ "select data_temp, json_array_elements(data_temp) ->> '" + columnName + "' as values, \r\n"
-					+ "json_array_elements(data_temp) ->> '" + columnName1 + "' as values1 from local_discovery \r\n"
-					+ "where site_key = '" + siteKey + "' \r\n"
-					+ ") a where values is not null and trim(values) <> '' \r\n"
-					+ "order by values \r\n"
-					+ ") b";
+		        }
+						
+			}	
+			
 			
 			System.out.println("!!!!! query: " + query);
-			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
+			List<Map<String,Object>> valueArray= getObjectFromQuery(query); 
 			System.out.println("!!!!! valueArray: " + valueArray);
 			for(Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
-			}*/
-			}	
+		}	
+			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
