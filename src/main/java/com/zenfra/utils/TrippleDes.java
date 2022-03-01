@@ -45,10 +45,10 @@ public class TrippleDes {
 		} catch (Exception e) {
 			if (!e.getMessage().contains("Input length must be multiple")) {
 				e.printStackTrace();
-				StringWriter errors = new StringWriter();
-				e.printStackTrace(new PrintWriter(errors));
-				String ex = errors.toString();
-				ExceptionHandlerMail.errorTriggerMail(ex);
+//				StringWriter errors = new StringWriter();
+//				e.printStackTrace(new PrintWriter(errors));
+//				String ex = errors.toString();
+//				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
 
 		}
@@ -65,10 +65,10 @@ public class TrippleDes {
 		} catch (Exception e) {
 			if (!e.getMessage().contains("Input length must be multiple")) {
 				e.printStackTrace();
-				StringWriter errors = new StringWriter();
-				e.printStackTrace(new PrintWriter(errors));
-				String ex = errors.toString();
-				ExceptionHandlerMail.errorTriggerMail(ex);
+//				StringWriter errors = new StringWriter();
+//				e.printStackTrace(new PrintWriter(errors));
+//				String ex = errors.toString();
+//				ExceptionHandlerMail.errorTriggerMail(ex);
 
 			}
 
