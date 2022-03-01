@@ -844,6 +844,14 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					+ "order by values \r\n"
 					+ ") b";
 			
+			System.out.println("!!!!! query: " + query);
+			List<Map<String,Object>> valueArray= getObjectFromQuery(query); 
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for(Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+		}	
+			
+			
 			if(osType != null && !osType.isEmpty()) {
 				 query = "select json_agg(values) as column_values from (\r\n"
 						+ "select distinct values from (\r\n"
@@ -857,21 +865,13 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 				
 				
 				System.out.println("!!!!! query: " + query);
-				List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
-				System.out.println("!!!!! valueArray: " + valueArray);
-				for(Map<String, Object> list : valueArray) {
+				List<Map<String,Object>> valueArray1 = getObjectFromQuery(query); 
+				System.out.println("!!!!! valueArray: " + valueArray1);
+				for(Map<String, Object> list : valueArray1) {
 					resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 		        }
 						
 			}	
-			
-			
-			System.out.println("!!!!! query: " + query);
-			List<Map<String,Object>> valueArray= getObjectFromQuery(query); 
-			System.out.println("!!!!! valueArray: " + valueArray);
-			for(Map<String, Object> list : valueArray) {
-				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
-		}	
 			
 		} catch(Exception e) {
 			e.printStackTrace();
