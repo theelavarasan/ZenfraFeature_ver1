@@ -22,6 +22,8 @@ public class ValidationModel {
 	private String analyticsType;
 	
 	private String model;
+	
+	private String osType;
 
 	public String getAuthUserId() {
 		return authUserId;
@@ -95,12 +97,23 @@ public class ValidationModel {
 		this.model = model;
 	}
 
+	
+	public String getOsType() {
+		return osType;
+	}
+
+	public void setOsType(String osType) {
+		this.osType = osType;
+	}
+
+	
+
 	public ValidationModel() {
 		super();
 	}
 
 	public ValidationModel(String authUserId, String siteKey, String reportBy, String columnName, String category,
-			String deviceType, String reportList) {
+			String deviceType, String reportList, String analyticsType, String model, String osType) {
 		super();
 		this.authUserId = authUserId;
 		this.siteKey = siteKey;
@@ -109,11 +122,11 @@ public class ValidationModel {
 		this.category = category;
 		this.deviceType = deviceType;
 		this.reportList = reportList;
+		this.analyticsType = analyticsType;
+		this.model = model;
+		this.osType = osType;
 	}
-	
-	
-	
-	
+
 	
 
 }

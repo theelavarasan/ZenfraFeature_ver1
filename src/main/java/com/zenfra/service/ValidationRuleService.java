@@ -823,13 +823,13 @@ public class ValidationRuleService {
 		return resultData;
 	}
 
-public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName) {
+public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, String osType) {
 		
 		JSONArray resultArray = new JSONArray();
 		
 		String columnName1 = columnName;
 		
-		if(columnName.equalsIgnoreCase("OS Type")) {
+		if(columnName.equalsIgnoreCase("OS")) {
 			columnName1 = "Server Type";
 		}
 		
@@ -844,13 +844,40 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName) {
 					+ "order by values \r\n"
 					+ ") b";
 			
+			if(osType != null && !osType.isEmpty()) {
+				 query = "select json_agg(values) as column_values from (\r\n"
+						+ "select distinct values from (\r\n"
+						+ "select data_temp, json_array_elements(data_temp) ->> 'OS' as os1,\r\n"
+						+ "json_array_elements(data_temp) ->> 'Server Type' as os2,\r\n"
+						+ "json_array_elements(data_temp) ->> '"+columnName+"' as values from local_discovery\r\n"
+						+ "where site_key = '"+siteKey+"'\r\n"
+						+ ") a where coalesce(os1, os2) = '"+osType+"' and values is not null and trim(values) <> ''\r\n"
+						+ "order by values\r\n"
+						+ ") b";
+				
+				
+				System.out.println("!!!!! query: " + query);
+				List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
+				System.out.println("!!!!! valueArray: " + valueArray);
+				for(Map<String, Object> list : valueArray) {
+					resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+			/*String query = "select json_agg(values) as column_values from (\r\n "
+					+ "select distinct coalesce(values, values1) as values from (\r\n "
+					+ "select data_temp, json_array_elements(data_temp) ->> '" + columnName + "' as values, \r\n"
+					+ "json_array_elements(data_temp) ->> '" + columnName1 + "' as values1 from local_discovery \r\n"
+					+ "where site_key = '" + siteKey + "' \r\n"
+					+ ") a where values is not null and trim(values) <> '' \r\n"
+					+ "order by values \r\n"
+					+ ") b";
+			
 			System.out.println("!!!!! query: " + query);
 			List<Map<String,Object>> valueArray = getObjectFromQuery(query); 
 			System.out.println("!!!!! valueArray: " + valueArray);
 			for(Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
-			}
-			
+			}*/
+			}	
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
