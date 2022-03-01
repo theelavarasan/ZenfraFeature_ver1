@@ -43,11 +43,14 @@ public class TrippleDes {
 			byte[] encryptedText = cipher.doFinal(plainText);
 			encryptedString = new String(Base64.encodeBase64(encryptedText));
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			if (!e.getMessage().contains("Input length must be multiple")) {
+				e.printStackTrace();
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
+			}
+
 		}
 		return encryptedString;
 	}
@@ -60,11 +63,15 @@ public class TrippleDes {
 			byte[] plainText = cipher.doFinal(encryptedText);
 			decryptedText = new String(plainText);
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			if (!e.getMessage().contains("Input length must be multiple")) {
+				e.printStackTrace();
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
+
+			}
+
 		}
 		return decryptedText;
 	}
