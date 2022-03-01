@@ -43,7 +43,7 @@ public class ValidationRuleController {
 		}else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
 			resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
 		} else if (model.getAnalyticsType().equalsIgnoreCase("onpremises-cost") && !model.getReportBy().equalsIgnoreCase("Privileged Access")) {
-			resultArray = validationRuleService.getOnpremisesCostFieldType(model.getSiteKey(), model.getColumnName());
+			resultArray = validationRuleService.getOnpremisesCostFieldType(model.getSiteKey(), model.getColumnName(), model.getOsType());
 		}
 			
 
