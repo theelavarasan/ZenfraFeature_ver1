@@ -16,8 +16,10 @@ public class AwsInstanceData implements Serializable {
 	private String updated_date;
 	private String actualOsType;
 	private String serverType;
+	private String report_by;
+	private String customExcelSrcId;
 	
-	public AwsInstanceData(String region, String instancetype, String memoryinfo, String vcpuinfo, String platformdetails, String description, String instanceid, String updated_date, String actualOsType, String serverType) {
+	public AwsInstanceData(String region, String instancetype, String memoryinfo, String vcpuinfo, String platformdetails, String description, String instanceid, String updated_date, String actualOsType, String serverType, String report_by, String customExcelSrcId) {
 		super();
 		this.region = region;
 		this.instancetype = instancetype;
@@ -29,6 +31,8 @@ public class AwsInstanceData implements Serializable {
 		this.updated_date = updated_date;
 		this.actualOsType = actualOsType;
 		this.serverType = serverType;
+		this.report_by = report_by;
+		this.customExcelSrcId = customExcelSrcId;
 		
 	}
 
@@ -116,6 +120,25 @@ public class AwsInstanceData implements Serializable {
 
 	public void setServerType(String serverType) {
 		this.serverType = serverType;
+	}
+	
+	
+
+	public String getReport_by() {
+		return report_by;
+	}
+
+	public void setReport_by(String report_by) {
+		this.report_by = report_by;
+	}	
+	
+
+	public String getCustomExcelSrcId() {
+		return customExcelSrcId;
+	}
+
+	public void setCustomExcelSrcId(String customExcelSrcId) {
+		this.customExcelSrcId = customExcelSrcId;
 	}
 
 	public String toString() {

@@ -3,18 +3,20 @@ package com.zenfra.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.ServerException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.BeanUtils;
@@ -52,6 +54,7 @@ import com.zenfra.service.ReportService;
 import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
+import com.zenfra.utils.ExceptionHandlerMail;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
 import io.swagger.annotations.Api;
@@ -74,7 +77,7 @@ public class LogFileDetailsController {
 
 	@Autowired
 	CommonFunctions functions;
-	
+
 	@Autowired
 	ReportService reportService;
 
@@ -100,6 +103,10 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
@@ -108,7 +115,8 @@ public class LogFileDetailsController {
 	@ApiOperation(value = "Get all log file details")
 	@ApiResponse(code = 200, message = "Successfully retrieved")
 	public ResponseEntity<ResponseModel_v2> getALlLogFileDetails(
-			@NotBlank(message = "Sitekey must not be empty") @RequestParam String siteKey,  @NotBlank(message = "UserId must not be empty")@RequestParam String userId) {
+			@NotBlank(message = "Sitekey must not be empty") @RequestParam String siteKey,
+			@NotBlank(message = "UserId must not be empty") @RequestParam String userId) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 			response.setjData(service.getLogFileDetailsBySiteKey(siteKey));
@@ -116,13 +124,17 @@ public class LogFileDetailsController {
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully retrieved");
 			response.setResponseMessage("Successfully retrieved");
-			JSONObject reportUserCustom = reportService.getReportUserCutomBySiteKey(siteKey, userId);			
-			response.setColumnOrder((List<Object>)reportUserCustom.get("columnOrder"));
-			response.setGroupedColumns((List<Object>)reportUserCustom.get("groupedColumns"));
-			
+			JSONObject reportUserCustom = reportService.getReportUserCutomBySiteKey(siteKey, userId);
+			response.setColumnOrder((List<Object>) reportUserCustom.get("columnOrder"));
+			response.setGroupedColumns((List<Object>) reportUserCustom.get("groupedColumns"));
+
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
@@ -154,6 +166,10 @@ public class LogFileDetailsController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
@@ -186,6 +202,10 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
@@ -216,6 +236,10 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
@@ -236,6 +260,10 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
@@ -306,6 +334,10 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(responseModel_v2, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 
 			return new ResponseEntity<ResponseModel_v2>(responseModel_v2, HttpStatus.EXPECTATION_FAILED);
 		}
@@ -316,11 +348,12 @@ public class LogFileDetailsController {
 	@ApiOperation(value = "Saved Log File description ")
 	@ApiResponse(code = 201, message = "Successfully created")
 	public ResponseEntity<ResponseModel_v2> saveLogtypeAndDescription(
-			@Valid  @RequestBody  LogFileDetailsPayload logFileDetailsPayload) {
+			@Valid @RequestBody LogFileDetailsPayload logFileDetailsPayload) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 
-			if (!service.saveLogtypeAndDescription(logFileDetailsPayload.getLogFileIds(), logFileDetailsPayload.getDescription(), logFileDetailsPayload.getLogtype())) {
+			if (!service.saveLogtypeAndDescription(logFileDetailsPayload.getLogFileIds(),
+					logFileDetailsPayload.getDescription(), logFileDetailsPayload.getLogtype())) {
 
 				response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 				response.setStatusCode(HttpStatus.EXPECTATION_FAILED.value());
@@ -336,81 +369,82 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
 
 	/*********************************************************************************/
 	@RequestMapping(value = "/download-files", method = RequestMethod.GET)
-	public ResponseEntity<Resource> downloadMultipleLogFileMultiple(@RequestParam List<String> modelName) throws IOException {
-		
+	public ResponseEntity<Resource> downloadMultipleLogFileMultiple(@RequestParam List<String> modelName)
+			throws IOException {
 
 		try {
 			ByteArrayResource resource = null;
-			List<String> paths=new ArrayList<>();
-			
-			if(modelName!=null && modelName.size()==1) {
-				
+			List<String> paths = new ArrayList<>();
+
+			if (modelName != null && modelName.size() == 1) {
+
 				return downloadMultipleLogFileOne(modelName.get(0));
 			}
-			
-			
+
 			List<LogFileDetails> logFileList = service.findAllByLogFileIds(modelName);
-			
-			for(LogFileDetails logFile:logFileList) {
-				paths.add(logFile.getUploadedLogs()!=null ? logFile.getUploadedLogs()
-					: logFile.getMasterLogs());
+
+			for (LogFileDetails logFile : logFileList) {
+				paths.add(logFile.getUploadedLogs() != null ? logFile.getUploadedLogs() : logFile.getMasterLogs());
 			}
-			
-			
-			if(!paths.isEmpty())
-			{
+
+			if (!paths.isEmpty()) {
 				String inputFolder = ZKModel.getProperty(ZKConstants.INPUT_FOLDER);
 				inputFolder = inputFolder + "LogFileBundle_" + System.currentTimeMillis() + ".zip";
 				System.out.println("Output path - " + inputFolder);
 				int length = service.zipMultipleFile(paths, inputFolder);
 				File zipFile = new File(inputFolder);
 				System.out.println("Zip file size - " + zipFile.length());
-				if((zipFile.length() / (1024 * 1024)) <  1024 && zipFile.length() != 0)
-				{
+				if ((zipFile.length() / (1024 * 1024)) < 1024 && zipFile.length() != 0) {
 
-				
-				Path path = Paths.get(zipFile.getAbsolutePath());
-				System.out.println("path  :" + path);
-				resource = new ByteArrayResource(Files.readAllBytes(path));
-				try {
-					System.out.println("Finally downlloading.....");
-					
-					
-					return ResponseEntity.ok()
-							.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + zipFile.getName() + "\"")
-							.contentLength(zipFile.length()).contentType(MediaType.parseMediaType("application/octet-stream"))
-							.body(resource);
+					Path path = Paths.get(zipFile.getAbsolutePath());
+					System.out.println("path  :" + path);
+					resource = new ByteArrayResource(Files.readAllBytes(path));
+					try {
+						System.out.println("Finally downlloading.....");
 
-				} catch (Exception e) {
-					throw new ServerException("There is no model found in config");
-				} 
+						return ResponseEntity.ok()
+								.header(HttpHeaders.CONTENT_DISPOSITION,
+										"attachment; filename=\"" + zipFile.getName() + "\"")
+								.contentLength(zipFile.length())
+								.contentType(MediaType.parseMediaType("application/octet-stream")).body(resource);
+
+					} catch (Exception e) {
+						throw new ServerException("There is no model found in config");
+					}
+				}
+
 			}
-			
-		}
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return null;
 
 	}
-	
+
 	@RequestMapping(value = "/download-files-one/{modelName}", method = RequestMethod.GET)
 	public ResponseEntity<Resource> downloadMultipleLogFileOne(@PathVariable String modelName) throws IOException {
-		
 
 		try {
 
-			LogFileDetails logFileList = service.findOne(modelName);		
+			LogFileDetails logFileList = service.findOne(modelName);
 			File file = null;
 			ByteArrayResource resource = null;
-			String fileStr = logFileList.getUploadedLogs()!=null ? logFileList.getUploadedLogs()
+			String fileStr = logFileList.getUploadedLogs() != null ? logFileList.getUploadedLogs()
 					: logFileList.getMasterLogs();
 			file = new File(fileStr);
 			if (file != null && file.exists()) {
@@ -436,42 +470,47 @@ public class LogFileDetailsController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 
 		}
 
 	}
 
-	
 	@DeleteMapping("/delete-selected-log-file")
-	public ResponseEntity<ResponseModel_v2>  deleteLogfileProcessAction(
-			@Valid @RequestBody LogFileDetailsPayload logFileDetailsPayload) throws IOException, ParseException{
-		
+	public ResponseEntity<ResponseModel_v2> deleteLogfileProcessAction(
+			@Valid @RequestBody LogFileDetailsPayload logFileDetailsPayload) throws IOException, ParseException {
+
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
-			
-			if(!service.deleteLogfileProcessAction(logFileDetailsPayload.getLogFileIds())) {
+
+			if (!service.deleteLogfileProcessAction(logFileDetailsPayload.getLogFileIds())) {
 				response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 				response.setStatusCode(HttpStatus.EXPECTATION_FAILED.value());
 				response.setResponseDescription("Something went wrong");
 				response.setResponseMessage("Something went wrong");
-				return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);				
+				return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 			}
-			
+
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully deleted");
-			response.setResponseMessage("Successfully deleted");			
+			response.setResponseMessage("Successfully deleted");
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
-		
-		
+
 	}
-	
-	
+
 	@GetMapping("/get-detailed-log-status")
 	@ApiOperation(value = "Get Log File detailed status")
 	@ApiResponse(code = 200, message = "Successfully retrived")
@@ -479,10 +518,10 @@ public class LogFileDetailsController {
 			@NotEmpty(message = "LogFileId must be not empty") @RequestParam String logFileId) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
-			
-			JSONObject responseObj=new JSONObject();
-				responseObj.put("response", service.getLogFileDetailedStatus(logFileId));
-			
+
+			JSONObject responseObj = new JSONObject();
+			responseObj.put("response", service.getLogFileDetailedStatus(logFileId));
+
 			response.setjData(responseObj);
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
@@ -491,11 +530,13 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
-	
-	
 
 	@GetMapping("/get-log-file-count")
 	@ApiOperation(value = "Get Log File detailed status")
@@ -504,9 +545,9 @@ public class LogFileDetailsController {
 			@NotEmpty(message = "Site key must be not empty") @RequestParam String siteKey) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
-			
-			JSONObject responseObj=new JSONObject();
-				responseObj.put("response", service.getFileLogCount(siteKey));			
+
+			JSONObject responseObj = new JSONObject();
+			responseObj.put("response", service.getFileLogCount(siteKey));
 			response.setjData(responseObj);
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
@@ -515,9 +556,17 @@ public class LogFileDetailsController {
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return new ResponseEntity<ResponseModel_v2>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 	}
-	
-	
+
+	@PostMapping("/getProcessedLogs")
+	public JSONArray getProcessedLogs(@RequestParam("siteKey") String siteKey) {
+		return service.getParsedLogFileDetailsBySiteKey(siteKey);
+	}
+
 }

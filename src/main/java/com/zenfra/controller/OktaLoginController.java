@@ -1,6 +1,9 @@
 
 package com.zenfra.controller;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,7 @@ import com.zenfra.dao.OktaLoginRepository;
 import com.zenfra.model.OktaLoginModel;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.service.OktaLoginService;
+import com.zenfra.utils.ExceptionHandlerMail;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -62,6 +66,10 @@ public class OktaLoginController {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			rmodel.setResponseMessage("Failed");
 			rmodel.setStatusCode(500);
 			rmodel.setResponseDescription(e.getMessage());
