@@ -5,11 +5,13 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
 import com.zenfra.dao.SmtpConfigRepository;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.SmtpConfigModel;
 
+@Component
 public class SmtpConfigService {
 
 	ResponseModel_v2 responseModel = new ResponseModel_v2();
