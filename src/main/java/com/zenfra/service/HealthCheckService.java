@@ -237,7 +237,7 @@ public class HealthCheckService {
 		} else {
 			response.put("updatedBy", "");
 		}
-
+		
 		response.put("updatedTime", formatter.format(healthCheck.getUpdateDate()));
 		response.put("userId", healthCheck.getUserId());
 
@@ -299,9 +299,9 @@ public class HealthCheckService {
 				for (Object obj : resultList) {
 					if (obj instanceof HealthCheck) {
 						JSONObject response = convertEntityToModel((HealthCheck) obj);
-						if(response.containsKey("created_date") || response.containsKey("update_date")) {
-							response.put("created_date", commonFunctions.convertToUtc(null, response.get("created_date").toString()) );
-							response.put("update_date", commonFunctions.convertToUtc(null, response.get("update_date").toString()) );
+						if(response.containsKey("createdTime") || response.containsKey("update_date")) {
+							response.put("createdTime", commonFunctions.convertToUtc(null, response.get("createdTime").toString()) );
+							response.put("updatedTime", commonFunctions.convertToUtc(null, response.get("updatedTime").toString()) );
 						}
 						resultArray.add(response);
 					}
