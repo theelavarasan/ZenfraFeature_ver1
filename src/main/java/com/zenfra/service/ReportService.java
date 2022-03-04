@@ -197,7 +197,7 @@ public class ReportService {
                 columnsNameArray.add("VM");
                 columnsNameArray.add("Host Name");
                 columnsNameArray.add("Host_Host Name");
-                columnsNameArray.add("vCenter");
+                //columnsNameArray.add("vCenter");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                 }
@@ -342,10 +342,10 @@ public class ReportService {
                             if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
     							if(deviceType.equalsIgnoreCase("vmware")) {
     								postDataColumnArray.add("VM");
-    								postDataColumnArray.add("vCenter");
+    								//postDataColumnArray.add("vCenter");
     							} else if(deviceType.equalsIgnoreCase("vmwarehost")) {
     								postDataColumnArray.add("Server Name");
-    								postDataColumnArray.add("vCenter");
+    								//postDataColumnArray.add("vCenter");
     							} else {
     								postDataColumnArray.add(columnsNameArray.get(j));
     							}
