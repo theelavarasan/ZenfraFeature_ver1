@@ -299,6 +299,10 @@ public class HealthCheckService {
 				for (Object obj : resultList) {
 					if (obj instanceof HealthCheck) {
 						JSONObject response = convertEntityToModel((HealthCheck) obj);
+						if(response.containsKey("created_date") || response.containsKey("update_date")) {
+							response.put("created_date", commonFunctions.convertToUtc(null, response.get("created_date").toString()) );
+							response.put("update_date", commonFunctions.convertToUtc(null, response.get("update_date").toString()) );
+						}
 						resultArray.add(response);
 					}
 				}
@@ -313,7 +317,7 @@ public class HealthCheckService {
 
 		return resultArray;
 	}
-
+	
 	public JSONArray getHealthCheckNames(String siteKey) {
 		JSONArray resultArray = new JSONArray();
 		try {
