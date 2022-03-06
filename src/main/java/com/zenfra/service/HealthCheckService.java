@@ -223,7 +223,7 @@ public class HealthCheckService {
 		} else {
 			response.put("createdBy", "");
 		}
-		response.put("createdTime", formatter.format(healthCheck.getCreatedDate()));
+		response.put("createdTime", commonFunctions.convertToUtc(null, formatter.format(healthCheck.getCreatedDate())));
 
 		if (healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
@@ -237,8 +237,8 @@ public class HealthCheckService {
 		} else {
 			response.put("updatedBy", "");
 		}
-		
-		response.put("updatedTime", formatter.format(healthCheck.getUpdateDate()));
+
+		response.put("updatedTime", commonFunctions.convertToUtc(null, formatter.format(healthCheck.getUpdateDate())));
 		response.put("userId", healthCheck.getUserId());
 
 		boolean isWriteAccess = false;
@@ -299,10 +299,6 @@ public class HealthCheckService {
 				for (Object obj : resultList) {
 					if (obj instanceof HealthCheck) {
 						JSONObject response = convertEntityToModel((HealthCheck) obj);
-						if(response.containsKey("createdTime") || response.containsKey("update_date")) {
-							response.put("createdTime", commonFunctions.convertToUtc(null, response.get("createdTime").toString()) );
-							response.put("updatedTime", commonFunctions.convertToUtc(null, response.get("updatedTime").toString()) );
-						}
 						resultArray.add(response);
 					}
 				}
