@@ -48,6 +48,7 @@ public class HealthCheckService {
 	SiteService siteService;
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+	private SimpleDateFormat yyyyMMddHHmmss = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private JSONParser jSONParser = new JSONParser();
@@ -223,7 +224,12 @@ public class HealthCheckService {
 		} else {
 			response.put("createdBy", "");
 		}
-		response.put("createdTime", commonFunctions.convertToUtc(null, formatter.format(healthCheck.getCreatedDate())));
+		try {
+			response.put("createdTime", commonFunctions.convertToUtc(null, yyyyMMddHHmmss.format(healthCheck.getCreatedDate())));
+		} catch (Exception e) {
+			response.put("createdTime", "");
+		}
+		
 
 		if (healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
@@ -238,7 +244,12 @@ public class HealthCheckService {
 			response.put("updatedBy", "");
 		}
 
-		response.put("updatedTime", commonFunctions.convertToUtc(null, formatter.format(healthCheck.getUpdateDate())));
+		try {
+			response.put("updatedTime", commonFunctions.convertToUtc(null, yyyyMMddHHmmss.format(healthCheck.getUpdateDate())));
+		} catch (Exception e) {
+			response.put("updatedTime", "");
+		}
+		
 		response.put("userId", healthCheck.getUserId());
 
 		boolean isWriteAccess = false;
