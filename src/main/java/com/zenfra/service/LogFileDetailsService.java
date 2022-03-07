@@ -8,6 +8,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -18,8 +20,6 @@ import java.util.Queue;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import javax.validation.constraints.NotEmpty;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -38,6 +38,7 @@ import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
+import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
 public class LogFileDetailsService implements IService<LogFileDetails> {
@@ -104,30 +105,33 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 		return logDao.findOne(id);
 	}
 
-	public List<LogFileDetails> getLogFileDetailsByLogids(List<String> logFileIds) {
+	public JSONArray getLogFileDetailsByLogids(List<String> logFileIds) {
+		JSONArray resultArray = new JSONArray();
 		try {
 			List<LogFileDetails> logFile = logDao.getLogFileDetailsByLogids(logFileIds);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
-			for (LogFileDetails log : logFile) {							
-				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getCreatedDateTime()));
-				log.setUpdatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
-				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
-				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
-				logFileUpdate.add(log);
+
+			for (LogFileDetails log : logFile) {						
+
 				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("AWS") || log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
-					log.setCreatedDateTime(log.getCreatedDateTime());
-					log.setUpdatedDateTime(log.getCreatedDateTime());
-					log.setParsedDateTime(log.getCreatedDateTime());
-					log.setParsingStartTime(log.getCreatedDateTime());
+
 					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("import_success");
 					}
 				}
+				JSONObject json = new JSONObject();
+				json.put("status", log.getStatus());
+				json.put("logFileId", log.getLogFileId());
+				resultArray.add(json);
 			}
 
-			return logFileUpdate;
+			return resultArray;
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 	}
@@ -141,17 +145,19 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			for (LogFileDetails log : logFile) {
 				if (userList.containsKey(log.getUploadedBy())) {
 					log.setUploadedBy(userList.get(log.getUploadedBy()));
-				}				
+				}
 				log.setCreatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getCreatedDateTime()));
 				log.setUpdatedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getUpdatedDateTime()));
 				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
 				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
-				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("AWS") || log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("AWS")
+								|| log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
 					log.setCreatedDateTime(log.getCreatedDateTime());
 					log.setUpdatedDateTime(log.getCreatedDateTime());
 					log.setParsedDateTime(log.getCreatedDateTime());
 					log.setParsingStartTime(log.getCreatedDateTime());
-					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("import_success");
 					}
 				}
@@ -161,6 +167,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			return logFileUpdate;
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 	}
@@ -198,6 +208,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			return convFile;
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return null;
 	}
@@ -226,6 +240,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return toReturnPathFromFile;
 	}
@@ -247,10 +265,18 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return toRet;
 	}
@@ -319,6 +345,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return logFileIdList;
 	}
@@ -340,6 +370,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return logDao.save(logFile);
 	}
@@ -351,6 +385,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			return logDao.saveLogtypeAndDescription(logFileIds, description, logtype);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return false;
 		}
 
@@ -363,6 +401,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return false;
 		}
 	}
@@ -370,16 +412,20 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 	public Object getLogFileDetailedStatus(String logFileId) {
 		try {
 
-			Map<String,Object>  map=logDao.getLogFileDetailedStatus(logFileId);
-			
-			if(map!=null && map.containsKey("response")) {
-				
+			Map<String, Object> map = logDao.getLogFileDetailedStatus(logFileId);
+
+			if (map != null && map.containsKey("response")) {
+
 				return new ObjectMapper().readTree(map.get("response").toString());
-				
+
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 
 		return null;
@@ -395,12 +441,12 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 			for (int i = 0; i < path.size(); i++) {
 				File srcFile = new File(path.get(i));
-				
-				if(!srcFile.exists()) {
-					System.out.println("File Not Found::"+path.get(i));
+
+				if (!srcFile.exists()) {
+					System.out.println("File Not Found::" + path.get(i));
 					continue;
 				}
-				
+
 				fileLength += srcFile.length();
 				FileInputStream fis = new FileInputStream(srcFile);
 				// begin writing a new ZIP entry, positions the stream to the start of the entry
@@ -424,21 +470,28 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 	public List<LogFileDetails> findAllByLogFileIds(List<String> modelName) {
 		try {
-			
-			
+
 			return logDao.findAllByLogFileIds(modelName);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 	}
 
 	public Object getFileLogCount(String siteKey) {
 		try {
-			
+
 			return logDao.getFileLogCount(siteKey);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return 0;
 		}
 	}
@@ -447,15 +500,19 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 		JSONArray jsonArray = new JSONArray();
 		try {
 			List<String> logFile = logDao.getLogFileDetailsBySiteKeyAndStatusIsActive(siteKey);
-			for(String log : logFile) {
+			for (String log : logFile) {
 				JSONObject json = new JSONObject();
 				json.put("id", log.toLowerCase());
 				json.put("name", log.toUpperCase());
 				jsonArray.add(json);
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return jsonArray;
 	}

@@ -1,5 +1,7 @@
 package com.zenfra.utils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.security.spec.KeySpec;
 
 import javax.crypto.Cipher;
@@ -14,14 +16,14 @@ import org.springframework.stereotype.Component;
 public class TrippleDes {
 
 	private static final String UNICODE_FORMAT = "UTF8";
-    public static final String DESEDE_ENCRYPTION_SCHEME = "DESede";
-    private KeySpec ks;
-    private SecretKeyFactory skf;
-    private Cipher cipher;
-    byte[] arrayBytes;
-    private String myEncryptionKey;
-    private String myEncryptionScheme;
-    SecretKey key;
+	public static final String DESEDE_ENCRYPTION_SCHEME = "DESede";
+	private KeySpec ks;
+	private SecretKeyFactory skf;
+	private Cipher cipher;
+	byte[] arrayBytes;
+	private String myEncryptionKey;
+	private String myEncryptionScheme;
+	SecretKey key;
 
 	public TrippleDes() throws Exception {
 		myEncryptionKey = "ThisIsSpartaThisIsSparta";
@@ -41,7 +43,13 @@ public class TrippleDes {
 			byte[] encryptedText = cipher.doFinal(plainText);
 			encryptedString = new String(Base64.encodeBase64(encryptedText));
 		} catch (Exception e) {
+			// if (!e.getMessage().contains("Input length must be multiple")) {
 			e.printStackTrace();
+			// StringWriter errors = new StringWriter();
+			// e.printStackTrace(new PrintWriter(errors));
+			// String ex = errors.toString();
+			// ExceptionHandlerMail.errorTriggerMail(ex);
+
 		}
 		return encryptedString;
 	}
@@ -54,15 +62,21 @@ public class TrippleDes {
 			byte[] plainText = cipher.doFinal(encryptedText);
 			decryptedText = new String(plainText);
 		} catch (Exception e) {
+			// if (!e.getMessage().contains("Input length must be multiple")) {
 			e.printStackTrace();
+			// StringWriter errors = new StringWriter();
+			// e.printStackTrace(new PrintWriter(errors));
+			// String ex = errors.toString();
+			// ExceptionHandlerMail.errorTriggerMail(ex);
+
 		}
 		return decryptedText;
 	}
 
 	public static void main(String[] args) throws Exception {
-		
-		TrippleDes des=new TrippleDes();
+
+		TrippleDes des = new TrippleDes();
 		System.out.println(des.encrypt("Zenfra@123$"));
 	}
-	
+
 }

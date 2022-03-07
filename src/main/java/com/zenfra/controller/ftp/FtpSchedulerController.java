@@ -1,12 +1,13 @@
 package com.zenfra.controller.ftp;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.List;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import org.apache.spark.sql.functions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -25,6 +26,7 @@ import com.zenfra.ftp.service.FtpSchedulerService;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ftp.FtpScheduler;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.ExceptionHandlerMail;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -40,22 +42,24 @@ public class FtpSchedulerController {
 
 	@Autowired
 	CommonFunctions functions;
-	
+
 	@PostMapping("/runScheduler")
 	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler) {
 
 		try {
-			
-			if (ftpScheduler.getId()==0) {
+
+			if (ftpScheduler.getId() == 0) {
 				FtpScheduler temp = schedulerService.getFtpScheduler(ftpScheduler.getFileNameSettingsId());
-				if(temp!=null) {
+				if (temp != null) {
 					return "Scheduler already agains the given filename settings";
 				}
 			}
 
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
 				String corn = "0 minutes current/hour * * ?";
-				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour()).replace("minutes", functions.getCurrentMinutes()));
+				ftpScheduler.setSchedulerCorn(
+						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour())
+								.replace("minutes", functions.getCurrentMinutes()));
 			} else if (ftpScheduler.getType().equalsIgnoreCase("daily")) {
 				String timseslot = functions.convertTimeZone(ftpScheduler.getTimeZone(), ftpScheduler.getTimeSlot());
 				String corn = "0 0 from today/everyday * ?";
@@ -64,7 +68,8 @@ public class FtpSchedulerController {
 				ftpScheduler.setSchedulerCorn(corn);
 			} else if (ftpScheduler.getType().equalsIgnoreCase("month")) {
 				String corn = "0 0 hour month/1 * ?";
-				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getTime()).replace("hour", functions.getCurrentHour()));
+				ftpScheduler.setSchedulerCorn(
+						corn.replace("month", ftpScheduler.getTime()).replace("hour", functions.getCurrentHour()));
 			} else if (ftpScheduler.getType().equalsIgnoreCase("weekly")) {
 				String days = "";
 				for (int i = 0; i < ftpScheduler.getSelectedDay().size(); i++) {
@@ -87,6 +92,10 @@ public class FtpSchedulerController {
 			return "saved! & Cron add to thread";
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return e.getMessage();
 		}
 
@@ -105,6 +114,10 @@ public class FtpSchedulerController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			response.setResponseMessage("Getting exception in Saving File name Settings: " + e.getMessage());
 
@@ -120,6 +133,10 @@ public class FtpSchedulerController {
 			return schedulerService.getFtpSchedulerAll();
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
 	}
@@ -134,23 +151,26 @@ public class FtpSchedulerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return null;
 	}
-	
+
 	@PostMapping("/run-ftp")
-	public @ResponseBody String runFtp(@RequestBody FtpScheduler ftpScheduler,
-			@RequestParam String name,@RequestParam String secound) {
+	public @ResponseBody String runFtp(@RequestBody FtpScheduler ftpScheduler, @RequestParam String name,
+			@RequestParam String secound) {
 		try {
 
-			
 			System.out.println("---------------------------enter-------------");
 			Demo demo = new Demo(name);
-			
-			
+
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
 				String corn = "0 0 current/hour * * ?";
-				ftpScheduler.setSchedulerCorn(corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour()) );
+				ftpScheduler.setSchedulerCorn(
+						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour()));
 			} else if (ftpScheduler.getType().equalsIgnoreCase("daily")) {
 				String timseslot = functions.convertTimeZone(ftpScheduler.getTimeZone(), ftpScheduler.getTimeSlot());
 				String corn = "0 0 from today/everyday * ?";
@@ -159,7 +179,8 @@ public class FtpSchedulerController {
 				ftpScheduler.setSchedulerCorn(corn);
 			} else if (ftpScheduler.getType().equalsIgnoreCase("month")) {
 				String corn = "0 0 hour month/1 * ?";
-				ftpScheduler.setSchedulerCorn(corn.replace("month", ftpScheduler.getTime()).replace("hour", functions.getCurrentHour()));
+				ftpScheduler.setSchedulerCorn(
+						corn.replace("month", ftpScheduler.getTime()).replace("hour", functions.getCurrentHour()));
 			} else if (ftpScheduler.getType().equalsIgnoreCase("weekly")) {
 				String days = "";
 				for (int i = 0; i < ftpScheduler.getSelectedDay().size(); i++) {
@@ -168,19 +189,23 @@ public class FtpSchedulerController {
 				days = days.substring(0, days.length() - 1);
 				String corn = "0 0 hour ? * weekly"; // 0 0 0 ? * MON,WED,THU *
 				ftpScheduler.setSchedulerCorn(corn.replace("weekly", days).replace("hour", ftpScheduler.getTime()));
-			}else if(ftpScheduler.getType().equalsIgnoreCase("secounds")) {
-				String corn = "0/secound * * ? * * *"; 
+			} else if (ftpScheduler.getType().equalsIgnoreCase("secounds")) {
+				String corn = "0/secound * * ? * * *";
 				ftpScheduler.setSchedulerCorn(corn.replace("secound", ftpScheduler.getTime()));
-			}else if(ftpScheduler.getType().equalsIgnoreCase("minutes")) {
-				String corn = "* 0/minutes * ? * * *"; 
+			} else if (ftpScheduler.getType().equalsIgnoreCase("minutes")) {
+				String corn = "* 0/minutes * ? * * *";
 				ftpScheduler.setSchedulerCorn(corn.replace("minutes", ftpScheduler.getTime()));
 			}
-				scheduleTaskService.addTaskToScheduler(1, demo, ftpScheduler.getSchedulerCorn());
-			
+			scheduleTaskService.addTaskToScheduler(1, demo, ftpScheduler.getSchedulerCorn());
+
 			return "done";
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 
 		return "done";

@@ -35,7 +35,7 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 
 	long countBySiteKey(String siteKey);
 
-	@Query(value="select log_type from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status and lower(log_type) <> 'custom excel data' and lower(log_type) <> 'aws' group by log_type order by log_type" ,nativeQuery = true)
+	@Query(value="select log_type from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status and lower(log_type) <> 'custom excel data' and lower(log_type) <> 'aws' and lower(log_type) <> 'vmax'  group by log_type order by log_type" ,nativeQuery = true)
 	List<String> getBySiteKeyAndStatusIsActive(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive, @Param("status") String status);
 
 }

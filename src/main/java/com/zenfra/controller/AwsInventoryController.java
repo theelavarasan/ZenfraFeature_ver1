@@ -1,6 +1,8 @@
 package com.zenfra.controller;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -26,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
@@ -41,6 +42,7 @@ import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
 import com.zenfra.utils.DBUtils;
+import com.zenfra.utils.ExceptionHandlerMail;
 
 @RestController
 @RequestMapping("/rest/aws-inventory")
@@ -54,10 +56,10 @@ public class AwsInventoryController {
 
 	@Autowired
 	ProcessService serivce;
-	
+
 	@Autowired
 	UserCreateService userCreateService;
-	
+
 	@Autowired
 	LogFileDetailsService logFileService;
 
@@ -117,6 +119,10 @@ public class AwsInventoryController {
 			AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			responseModel.setResponseDescription(e.getMessage());
 		}
@@ -166,6 +172,10 @@ public class AwsInventoryController {
 			model.setjData(list);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return model;
 	}
@@ -178,6 +188,10 @@ public class AwsInventoryController {
 			model.setjData(getAwsInventoryBySiteKey(sitekey));
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return model;
 	}
@@ -190,37 +204,36 @@ public class AwsInventoryController {
 		try {
 
 			String token = request.getHeader("Authorization");
-			
+
 			System.out.println(token);
 
 			LogFileDetails insert = insertLogUploadTable(siteKey, tenantId, userId, token, "Processing");
 
 			ObjectMapper map = new ObjectMapper();
 
-			
 			System.out.println("resJson::" + insert.toString());
-			
-			if (insert==null) {
+
+			if (insert == null) {
 				model.setjData(insert);
 				model.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 				model.setResponseDescription("Unable to insert log upload table!");
 				return model;
 			}
-			/*JsonNode root = map.readTree(resJson.get("body").toString());
-			JSONObject arr = map.readValue(root.get("jData").get("logFileDetails").get(0).toString(), JSONObject.class);
-			System.out.println("map::" + arr);
-			arr.put("status", "parsing");
-			JSONArray array = new JSONArray();
-			array.add(arr);
-			JSONObject obj = new JSONObject();
-			obj.put("logFileDetails", arr);
-			
-
-			final String rid = root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
-			System.out.println("rid::" + rid);*/
+			/*
+			 * JsonNode root = map.readTree(resJson.get("body").toString()); JSONObject arr
+			 * = map.readValue(root.get("jData").get("logFileDetails").get(0).toString(),
+			 * JSONObject.class); System.out.println("map::" + arr); arr.put("status",
+			 * "parsing"); JSONArray array = new JSONArray(); array.add(arr); JSONObject obj
+			 * = new JSONObject(); obj.put("logFileDetails", arr);
+			 * 
+			 * 
+			 * final String rid =
+			 * root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace(
+			 * "\"", ""); System.out.println("rid::" + rid);
+			 */
 
 			model.setjData(insert);
-			
+
 			AwsInventory aws = getAwsInventoryByDataId(data_id);
 			ProcessingStatus status = new ProcessingStatus();
 			status.setProcessing_id(common.generateRandomId());
@@ -239,25 +252,32 @@ public class AwsInventoryController {
 
 				Runnable myrunnable = new Thread() {
 					public void run() {
-						callAwsScript(sha256hex, aws.getAccess_key_id(), siteKey, userId, token, status, insert.getLogFileId());
+						callAwsScript(sha256hex, aws.getAccess_key_id(), siteKey, userId, token, status,
+								insert.getLogFileId());
 					}
 				};
 				new Thread(myrunnable).start();
 				model.setResponseCode(HttpStatus.OK);
-				
-				//delete AWS dataframe
-				  try { //remove orient db dataframe
-						String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator; // + sourceType + File.separator;
-						File[] directories = new File(dataframePath).listFiles(File::isDirectory);
-						for(File dir : directories) {					
-							if(dir.getName().equalsIgnoreCase("AWS")) {							
-								FileSystemUtils.deleteRecursively(dir);
-							}
+
+				// delete AWS dataframe
+				try { // remove orient db dataframe
+					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator
+							+ "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey
+							+ File.separator; // + sourceType + File.separator;
+					File[] directories = new File(dataframePath).listFiles(File::isDirectory);
+					for (File dir : directories) {
+						if (dir.getName().equalsIgnoreCase("AWS")) {
+							FileSystemUtils.deleteRecursively(dir);
 						}
-						
-					  } catch (Exception e) {
-						e.printStackTrace();
 					}
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					StringWriter errors = new StringWriter();
+					e.printStackTrace(new PrintWriter(errors));
+					String ex = errors.toString();
+					ExceptionHandlerMail.errorTriggerMail(ex);
+				}
 			} else {
 				model.setResponseCode(HttpStatus.NOT_FOUND);
 				return model;
@@ -265,6 +285,10 @@ public class AwsInventoryController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			model.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			model.setResponseDescription(e.getMessage());
 		}
@@ -299,14 +323,19 @@ public class AwsInventoryController {
 			builder.append(URLEncoder.encode(logFileId, StandardCharsets.UTF_8.toString()));
 
 			Object responseRest = common.callAwsScriptAPI(builder.toString(), token);
-			status.setResponse(logFileId + "~" + response + "~" + responseRest != null && !responseRest.toString().isEmpty()
-					? responseRest.toString()
-					: "unable to update logupload API");
+			status.setResponse(
+					logFileId + "~" + response + "~" + responseRest != null && !responseRest.toString().isEmpty()
+							? responseRest.toString()
+							: "unable to update logupload API");
 			status.setStatus("complete");
 			System.out.println("responseRest::" + responseRest.toString());
 			serivce.updateMerge(status);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			status.setStatus("complete");
 			status.setResponse(response + "~" + e.getMessage());
 			serivce.updateMerge(status);
@@ -335,43 +364,50 @@ public class AwsInventoryController {
 			System.out.println("checkConnection script response::" + response);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return "exception";
 		}
 		return response;
 	}
 
-	public LogFileDetails insertLogUploadTable(String siteKey,
-		String tenantId,String userId,String token,String status) {
-		LogFileDetails logFile=new LogFileDetails();
+	public LogFileDetails insertLogUploadTable(String siteKey, String tenantId, String userId, String token,
+			String status) {
+		LogFileDetails logFile = new LogFileDetails();
 		try {
-			
+
 			Users saveUser = userCreateService.getUserByUserId(userId);
-			
-				logFile.setActive(true);
-				logFile.setCreatedDateTime(common.getCurrentDateWithTime());
-				logFile.setDescription("AWS data retrieval");
-				logFile.setExtractedPath("aws");
-				logFile.setFileName("aws_"+common.getCurrentDateWithTime());
-				logFile.setFileSize("0");
-				logFile.setLogFileId(common.generateRandomId());
-				logFile.setLogType("AWS");
-				logFile.setStatus(Contants.LOG_FILE_STATUS_PARSING);
-				logFile.setUsername((saveUser.getFirst_name() != null ? saveUser.getFirst_name() : "") + " "
-						+ (saveUser.getLast_name() != null ? saveUser.getLast_name() : ""));
-				logFile.setTenantId(tenantId);
-				logFile.setSiteKey(siteKey);
-				logFile.setUpdatedDateTime(common.getCurrentDateWithTime());
-				logFile.setUploadedBy(userId);
-				
-				logFile=logFileService.save(logFile);
-		
-				return logFile;
+
+			logFile.setActive(true);
+			logFile.setCreatedDateTime(common.getCurrentDateWithTime());
+			logFile.setDescription("AWS data retrieval");
+			logFile.setExtractedPath("aws");
+			logFile.setFileName("aws_" + common.getCurrentDateWithTime());
+			logFile.setFileSize("0");
+			logFile.setLogFileId(common.generateRandomId());
+			logFile.setLogType("AWS");
+			logFile.setStatus(Contants.LOG_FILE_STATUS_PARSING);
+			logFile.setUsername((saveUser.getFirst_name() != null ? saveUser.getFirst_name() : "") + " "
+					+ (saveUser.getLast_name() != null ? saveUser.getLast_name() : ""));
+			logFile.setTenantId(tenantId);
+			logFile.setSiteKey(siteKey);
+			logFile.setUpdatedDateTime(common.getCurrentDateWithTime());
+			logFile.setUploadedBy(userId);
+
+			logFile = logFileService.save(logFile);
+
+			return logFile;
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			return null;
 		}
-		
-		
+
 	}
 
 	HttpHeaders createHeaders(String token) {
@@ -412,6 +448,10 @@ public class AwsInventoryController {
 			AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 
 		return aws;
@@ -449,6 +489,10 @@ public class AwsInventoryController {
 			AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 
 		return aws;
