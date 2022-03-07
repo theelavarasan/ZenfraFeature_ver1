@@ -53,14 +53,15 @@ public class OktaLoginService {
 		try {
 
 			OktaLoginModel res = oktaLoginRepository.findById(id).orElse(null);
-			resObject.put("id", res.getId());
-			resObject.put("publisherUrl", res.getPublisherUrl());
-			resObject.put("clientId", res.getClientId());
-			resObject.put("defaultSiteName", res.getDefaultSiteName());
-			resObject.put("defaultPolicy", res.getDefaultPolicy());
-			resObject.put("defaultPolicyName", res.getDefaultPolicy());
-
-			// resObject.put("data", res);
+			if(res != null) {
+				resObject.put("id", res.getId());
+				resObject.put("publisherUrl", res.getPublisherUrl());
+				resObject.put("clientId", res.getClientId());
+				resObject.put("defaultSiteName", res.getDefaultSiteName());
+				resObject.put("defaultPolicy", res.getDefaultPolicy());
+				resObject.put("defaultPolicyName", res.getDefaultPolicy());
+			}
+			
 			return resObject;
 		} catch (Exception e) {
 			// TODO: handle exception
