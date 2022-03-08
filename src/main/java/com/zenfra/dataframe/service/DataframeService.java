@@ -2531,7 +2531,7 @@ public class DataframeService {
 						sourceList.stream().map(source -> ("'" + source + "'")).collect(Collectors.toList()));
 			}
 
-			String sql = "select source_id, data from source_data where source_id in (" + sources + ") and site_key='"
+			String sql = "select source_id, replace(data, '.0\"', '') as data from source_data where source_id in (" + sources + ") and site_key='"
 					+ siteKey + "'";
 
 			String getAllSourceSql = "select source_id, fields from source where is_active='true' and site_key='"
@@ -2551,7 +2551,7 @@ public class DataframeService {
 			if (isAllSource) {
 				sources = String.join(",",
 						sourceMap.keySet().stream().map(source -> ("'" + source + "'")).collect(Collectors.toList()));
-				sql = "select source_id, data from source_data where source_id in (" + sources + ") and site_key='"
+				sql = "select source_id, replace(data, '.0\"', '') as data from source_data where source_id in (" + sources + ") and site_key='"
 						+ siteKey + "'";
 			}
 
