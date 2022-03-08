@@ -742,7 +742,7 @@ public class ValidationRuleService {
 					+ "where site_key = '" + siteKey + "'  \r\n" + ") a \r\n" + ") b\r\n" + "union all \r\n"
 					+ "select concat(source_name, '~', keys) as keys, data::json ->> keys as column_values from ( \r\n"
 					+ "select source_name, data, json_object_keys(data::json) as keys from (  \r\n"
-					+ "select sd.source_id, s.source_name, primary_key_value, replace(data, '.0\",', '\",') as data, row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num \r\n"
+					+ "select sd.source_id, s.source_name, primary_key_value, replace(data, '.0\"', '\"') as data, row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num \r\n"
 					+ "from source_data sd  \r\n"
 					+ "LEFT JOIN source s on s.source_id = sd.source_id and s.site_key = '" + siteKey + "'  \r\n"
 					+ "where sd.site_key = '" + siteKey + "' and sd.source_id in ( \r\n"
