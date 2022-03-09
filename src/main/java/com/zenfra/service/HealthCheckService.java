@@ -311,7 +311,7 @@ public class HealthCheckService {
 					+ "FROM health_check h\r\n"
 					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createdBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
 					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updatedBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
-					+ "where is_active='true' and site_key='" + siteKey + "' ORDER BY  health_check_id, is_active";
+					+ "where is_active='true' and site_key='" + siteKey + "' order by health_check_name ASC";
 			
 //			String query = "select * from health_check where site_key='" + siteKey
 //					+ "' and is_active='true' order by health_check_name ASC";
