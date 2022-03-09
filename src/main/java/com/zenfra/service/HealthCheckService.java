@@ -336,6 +336,7 @@ public class HealthCheckService {
 						+ "(user_access_list like '%" + userId + "%' or user_access_list  like '%All%'))) order by health_check_name ASC";
 			}
 
+			System.out.println("--------------query--------------" + query);
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
 			if (resultList != null && !resultList.isEmpty()) {
 				for (Object obj : resultList) {
