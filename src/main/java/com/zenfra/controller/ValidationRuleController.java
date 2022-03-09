@@ -42,7 +42,9 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getVR_PrivilledgeData(model.getSiteKey(), model.getColumnName());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
 			resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
-		} 
+		} else if (model.getAnalyticsType().equalsIgnoreCase("onpremises-cost") && !model.getReportBy().equalsIgnoreCase("Privileged Access")) {
+			resultArray = validationRuleService.getOnpremisesCostFieldType(model.getSiteKey(), model.getColumnName(), model.getOsType());
+		}
 			
 
 		String colName = model.getColumnName();
@@ -59,7 +61,8 @@ public class ValidationRuleController {
 			
 		}
 		
-		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method") || model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
+		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method") 
+				|| model.getAnalyticsType().equalsIgnoreCase("cloud-cost") || model.getAnalyticsType().equalsIgnoreCase("onpremises-cost")) {
 			return ResponseEntity.ok(resultArray);
 		} else if((model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Privileged Access"))) {
 			System.out.println("!!!!! Privileged Access access result: " + resultArray);

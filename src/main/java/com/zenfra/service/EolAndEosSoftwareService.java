@@ -1,5 +1,7 @@
 package com.zenfra.service;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -10,10 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.dao.EolAndEosSoftwareRepository;
-import com.zenfra.model.EolAndEosHardwareModel;
 import com.zenfra.model.EolAndEosSoftwareIdentityModel;
 import com.zenfra.model.EolAndEosSoftwareModel;
 import com.zenfra.model.ResponseModel_v2;
+import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
 public class EolAndEosSoftwareService {
@@ -44,6 +46,10 @@ public class EolAndEosSoftwareService {
 
 		catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setStatusCode(500);
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
@@ -55,8 +61,7 @@ public class EolAndEosSoftwareService {
 		List<EolAndEosSoftwareModel> massUpdate = new ArrayList();
 		try {
 			for (EolAndEosSoftwareModel model : models) {
-				EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository.findBySwId(model
-						.getEol_eos_sw_id());
+				EolAndEosSoftwareModel existing = eolAndEosSoftwareRepository.findBySwId(model.getEol_eos_sw_id());
 				if (existing != null) {
 					existing.setEol_eos_sw_id(model.getEol_eos_sw_id());
 					existing.setSource_url(model.getSource_url());
@@ -75,7 +80,8 @@ public class EolAndEosSoftwareService {
 				} else {
 					EolAndEosSoftwareModel newEntry = new EolAndEosSoftwareModel();
 					newEntry.setEol_eos_sw_id(UUID.randomUUID().toString());
-					newEntry.setEolAndEosSoftwareIdentityModel(new EolAndEosSoftwareIdentityModel(model.getOs_version(), model.getOs_name()));
+					newEntry.setEolAndEosSoftwareIdentityModel(
+							new EolAndEosSoftwareIdentityModel(model.getOs_version(), model.getOs_name()));
 					newEntry.setSource_url(model.getSource_url());
 					newEntry.setEnd_of_life_cycle(model.getEnd_of_life_cycle());
 					newEntry.setOs_type(model.getOs_type());
@@ -90,7 +96,7 @@ public class EolAndEosSoftwareService {
 					newEntry.setManual(true);
 					newEntry.setFrom_discovery(true);
 					massUpdate.add(newEntry);
-					
+
 				}
 
 			}
@@ -103,6 +109,10 @@ public class EolAndEosSoftwareService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setStatusCode(500);
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
@@ -113,7 +123,7 @@ public class EolAndEosSoftwareService {
 	public ResponseEntity<?> delete(List<EolAndEosSoftwareModel> models) {
 		try {
 			List<String> ids = new ArrayList<String>();
-			for(EolAndEosSoftwareModel model : models) {
+			for (EolAndEosSoftwareModel model : models) {
 				ids.add(model.getEol_eos_sw_id());
 			}
 			eolAndEosSoftwareRepository.deleteByEolEosSwId(ids);
@@ -122,13 +132,17 @@ public class EolAndEosSoftwareService {
 			responseModel.setResponseCode(HttpStatus.OK);
 			responseModel.setjData(models);
 			return ResponseEntity.ok(responseModel);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+
 			responseModel.setStatusCode(500);
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return (ResponseEntity<?>) ResponseEntity.badRequest();
-			
+
 		}
 	}
 
