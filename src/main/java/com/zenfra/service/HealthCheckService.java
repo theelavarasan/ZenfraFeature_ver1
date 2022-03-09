@@ -48,7 +48,6 @@ public class HealthCheckService {
 	SiteService siteService;
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-	private SimpleDateFormat yyyyMMddHHmmss = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private JSONParser jSONParser = new JSONParser();
@@ -62,16 +61,65 @@ public class HealthCheckService {
 		return healthCheck;
 	}
 
+	@SuppressWarnings("unchecked")
 	public JSONObject getHealthCheck(String healthCheckId, String authUserId) throws ParseException {
 		HealthCheck healthCheck = new HealthCheck();
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
-		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn(
-				"select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",
-				HealthCheck.class);
+		ObjectMapper mapper = new ObjectMapper();
+		String getHealthCheckQuery = "select health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
+				+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
+				+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
+				+ "to_char(to_timestamp(created_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdDate,\r\n"
+				+ "to_char(to_timestamp(update_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedDate, \r\n"
+				+ "user_id as userId, analytics_type as analyticsType, a.createdBy, c.updatedBy\r\n"
+				+ "from health_check h\r\n"
+				+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createdBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
+				+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updatedBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
+				+ "where health_check_id='" + healthCheckId + "' and is_active='true' ORDER BY  health_check_id, is_active\r\n"
+				+ "";
+		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn(getHealthCheckQuery,HealthCheck.class);
 		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
-			healthCheckModel = convertEntityToModel(savedObj);
+			try {
+				healthCheckModel.put("healthCheckId", healthCheck.getHealthCheckId());
+				healthCheckModel.put("componentType", healthCheck.getComponentType());
+				healthCheckModel.put("healthCheckName", healthCheck.getHealthCheckName());
+				healthCheckModel.put("reportBy", healthCheck.getReportBy());
+				healthCheckModel.put("reportCondition", mapper.readValue(healthCheck.getReportCondition(), JSONArray.class));
+				healthCheckModel.put("reportName", healthCheck.getReportName());
+				healthCheckModel.put("siteAccessList", Arrays.asList(healthCheck.getSiteAccessList().split(",")));
+				healthCheckModel.put("siteKey", healthCheck.getSiteKey());
+				healthCheckModel.put("userAccessList", Arrays.asList(healthCheck.getUserAccessList().split(",")));
+				healthCheckModel.put("createdTime", healthCheck.getCreatedDate());
+				healthCheckModel.put("updatedTime", healthCheck.getUpdateDate());
+				healthCheckModel.put("userId", healthCheck.getUserId());
+				healthCheckModel.put("analyticsType", healthCheck.getAnalyticsType());
+				healthCheckModel.put("createdBy", healthCheck.getCreateBy());
+				healthCheckModel.put("updatedBy", healthCheck.getUpdateBy());
+				System.out.println("--------getAnalyticsType-----------" + healthCheck.getAnalyticsType());
+				System.out.println("--------------getCreateBy-----------------------" + healthCheck.getCreateBy()); 
+				System.out.println("--------------getCreatedDate-----------------------" + healthCheck.getCreatedDate()); 
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			boolean isWriteAccess = false;
+			if (healthCheck.getAuthUserId() != null) {
+				boolean isTenantAdmin = false;
+
+				Users loginUser = userCreateService.getUserByUserId(healthCheck.getAuthUserId());
+				if (loginUser != null && loginUser.isIs_tenant_admin()) {
+					isTenantAdmin = true;
+				}
+
+				if (isTenantAdmin || healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getAuthUserId())) {
+					isWriteAccess = true;
+				}
+			}
+			healthCheckModel.put("isWriteAccess", isWriteAccess);
+//			healthCheckModel = convertEntityToModel(savedObj);
+			
 			System.out.println("healthCheckModel::" + healthCheckModel);
 		}
 
@@ -225,7 +273,8 @@ public class HealthCheckService {
 			response.put("createdBy", "");
 		}
 		try {
-			response.put("createdTime", commonFunctions.convertToUtc(null, yyyyMMddHHmmss.format(healthCheck.getCreatedDate())));
+			response.put("createdTime", formatter.format(healthCheck.getCreatedDate()));
+			
 		} catch (Exception e) {
 			response.put("createdTime", "");
 		}
@@ -245,7 +294,7 @@ public class HealthCheckService {
 		}
 
 		try {
-			response.put("updatedTime", commonFunctions.convertToUtc(null, yyyyMMddHHmmss.format(healthCheck.getUpdateDate())));
+			response.put("updatedTime", formatter.format(healthCheck.getUpdateDate()));
 		} catch (Exception e) {
 			response.put("updatedTime", "");
 		}
