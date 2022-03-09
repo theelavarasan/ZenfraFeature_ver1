@@ -666,7 +666,7 @@ public class CommonFunctions {
 			// for(String df : dateFormats) {
 			try {
 				String df = "yyyy/MM/dd HH:mm:ss";
-				if (dateString.contains("-")) {
+				if (dateString != null && dateString.contains("-")) {
 					df = "yyyy-MM-dd HH:mm:ss";
 				}
 				DateFormat formatterIST = new SimpleDateFormat(df);
