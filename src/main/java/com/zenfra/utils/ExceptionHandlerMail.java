@@ -27,7 +27,7 @@ public class ExceptionHandlerMail {
 	@SuppressWarnings("unchecked")
 	public static ResponseEntity<String> errorTriggerMail(String stackTrace) {
 
-		String path = "properties/AvoidedExceptions/AvoidedExceptions.properties";
+		String path = "properties/AvoidedExceptions/AvoidedException.properties";
 		System.out.println("!!!!! path: " + path);
 		InputStream inputFile = null;
 		try {
