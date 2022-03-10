@@ -222,6 +222,10 @@ public class HealthCheckService {
 		response.put("updatedById", healthCheck.getUpdateBy());
 
 		Users user = userCreateService.getUserByUserId(healthCheck.getCreateBy());
+		System.out.println("----------user-------------" + user);
+		System.out.println("----------user firstName-------------" + user.getFirst_name());
+		System.out.println("----------user lastName-------------" + user.getLast_name());
+
 		if (user != null) {
 			response.put("createdBy", user.getFirst_name() + " " + user.getLast_name());
 		} else {
