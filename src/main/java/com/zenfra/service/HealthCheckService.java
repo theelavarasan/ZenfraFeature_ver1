@@ -222,10 +222,6 @@ public class HealthCheckService {
 		response.put("updatedById", healthCheck.getUpdateBy());
 
 		Users user = userCreateService.getUserByUserId(healthCheck.getCreateBy());
-		System.out.println("----------user-------------" + user);
-		System.out.println("----------user firstName-------------" + user.getFirst_name());
-		System.out.println("----------user lastName-------------" + user.getLast_name());
-
 		if (user != null) {
 			response.put("createdBy", user.getFirst_name() + " " + user.getLast_name());
 		} else {
@@ -239,9 +235,9 @@ public class HealthCheckService {
 		}
 		
 
-		if (healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
+		if (healthCheck.getCreateBy() != null && healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
-		} else if (!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
+		} else if (healthCheck.getCreateBy() != null && !healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
 			if (updateUser != null) {
 				response.put("updatedBy", updateUser.getFirst_name() + " " + updateUser.getLast_name());
