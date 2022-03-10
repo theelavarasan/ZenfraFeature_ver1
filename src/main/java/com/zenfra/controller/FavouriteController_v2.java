@@ -534,7 +534,7 @@ public class FavouriteController_v2 {
 	@PostMapping("/getHealthCheckList")
 	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey,
 			@RequestParam(name = "authUserId", required = false) String userId, HttpServletRequest request,
-			HttpServletResponse respone) {
+			HttpServletResponse respone, @RequestParam(name = "projectId", required = false) String projectId) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
@@ -542,7 +542,7 @@ public class FavouriteController_v2 {
 			String token = request.getHeader("Authorization");
 
 			// JSONArray healthcheckList = healthCheckService.getAllHealthCheck(siteKey);
-			GridDataFormat gridDataFormat = healthCheckService.getHealthCheckData(siteKey, userId);
+			GridDataFormat gridDataFormat = healthCheckService.getHealthCheckData(siteKey, userId, projectId);
 
 			// if
 			// (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEALTHCHECK_COLUMN_ORDER))
@@ -556,7 +556,7 @@ public class FavouriteController_v2 {
 			}
 
 			if (!gridDataFormat.getData().isEmpty()) {
-				com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId);
+				com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId, projectId);
 				responseModel.setjData(gridData.getData());
 				responseModel.setHeaderInfo(gridData.getHeaderInfo());
 				responseModel.setResponseDescription("HealthCheck Successfully retrieved by sitekey ");
@@ -614,7 +614,7 @@ public class FavouriteController_v2 {
 		JSONArray resultArray = new JSONArray();
 		if (reportCategory.equalsIgnoreCase("healthcheck") && (categoryType.equalsIgnoreCase("healthcheck"))) {
 
-			JSONArray healthCheckArray = healthCheckService.getAllHealthCheck(siteKey, false, userId);
+			JSONArray healthCheckArray = healthCheckService.getAllHealthCheck(siteKey, false, userId, projectID);
 
 			DeviceTypeModel deviceTypeModel1 = new DeviceTypeModel();
 			deviceTypeModel1.setName("healthCheck");
