@@ -319,7 +319,7 @@ public class HealthCheckService {
 				query = "select * from health_check where is_active = 'true' and ((create_by = '" + userId
 						+ "' and site_key = '" + siteKey + "') or ((site_access_list like '%" + siteKey
 						+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
-						+ "%' or user_access_list  like '%All%')))order by health_check_name ASC";
+						+ "%' or user_access_list  like '%All%'))) order by health_check_name ASC";
 				
 //				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
 //						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
