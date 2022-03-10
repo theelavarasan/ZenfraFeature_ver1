@@ -400,6 +400,22 @@ public class HealthCheckService {
 					JSONObject healthCheckModel = new JSONObject();
 					healthCheckModel.put("healthCheckId", resultSet.getString("healthCheckId"));
 					healthCheckModel.put("componentType", resultSet.getString("componentType"));
+					healthCheckModel.put("healthCheckName", resultSet.getString("healthCheckName"));
+					healthCheckModel.put("reportBy", resultSet.getString("reportBy"));
+					healthCheckModel.put("reportCondition",(resultSet.getString("reportCondition")));
+					healthCheckModel.put("reportName", resultSet.getString("reportName"));
+					healthCheckModel.put("siteAccessList", resultSet.getString("siteAccessList"));
+					healthCheckModel.put("siteKey", resultSet.getString("siteKey"));
+					healthCheckModel.put("userAccessList", resultSet.getString("userAccessList"));
+					healthCheckModel.put("createdTime", resultSet.getString("createdTime"));
+					healthCheckModel.put("updatedTime", resultSet.getString("updatedTime"));
+					healthCheckModel.put("userId", resultSet.getString("userId"));
+					healthCheckModel.put("analyticsType", resultSet.getString("analyticsType"));
+					healthCheckModel.put("createdBy", resultSet.getString("createdBy"));
+					healthCheckModel.put("updatedBy", resultSet.getString("updatedBy"));
+					System.out.println("--------getAnalyticsType-----------" + resultSet.getString("analyticsType"));
+					System.out.println("--------------getCreateBy-----------------------" + resultSet.getString("createdBy")); 
+					System.out.println("--------------getCreatedDate-----------------------" + resultSet.getString("createdTime"));
 					resultArray.add(healthCheckModel);
 				}
 			
