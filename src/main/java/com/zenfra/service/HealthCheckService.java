@@ -52,7 +52,6 @@ public class HealthCheckService {
 	@Autowired
 	SiteService siteService;
 	
-	@Autowired
 	DBUtils dbUtils;
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
