@@ -353,6 +353,12 @@ public class HealthCheckService {
 		String query = null;
 		try {
 			if(projectId != null && !projectId.isEmpty()) {
+				
+				query = "select * from health_check where site_key='" + siteKey
+						+ "' and report_by ='" + projectId + "' and is_active='true' order by health_check_name ASC";
+				
+					System.out.println("---------------------log1----------------");
+			}else {
 				query = "select * from health_check where site_key='" + siteKey
 						+ "' and is_active='true' order by health_check_name ASC";
 				if (!isTenantAdmin) {
@@ -360,14 +366,8 @@ public class HealthCheckService {
 							+ "' and site_key = '" + siteKey + "') or ((site_access_list like '%" + siteKey
 							+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
 							+ "%' or user_access_list  like '%All%')))order by health_check_name ASC";
-					System.out.println("---------------------log1----------------");
-
-					
 				}
 				System.out.println("---------------------log2-----------------");
-			}else {
-				query = "select * from health_check where site_key='" + siteKey
-						+ "' and report_by ='" + projectId + "' and is_active='true' order by health_check_name ASC";
 			}
 			System.out.println("-------------query-----------------" + query);
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
