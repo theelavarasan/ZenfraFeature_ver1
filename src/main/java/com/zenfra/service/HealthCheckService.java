@@ -80,7 +80,8 @@ public class HealthCheckService {
 //				+ "";
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn(
 				"select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",
-				HealthCheck.class);		savedObj.setAuthUserId(authUserId);
+				HealthCheck.class);
+		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
 			try {
 //				healthCheckModel.put("healthCheckId", healthCheck.getHealthCheckId());
@@ -101,15 +102,15 @@ public class HealthCheckService {
 //				System.out.println("--------getAnalyticsType-----------" + healthCheck.getAnalyticsType());
 //				System.out.println("--------------getCreateBy-----------------------" + healthCheck.getCreateBy()); 
 //				System.out.println("--------------getCreatedDate-----------------------" + healthCheck.getCreatedDate());
-				
+
 				healthCheckModel = convertEntityToModel(savedObj);
 
 				System.out.println("healthCheckModel::" + healthCheckModel);
 
-			}catch (Exception e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
+
 			boolean isWriteAccess = false;
 			if (healthCheck.getAuthUserId() != null) {
 				boolean isTenantAdmin = false;
@@ -125,7 +126,7 @@ public class HealthCheckService {
 			}
 			healthCheckModel.put("isWriteAccess", isWriteAccess);
 //			healthCheckModel = convertEntityToModel(savedObj);
-			
+
 			System.out.println("healthCheckModel::" + healthCheckModel);
 		}
 
@@ -280,15 +281,12 @@ public class HealthCheckService {
 		}
 		try {
 			response.put("createdTime", formatter.format(healthCheck.getCreatedDate()));
-			
+
 		} catch (Exception e) {
 			response.put("createdTime", "");
 		}
-		
-		System.out.println("---------------------getFirst_name-----------" + user.getFirst_name() + "-----------------getLast_name" + user.getLast_name());
 		if (healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
-			System.out.println("------------------updatedBy---------------------" + response.get("updatedBy"));
 		} else if (!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
 			if (updateUser != null) {
@@ -305,7 +303,7 @@ public class HealthCheckService {
 		} catch (Exception e) {
 			response.put("updatedTime", "");
 		}
-		
+
 		response.put("userId", healthCheck.getUserId());
 
 		boolean isWriteAccess = false;
@@ -352,13 +350,10 @@ public class HealthCheckService {
 		JSONArray resultArray = new JSONArray();
 		String query = null;
 		try {
-			if(projectId != null && !projectId.isEmpty()) {
-				
-				query = "select * from health_check where site_key='" + siteKey
-						+ "' and report_by ='" + projectId + "' and is_active='true' order by health_check_name ASC";
-				
-					System.out.println("---------------------log1----------------");
-			}else {
+			if (projectId != null && !projectId.isEmpty()) {
+				query = "select * from health_check where site_key='" + siteKey + "' and report_by ='" + projectId
+						+ "' and is_active='true' order by health_check_name ASC";
+			} else {
 				query = "select * from health_check where site_key='" + siteKey
 						+ "' and is_active='true' order by health_check_name ASC";
 				if (!isTenantAdmin) {
@@ -367,7 +362,6 @@ public class HealthCheckService {
 							+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
 							+ "%' or user_access_list  like '%All%')))order by health_check_name ASC";
 				}
-				System.out.println("---------------------log2-----------------");
 			}
 			System.out.println("-------------query-----------------" + query);
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
@@ -389,7 +383,7 @@ public class HealthCheckService {
 
 		return resultArray;
 	}
-	
+
 	public JSONArray getHealthCheckNames(String siteKey) {
 		JSONArray resultArray = new JSONArray();
 		try {
@@ -687,14 +681,14 @@ public class HealthCheckService {
 			toReturnHeader.setActualName(key);
 			// String dataType = data.getClass().getSimpleName();
 			toReturnHeader.setDataType("String");
-			//String dataType = data.getClass().getSimpleName();
-			
+			// String dataType = data.getClass().getSimpleName();
+
 			String string = toReturnHeader.getActualName();
-			if(string == "createdTime" || string == "updatedTime") {
+			if (string == "createdTime" || string == "updatedTime") {
 				toReturnHeader.setDataType("date");
-			}else {
+			} else {
 				toReturnHeader.setDataType("String");
-			}			
+			}
 
 			String displayName = commonFunctions.convertCamelCase(key);
 
