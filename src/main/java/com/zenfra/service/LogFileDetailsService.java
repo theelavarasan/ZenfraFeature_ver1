@@ -113,7 +113,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 			for (LogFileDetails log : logFile) {						
 
-				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("AWS") || log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
 
 					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("import_success");
@@ -151,8 +151,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				log.setParsedDateTime(common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()));
 				log.setParsingStartTime(common.convertToUtc(TimeZone.getDefault(), log.getParsingStartTime()));
 				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
-						&& (log.getLogType().equalsIgnoreCase("AWS")
-								|| log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+						&& (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
 					log.setCreatedDateTime(log.getCreatedDateTime());
 					log.setUpdatedDateTime(log.getCreatedDateTime());
 					log.setParsedDateTime(log.getCreatedDateTime());
