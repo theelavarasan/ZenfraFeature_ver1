@@ -2,6 +2,10 @@ package com.zenfra.service;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.catalina.mapper.Mapper;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -27,8 +30,8 @@ import com.zenfra.model.HealthCheckModel;
 import com.zenfra.model.SiteModel;
 import com.zenfra.model.Users;
 import com.zenfra.model.ZKConstants;
-import com.zenfra.model.ZenfraJSONObject;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
@@ -48,6 +51,9 @@ public class HealthCheckService {
 
 	@Autowired
 	SiteService siteService;
+	
+	@Autowired
+	DBUtils dbUtils;
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
@@ -384,16 +390,19 @@ public class HealthCheckService {
 			}
 
 			System.out.println("--------------query--------------" + query);
-			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
-			JSONObject jsonObject = (JSONObject) healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
-			if(jsonObject != null && !jsonObject.isEmpty()) {
-				for(int i = 0; i < jsonObject.size() ; i++) {
+//			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
+//			JSONObject jsonObject = (JSONObject) healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
+			Map<String, String> list = (Map<String, String>) dbUtils.getPostgres();
+			Connection conn = DriverManager.getConnection(list.get("url"),list.get("userName"),list.get("password"));
+			Statement statement = conn.createStatement();
+			ResultSet resultSet = statement.executeQuery(query);
+			
+			while(resultSet.next()) {
 					JSONObject healthCheckModel = new JSONObject();
-					healthCheckModel.put("healthCheckId", jsonObject.get("healthCheckId"));
-					healthCheckModel.put("componentType", jsonObject.get("componentType"));
+					healthCheckModel.put("healthCheckId", resultSet.getString("healthCheckId"));
+					healthCheckModel.put("componentType", resultSet.getString("componentType"));
 					resultArray.add(healthCheckModel);
 				}
-			}
 			
 //			if (resultList != null && !resultList.isEmpty()) {
 //				for (Object obj : resultList) {
