@@ -282,9 +282,9 @@ public class HealthCheckService {
 		}
 		
 
-		if (healthCheck.getCreateBy() != null && healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
-			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
-		} else if (healthCheck.getCreateBy() != null && !healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
+		if (healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
+			response.put("updatedBy", user.getFirst_name() != null ? user.getFirst_name() : "" + " " + user.getLast_name() != null ? user.getLast_name() : "");
+		} else if (!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
 			if (updateUser != null) {
 				response.put("updatedBy", updateUser.getFirst_name() + " " + updateUser.getLast_name());
