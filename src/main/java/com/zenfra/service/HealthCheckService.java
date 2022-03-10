@@ -257,10 +257,10 @@ public class HealthCheckService {
 		}
 
 		List<String> uList = new ArrayList<String>();
-		uList.addAll(Arrays.asList(healthCheck.getUserAccessList().split(",")));
+		uList.addAll(Arrays.asList(healthCheck != null ? healthCheck.getUserAccessList().split(",") : null));
 
 		List<String> sList = new ArrayList<String>();
-		sList.addAll(Arrays.asList(healthCheck.getSiteAccessList().split(",")));
+		sList.addAll(Arrays.asList(healthCheck != null ? healthCheck.getSiteAccessList().split(",") : null));
 
 		response.put("siteAccessList", sList);
 		response.put("userAccessList", uList);
