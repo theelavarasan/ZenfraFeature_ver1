@@ -285,9 +285,10 @@ public class HealthCheckService {
 			response.put("createdTime", "");
 		}
 		
-
+		System.out.println("---------------------getFirst_name-----------" + user.getFirst_name() + "-----------------getLast_name" + user.getLast_name());
 		if (healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
+			System.out.println("------------------updatedBy---------------------" + response.get("updatedBy"));
 		} else if (!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
 			if (updateUser != null) {
@@ -359,11 +360,16 @@ public class HealthCheckService {
 							+ "' and site_key = '" + siteKey + "') or ((site_access_list like '%" + siteKey
 							+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
 							+ "%' or user_access_list  like '%All%')))order by health_check_name ASC";
+					System.out.println("---------------------log1----------------");
+
+					
 				}
+				System.out.println("---------------------log2-----------------");
 			}else {
 				query = "select * from health_check where site_key='" + siteKey
 						+ "' and report_by ='" + projectId + "' and is_active='true' order by health_check_name ASC";
 			}
+			System.out.println("-------------query-----------------" + query);
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
 			if (resultList != null && !resultList.isEmpty()) {
 				for (Object obj : resultList) {
