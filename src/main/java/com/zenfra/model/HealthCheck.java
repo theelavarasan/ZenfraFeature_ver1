@@ -93,6 +93,12 @@ public class HealthCheck implements Serializable {
 	@Column
 	private String analyticsType;
 	
+	@Transient
+	private String createdTime;
+	
+	@Transient
+	private String updatedTime;
+	
 
 	public String getCreateBy() {
 		return createBy;
@@ -228,6 +234,24 @@ public class HealthCheck implements Serializable {
 
 	public void setAnalyticsType(String analyticsType) {
 		this.analyticsType = analyticsType;
+	}
+
+	public String getCreatedTime() {
+		return createdTime;
+	}
+
+	public void setCreatedTime(String createdTime) {
+		this.createdTime = createdTime;
+	}
+
+	public String getUpdatedTime() {
+		return updatedTime;
+	}
+
+	public void setUpdatedTime(String updatedTime) {
+		this.updatedTime = updatedTime;
 	}	
+	
+	
 	
 }

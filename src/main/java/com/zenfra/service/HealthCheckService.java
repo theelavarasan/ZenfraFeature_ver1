@@ -307,10 +307,10 @@ public class HealthCheckService {
 					+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
 					+ "to_char(to_timestamp(created_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
 					+ "to_char(to_timestamp(update_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
-					+ "user_id as userId, analytics_type as analyticsType, a.createdBy, c.updatedBy\r\n"
+					+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy\r\n"
 					+ "FROM health_check h\r\n"
-					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createdBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
-					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updatedBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
+					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
+					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
 					+ "where is_active='true' and site_key='" + siteKey + "' order by health_check_name ASC";
 			
 //			String query = "select * from health_check where site_key='" + siteKey
@@ -326,10 +326,10 @@ public class HealthCheckService {
 						+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
 						+ "to_char(to_timestamp(created_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
 						+ "to_char(to_timestamp(update_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
-						+ "user_id as userId, analytics_type as analyticsType, a.createdBy, c.updatedBy\r\n"
+						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy\r\n"
 						+ "FROM health_check h\r\n"
-						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createdBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
-						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updatedBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
+						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
+						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
 						+ "where is_active='true' and ((create_by = '" + userId + "' \r\n"
 						+ "and site_key = '%" + siteKey + "%') or \r\n"
 						+ "((site_access_list like '%" + siteKey + "%' or site_access_list like '%All%') and \r\n"
@@ -338,6 +338,7 @@ public class HealthCheckService {
 
 			System.out.println("--------------query--------------" + query);
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
+//			JSONObject jsonObject = (JSONObject) healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
 			if (resultList != null && !resultList.isEmpty()) {
 				for (Object obj : resultList) {
 					if (obj instanceof HealthCheck) {
