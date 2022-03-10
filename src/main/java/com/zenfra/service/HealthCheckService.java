@@ -67,7 +67,7 @@ public class HealthCheckService {
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
 		ObjectMapper mapper = new ObjectMapper();
-		String getHealthCheckQuery = "select health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
+		/*String getHealthCheckQuery = "select health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
 				+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
 				+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
 				+ "to_char(to_timestamp(created_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdDate,\r\n"
@@ -78,11 +78,12 @@ public class HealthCheckService {
 				+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updatedBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
 				+ "where health_check_id='" + healthCheckId + "' and is_active='true' ORDER BY  health_check_id, is_active\r\n"
 				+ "";
-		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn(getHealthCheckQuery,HealthCheck.class);
+				*/
+		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",HealthCheck.class);
 		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
 			try {
-				healthCheckModel.put("healthCheckId", healthCheck.getHealthCheckId());
+				/*healthCheckModel.put("healthCheckId", healthCheck.getHealthCheckId());
 				healthCheckModel.put("componentType", healthCheck.getComponentType());
 				healthCheckModel.put("healthCheckName", healthCheck.getHealthCheckName());
 				healthCheckModel.put("reportBy", healthCheck.getReportBy());
@@ -96,10 +97,9 @@ public class HealthCheckService {
 				healthCheckModel.put("userId", healthCheck.getUserId());
 				healthCheckModel.put("analyticsType", healthCheck.getAnalyticsType());
 				healthCheckModel.put("createdBy", healthCheck.getCreateBy());
-				healthCheckModel.put("updatedBy", healthCheck.getUpdateBy());
-				System.out.println("--------getAnalyticsType-----------" + healthCheck.getAnalyticsType());
-				System.out.println("--------------getCreateBy-----------------------" + healthCheck.getCreateBy()); 
-				System.out.println("--------------getCreatedDate-----------------------" + healthCheck.getCreatedDate()); 
+				healthCheckModel.put("updatedBy", healthCheck.getUpdateBy());*/
+				
+				healthCheckModel = convertEntityToModel(savedObj);
 			}catch (Exception e) {
 				e.printStackTrace();
 			}
