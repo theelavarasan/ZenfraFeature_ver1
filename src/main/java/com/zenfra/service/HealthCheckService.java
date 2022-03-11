@@ -303,7 +303,7 @@ public class HealthCheckService {
 	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId) {
 		JSONArray resultArray = new JSONArray();
 		ObjectMapper mapper = new ObjectMapper();
-
+		HealthCheck healthCheck;
 		try {
 			String query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
 					+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
@@ -342,32 +342,47 @@ public class HealthCheckService {
 			System.out.println("--------------query--------------" + query);
 //			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
 			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
-			System.out.println("-----------------resultList---------------------" + resultList.get(1));
+//			System.out.println("-----------------resultList---------------------" + resultList.get(1));
 			if (resultList != null && !resultList.isEmpty()) {
-				System.out.println("-----------resultList if loop------------" + resultList.get(1));
+//				System.out.println("-----------resultList if loop------------" + resultList.get(1));
 				for (Map<String, Object> mapObject : resultList) {
-					System.out.println("-----------------hc for loop--------------------");
-					JSONObject healthCheckModel = new JSONObject();
+						JSONObject healthCheckModel = new JSONObject();
 						healthCheckModel.put("healthCheckId", mapObject.get("healthcheckid"));
 						healthCheckModel.put("componentType", mapObject.get("componenttype"));
 						healthCheckModel.put("healthCheckName", mapObject.get("healthcheckname"));
 						healthCheckModel.put("reportBy", mapObject.get("reportby"));
 						healthCheckModel.put("reportCondition", mapObject.get("reportcondition"));
 						healthCheckModel.put("reportName", mapObject.get("reportname"));
-						healthCheckModel.put("siteAccessList", mapObject.get("siteaccesslist"));
+						healthCheckModel.put("siteAccessList", Arrays.asList( mapObject.get("siteaccesslist") != null ?  ((String) mapObject.get("siteaccesslist")).split(",") : null));
 						healthCheckModel.put("siteKey", mapObject.get("sitekey"));
-						healthCheckModel.put("userAccessList", mapObject.get("useraccesslist"));
+						healthCheckModel.put("userAccessList", Arrays.asList(mapObject.get("useraccesslist") != null ? ((String) mapObject.get("useraccesslist")).split(",") : null));
 						healthCheckModel.put("createdTime", mapObject.get("createdtime"));
 						healthCheckModel.put("updatedTime", mapObject.get("updatedtime"));
 						healthCheckModel.put("userId", mapObject.get("userid"));
 						healthCheckModel.put("analyticsType", mapObject.get("analyticstype"));
-						healthCheckModel.put("createdBy", mapObject.get("createby"));
-						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
+						healthCheckModel.put("createdById", mapObject.get("createby"));
+						healthCheckModel.put("updatedById", mapObject.get("updateby"));
 						System.out.println("--------getAnalyticsType-----------" + mapObject.get("analyticstype"));
 						System.out.println("--------------getCreateBy-----------------------" + mapObject.get("createby")); 
 						System.out.println("--------------getCreatedDate-----------------------" + mapObject.get("createdtime"));
-						
+							
 //						JSONObject response = convertEntityToModel((HealthCheck) obj);
+						boolean isWriteAccess = false;
+						if (mapObject.get("userid") != null) {
+							boolean isTenantAdmin1 = false;
+
+							Users loginUser = userCreateService.getUserByUserId(mapObject.get("userid").toString());
+							if (loginUser != null && loginUser.isIs_tenant_admin()) {
+								isTenantAdmin1 = true;
+							}
+
+							if (isTenantAdmin1 || mapObject.get("createby").toString().equalsIgnoreCase(mapObject.get("userid").toString())) {
+								isWriteAccess = true;
+							}
+						}
+
+						healthCheckModel.put("isWriteAccess", isWriteAccess);
+						
 						resultArray.add(healthCheckModel);
 				}
 			}
