@@ -424,6 +424,7 @@ public class HealthCheckService {
 //						JSONObject response = convertEntityToModel((HealthCheck) obj);
 						resultArray.add(healthCheckModel);
 					}
+					resultArray.add(healthCheckModel);
 				}
 			}
 			
