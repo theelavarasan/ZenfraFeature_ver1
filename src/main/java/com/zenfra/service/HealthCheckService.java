@@ -390,18 +390,24 @@ public class HealthCheckService {
 
 			System.out.println("--------------query--------------" + query);
 //			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
-			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
-			System.out.println("-----------------resultList---------------------" + resultList.get(1));
-			if (resultList != null && !resultList.isEmpty()) {
-				System.out.println("-----------------------" + resultList.get(1));
-				for (Object obj : resultList) {
-					System.out.println("-------------------------------------" + obj.toString());
-					JSONObject healthCheckModel = new JSONObject();
-					healthCheckModel.put("healthCheckId", obj);
+			
+//			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
+//			System.out.println("-----------------resultList---------------------" + resultList.get(1));
+			
+
+			List<Object> object = (List<Object>) healthCheckDao.getObjectByQuery(query, HealthCheck.class);
+			System.out.println("-----------------resultList---------------------" + object.get(1));
+			if (object != null && !object.isEmpty()) {
+//				System.out.println("-----------if loop------------" + resultList.get(1));
+				System.out.println("-----------------resultList---------------------" + object.get(1));
+				for (Object obj : object) {
+					System.out.println("----------------for loop---------------------" + obj.toString());
+//					JSONObject healthCheckModel = new JSONObject();
+//					healthCheckModel.put("healthCheckId", obj);
 					
 					if (obj instanceof HealthCheck) {
-						System.out.println("-----------------------------------------" + ((HealthCheck) obj).getCreateBy());
-//						JSONObject healthCheckModel = new JSONObject();
+						System.out.println("----------------------if loop-------------------" + ((HealthCheck) obj).getCreateBy());
+						JSONObject healthCheckModel = new JSONObject();
 						healthCheckModel.put("healthCheckId", ((HealthCheck) obj).getHealthCheckId());
 						healthCheckModel.put("componentType", ((HealthCheck) obj).getComponentType());
 						healthCheckModel.put("healthCheckName", ((HealthCheck) obj).getHealthCheckName());
