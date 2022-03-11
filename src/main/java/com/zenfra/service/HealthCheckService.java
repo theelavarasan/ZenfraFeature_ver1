@@ -415,8 +415,8 @@ public class HealthCheckService {
 						System.out.println("--------------getCreateBy-----------------------" + ((HealthCheck) obj).getCreateBy()); 
 						System.out.println("--------------getCreatedDate-----------------------" + ((HealthCheck) obj).getCreatedDate());
 						
-						JSONObject response = convertEntityToModel((HealthCheck) obj);
-						resultArray.add(response);
+//						JSONObject response = convertEntityToModel((HealthCheck) obj);
+						resultArray.add(healthCheckModel);
 					}
 				}
 			}
