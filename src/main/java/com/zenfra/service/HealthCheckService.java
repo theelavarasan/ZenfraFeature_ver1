@@ -389,7 +389,8 @@ public class HealthCheckService {
 			}
 
 			System.out.println("--------------query--------------" + query);
-			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);			
+//			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
+			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
 			if (resultList != null && !resultList.isEmpty()) {
 				for (Object obj : resultList) {
 					if (obj instanceof HealthCheck) {
