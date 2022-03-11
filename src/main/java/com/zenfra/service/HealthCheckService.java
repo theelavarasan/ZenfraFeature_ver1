@@ -347,21 +347,23 @@ public class HealthCheckService {
 //				System.out.println("-----------resultList if loop------------" + resultList.get(1));
 				for (Map<String, Object> mapObject : resultList) {
 						JSONObject healthCheckModel = new JSONObject();
-						healthCheckModel.put("healthCheckId", mapObject.get("healthcheckid"));
+						 healthCheckModel.put("healthCheckId", mapObject.get("healthcheckid"));
 						healthCheckModel.put("componentType", mapObject.get("componenttype"));
 						healthCheckModel.put("healthCheckName", mapObject.get("healthcheckname"));
 						healthCheckModel.put("reportBy", mapObject.get("reportby"));
 						healthCheckModel.put("reportCondition", mapObject.get("reportcondition"));
 						healthCheckModel.put("reportName", mapObject.get("reportname"));
 						healthCheckModel.put("siteAccessList", Arrays.asList( mapObject.get("siteaccesslist") != null ?  ((String) mapObject.get("siteaccesslist")).split(",") : null));
-						healthCheckModel.put("siteKey", mapObject.get("sitekey"));
+						 healthCheckModel.put("siteKey", mapObject.get("sitekey"));
 						healthCheckModel.put("userAccessList", Arrays.asList(mapObject.get("useraccesslist") != null ? ((String) mapObject.get("useraccesslist")).split(",") : null));
 						healthCheckModel.put("createdTime", mapObject.get("createdtime"));
 						healthCheckModel.put("updatedTime", mapObject.get("updatedtime"));
 						healthCheckModel.put("userId", mapObject.get("userid"));
+						healthCheckModel.put("createdById", mapObject.get("userid"));
+						healthCheckModel.put("updatedById", mapObject.get("userid"));
 						healthCheckModel.put("analyticsType", mapObject.get("analyticstype"));
-						healthCheckModel.put("createdById", mapObject.get("createby"));
-						healthCheckModel.put("updatedById", mapObject.get("updateby"));
+						healthCheckModel.put("createdBy", mapObject.get("createby"));
+						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
 						System.out.println("--------getAnalyticsType-----------" + mapObject.get("analyticstype"));
 						System.out.println("--------------getCreateBy-----------------------" + mapObject.get("createby")); 
 						System.out.println("--------------getCreatedDate-----------------------" + mapObject.get("createdtime"));
@@ -565,8 +567,8 @@ public class HealthCheckService {
 				 * }
 				 */
 
-				boolean isreadAccess = true;
-				boolean isWriteAccess = false;
+//				boolean isreadAccess = true;
+//				boolean isWriteAccess = false;
 				Set<String> keys = jObj.keySet();
 				for (String key : keys) {
 
@@ -578,10 +580,10 @@ public class HealthCheckService {
 
 				if (jObj.size() > 0) {
 					// Share Access updated.
-					if (isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId)) {
-						isWriteAccess = true;
-					}
-					jObj.put("isWriteAccess", isWriteAccess);
+//					if (isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId)) {
+//						isWriteAccess = true;
+//					}
+//					jObj.put("isWriteAccess", isWriteAccess);
 
 					if (jObj.containsKey("siteAccessList")) {
 						JSONArray siteAccessList = new ObjectMapper().convertValue(jObj.get("siteAccessList"),
@@ -634,25 +636,27 @@ public class HealthCheckService {
 				}
 			}
 			// System.out.println("gridData : " + gridData);
-			for (int i = 0; i < gridData.size(); i++) {
-				JSONObject site = (JSONObject) gridData.get(i);
-				if (userMap.containsKey(site.get("createdBy"))) {
-					JSONObject user = userMap.get(site.get("createdBy"));
-					if (user.containsKey("first_name") && user.containsKey("last_name")) {
-						site.remove("createdBy");
-						site.put("createdBy", user.get("first_name") + " " + user.get("last_name"));
-					}
-				}
-
-				if (userMap.containsKey(site.get("updatedBy"))) {
-					JSONObject user = userMap.get(site.get("updatedBy"));
-					if (user.containsKey("first_name") && user.containsKey("last_name")) {
-						site.remove("updatedBy");
-						site.put("updatedBy", user.get("first_name") + " " + user.get("last_name"));
-					}
-				}
-
-			}
+//			for (int i = 0; i < gridData.size(); i++) {
+//				JSONObject site = (JSONObject) gridData.get(i);
+//				if (userMap.containsKey(site.get("createdBy"))) {
+//					JSONObject user = userMap.get(site.get("createdBy"));
+//					if (user.containsKey("first_name") && user.containsKey("last_name")) {
+//						site.remove("createdBy");
+//						site.put("createdBy", user.get("first_name") + " " + user.get("last_name"));
+//					}
+//				}
+//
+//				if (userMap.containsKey(site.get("updatedBy"))) {
+//					JSONObject user = userMap.get(site.get("updatedBy"));
+//					if (user.containsKey("first_name") && user.containsKey("last_name")) {
+//						site.remove("updatedBy");
+//						site.put("updatedBy", user.get("first_name") + " " + user.get("last_name"));
+//					}
+//				}
+//
+//			}
+			
+			
 			gridHeaderList.addAll(headerKeys.values());
 			gridDataFormat.setData(gridData);
 		} catch (Exception e) {
