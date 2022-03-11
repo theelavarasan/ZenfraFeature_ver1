@@ -396,9 +396,12 @@ public class HealthCheckService {
 				System.out.println("-----------------------" + resultList.get(1));
 				for (Object obj : resultList) {
 					System.out.println("-------------------------------------" + obj.toString());
+					JSONObject healthCheckModel = new JSONObject();
+					healthCheckModel.put("healthCheckId", obj);
+					
 					if (obj instanceof HealthCheck) {
 						System.out.println("-----------------------------------------" + ((HealthCheck) obj).getCreateBy());
-						JSONObject healthCheckModel = new JSONObject();
+//						JSONObject healthCheckModel = new JSONObject();
 						healthCheckModel.put("healthCheckId", ((HealthCheck) obj).getHealthCheckId());
 						healthCheckModel.put("componentType", ((HealthCheck) obj).getComponentType());
 						healthCheckModel.put("healthCheckName", ((HealthCheck) obj).getHealthCheckName());
