@@ -393,8 +393,11 @@ public class HealthCheckService {
 			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
 			System.out.println("-----------------resultList---------------------" + resultList.get(1));
 			if (resultList != null && !resultList.isEmpty()) {
+				System.out.println("-----------------------" + resultList.get(1));
 				for (Object obj : resultList) {
+					System.out.println("-------------------------------------" + obj.toString());
 					if (obj instanceof HealthCheck) {
+						System.out.println("-----------------------------------------" + ((HealthCheck) obj).getCreateBy());
 						JSONObject healthCheckModel = new JSONObject();
 						healthCheckModel.put("healthCheckId", ((HealthCheck) obj).getHealthCheckId());
 						healthCheckModel.put("componentType", ((HealthCheck) obj).getComponentType());
