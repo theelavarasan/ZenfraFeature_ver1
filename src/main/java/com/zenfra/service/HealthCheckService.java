@@ -357,8 +357,8 @@ public class HealthCheckService {
 			String query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
 					+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
 					+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
-					+ "to_char(to_timestamp(created_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
-					+ "to_char(to_timestamp(update_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
+					+ "to_char(to_timestamp(created_date ::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
+					+ "to_char(to_timestamp(update_date ::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
 					+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy\r\n"
 					+ "FROM health_check h\r\n"
 					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
@@ -376,8 +376,8 @@ public class HealthCheckService {
 				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
 						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
 						+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
-						+ "to_char(to_timestamp(created_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
-						+ "to_char(to_timestamp(update_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
+						+ "to_char(to_timestamp(created_date ::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
+						+ "to_char(to_timestamp(update_date ::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
 						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy\r\n"
 						+ "FROM health_check h\r\n"
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
@@ -389,36 +389,7 @@ public class HealthCheckService {
 			}
 
 			System.out.println("--------------query--------------" + query);
-			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
-			JSONObject jsonObject = (JSONObject) healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
-//			Map<String, String> list = (Map<String, String>) dbUtils.getPostgres();
-//			Connection conn = DriverManager.getConnection(list.get("url"),list.get("userName"),list.get("password"));
-//			Statement statement = conn.createStatement();
-//			ResultSet resultSet = statement.executeQuery(query);
-//			
-//			while(resultSet.next()) {
-//					JSONObject healthCheckModel = new JSONObject();
-//					healthCheckModel.put("healthCheckId", resultSet.getString("healthCheckId"));
-//					healthCheckModel.put("componentType", resultSet.getString("componentType"));
-//					healthCheckModel.put("healthCheckName", resultSet.getString("healthCheckName"));
-//					healthCheckModel.put("reportBy", resultSet.getString("reportBy"));
-//					healthCheckModel.put("reportCondition",(resultSet.getString("reportCondition")));
-//					healthCheckModel.put("reportName", resultSet.getString("reportName"));
-//					healthCheckModel.put("siteAccessList", resultSet.getString("siteAccessList"));
-//					healthCheckModel.put("siteKey", resultSet.getString("siteKey"));
-//					healthCheckModel.put("userAccessList", resultSet.getString("userAccessList"));
-//					healthCheckModel.put("createdTime", resultSet.getString("createdTime"));
-//					healthCheckModel.put("updatedTime", resultSet.getString("updatedTime"));
-//					healthCheckModel.put("userId", resultSet.getString("userId"));
-//					healthCheckModel.put("analyticsType", resultSet.getString("analyticsType"));
-//					healthCheckModel.put("createdBy", resultSet.getString("createdBy"));
-//					healthCheckModel.put("updatedBy", resultSet.getString("updatedBy"));
-//					System.out.println("--------getAnalyticsType-----------" + resultSet.getString("analyticsType"));
-//					System.out.println("--------------getCreateBy-----------------------" + resultSet.getString("createdBy")); 
-//					System.out.println("--------------getCreatedDate-----------------------" + resultSet.getString("createdTime"));
-//					resultArray.add(healthCheckModel);
-//				}
-			
+			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);			
 			if (resultList != null && !resultList.isEmpty()) {
 				for (Object obj : resultList) {
 					if (obj instanceof HealthCheck) {
