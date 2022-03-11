@@ -378,7 +378,7 @@ public class HealthCheckService {
 								isTenantAdmin1 = true;
 							}
 
-							if (isTenantAdmin1 || mapObject.get("createby").toString().equalsIgnoreCase(mapObject.get("userid").toString())) {
+							if (isTenantAdmin1 || mapObject.get("createby") != null) {
 								isWriteAccess = true;
 							}
 						}
@@ -567,8 +567,8 @@ public class HealthCheckService {
 				 * }
 				 */
 
-//				boolean isreadAccess = true;
-//				boolean isWriteAccess = false;
+				boolean isreadAccess = true;
+				boolean isWriteAccess = false;
 				Set<String> keys = jObj.keySet();
 				for (String key : keys) {
 
@@ -580,10 +580,10 @@ public class HealthCheckService {
 
 				if (jObj.size() > 0) {
 					// Share Access updated.
-//					if (isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId)) {
-//						isWriteAccess = true;
-//					}
-//					jObj.put("isWriteAccess", isWriteAccess);
+					if (isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId)) {
+						isWriteAccess = true;
+					}
+					jObj.put("isWriteAccess", isWriteAccess);
 
 					if (jObj.containsKey("siteAccessList")) {
 						JSONArray siteAccessList = new ObjectMapper().convertValue(jObj.get("siteAccessList"),
