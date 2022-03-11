@@ -389,64 +389,64 @@ public class HealthCheckService {
 			}
 
 			System.out.println("--------------query--------------" + query);
-//			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
-//			JSONObject jsonObject = (JSONObject) healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
-			Map<String, String> list = (Map<String, String>) dbUtils.getPostgres();
-			Connection conn = DriverManager.getConnection(list.get("url"),list.get("userName"),list.get("password"));
-			Statement statement = conn.createStatement();
-			ResultSet resultSet = statement.executeQuery(query);
-			
-			while(resultSet.next()) {
-					JSONObject healthCheckModel = new JSONObject();
-					healthCheckModel.put("healthCheckId", resultSet.getString("healthCheckId"));
-					healthCheckModel.put("componentType", resultSet.getString("componentType"));
-					healthCheckModel.put("healthCheckName", resultSet.getString("healthCheckName"));
-					healthCheckModel.put("reportBy", resultSet.getString("reportBy"));
-					healthCheckModel.put("reportCondition",(resultSet.getString("reportCondition")));
-					healthCheckModel.put("reportName", resultSet.getString("reportName"));
-					healthCheckModel.put("siteAccessList", resultSet.getString("siteAccessList"));
-					healthCheckModel.put("siteKey", resultSet.getString("siteKey"));
-					healthCheckModel.put("userAccessList", resultSet.getString("userAccessList"));
-					healthCheckModel.put("createdTime", resultSet.getString("createdTime"));
-					healthCheckModel.put("updatedTime", resultSet.getString("updatedTime"));
-					healthCheckModel.put("userId", resultSet.getString("userId"));
-					healthCheckModel.put("analyticsType", resultSet.getString("analyticsType"));
-					healthCheckModel.put("createdBy", resultSet.getString("createdBy"));
-					healthCheckModel.put("updatedBy", resultSet.getString("updatedBy"));
-					System.out.println("--------getAnalyticsType-----------" + resultSet.getString("analyticsType"));
-					System.out.println("--------------getCreateBy-----------------------" + resultSet.getString("createdBy")); 
-					System.out.println("--------------getCreatedDate-----------------------" + resultSet.getString("createdTime"));
-					resultArray.add(healthCheckModel);
-				}
-			
-//			if (resultList != null && !resultList.isEmpty()) {
-//				for (Object obj : resultList) {
-//					if (obj instanceof HealthCheck) {
-//						JSONObject healthCheckModel = new JSONObject();
-//						healthCheckModel.put("healthCheckId", ((HealthCheck) obj).getHealthCheckId());
-//						healthCheckModel.put("componentType", ((HealthCheck) obj).getComponentType());
-//						healthCheckModel.put("healthCheckName", ((HealthCheck) obj).getHealthCheckName());
-//						healthCheckModel.put("reportBy", ((HealthCheck) obj).getReportBy());
-//						healthCheckModel.put("reportCondition", mapper.readValue(((HealthCheck) obj).getReportCondition(), JSONArray.class));
-//						healthCheckModel.put("reportName", ((HealthCheck) obj).getReportName());
-//						healthCheckModel.put("siteAccessList", Arrays.asList(((HealthCheck) obj).getSiteAccessList().split(",")));
-//						healthCheckModel.put("siteKey", ((HealthCheck) obj).getSiteKey());
-//						healthCheckModel.put("userAccessList", Arrays.asList(((HealthCheck) obj).getUserAccessList().split(",")));
-//						healthCheckModel.put("createdTime", ((HealthCheck) obj).getCreatedDate());
-//						healthCheckModel.put("updatedTime", ((HealthCheck) obj).getUpdateDate());
-//						healthCheckModel.put("userId", ((HealthCheck) obj).getUserId());
-//						healthCheckModel.put("analyticsType", ((HealthCheck) obj).getAnalyticsType());
-//						healthCheckModel.put("createdBy", ((HealthCheck) obj).getCreateBy());
-//						healthCheckModel.put("updatedBy", ((HealthCheck) obj).getUpdateBy());
-//						System.out.println("--------getAnalyticsType-----------" + ((HealthCheck) obj).getAnalyticsType());
-//						System.out.println("--------------getCreateBy-----------------------" + ((HealthCheck) obj).getCreateBy()); 
-//						System.out.println("--------------getCreatedDate-----------------------" + ((HealthCheck) obj).getCreatedDate());
-//						
-//						JSONObject response = convertEntityToModel((HealthCheck) obj);
-//						resultArray.add(response);
-//					}
+			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
+			JSONObject jsonObject = (JSONObject) healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
+//			Map<String, String> list = (Map<String, String>) dbUtils.getPostgres();
+//			Connection conn = DriverManager.getConnection(list.get("url"),list.get("userName"),list.get("password"));
+//			Statement statement = conn.createStatement();
+//			ResultSet resultSet = statement.executeQuery(query);
+//			
+//			while(resultSet.next()) {
+//					JSONObject healthCheckModel = new JSONObject();
+//					healthCheckModel.put("healthCheckId", resultSet.getString("healthCheckId"));
+//					healthCheckModel.put("componentType", resultSet.getString("componentType"));
+//					healthCheckModel.put("healthCheckName", resultSet.getString("healthCheckName"));
+//					healthCheckModel.put("reportBy", resultSet.getString("reportBy"));
+//					healthCheckModel.put("reportCondition",(resultSet.getString("reportCondition")));
+//					healthCheckModel.put("reportName", resultSet.getString("reportName"));
+//					healthCheckModel.put("siteAccessList", resultSet.getString("siteAccessList"));
+//					healthCheckModel.put("siteKey", resultSet.getString("siteKey"));
+//					healthCheckModel.put("userAccessList", resultSet.getString("userAccessList"));
+//					healthCheckModel.put("createdTime", resultSet.getString("createdTime"));
+//					healthCheckModel.put("updatedTime", resultSet.getString("updatedTime"));
+//					healthCheckModel.put("userId", resultSet.getString("userId"));
+//					healthCheckModel.put("analyticsType", resultSet.getString("analyticsType"));
+//					healthCheckModel.put("createdBy", resultSet.getString("createdBy"));
+//					healthCheckModel.put("updatedBy", resultSet.getString("updatedBy"));
+//					System.out.println("--------getAnalyticsType-----------" + resultSet.getString("analyticsType"));
+//					System.out.println("--------------getCreateBy-----------------------" + resultSet.getString("createdBy")); 
+//					System.out.println("--------------getCreatedDate-----------------------" + resultSet.getString("createdTime"));
+//					resultArray.add(healthCheckModel);
 //				}
-//			}
+			
+			if (resultList != null && !resultList.isEmpty()) {
+				for (Object obj : resultList) {
+					if (obj instanceof HealthCheck) {
+						JSONObject healthCheckModel = new JSONObject();
+						healthCheckModel.put("healthCheckId", ((HealthCheck) obj).getHealthCheckId());
+						healthCheckModel.put("componentType", ((HealthCheck) obj).getComponentType());
+						healthCheckModel.put("healthCheckName", ((HealthCheck) obj).getHealthCheckName());
+						healthCheckModel.put("reportBy", ((HealthCheck) obj).getReportBy());
+						healthCheckModel.put("reportCondition", mapper.readValue(((HealthCheck) obj).getReportCondition(), JSONArray.class));
+						healthCheckModel.put("reportName", ((HealthCheck) obj).getReportName());
+						healthCheckModel.put("siteAccessList", Arrays.asList(((HealthCheck) obj).getSiteAccessList().split(",")));
+						healthCheckModel.put("siteKey", ((HealthCheck) obj).getSiteKey());
+						healthCheckModel.put("userAccessList", Arrays.asList(((HealthCheck) obj).getUserAccessList().split(",")));
+						healthCheckModel.put("createdTime", ((HealthCheck) obj).getCreatedDate());
+						healthCheckModel.put("updatedTime", ((HealthCheck) obj).getUpdateDate());
+						healthCheckModel.put("userId", ((HealthCheck) obj).getUserId());
+						healthCheckModel.put("analyticsType", ((HealthCheck) obj).getAnalyticsType());
+						healthCheckModel.put("createdBy", ((HealthCheck) obj).getCreateBy());
+						healthCheckModel.put("updatedBy", ((HealthCheck) obj).getUpdateBy());
+						System.out.println("--------getAnalyticsType-----------" + ((HealthCheck) obj).getAnalyticsType());
+						System.out.println("--------------getCreateBy-----------------------" + ((HealthCheck) obj).getCreateBy()); 
+						System.out.println("--------------getCreatedDate-----------------------" + ((HealthCheck) obj).getCreatedDate());
+						
+						JSONObject response = convertEntityToModel((HealthCheck) obj);
+						resultArray.add(response);
+					}
+				}
+			}
 			
 			
 		} catch (Exception e) {
