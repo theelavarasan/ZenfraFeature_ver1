@@ -69,7 +69,7 @@ public class HealthCheckService {
 		ObjectMapper mapper = new ObjectMapper();
 		
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",HealthCheck.class);
-	
+		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
 			healthCheckModel = convertEntityToModel(savedObj);			
 			System.out.println("healthCheckModel::" + healthCheckModel);
