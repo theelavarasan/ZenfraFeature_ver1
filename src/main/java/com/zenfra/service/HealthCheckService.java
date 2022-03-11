@@ -74,59 +74,10 @@ public class HealthCheckService {
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
 		ObjectMapper mapper = new ObjectMapper();
-		/*String getHealthCheckQuery = "select health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
-				+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
-				+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
-				+ "to_char(to_timestamp(created_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdDate,\r\n"
-				+ "to_char(to_timestamp(update_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedDate, \r\n"
-				+ "user_id as userId, analytics_type as analyticsType, a.createdBy, c.updatedBy\r\n"
-				+ "from health_check h\r\n"
-				+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createdBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
-				+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updatedBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
-				+ "where health_check_id='" + healthCheckId + "' and is_active='true' ORDER BY  health_check_id, is_active\r\n"
-				+ "";
-				*/
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",HealthCheck.class);
 		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
 			healthCheckModel = convertEntityToModel(savedObj);
-			try {
-				/*healthCheckModel.put("healthCheckId", healthCheck.getHealthCheckId());
-				healthCheckModel.put("componentType", healthCheck.getComponentType());
-				healthCheckModel.put("healthCheckName", healthCheck.getHealthCheckName());
-				healthCheckModel.put("reportBy", healthCheck.getReportBy());
-				healthCheckModel.put("reportCondition", mapper.readValue(healthCheck.getReportCondition(), JSONArray.class));
-				healthCheckModel.put("reportName", healthCheck.getReportName());
-				healthCheckModel.put("siteAccessList", Arrays.asList(healthCheck.getSiteAccessList().split(",")));
-				healthCheckModel.put("siteKey", healthCheck.getSiteKey());
-				healthCheckModel.put("userAccessList", Arrays.asList(healthCheck.getUserAccessList().split(",")));
-				healthCheckModel.put("createdTime", healthCheck.getCreatedDate());
-				healthCheckModel.put("updatedTime", healthCheck.getUpdateDate());
-				healthCheckModel.put("userId", healthCheck.getUserId());
-				healthCheckModel.put("analyticsType", healthCheck.getAnalyticsType());
-				healthCheckModel.put("createdBy", healthCheck.getCreateBy());
-				healthCheckModel.put("updatedBy", healthCheck.getUpdateBy());*/
-				
-				healthCheckModel = convertEntityToModel(savedObj);
-			}catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			boolean isWriteAccess = false;
-			if (healthCheck.getAuthUserId() != null) {
-				boolean isTenantAdmin = false;
-
-				Users loginUser = userCreateService.getUserByUserId(healthCheck.getAuthUserId());
-				if (loginUser != null && loginUser.isIs_tenant_admin()) {
-					isTenantAdmin = true;
-				}
-
-				if (isTenantAdmin || healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getAuthUserId())) {
-					isWriteAccess = true;
-				}
-			}
-			healthCheckModel.put("isWriteAccess", isWriteAccess);
-//			healthCheckModel = convertEntityToModel(savedObj);			
 			System.out.println("healthCheckModel::" + healthCheckModel);
 		}
 
@@ -394,37 +345,30 @@ public class HealthCheckService {
 			System.out.println("-----------------resultList---------------------" + resultList.get(1));
 			if (resultList != null && !resultList.isEmpty()) {
 				System.out.println("-----------resultList if loop------------" + resultList.get(1));
-				for (Object obj : resultList) {
-					System.out.println("-----------------obj for loop--------------------" + obj.toString());
+				for (Map<String, Object> mapObject : resultList) {
+					System.out.println("-----------------hc for loop--------------------");
 					JSONObject healthCheckModel = new JSONObject();
-					healthCheckModel.put("healthCheckId", obj);
-					
-					if (obj instanceof HealthCheck) {
-						System.out.println("---------------------instance of--------------------" + ((HealthCheck) obj).getCreateBy());
-//						JSONObject healthCheckModel = new JSONObject();
-						healthCheckModel.put("healthCheckId", ((HealthCheck) obj).getHealthCheckId());
-						healthCheckModel.put("componentType", ((HealthCheck) obj).getComponentType());
-						healthCheckModel.put("healthCheckName", ((HealthCheck) obj).getHealthCheckName());
-						healthCheckModel.put("reportBy", ((HealthCheck) obj).getReportBy());
-						healthCheckModel.put("reportCondition", mapper.readValue(((HealthCheck) obj).getReportCondition(), JSONArray.class));
-						healthCheckModel.put("reportName", ((HealthCheck) obj).getReportName());
-						healthCheckModel.put("siteAccessList", Arrays.asList(((HealthCheck) obj).getSiteAccessList().split(",")));
-						healthCheckModel.put("siteKey", ((HealthCheck) obj).getSiteKey());
-						healthCheckModel.put("userAccessList", Arrays.asList(((HealthCheck) obj).getUserAccessList().split(",")));
-						healthCheckModel.put("createdTime", ((HealthCheck) obj).getCreatedDate());
-						healthCheckModel.put("updatedTime", ((HealthCheck) obj).getUpdateDate());
-						healthCheckModel.put("userId", ((HealthCheck) obj).getUserId());
-						healthCheckModel.put("analyticsType", ((HealthCheck) obj).getAnalyticsType());
-						healthCheckModel.put("createdBy", ((HealthCheck) obj).getCreateBy());
-						healthCheckModel.put("updatedBy", ((HealthCheck) obj).getUpdateBy());
-						System.out.println("--------getAnalyticsType-----------" + ((HealthCheck) obj).getAnalyticsType());
-						System.out.println("--------------getCreateBy-----------------------" + ((HealthCheck) obj).getCreateBy()); 
-						System.out.println("--------------getCreatedDate-----------------------" + ((HealthCheck) obj).getCreatedDate());
+						healthCheckModel.put("healthCheckId", mapObject.get("healthcheckid"));
+						healthCheckModel.put("componentType", mapObject.get("componenttype"));
+						healthCheckModel.put("healthCheckName", mapObject.get("healthcheckname"));
+						healthCheckModel.put("reportBy", mapObject.get("reportby"));
+						healthCheckModel.put("reportCondition", mapObject.get("reportcondition"));
+						healthCheckModel.put("reportName", mapObject.get("reportname"));
+						healthCheckModel.put("siteAccessList", mapObject.get("siteaccesslist"));
+						healthCheckModel.put("siteKey", mapObject.get("sitekey"));
+						healthCheckModel.put("userAccessList", mapObject.get("useraccesslist"));
+						healthCheckModel.put("createdTime", mapObject.get("createdtime"));
+						healthCheckModel.put("updatedTime", mapObject.get("updatedtime"));
+						healthCheckModel.put("userId", mapObject.get("userid"));
+						healthCheckModel.put("analyticsType", mapObject.get("analyticstype"));
+						healthCheckModel.put("createdBy", mapObject.get("createby"));
+						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
+						System.out.println("--------getAnalyticsType-----------" + mapObject.get("analyticstype"));
+						System.out.println("--------------getCreateBy-----------------------" + mapObject.get("createby")); 
+						System.out.println("--------------getCreatedDate-----------------------" + mapObject.get("createdtime"));
 						
 //						JSONObject response = convertEntityToModel((HealthCheck) obj);
 						resultArray.add(healthCheckModel);
-					}
-					resultArray.add(healthCheckModel);
 				}
 			}
 			
