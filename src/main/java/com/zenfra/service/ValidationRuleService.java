@@ -858,7 +858,7 @@ public class ValidationRuleService {
 		
 		try {
 			String uniqueFilterQuery = "select keys, json_agg(data) as data from (\r\n"
-					+ "select keys, json_build_object('id', option_id, 'value', option_value) as data from (\r\n"
+					+ "select keys, json_build_object('id', coalesce(option_id,''), 'value', coalesce(option_value,'')) as data from (\r\n"
 					+ "select project_id, report_type_column_id as keys, report_type_column_value,option_id, option_value,\r\n"
 					+ "concat(report_type_column_value, '_', option_id) as label from (\r\n"
 					+ "select project_id, report_type_column_id, report_type_column_value, option_id, option_value,\r\n"
