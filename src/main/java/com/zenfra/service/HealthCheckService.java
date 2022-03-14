@@ -306,8 +306,8 @@ public class HealthCheckService {
 		HealthCheck healthCheck;
 		try {
 			String query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
-					+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
-					+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
+					+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList,\r\n"
+					+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList,\r\n"
 					+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
 					+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
 					+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy\r\n"
@@ -325,8 +325,8 @@ public class HealthCheckService {
 //						+ "%' or user_access_list  like '%All%'))) order by health_check_name ASC";
 				
 				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
-						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
-						+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
+						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList,\r\n"
+						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList,\r\n"
 						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
 						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
 						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy\r\n"
@@ -342,9 +342,7 @@ public class HealthCheckService {
 			System.out.println("--------------query--------------" + query);
 //			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
 			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
-//			System.out.println("-----------------resultList---------------------" + resultList.get(1));
 			if (resultList != null && !resultList.isEmpty()) {
-//				System.out.println("-----------resultList if loop------------" + resultList.get(1));
 				for (Map<String, Object> mapObject : resultList) {
 						JSONObject healthCheckModel = new JSONObject();
 						 healthCheckModel.put("healthCheckId", mapObject.get("healthcheckid"));
@@ -353,9 +351,9 @@ public class HealthCheckService {
 						healthCheckModel.put("reportBy", mapObject.get("reportby"));
 						healthCheckModel.put("reportCondition", mapObject.get("reportcondition"));
 						healthCheckModel.put("reportName", mapObject.get("reportname"));
-						healthCheckModel.put("siteAccessList", Arrays.asList( mapObject.get("siteaccesslist") != null ?  ((String) mapObject.get("siteaccesslist")).split(",") : null));
+						healthCheckModel.put("siteAccessList", mapObject != null ?  ((String) mapObject.get("siteaccesslist")).split(",") : "");
 						 healthCheckModel.put("siteKey", mapObject.get("sitekey"));
-						healthCheckModel.put("userAccessList", Arrays.asList(mapObject.get("useraccesslist") != null ? ((String) mapObject.get("useraccesslist")).split(",") : null));
+						healthCheckModel.put("userAccessList", mapObject != null ? ((String) mapObject.get("useraccesslist")).split(",") : "{}");
 						healthCheckModel.put("createdTime", mapObject.get("createdtime"));
 						healthCheckModel.put("updatedTime", mapObject.get("updatedtime"));
 						healthCheckModel.put("userId", mapObject.get("userid"));
@@ -364,10 +362,6 @@ public class HealthCheckService {
 						healthCheckModel.put("analyticsType", mapObject.get("analyticstype"));
 						healthCheckModel.put("createdBy", mapObject.get("createby"));
 						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
-						System.out.println("--------getAnalyticsType-----------" + mapObject.get("analyticstype"));
-						System.out.println("--------------getCreateBy-----------------------" + mapObject.get("createby")); 
-						System.out.println("--------------getCreatedDate-----------------------" + mapObject.get("createdtime"));
-							
 //						JSONObject response = convertEntityToModel((HealthCheck) obj);
 						boolean isWriteAccess = false;
 						if (mapObject.get("userid") != null) {
