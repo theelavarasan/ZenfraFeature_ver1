@@ -23,6 +23,8 @@ public class ValidationModel {
 	
 	private String model;
 	
+	private String projectId;
+	
 	private String osType;
 
 	public String getAuthUserId() {
@@ -95,6 +97,15 @@ public class ValidationModel {
 
 	public void setModel(String model) {
 		this.model = model;
+	}
+
+	
+	public String getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
 	}
 
 	

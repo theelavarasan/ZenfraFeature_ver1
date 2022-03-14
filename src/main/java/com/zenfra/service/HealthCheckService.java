@@ -27,7 +27,6 @@ import com.zenfra.model.SiteModel;
 import com.zenfra.model.Users;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.utils.CommonFunctions;
-import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
@@ -47,8 +46,6 @@ public class HealthCheckService {
 
 	@Autowired
 	SiteService siteService;
-	
-	DBUtils dbUtils;
 
 	private SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
@@ -70,10 +67,60 @@ public class HealthCheckService {
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
 		ObjectMapper mapper = new ObjectMapper();
+		/*String getHealthCheckQuery = "select health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
+				+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, site_access_list as siteAccessList,\r\n"
+				+ "site_key as siteKey, user_access_list as userAccessList,\r\n"
+				+ "to_char(to_timestamp(created_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdDate,\r\n"
+				+ "to_char(to_timestamp(update_date :: text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedDate, \r\n"
+				+ "user_id as userId, analytics_type as analyticsType, a.createdBy, c.updatedBy\r\n"
+				+ "from health_check h\r\n"
+				+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createdBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
+				+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updatedBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
+				+ "where health_check_id='" + healthCheckId + "' and is_active='true' ORDER BY  health_check_id, is_active\r\n"
+				+ "";
+				*/
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",HealthCheck.class);
 		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
-			healthCheckModel = convertEntityToModel(savedObj);
+			try {
+
+				/*healthCheckModel.put("healthCheckId", healthCheck.getHealthCheckId());
+				healthCheckModel.put("componentType", healthCheck.getComponentType());
+				healthCheckModel.put("healthCheckName", healthCheck.getHealthCheckName());
+				healthCheckModel.put("reportBy", healthCheck.getReportBy());
+				healthCheckModel.put("reportCondition", mapper.readValue(healthCheck.getReportCondition(), JSONArray.class));
+				healthCheckModel.put("reportName", healthCheck.getReportName());
+				healthCheckModel.put("siteAccessList", Arrays.asList(healthCheck.getSiteAccessList().split(",")));
+				healthCheckModel.put("siteKey", healthCheck.getSiteKey());
+				healthCheckModel.put("userAccessList", Arrays.asList(healthCheck.getUserAccessList().split(",")));
+				healthCheckModel.put("createdTime", healthCheck.getCreatedDate());
+				healthCheckModel.put("updatedTime", healthCheck.getUpdateDate());
+				healthCheckModel.put("userId", healthCheck.getUserId());
+				healthCheckModel.put("analyticsType", healthCheck.getAnalyticsType());
+				healthCheckModel.put("createdBy", healthCheck.getCreateBy());
+				healthCheckModel.put("updatedBy", healthCheck.getUpdateBy());*/
+				
+				healthCheckModel = convertEntityToModel(savedObj);
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			boolean isWriteAccess = false;
+			if (healthCheck.getAuthUserId() != null) {
+				boolean isTenantAdmin = false;
+
+				Users loginUser = userCreateService.getUserByUserId(healthCheck.getAuthUserId());
+				if (loginUser != null && loginUser.isIs_tenant_admin()) {
+					isTenantAdmin = true;
+				}
+
+				if (isTenantAdmin || healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getAuthUserId())) {
+					isWriteAccess = true;
+				}
+			}
+			healthCheckModel.put("isWriteAccess", isWriteAccess);
+//			healthCheckModel = convertEntityToModel(savedObj);
+
 			System.out.println("healthCheckModel::" + healthCheckModel);
 		}
 
@@ -209,10 +256,10 @@ public class HealthCheckService {
 		}
 
 		List<String> uList = new ArrayList<String>();
-		uList.addAll(Arrays.asList(healthCheck != null ? healthCheck.getUserAccessList().split(",") : null));
+		uList.addAll(Arrays.asList(healthCheck.getUserAccessList().split(",")));
 
 		List<String> sList = new ArrayList<String>();
-		sList.addAll(Arrays.asList(healthCheck != null ? healthCheck.getSiteAccessList().split(",") : null));
+		sList.addAll(Arrays.asList(healthCheck.getSiteAccessList().split(",")));
 
 		response.put("siteAccessList", sList);
 		response.put("userAccessList", uList);
@@ -228,14 +275,12 @@ public class HealthCheckService {
 		}
 		try {
 			response.put("createdTime", formatter.format(healthCheck.getCreatedDate()));
-			
+
 		} catch (Exception e) {
 			response.put("createdTime", "");
 		}
-		
-
-		if (user != null && healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
-			response.put("updatedBy", user.getFirst_name() != null ? user.getFirst_name() : "" + " " + user.getLast_name() != null ? user.getLast_name() : "");
+		if (healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
+			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
 		} else if (!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
 			if (updateUser != null) {
@@ -252,7 +297,7 @@ public class HealthCheckService {
 		} catch (Exception e) {
 			response.put("updatedTime", "");
 		}
-		
+
 		response.put("userId", healthCheck.getUserId());
 
 		boolean isWriteAccess = false;
@@ -295,91 +340,33 @@ public class HealthCheckService {
 		return response;
 	}
 
-	@SuppressWarnings("unchecked")
-	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId) {
+	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId, String projectId) {
 		JSONArray resultArray = new JSONArray();
-		ObjectMapper mapper = new ObjectMapper();
-		HealthCheck healthCheck;
+		String query = null;
 		try {
-			String query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
-					+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList,\r\n"
-					+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList,\r\n"
-					+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
-					+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
-					+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy\r\n"
-					+ "FROM health_check h\r\n"
-					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
-					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
-					+ "where is_active='true' and site_key='" + siteKey + "' order by health_check_name ASC";
-			
-//			String query = "select * from health_check where site_key='" + siteKey
-//					+ "' and is_active='true' order by health_check_name ASC";
-			if (!isTenantAdmin) {
-//				query = "select * from health_check where is_active = 'true' and ((create_by = '" + userId
-//						+ "' and site_key = '" + siteKey + "') or ((site_access_list like '%" + siteKey
-//						+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
-//						+ "%' or user_access_list  like '%All%'))) order by health_check_name ASC";
-				
-				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,\r\n"
-						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList,\r\n"
-						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList,\r\n"
-						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,\r\n"
-						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, \r\n"
-						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy\r\n"
-						+ "FROM health_check h\r\n"
-						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id \r\n"
-						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id\r\n"
-						+ "where is_active='true' and ((create_by = '" + userId + "' \r\n"
-						+ "and site_key = '%" + siteKey + "%') or \r\n"
-						+ "((site_access_list like '%" + siteKey + "%' or site_access_list like '%All%') and \r\n"
-						+ "(user_access_list like '%" + userId + "%' or user_access_list  like '%All%'))) order by health_check_name ASC";
-			}
-
-			System.out.println("--------------query--------------" + query);
-//			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
-			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
-			if (resultList != null && !resultList.isEmpty()) {
-				for (Map<String, Object> mapObject : resultList) {
-						JSONObject healthCheckModel = new JSONObject();
-						 healthCheckModel.put("healthCheckId", mapObject.get("healthcheckid"));
-						healthCheckModel.put("componentType", mapObject.get("componenttype"));
-						healthCheckModel.put("healthCheckName", mapObject.get("healthcheckname"));
-						healthCheckModel.put("reportBy", mapObject.get("reportby"));
-						healthCheckModel.put("reportCondition", mapObject.get("reportcondition"));
-						healthCheckModel.put("reportName", mapObject.get("reportname"));
-						healthCheckModel.put("siteAccessList", mapObject != null ?  ((String) mapObject.get("siteaccesslist")).split(",") : "");
-						 healthCheckModel.put("siteKey", mapObject.get("sitekey"));
-						healthCheckModel.put("userAccessList", mapObject != null ? ((String) mapObject.get("useraccesslist")).split(",") : "{}");
-						healthCheckModel.put("createdTime", mapObject.get("createdtime"));
-						healthCheckModel.put("updatedTime", mapObject.get("updatedtime"));
-						healthCheckModel.put("userId", mapObject.get("userid"));
-						healthCheckModel.put("createdById", mapObject.get("userid"));
-						healthCheckModel.put("updatedById", mapObject.get("userid"));
-						healthCheckModel.put("analyticsType", mapObject.get("analyticstype"));
-						healthCheckModel.put("createdBy", mapObject.get("createby"));
-						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
-//						JSONObject response = convertEntityToModel((HealthCheck) obj);
-						boolean isWriteAccess = false;
-						if (mapObject.get("userid") != null) {
-							boolean isTenantAdmin1 = false;
-
-							Users loginUser = userCreateService.getUserByUserId(mapObject.get("userid").toString());
-							if (loginUser != null && loginUser.isIs_tenant_admin()) {
-								isTenantAdmin1 = true;
-							}
-
-							if (isTenantAdmin1 || mapObject.get("createby") != null) {
-								isWriteAccess = true;
-							}
-						}
-
-						healthCheckModel.put("isWriteAccess", isWriteAccess);
-						
-						resultArray.add(healthCheckModel);
+			if (projectId != null && !projectId.isEmpty()) {
+				query = "select * from health_check where site_key='" + siteKey + "' and report_by ='" + projectId
+						+ "' and is_active='true' order by health_check_name ASC";
+			} else {
+				query = "select * from health_check where site_key='" + siteKey
+						+ "' and is_active='true' order by health_check_name ASC";
+				if (!isTenantAdmin) {
+					query = "select * from health_check where is_active = 'true' and ((create_by = '" + userId
+							+ "' and site_key = '" + siteKey + "') or ((site_access_list like '%" + siteKey
+							+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
+							+ "%' or user_access_list  like '%All%')))order by health_check_name ASC";
 				}
 			}
-			
-			
+			System.out.println("-------------query-----------------" + query);
+			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
+			if (resultList != null && !resultList.isEmpty()) {
+				for (Object obj : resultList) {
+					if (obj instanceof HealthCheck) {
+						JSONObject response = convertEntityToModel((HealthCheck) obj);
+						resultArray.add(response);
+					}
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -390,7 +377,7 @@ public class HealthCheckService {
 
 		return resultArray;
 	}
-	
+
 	public JSONArray getHealthCheckNames(String siteKey) {
 		JSONArray resultArray = new JSONArray();
 		try {
@@ -464,7 +451,7 @@ public class HealthCheckService {
 		return null;
 	}
 
-	public com.zenfra.model.GridDataFormat getHealthCheckData(String siteKey, String userId) {
+	public com.zenfra.model.GridDataFormat getHealthCheckData(String siteKey, String userId, String projectId) {
 		JSONArray toRet = new JSONArray();
 		com.zenfra.model.GridDataFormat gridDataFormat = new com.zenfra.model.GridDataFormat();
 		gridDataFormat.setColumnOrder(new ArrayList<>());
@@ -523,7 +510,7 @@ public class HealthCheckService {
 
 			// }
 			// System.out.println("listQuery:: "+listQuery);
-			JSONArray healthCheckList = getAllHealthCheck(siteKey, isTenantAdmin, userId);
+			JSONArray healthCheckList = getAllHealthCheck(siteKey, isTenantAdmin, userId, projectId);
 			JSONParser parser = new JSONParser();
 			for (int i = 0; i < healthCheckList.size(); i++) {
 				JSONObject jObj = (JSONObject) healthCheckList.get(i);
@@ -626,27 +613,25 @@ public class HealthCheckService {
 				}
 			}
 			// System.out.println("gridData : " + gridData);
-//			for (int i = 0; i < gridData.size(); i++) {
-//				JSONObject site = (JSONObject) gridData.get(i);
-//				if (userMap.containsKey(site.get("createdBy"))) {
-//					JSONObject user = userMap.get(site.get("createdBy"));
-//					if (user.containsKey("first_name") && user.containsKey("last_name")) {
-//						site.remove("createdBy");
-//						site.put("createdBy", user.get("first_name") + " " + user.get("last_name"));
-//					}
-//				}
-//
-//				if (userMap.containsKey(site.get("updatedBy"))) {
-//					JSONObject user = userMap.get(site.get("updatedBy"));
-//					if (user.containsKey("first_name") && user.containsKey("last_name")) {
-//						site.remove("updatedBy");
-//						site.put("updatedBy", user.get("first_name") + " " + user.get("last_name"));
-//					}
-//				}
-//
-//			}
-			
-			
+			for (int i = 0; i < gridData.size(); i++) {
+				JSONObject site = (JSONObject) gridData.get(i);
+				if (userMap.containsKey(site.get("createdBy"))) {
+					JSONObject user = userMap.get(site.get("createdBy"));
+					if (user.containsKey("first_name") && user.containsKey("last_name")) {
+						site.remove("createdBy");
+						site.put("createdBy", user.get("first_name") + " " + user.get("last_name"));
+					}
+				}
+
+				if (userMap.containsKey(site.get("updatedBy"))) {
+					JSONObject user = userMap.get(site.get("updatedBy"));
+					if (user.containsKey("first_name") && user.containsKey("last_name")) {
+						site.remove("updatedBy");
+						site.put("updatedBy", user.get("first_name") + " " + user.get("last_name"));
+					}
+				}
+
+			}
 			gridHeaderList.addAll(headerKeys.values());
 			gridDataFormat.setData(gridData);
 		} catch (Exception e) {
@@ -690,14 +675,14 @@ public class HealthCheckService {
 			toReturnHeader.setActualName(key);
 			// String dataType = data.getClass().getSimpleName();
 			toReturnHeader.setDataType("String");
-			//String dataType = data.getClass().getSimpleName();
-			
+			// String dataType = data.getClass().getSimpleName();
+
 			String string = toReturnHeader.getActualName();
-			if(string == "createdTime" || string == "updatedTime") {
+			if (string == "createdTime" || string == "updatedTime") {
 				toReturnHeader.setDataType("date");
-			}else {
+			} else {
 				toReturnHeader.setDataType("String");
-			}			
+			}
 
 			String displayName = commonFunctions.convertCamelCase(key);
 
