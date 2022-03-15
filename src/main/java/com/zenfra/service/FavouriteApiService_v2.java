@@ -216,7 +216,6 @@ public class FavouriteApiService_v2 {
 			parameters.put(":report_label", favouriteModel.getReportLabel());
 			parameters.put(":os_type", favouriteModel.getOsType());
 
-			System.out.println("-------------------------------" + parameters.get(":user_access_list").toString());
 			
 			String updateQuery = queries.favouriteView().getSave();
 
