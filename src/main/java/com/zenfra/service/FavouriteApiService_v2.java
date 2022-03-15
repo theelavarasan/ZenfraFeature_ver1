@@ -91,10 +91,15 @@ public class FavouriteApiService_v2 {
 
 				} catch (Exception e) {
 					e.printStackTrace();
-					StringWriter errors = new StringWriter();
-					e.printStackTrace(new PrintWriter(errors));
-					String ex = errors.toString();
-					ExceptionHandlerMail.errorTriggerMail(ex);
+					try {
+						StringWriter errors = new StringWriter();
+						e.printStackTrace(new PrintWriter(errors));
+						String ex = errors.toString();
+						ExceptionHandlerMail.errorTriggerMail(ex);
+					} catch (Exception e2) {
+						// TODO: handle exception
+					}
+					
 				}
 			});
 
@@ -163,10 +168,15 @@ public class FavouriteApiService_v2 {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			try {
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
+			} catch (Exception e2) {
+				// TODO: handle exception
+			}
+			
 		}
 
 		return arr;
