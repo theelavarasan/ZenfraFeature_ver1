@@ -318,7 +318,8 @@ public class CommonFunctions {
 		String query = "";
 		try {
 			ObjectMapper map = new ObjectMapper();
-			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
+//			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
+			String user = map.convertValue(favouriteModel.getUserAccessList(), JSONArray.class).toJSONString();
 			String site_access_list = map.convertValue(favouriteModel.getSiteAccessList(), JSONArray.class)
 					.toJSONString();
 			JSONArray category_list = map.convertValue(favouriteModel.getCategoryList(), JSONArray.class);
