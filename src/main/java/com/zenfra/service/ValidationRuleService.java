@@ -920,7 +920,7 @@ public class ValidationRuleService {
 					+ ") c\r\n"
 					+ ") d where row_num = 1\r\n"
 					+ "order by report_type_column_value\r\n"
-					+ ") e\r\n"
+					+ ") e where option_id is not null or option_id <> '' \r\n"
 					+ ") f where keys = '" + columnName + "' group by keys";
 			
 			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
