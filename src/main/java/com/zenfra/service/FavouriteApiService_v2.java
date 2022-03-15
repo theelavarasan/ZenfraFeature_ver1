@@ -196,7 +196,7 @@ public class FavouriteApiService_v2 {
 //					favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}"));
 			
 			parameters.put(":user_access_list",
-					map.convertValue(favouriteModel.getUserAccessList(), JSONArray.class).toJSONString());
+					 favouriteModel.getUserAccessList().toString());
 			parameters.put(":grouped_columns", favouriteModel.getGroupedColumns());
 			parameters.put(":category_list",
 					map.convertValue(favouriteModel.getCategoryList(), JSONArray.class).toJSONString());
