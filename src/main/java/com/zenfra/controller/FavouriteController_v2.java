@@ -165,6 +165,7 @@ public class FavouriteController_v2 {
 			favouriteModel.setUpdatedTime(functions.getCurrentDateWithTime());
 			System.out.println("-----------getUserAccessList-----------------" + favouriteModel.getUserAccessList());
 			System.out.println("-----------getSiteAccessList-----------------" + favouriteModel.getSiteAccessList());
+			
 
 			if (service.saveFavouriteView(favouriteModel) == 1) {
 				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());

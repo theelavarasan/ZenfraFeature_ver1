@@ -192,8 +192,11 @@ public class FavouriteApiService_v2 {
 			parameters.put(":project_id", favouriteModel.getProjectId());
 			parameters.put(":site_access_list",
 					map.convertValue(favouriteModel.getSiteAccessList(), JSONArray.class).toJSONString());
+//			parameters.put(":user_access_list",
+//					favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}"));
+			
 			parameters.put(":user_access_list",
-					favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}"));
+					map.convertValue(favouriteModel.getUserAccessList(), JSONArray.class).toJSONString());
 			parameters.put(":grouped_columns", favouriteModel.getGroupedColumns());
 			parameters.put(":category_list",
 					map.convertValue(favouriteModel.getCategoryList(), JSONArray.class).toJSONString());
@@ -203,6 +206,8 @@ public class FavouriteApiService_v2 {
 			parameters.put(":report_label", favouriteModel.getReportLabel());
 			parameters.put(":os_type", favouriteModel.getOsType());
 
+			System.out.println("-------------------------------" + parameters.get(":user_access_list").toString());
+			
 			String updateQuery = queries.favouriteView().getSave();
 
 			for (String key : parameters.keySet()) {
