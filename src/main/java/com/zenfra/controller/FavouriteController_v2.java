@@ -91,13 +91,14 @@ public class FavouriteController_v2 {
 			responseModel.setjData(service.getFavView(userId, siteKey, reportName, projectId));
 		} catch (Exception e) {
 			e.printStackTrace();
-			StringWriter errors = new StringWriter();
+			/*StringWriter errors = new StringWriter();
 			e.printStackTrace(new PrintWriter(errors));
 			String ex = errors.toString();
 			ExceptionHandlerMail.errorTriggerMail(ex);
 			responseModel.setResponseMessage("Error");
 			responseModel.setResponseCode(HttpStatus.NOT_ACCEPTABLE);
 			responseModel.setResponseDescription(e.getMessage());
+			*/
 
 			return ResponseEntity.ok(responseModel);
 		}
