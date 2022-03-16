@@ -74,11 +74,7 @@ public class FavouriteApiService_v2 {
 			List<Map<String, Object>> rows = daoFav.getJsonarray(favourite_view_query);
 			
 			List<String> processedLogs = logFileDetailsRepo.getDistinctLogTypeBySiteKeyAndStatusIsActive(siteKey, "success",true);
-			System.out.println("--------processedLogs------ " + processedLogs);
-
-			System.out.println(
-					"*****************************!!!!!!!!!!!!!!!!!!!!!!!!favourite_view_query!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*********************************"
-							+ favourite_view_query);
+			System.out.println("--------favourite_view_query------ " + favourite_view_query);
 			ObjectMapper map = new ObjectMapper();
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
@@ -93,26 +89,21 @@ public class FavouriteApiService_v2 {
 					// Map<String, Object> rowMap = row;
 					// rowMap = setDeviceType(rowMap);
 					Map<String, Object> filteredFavView = filterFavViewByProcessedLogs(row,processedLogs);					
-					if(filteredFavView != null && !filteredFavView.isEmpty()) {
-						/*
-						 * if (row.get("userAccessList") != null) { row.put("userAccessList",
-						 * row.get("userAccessList").toString().replace("{", "").replace("}",
-						 * "").split(",")); }
-						 */
+					if(filteredFavView != null && !filteredFavView.isEmpty()) {						
 						viewArr.add(row);
 					}
 					
 
 				} catch (Exception e) {
 					e.printStackTrace();
-					try {
+					/*try {
 						StringWriter errors = new StringWriter();
 						e.printStackTrace(new PrintWriter(errors));
 						String ex = errors.toString();
 						ExceptionHandlerMail.errorTriggerMail(ex);
 					} catch (Exception e2) {
 						// TODO: handle exception
-					}
+					}*/
 					
 				}
 			});
@@ -172,7 +163,7 @@ public class FavouriteApiService_v2 {
 						hcData.put("filterProperty", filterArray);
 						hcFilterArray.add(hcData);
 
-						System.out.println("---filterArray-----------" + filterArray);
+						 
 
 					}
 
