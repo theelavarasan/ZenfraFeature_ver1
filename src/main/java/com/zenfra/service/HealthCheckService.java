@@ -280,7 +280,12 @@ public class HealthCheckService {
 			response.put("createdTime", "");
 		}
 		if (healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
-			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
+			if (user != null) {
+				response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
+			} else {
+				response.put("updatedBy", "");
+			}
+			
 		} else if (!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
 			if (updateUser != null) {
