@@ -32,6 +32,8 @@ import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
 public class HealthCheckService {
+	
+	final ObjectMapper map = new ObjectMapper();
 
 	@Autowired
 	HealthCheckDao healthCheckDao;
@@ -132,11 +134,11 @@ public class HealthCheckService {
 		}
 
 		if (healthCheckModel.getSiteAccessList() != null) {
-			healthCheck.setSiteAccessList(String.join(",", healthCheckModel.getSiteAccessList()));
+			healthCheck.setSiteAccessList(map.convertValue(healthCheckModel.getSiteAccessList(), JSONArray.class).toJSONString());
 		}
 
 		if (healthCheckModel.getUserAccessList() != null) {
-			healthCheck.setUserAccessList(String.join(",", healthCheckModel.getUserAccessList()));
+			healthCheck.setUserAccessList(map.convertValue(healthCheckModel.getUserAccessList(), JSONArray.class).toJSONString());
 		}
 
 		if (healthCheckModel.getAnalyticsType() != null) {
@@ -208,14 +210,14 @@ public class HealthCheckService {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 
-		List<String> uList = new ArrayList<String>();
-		uList.addAll(Arrays.asList(healthCheck != null ? healthCheck.getUserAccessList().split(",") : null));
+//		List<String> uList = new ArrayList<String>();
+//		uList.addAll(Arrays.asList(healthCheck != null ? healthCheck.getUserAccessList().split(",") : null));
 
-		List<String> sList = new ArrayList<String>();
-		sList.addAll(Arrays.asList(healthCheck != null ? healthCheck.getSiteAccessList().split(",") : null));
+//		List<String> sList = new ArrayList<String>();
+//		sList.addAll(Arrays.asList(healthCheck != null ? healthCheck.getSiteAccessList().split(",") : null));
 
-		response.put("siteAccessList", sList);
-		response.put("userAccessList", uList);
+		response.put("siteAccessList", parser.parse(healthCheck.getSiteAccessList()));
+		response.put("userAccessList", parser.parse(healthCheck.getUserAccessList()));
 		response.put("healthCheckId", healthCheck.getHealthCheckId());
 		response.put("createdById", healthCheck.getCreateBy());
 		response.put("updatedById", healthCheck.getUpdateBy());
