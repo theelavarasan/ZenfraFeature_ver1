@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.zenfra.model.DeviceTypeModel;
 import com.zenfra.model.DeviceTypeValueModel;
@@ -43,11 +44,13 @@ import com.zenfra.model.ResponseModel;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.Users;
 import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.service.CategoryMappingService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.HealthCheckService;
 import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
@@ -400,6 +403,7 @@ public class FavouriteController_v2 {
 			HealthCheck healthCheckObj = healthCheckService.saveHealthCheck(healthCheck);
 
 			healthCheckModel.setHealthCheckId(healthCheckObj.getHealthCheckId());
+			updateTasklistActions(healthCheckModel.getReportBy());
 			if (healthCheckObj != null) {
 				responseModel.setResponseMessage("Success");
 				responseModel.setjData(healthCheckModel);
@@ -472,7 +476,8 @@ public class FavouriteController_v2 {
 					NullAwareBeanUtilsBean.getNullPropertyNames(healthCheck));
 
 			JSONObject healthCheckObj = healthCheckService.updateHealthCheck(healthCheck);
-
+			
+			updateTasklistActions(healthCheckModel.getReportBy());
 			if (healthCheckObj != null) {
 				responseModel.setjData(healthCheckObj);
 				responseModel.setResponseDescription("HealthCheck Successfully Updated ");
@@ -535,7 +540,7 @@ public class FavouriteController_v2 {
 	@PostMapping("/getHealthCheckList")
 	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey,
 			@RequestParam(name = "authUserId", required = false) String userId, HttpServletRequest request,
-			HttpServletResponse respone) {
+			HttpServletResponse respone, @RequestParam(name = "projectId", required = false) String projectId) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
@@ -543,7 +548,7 @@ public class FavouriteController_v2 {
 			String token = request.getHeader("Authorization");
 
 			// JSONArray healthcheckList = healthCheckService.getAllHealthCheck(siteKey);
-			GridDataFormat gridDataFormat = healthCheckService.getHealthCheckData(siteKey, userId);
+			GridDataFormat gridDataFormat = healthCheckService.getHealthCheckData(siteKey, userId, projectId);
 
 			// if
 			// (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEALTHCHECK_COLUMN_ORDER))
@@ -557,7 +562,7 @@ public class FavouriteController_v2 {
 			}
 
 			if (!gridDataFormat.getData().isEmpty()) {
-				com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId);
+				com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId, projectId);
 				responseModel.setjData(gridData.getData());
 				responseModel.setHeaderInfo(gridData.getHeaderInfo());
 				responseModel.setResponseDescription("HealthCheck Successfully retrieved by sitekey ");
@@ -615,7 +620,7 @@ public class FavouriteController_v2 {
 		JSONArray resultArray = new JSONArray();
 		if (reportCategory.equalsIgnoreCase("healthcheck") && (categoryType.equalsIgnoreCase("healthcheck"))) {
 
-			JSONArray healthCheckArray = healthCheckService.getAllHealthCheck(siteKey, false, userId);
+			JSONArray healthCheckArray = healthCheckService.getAllHealthCheck(siteKey, false, userId, projectID);
 
 			DeviceTypeModel deviceTypeModel1 = new DeviceTypeModel();
 			deviceTypeModel1.setName("healthCheck");
@@ -685,6 +690,23 @@ public class FavouriteController_v2 {
 		System.out.println("----resultArray--------- " + resultArray);
 
 		return ResponseEntity.ok(resultArray);
+	}
+	
+	private void updateTasklistActions(String projectId) {
+		
+		try {
+			String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+			String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+			String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+			String uri = protocol + "://" + appServerIp + ":" + port
+					+ "/UserManagement/rest/project/update-tasklist-validation-actions?projectId=" + projectId;
+			System.out.println("URL: " + uri);
+			RestTemplate restTemplate = new RestTemplate();
+			uri =  CommonUtils.checkPortNumberForWildCardCertificate(uri);
+			String result = restTemplate.getForObject(uri, String.class);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }
