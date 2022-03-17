@@ -238,7 +238,7 @@ public class HealthCheckService {
 		response.put("siteKey", healthCheck.getHealthCheckId());
 		response.put("healthCheckName", healthCheck.getHealthCheckName());
 		response.put("componentType", healthCheck.getComponentType());
-		response.put("reportName", healthCheck.getReportName());
+		response.put("reportName", healthCheck.getReportName()=="Local" ? "Server" : healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
 		response.put("analyticsType", healthCheck.getAnalyticsType());
 		try {
