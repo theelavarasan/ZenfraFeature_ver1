@@ -850,6 +850,93 @@ public class ValidationRuleService {
 
 		return resultData;
 	}
+	
+	public JSONArray getUniqueValues(String siteKey,String reportBy,String columnName) throws ParseException {
+		JSONParser parser = new JSONParser();
+		JSONArray resultArray = new JSONArray();
+		
+		
+		try {
+			String uniqueFilterQuery = "select keys, json_agg(data) as data from (\r\n"
+					+ "select keys, json_build_object('id', coalesce(option_id,''), 'value', coalesce(option_value,'')) as data from (\r\n"
+					+ "select project_id, report_type_column_id as keys, report_type_column_value,option_id, option_value,\r\n"
+					+ "concat(report_type_column_value, '_', option_id) as label from (\r\n"
+					+ "select project_id, report_type_column_id, report_type_column_value, option_id, option_value,\r\n"
+					+ "row_number() over(partition by report_type_column_value,option_id, option_value) as row_num\r\n"
+					+ "from (\r\n"
+					+ "select project_id,\r\n"
+					+ "report_type_column_id,\r\n"
+					+ "report_type_column_value, option_id, option_value from (\r\n"
+					+ "select pr.project_id, rt.column_id as report_type_column_id, rt.column_label as report_type_column_value,\r\n"
+					+ "pcf.field_id as default_field_id, rt.option_id, rt.option_value\r\n"
+					+ "from project pr\r\n"
+					+ "LEFT JOIN (\r\n"
+					+ "select project_id, migration_category, column_id, column_label, column_type, coalesce(option_id, other_option_id) as option_id,\r\n"
+					+ "coalesce(option_value, other_option_value) as option_value from (\r\n"
+					+ "select b.project_id, migration_category, column_id, column_label, column_type, \r\n"
+					+ "json_array_elements(options::json) ->> 'id' as option_id,\r\n"
+					+ "json_array_elements(options::json) ->> 'label' as option_value, ptl.option_id as other_option_id, ptl.option_value as other_option_value from (\r\n"
+					+ "select project_id, migration_category, column_id, column_label, column_type,\r\n"
+					+ "coalesce((case when options = '[]' then '[{}]' else options end), '[{}]') as options from (\r\n"
+					+ "select project_id, migration_category, json_array_elements(system_fields::json) ->> 'fieldId' as column_id,\r\n"
+					+ "json_array_elements(system_fields::json) ->> 'label' as column_label,\r\n"
+					+ "json_array_elements(system_fields::json) ->> 'type' as column_type,\r\n"
+					+ "json_array_elements(system_fields::json) ->> 'reportConfig' as report_config,\r\n"
+					+ "json_array_elements(system_fields::json) ->> 'options' as options from project\r\n"
+					+ "where 1 = 1 and site_key = '" + siteKey + "' and project_id = '" + reportBy + "'\r\n"
+					+ ") a\r\n"
+					+ ") b\r\n"
+					+ "LEFT JOIN (select project_id, field_id, field_value as option_id, field_value as option_value from project_tasklist\r\n"
+					+ "where project_id = '" + reportBy + "' and (field_value != 'null' and trim(field_value) != '') and field_label not ilike '%_largeDataArr'\r\n"
+					+ "order by project_id, field_id, field_value) ptl on ptl.project_id = b.project_id and b.column_id = ptl.field_id\r\n"
+					+ " ) c\r\n"
+					+ ") rt on rt.project_id = pr.project_id\r\n"
+					+ "LEFT JOIN project_custom_field pcf on pcf.field_id = rt.column_id\r\n"
+					+ "where rt.column_id is not null and pr.site_key = '" + siteKey + "' and pr.project_id = '" + reportBy + "'\r\n"
+					+ "order by rt.column_label\r\n"
+					+ ") b\r\n"
+					+ ") c\r\n"
+					+ ") d where row_num = 1\r\n"
+					+ "union all\r\n"
+					+ "select project_id, report_type_column_id, report_type_column_value, option_id, option_value, concat(report_type_column_value, '_', option_id) as label from (\r\n"
+					+ "select project_id, report_type_column_id, report_type_column_value, column_type, option_id, option_value,\r\n"
+					+ "row_number() over(partition by report_type_column_value,option_id, option_value) as row_num from (\r\n"
+					+ "select project_id, concat('filterBy_',group_name) as report_type_column_id, group_name as report_type_column_value,\r\n"
+					+ "'select' as column_type, option_id, option_value from (\r\n"
+					+ "select pr.project_id, id, group_name, profile_id as option_id, profile_name as option_value from (\r\n"
+					+ "select tenant_group_fields_id as id, group_name from tenant_group_fields where\r\n"
+					+ "tenant_group_fields_id not in (select tenant_group_fields_id from site_group_fields where site_key = '" + siteKey + "' and\r\n"
+					+ "tenant_group_fields_id is not null) and\r\n"
+					+ "tenant_group_fields_id not in (select ref_id from project_group_fields where ref_id is not null and site_key = '" + siteKey + "' and project_id = '" + reportBy + "' )\r\n"
+					+ "union all\r\n"
+					+ "select site_group_fields_id as id, group_name from site_group_fields where\r\n"
+					+ "tenant_group_fields_id not in (select ref_id from project_group_fields where ref_id is not null and site_key = '" + siteKey + "' and project_id = '" + reportBy + "' )\r\n"
+					+ "union all\r\n"
+					+ "select ref_id as id, group_name from project_group_fields where site_key = '" + siteKey + "' and project_id = '" + reportBy + "'\r\n"
+					+ ") a\r\n"
+					+ "JOIN destination_profile pr on pr.migration_group_id = a.id and pr.project_id = '" + reportBy + "'\r\n"
+					+ ") b\r\n"
+					+ ") c\r\n"
+					+ ") d where row_num = 1\r\n"
+					+ "order by report_type_column_value\r\n"
+					+ ") e where option_id is not null or option_id <> '' \r\n"
+					+ ") f where keys = '" + columnName + "' group by keys";
+			
+			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
+			List<Map<String,Object>> valueArray = getObjectFromQuery(uniqueFilterQuery); 
+			//JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for(Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("data").toString());
+			}
+			System.out.println("------------ resultArray : " + resultArray);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return resultArray;
+	}
 
 public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, String osType) {
 		

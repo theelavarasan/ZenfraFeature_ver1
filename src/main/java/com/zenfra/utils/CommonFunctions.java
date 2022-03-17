@@ -98,7 +98,7 @@ public class CommonFunctions {
 			 
 
 		} catch (Exception e) {
-			try {
+			/*try {
 				e.printStackTrace();
 				StringWriter errors = new StringWriter();
 				e.printStackTrace(new PrintWriter(errors));
@@ -107,7 +107,7 @@ public class CommonFunctions {
 			} catch (Exception e2) {
 				// TODO: handle exception
 			}
-			
+			*/
 
 		}
 		return row;
