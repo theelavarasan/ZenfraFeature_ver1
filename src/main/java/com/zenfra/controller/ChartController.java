@@ -47,25 +47,24 @@ public class ChartController {
 		try {
 			System.out.println(chartModel.getUserId());
 
-			if (chartModel.getChartId() == null || chartModel.getChartId().trim().isEmpty()) {
-				chartModel.setCreatedTime(functions.getCurrentDateWithTime());
-				chartModel.setChartId(functions.generateRandomId());
-				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
-				chartModel.setActive(true);
-
-			} else {
-
-				chartModel.setActive(true);
-				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
-			}
-			responseModel.setResponseMessage("Success");
+//			if (chartModel.getChartId() == null || chartModel.getChartId().trim().isEmpty()) {
+//				chartModel.setCreatedTime(functions.getCurrentDateWithTime());
+//				chartModel.setChartId(functions.generateRandomId());
+//				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
+//				chartModel.setActive(true);
+//
+//			} else {
+//
+//				chartModel.setActive(true);
+//				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
+//			}
 			if (chartService.saveChart(chartModel)) {
 				responseModel.setjData(functions.convertEntityToJsonObject(chartModel));
 				responseModel.setResponseDescription("Chart Successfully saved");
+				responseModel.setResponseMessage("Success");
 				responseModel.setResponseCode(HttpStatus.OK);
-				mapService.deleteCategoryMappingFavouriteIdOrChartId(chartModel.getChartId());
-
-				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
+//				mapService.deleteCategoryMappingFavouriteIdOrChartId(chartModel.getChartId());
+//				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
 			} else {
 				responseModel.setResponseDescription("Chart not saved");
 				responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -101,12 +100,12 @@ public class ChartController {
 				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
 				return ResponseEntity.ok(responseModel);
 			}
-			BeanUtils.copyProperties(chartModel, chartExit, NullAwareBeanUtilsBean.getNullPropertyNames(chartModel));
-			chartExit.setActive(true);
+//			BeanUtils.copyProperties(chartModel, chartExit, NullAwareBeanUtilsBean.getNullPropertyNames(chartModel));
+			chartExit.setIsActive(true);
 			chartExit.setUpdateTime(functions.getCurrentDateWithTime());
 
-			if (chartService.saveChart(chartExit)) {
-				responseModel.setjData(functions.convertEntityToJsonObject(chartExit));
+			if (chartService.saveChart(chartModel)) {
+				responseModel.setjData(functions.convertEntityToJsonObject(chartModel));
 				responseModel.setResponseDescription("Chart Successfully saved");
 				responseModel.setResponseCode(HttpStatus.OK);
 				if (chartModel.getCategoryList() != null && !chartModel.getCategoryList().isEmpty()) {
@@ -211,7 +210,7 @@ public class ChartController {
 				return ResponseEntity.ok(responseModel);
 			}
 
-			chart.setActive(false);
+			chart.setIsActive(false);
 			if (chartService.deleteChartByObject(chart)) {
 				// responseModel.setjData(functions.convertEntityToJsonObject(chartService.getChartByChartId(chartId)));
 				responseModel.setResponseDescription("Chart Successfully deleted");
