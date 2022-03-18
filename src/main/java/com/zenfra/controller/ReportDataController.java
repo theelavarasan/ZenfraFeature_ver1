@@ -175,8 +175,8 @@ public class ReportDataController {
 			}
 
 			String sourceTypeRef = sourceType.toLowerCase();
-			if (sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows")
-					|| sourceTypeRef.equalsIgnoreCase("windows")) {
+			if (sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("linux")
+					|| sourceTypeRef.equalsIgnoreCase("vmware")) {
 				dataframeService.destroryCloudCostDataframe(siteKey);
 			}
 
