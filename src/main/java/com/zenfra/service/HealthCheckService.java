@@ -238,7 +238,7 @@ public class HealthCheckService {
 		response.put("siteKey", healthCheck.getHealthCheckId());
 		response.put("healthCheckName", healthCheck.getHealthCheckName());
 		response.put("componentType", healthCheck.getComponentType());
-		response.put("reportName", healthCheck.getReportName()=="Local" ? "Server" : healthCheck.getReportName());
+		response.put("reportName", healthCheck.getReportName().equalsIgnoreCase("Local") ? "Server" : healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
 		response.put("analyticsType", healthCheck.getAnalyticsType());
 		try {
@@ -362,7 +362,7 @@ public class HealthCheckService {
 							+ "%' or user_access_list  like '%All%')))order by health_check_name ASC";
 				}
 			}
-			System.out.println("-------------query-----------------" + query);
+			//System.out.println("-------------query-----------------" + query);
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
 			if (resultList != null && !resultList.isEmpty()) {
 				for (Object obj : resultList) {
