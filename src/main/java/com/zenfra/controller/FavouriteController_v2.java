@@ -563,9 +563,9 @@ public class FavouriteController_v2 {
 			}
 
 			if (!gridDataFormat.getData().isEmpty()) {
-				com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId, projectId);
-				responseModel.setjData(gridData.getData());
-				responseModel.setHeaderInfo(gridData.getHeaderInfo());
+				//com.zenfra.model.GridDataFormat gridData = healthCheckService.getHealthCheckData(siteKey, userId, projectId);
+				responseModel.setjData(gridDataFormat.getData());
+				responseModel.setHeaderInfo(gridDataFormat.getHeaderInfo());
 				responseModel.setResponseDescription("HealthCheck Successfully retrieved by sitekey ");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
