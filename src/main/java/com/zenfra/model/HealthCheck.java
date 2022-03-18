@@ -93,7 +93,7 @@ public class HealthCheck implements Serializable {
 	@Column
 	private String analyticsType;
 	
-
+	
 	public String getCreateBy() {
 		return createBy;
 	}
@@ -228,6 +228,6 @@ public class HealthCheck implements Serializable {
 
 	public void setAnalyticsType(String analyticsType) {
 		this.analyticsType = analyticsType;
-	}	
+	}
 	
 }

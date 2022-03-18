@@ -19,6 +19,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.configuration.CommonQueriesData;
 import com.zenfra.dao.FavouriteDao_v2;
+import com.zenfra.ftp.repo.LogFileDetailsRepo;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.FavouriteView_v2;
@@ -44,6 +45,9 @@ public class FavouriteApiService_v2 {
 
 	@Autowired
 	HealthCheckService healthCheckService;
+	
+	@Autowired
+	LogFileDetailsRepo logFileDetailsRepo;
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private JSONParser jSONParser = new JSONParser();
@@ -68,10 +72,9 @@ public class FavouriteApiService_v2 {
 			favourite_order_query = favourite_order_query.replace(":report_name_value", reportName)
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
 			List<Map<String, Object>> rows = daoFav.getJsonarray(favourite_view_query);
-
-			System.out.println(
-					"*****************************!!!!!!!!!!!!!!!!!!!!!!!!favourite_view_query!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*********************************"
-							+ favourite_view_query);
+			
+			List<String> processedLogs = logFileDetailsRepo.getDistinctLogTypeBySiteKeyAndStatusIsActive(siteKey, "success",true);
+			System.out.println("--------favourite_view_query------ " + favourite_view_query);
 			ObjectMapper map = new ObjectMapper();
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
@@ -80,21 +83,28 @@ public class FavouriteApiService_v2 {
 
 			rows.forEach(row -> {
 				try {
-					if (row.get("userAccessList") != null) {
-						row.put("userAccessList",
-								row.get("userAccessList").toString().replace("{", "").replace("}", "").split(","));
-					}
+					
 					row = common.getFavViewCheckNull(row);
+					
 					// Map<String, Object> rowMap = row;
 					// rowMap = setDeviceType(rowMap);
-					viewArr.add(row);
+					Map<String, Object> filteredFavView = filterFavViewByProcessedLogs(row,processedLogs);					
+					if(filteredFavView != null && !filteredFavView.isEmpty()) {						
+						viewArr.add(row);
+					}
+					
 
 				} catch (Exception e) {
 					e.printStackTrace();
-					StringWriter errors = new StringWriter();
-					e.printStackTrace(new PrintWriter(errors));
-					String ex = errors.toString();
-					ExceptionHandlerMail.errorTriggerMail(ex);
+					/*try {
+						StringWriter errors = new StringWriter();
+						e.printStackTrace(new PrintWriter(errors));
+						String ex = errors.toString();
+						ExceptionHandlerMail.errorTriggerMail(ex);
+					} catch (Exception e2) {
+						// TODO: handle exception
+					}*/
+					
 				}
 			});
 
@@ -153,7 +163,7 @@ public class FavouriteApiService_v2 {
 						hcData.put("filterProperty", filterArray);
 						hcFilterArray.add(hcData);
 
-						System.out.println("---filterArray-----------" + filterArray);
+						 
 
 					}
 
@@ -163,13 +173,38 @@ public class FavouriteApiService_v2 {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			try {
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
+			} catch (Exception e2) {
+				// TODO: handle exception
+			}
+			
 		}
 
 		return arr;
+	}
+
+	private Map<String, Object> filterFavViewByProcessedLogs(Map<String, Object> row, List<String> processedLogs) {
+		try {
+			if (row.get("filterProperty") != null && !row.get("filterProperty").equals("[]")) {
+				JSONArray filterProp =  (JSONArray) jSONParser.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", ""));
+				for(int i=0; i<filterProp.size(); i++) {
+					JSONObject prop = (JSONObject) filterProp.get(i);					
+					if(prop.containsKey("selection")) {
+						String values = prop.get("selection").toString().trim();
+						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase)) {						
+							return common.getFavViewCheckNull(row);
+						}
+					}
+				}
+			} 
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return null;
 	}
 
 	public Integer saveFavouriteView(FavouriteModel favouriteModel) {
@@ -192,8 +227,11 @@ public class FavouriteApiService_v2 {
 			parameters.put(":project_id", favouriteModel.getProjectId());
 			parameters.put(":site_access_list",
 					map.convertValue(favouriteModel.getSiteAccessList(), JSONArray.class).toJSONString());
+//			parameters.put(":user_access_list",
+//					favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}"));
+			
 			parameters.put(":user_access_list",
-					favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}"));
+					map.convertValue(favouriteModel.getUserAccessList(), JSONArray.class).toJSONString());
 			parameters.put(":grouped_columns", favouriteModel.getGroupedColumns());
 			parameters.put(":category_list",
 					map.convertValue(favouriteModel.getCategoryList(), JSONArray.class).toJSONString());
@@ -203,6 +241,7 @@ public class FavouriteApiService_v2 {
 			parameters.put(":report_label", favouriteModel.getReportLabel());
 			parameters.put(":os_type", favouriteModel.getOsType());
 
+			
 			String updateQuery = queries.favouriteView().getSave();
 
 			for (String key : parameters.keySet()) {
