@@ -68,18 +68,20 @@ public class HealthCheckService {
 		HealthCheck healthCheck = new HealthCheck();
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
-		ObjectMapper mapper = new ObjectMapper();
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn(
 				"select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",
 				HealthCheck.class);
 		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
-			healthCheckModel = convertEntityToModel(savedObj);
-			System.out.println("healthCheckModel::" + healthCheckModel);
+		healthCheckModel = convertEntityToModel(savedObj);
+
+		System.out.println("healthCheckModel::" + healthCheckModel);
 		}
 
+
+
 		return healthCheckModel;
-	}
+		}
 
 	public HealthCheck getHealthCheckObject(String healthCheckId) {
 		HealthCheck healthCheck = new HealthCheck();
@@ -194,7 +196,7 @@ public class HealthCheckService {
 		response.put("siteKey", healthCheck.getHealthCheckId());
 		response.put("healthCheckName", healthCheck.getHealthCheckName());
 		response.put("componentType", healthCheck.getComponentType());
-		response.put("reportName", healthCheck.getReportName());
+		response.put("reportName", healthCheck.getReportName().equalsIgnoreCase("Local") ? "Server" : healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
 		response.put("analyticsType", healthCheck.getAnalyticsType());
 		try {
@@ -344,8 +346,9 @@ public class HealthCheckService {
 							+ "%' or user_access_list  like '%All%'))) order by health_check_name ASC";
 				}
 			}
-
 			System.out.println("--------------query--------------" + query);
+//			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
+			
 			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
 			if (resultList != null && !resultList.isEmpty()) {
 				for (Map<String, Object> mapObject : resultList) {

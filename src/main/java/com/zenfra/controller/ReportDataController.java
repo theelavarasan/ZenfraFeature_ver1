@@ -175,14 +175,14 @@ public class ReportDataController {
 			}
 
 			String sourceTypeRef = sourceType.toLowerCase();
-			if (sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("windows")
-					|| sourceTypeRef.equalsIgnoreCase("windows")) {
+			if (sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("linux")
+					|| sourceTypeRef.equalsIgnoreCase("vmware")) {
 				dataframeService.destroryCloudCostDataframe(siteKey);
 			}
 
-			if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
+			/*if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
 				chartService.getChartDatas(siteKey, sourceType);
-			}
+			}*/
 			dataframeService.recreateLocalDiscovery(siteKey, sourceType);
 			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 
