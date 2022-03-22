@@ -901,7 +901,7 @@ public class ValidationRuleService {
 					+ "select project_id, report_type_column_id, report_type_column_value, option_id, option_value, concat(report_type_column_value, '_', option_id) as label from (\r\n"
 					+ "select project_id, report_type_column_id, report_type_column_value, column_type, option_id, option_value,\r\n"
 					+ "row_number() over(partition by report_type_column_value,option_id, option_value) as row_num from (\r\n"
-					+ "select project_id, concat('filterBy_',group_name) as report_type_column_id, group_name as report_type_column_value,\r\n"
+					+ "select project_id, id as report_type_column_id, group_name as report_type_column_value,\r\n"
 					+ "'select' as column_type, option_id, option_value from (\r\n"
 					+ "select pr.project_id, id, group_name, profile_id as option_id, profile_name as option_value from (\r\n"
 					+ "select tenant_group_fields_id as id, group_name from tenant_group_fields where\r\n"
