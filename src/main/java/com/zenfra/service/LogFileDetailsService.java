@@ -122,7 +122,9 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				
 				json.put("status", log.getStatus());
 				json.put("logFileId", log.getLogFileId());
-				json.put("parsedDateTime", log.getParsedDateTime() != null? log.getParsedDateTime() : "");
+				if(log.getStatus().equalsIgnoreCase("success")) {
+					json.put("parsedDateTime", log.getParsedDateTime() != null? log.getParsedDateTime() : "");
+				}
 				resultArray.add(json);
 			}
 
