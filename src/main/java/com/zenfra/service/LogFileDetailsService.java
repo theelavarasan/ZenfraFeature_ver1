@@ -112,17 +112,16 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 
 			for (LogFileDetails log : logFile) {						
-				JSONObject json = new JSONObject();
 				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
 
 					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("import_success");
 					}
 				}
-				
+				JSONObject json = new JSONObject();
 				json.put("status", log.getStatus());
 				json.put("logFileId", log.getLogFileId());
-				if(log.getStatus().equalsIgnoreCase("success")) {
+				if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 					json.put("parsedDateTime", log.getParsedDateTime() != null? log.getParsedDateTime() : "");
 				}
 				resultArray.add(json);
