@@ -117,14 +117,12 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("import_success");
-						
 					}
 				}
 				
 				json.put("status", log.getStatus());
 				json.put("logFileId", log.getLogFileId());
-				json.put("parsedDateTime", log.getParsedDateTime());
-				System.out.println("--------------------- + " + log.getParsedDateTime());
+				json.put("parsedDateTime", log.getParsedDateTime() != null? log.getParsedDateTime() : "");
 				resultArray.add(json);
 			}
 

@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -119,11 +120,11 @@ public class ChartModel_v2 {
 	private String updateTime;
 
 	@Type(type = "list-array")
-	@Column(name="user_access_list",columnDefinition = "text[]")
+	@Column(name="user_access_list",columnDefinition = "text")
 	private List<String> userAccessList = new ArrayList<>();
 	
 	@Type(type = "list-array")
-	@Column(name="site_access_list",columnDefinition = "text[]")
+	@Column(name="site_access_list",columnDefinition = "text")
 	private List<String> siteAccessList = new ArrayList<>();
 	
 	@Type(type = "list-array")
@@ -139,20 +140,19 @@ public class ChartModel_v2 {
 	@Column(name="report_label")
 	private String reportLabel;
 
-
-	public boolean getActive() {
+	public boolean getIsActive() {
 		return isActive;
 	}
 
-	public void setActive(boolean isActive) {
+	public void setIsActive(boolean isActive) {
 		this.isActive = isActive;
 	}
 
-	public boolean getVisible() {
+	public boolean getIsVisible() {
 		return isVisible;
 	}
 
-	public void setVisible(boolean isVisible) {
+	public void setIsVisible(boolean isVisible) {
 		this.isVisible = isVisible;
 	}
 
@@ -275,11 +275,11 @@ public class ChartModel_v2 {
 		this.chartId = chartId;
 	}
 
-	public boolean getDefault() {
+	public boolean getIsDefault() {
 		return isDefault;
 	}
 
-	public void setDefault(boolean isDefault) {
+	public void setIsDefault(boolean isDefault) {
 		this.isDefault = isDefault;
 	}
 
@@ -340,6 +340,24 @@ public class ChartModel_v2 {
 
 	public void setReportLabel(String reportLabel) {
 		this.reportLabel = reportLabel;
+	}
+
+
+
+	public boolean isVisible() {
+		return isVisible;
+	}
+
+
+
+	public boolean isDefault() {
+		return isDefault;
+	}
+
+
+
+	public boolean isActive() {
+		return isActive;
 	}
 
 
