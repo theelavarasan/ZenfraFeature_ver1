@@ -89,13 +89,25 @@ public class CommonFunctions {
 			} else {
 				row.put("groupedColumns", new JSONArray());
 			}
+			
+			
+			if (row.get("userAccessList") != null && !row.get("userAccessList").equals("[]")) {
+				row.put("userAccessList", (JSONArray) parser
+						.parse(row.get("userAccessList").toString().replace("\\[", "").replace("\\]", "")));
+			}
+			 
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			/*try {
+				e.printStackTrace();
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
+			} catch (Exception e2) {
+				// TODO: handle exception
+			}
+			*/
 
 		}
 		return row;
@@ -306,7 +318,8 @@ public class CommonFunctions {
 		String query = "";
 		try {
 			ObjectMapper map = new ObjectMapper();
-			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
+//			String user = favouriteModel.getUserAccessList().toString().replace("[", "{").replace("]", "}");
+			String user = map.convertValue(favouriteModel.getUserAccessList(), JSONArray.class).toJSONString();
 			String site_access_list = map.convertValue(favouriteModel.getSiteAccessList(), JSONArray.class)
 					.toJSONString();
 			JSONArray category_list = map.convertValue(favouriteModel.getCategoryList(), JSONArray.class);

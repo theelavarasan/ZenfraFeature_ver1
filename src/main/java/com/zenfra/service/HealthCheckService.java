@@ -66,17 +66,20 @@ public class HealthCheckService {
 		HealthCheck healthCheck = new HealthCheck();
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
-		ObjectMapper mapper = new ObjectMapper();
-		
-		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn("select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",HealthCheck.class);
+		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn(
+		"select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",
+		HealthCheck.class);
 		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
-			healthCheckModel = convertEntityToModel(savedObj);			
-			System.out.println("healthCheckModel::" + healthCheckModel);
+		healthCheckModel = convertEntityToModel(savedObj);
+
+		System.out.println("healthCheckModel::" + healthCheckModel);
 		}
 
+
+
 		return healthCheckModel;
-	}
+		}
 
 	public HealthCheck getHealthCheckObject(String healthCheckId) {
 		HealthCheck healthCheck = new HealthCheck();
@@ -189,7 +192,7 @@ public class HealthCheckService {
 		response.put("siteKey", healthCheck.getHealthCheckId());
 		response.put("healthCheckName", healthCheck.getHealthCheckName());
 		response.put("componentType", healthCheck.getComponentType());
-		response.put("reportName", healthCheck.getReportName());
+		response.put("reportName", healthCheck.getReportName().equalsIgnoreCase("Local") ? "Server" : healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
 		response.put("analyticsType", healthCheck.getAnalyticsType());
 		try {
@@ -226,14 +229,17 @@ public class HealthCheckService {
 		}
 		try {
 			response.put("createdTime", formatter.format(healthCheck.getCreatedDate()));
-			
+
 		} catch (Exception e) {
 			response.put("createdTime", "");
 		}
-		
-
 		if (healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
-			response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
+			if (user != null) {
+				response.put("updatedBy", user.getFirst_name() + " " + user.getLast_name());
+			} else {
+				response.put("updatedBy", "");
+			}
+			
 		} else if (!healthCheck.getCreateBy().equalsIgnoreCase(healthCheck.getUpdateBy())) {
 			Users updateUser = userCreateService.getUserByUserId(healthCheck.getUpdateBy());
 			if (updateUser != null) {
@@ -250,7 +256,7 @@ public class HealthCheckService {
 		} catch (Exception e) {
 			response.put("updatedTime", "");
 		}
-		
+
 		response.put("userId", healthCheck.getUserId());
 
 		boolean isWriteAccess = false;
@@ -293,19 +299,24 @@ public class HealthCheckService {
 		return response;
 	}
 
-	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId) {
+	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId, String projectId) {
 		JSONArray resultArray = new JSONArray();
-
+		String query = null;
 		try {
-			String query = "select * from health_check where site_key='" + siteKey
-					+ "' and is_active='true' order by health_check_name ASC";
-			if (!isTenantAdmin) {
-				query = "select * from health_check where is_active = 'true' and ((create_by = '" + userId
-						+ "' and site_key = '" + siteKey + "') or ((site_access_list like '%" + siteKey
-						+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
-						+ "%' or user_access_list  like '%All%'))) order by health_check_name ASC";
+			if (projectId != null && !projectId.isEmpty()) {
+				query = "select * from health_check where site_key='" + siteKey + "' and report_by ='" + projectId
+						+ "' and is_active='true' order by health_check_name ASC";
+			} else {
+				query = "select * from health_check where site_key='" + siteKey
+						+ "' and is_active='true' order by health_check_name ASC";
+				if (!isTenantAdmin) {
+					query = "select * from health_check where is_active = 'true' and ((create_by = '" + userId
+							+ "' and site_key = '" + siteKey + "') or ((site_access_list like '%" + siteKey
+							+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
+							+ "%' or user_access_list  like '%All%')))order by health_check_name ASC";
+				}
 			}
-
+			//System.out.println("-------------query-----------------" + query);
 			List<Object> resultList = healthCheckDao.getEntityListByColumn(query, HealthCheck.class);
 			if (resultList != null && !resultList.isEmpty()) {
 				for (Object obj : resultList) {
@@ -325,7 +336,7 @@ public class HealthCheckService {
 
 		return resultArray;
 	}
-	
+
 	public JSONArray getHealthCheckNames(String siteKey) {
 		JSONArray resultArray = new JSONArray();
 		try {
@@ -399,7 +410,7 @@ public class HealthCheckService {
 		return null;
 	}
 
-	public com.zenfra.model.GridDataFormat getHealthCheckData(String siteKey, String userId) {
+	public com.zenfra.model.GridDataFormat getHealthCheckData(String siteKey, String userId, String projectId) {
 		JSONArray toRet = new JSONArray();
 		com.zenfra.model.GridDataFormat gridDataFormat = new com.zenfra.model.GridDataFormat();
 		gridDataFormat.setColumnOrder(new ArrayList<>());
@@ -458,7 +469,7 @@ public class HealthCheckService {
 
 			// }
 			// System.out.println("listQuery:: "+listQuery);
-			JSONArray healthCheckList = getAllHealthCheck(siteKey, isTenantAdmin, userId);
+			JSONArray healthCheckList = getAllHealthCheck(siteKey, isTenantAdmin, userId, projectId);
 			JSONParser parser = new JSONParser();
 			for (int i = 0; i < healthCheckList.size(); i++) {
 				JSONObject jObj = (JSONObject) healthCheckList.get(i);
@@ -623,14 +634,14 @@ public class HealthCheckService {
 			toReturnHeader.setActualName(key);
 			// String dataType = data.getClass().getSimpleName();
 			toReturnHeader.setDataType("String");
-			//String dataType = data.getClass().getSimpleName();
-			
+			// String dataType = data.getClass().getSimpleName();
+
 			String string = toReturnHeader.getActualName();
-			if(string == "createdTime" || string == "updatedTime") {
+			if (string == "createdTime" || string == "updatedTime") {
 				toReturnHeader.setDataType("date");
-			}else {
+			} else {
 				toReturnHeader.setDataType("String");
-			}			
+			}
 
 			String displayName = commonFunctions.convertCamelCase(key);
 
