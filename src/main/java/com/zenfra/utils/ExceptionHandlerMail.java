@@ -49,9 +49,7 @@ public class ExceptionHandlerMail {
 				if (line.contains(stackTrace)) {
 					System.out.println("----------Exception  Avoided--------");
 				} else {
-					try {
-
-						System.out.println("--------In Java Exception Handler---------");
+					try {					
 
 						RestTemplate restTemplate = new RestTemplate();
 						Response response = new Response();
@@ -69,7 +67,7 @@ public class ExceptionHandlerMail {
 						HttpEntity<JSONObject> requestEntity1 = new HttpEntity<JSONObject>(errorObj, headers1);
 						String sendMailUrl = ZKModel.getProperty(ZKConstants.SEND_ERROR_MAIL_URL)
 								.replaceAll("<HOSTNAME>", ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
-						System.out.println("----------Zenfra Features---");
+						sendMailUrl = CommonUtils.checkPortNumberForWildCardCertificate(sendMailUrl);
 						System.out.println("----------Send Mail Url---" + sendMailUrl);
 						ResponseEntity<String> uri = restTemplate.exchange(sendMailUrl, HttpMethod.POST, requestEntity1,
 								String.class);
@@ -93,14 +91,14 @@ public class ExceptionHandlerMail {
 						return new ResponseEntity<String>(response.toString(), HttpStatus.OK);
 
 					} catch (Exception e) {
-						e.printStackTrace();
+						//e.printStackTrace();
 					}
 				}
 
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		return new ResponseEntity<String>(HttpStatus.OK);
 	}
