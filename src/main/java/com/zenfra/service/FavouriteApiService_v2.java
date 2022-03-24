@@ -84,14 +84,19 @@ public class FavouriteApiService_v2 {
 			rows.forEach(row -> {
 				try {
 					
-					row = common.getFavViewCheckNull(row);
+					row = common.getFavViewCheckNull(row);					
 					
 					// Map<String, Object> rowMap = row;
 					// rowMap = setDeviceType(rowMap);
-					Map<String, Object> filteredFavView = filterFavViewByProcessedLogs(row,processedLogs);					
-					if(filteredFavView != null && !filteredFavView.isEmpty()) {						
-						viewArr.add(row);
+					if (!reportNameRef.equalsIgnoreCase("healthcheck")) {
+						Map<String, Object> filteredFavView = filterFavViewByProcessedLogs(row,processedLogs);							
+						if(filteredFavView != null && !filteredFavView.isEmpty()) {						
+							viewArr.add(row);
+						}
+					} else {		
+							viewArr.add(row);						
 					}
+					
 					
 
 				} catch (Exception e) {
@@ -202,7 +207,7 @@ public class FavouriteApiService_v2 {
 				}
 			} 
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 		return null;
 	}
