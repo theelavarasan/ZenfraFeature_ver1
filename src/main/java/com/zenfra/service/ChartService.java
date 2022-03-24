@@ -65,28 +65,12 @@ public class ChartService {
 			 * 
 			 * responce=chartDao.SaveChart(params);
 			 */
-			if (chart.getChartId() == null || chart.getChartId().trim().isEmpty()) {
-				chart.setCreatedTime(functions.getCurrentDateWithTime());
-				chart.setChartId(functions.generateRandomId());
-				chart.setUpdateTime(functions.getCurrentDateWithTime());
-				chart.setIsActive(true);
-
-				response = chartDao.saveEntityNew(chart);
-
+						
+			if (chart.getChartId() != null) {
+				response = chartDao.updateEntity(ChartModel_v2.class, chart);
 			} else {
-
-				chart.setIsActive(true);
-				chart.setUpdateTime(functions.getCurrentDateWithTime());
-				response = chartDao.updateEntityNew(chart);
-
+				response = chartDao.saveEntity(ChartModel_v2.class, chart);	
 			}
-			
-			
-//			if (chart.getChartId() != null) {
-//				response = chartDao.updateEntity(ChartModel_v2.class, chart);
-//			} else {
-//				response = chartDao.saveEntity(ChartModel_v2.class, chart);	
-//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -101,10 +85,9 @@ public class ChartService {
 	public ChartModel_v2 getChartByChartId(String chartId) {
 		ChartModel_v2 chart = new ChartModel_v2();
 		try {
-//			System.out.println(chartDao.findEntityById(ChartModel_v2.class, chartId));
-//			chart = (ChartModel_v2) chartDao.findEntityById(ChartModel_v2.class, chartId);
-			
-			chart = chartDao.getChartNew(chartId);
+			System.out.println(chartDao.findEntityById(ChartModel_v2.class, chartId));
+			chart = (ChartModel_v2) chartDao.findEntityById(ChartModel_v2.class, chartId);
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
