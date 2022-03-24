@@ -76,7 +76,7 @@ public class CommonFunctions {
 			} else {
 				row.put("categoryList", new JSONArray());
 			}
-			if (row.get("siteAccessList") != null && !row.get("siteAccessList").equals("[]")) {
+			if (row.get("siteAccessList") != null && !row.get("siteAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
 				row.put("siteAccessList", (JSONArray) parser
 						.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
 			} else {
@@ -91,13 +91,14 @@ public class CommonFunctions {
 			}
 			
 			
-			if (row.get("userAccessList") != null && !row.get("userAccessList").equals("[]")) {
+			if (row.get("userAccessList") != null && !row.get("userAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
 				row.put("userAccessList", (JSONArray) parser
 						.parse(row.get("userAccessList").toString().replace("\\[", "").replace("\\]", "")));
 			}
 			 
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			/*try {
 				e.printStackTrace();
 				StringWriter errors = new StringWriter();
