@@ -120,11 +120,11 @@ public class ChartModel_v2 {
 	private String updateTime;
 
 	@Type(type = "list-array")
-	@Column(name="user_access_list",columnDefinition = "text")
+	@Column(name="user_access_list",columnDefinition = "text[]")
 	private List<String> userAccessList = new ArrayList<>();
 	
 	@Type(type = "list-array")
-	@Column(name="site_access_list",columnDefinition = "text")
+	@Column(name="site_access_list",columnDefinition = "text[]")
 	private List<String> siteAccessList = new ArrayList<>();
 	
 	@Type(type = "list-array")
@@ -140,19 +140,19 @@ public class ChartModel_v2 {
 	@Column(name="report_label")
 	private String reportLabel;
 
-	public boolean getIsActive() {
+	public boolean getActive() {
 		return isActive;
 	}
 
-	public void setIsActive(boolean isActive) {
+	public void setActive(boolean isActive) {
 		this.isActive = isActive;
 	}
 
-	public boolean getIsVisible() {
+	public boolean getVisible() {
 		return isVisible;
 	}
 
-	public void setIsVisible(boolean isVisible) {
+	public void setVisible(boolean isVisible) {
 		this.isVisible = isVisible;
 	}
 
@@ -275,11 +275,11 @@ public class ChartModel_v2 {
 		this.chartId = chartId;
 	}
 
-	public boolean getIsDefault() {
+	public boolean getDefault() {
 		return isDefault;
 	}
 
-	public void setIsDefault(boolean isDefault) {
+	public void setDefault(boolean isDefault) {
 		this.isDefault = isDefault;
 	}
 
@@ -341,25 +341,6 @@ public class ChartModel_v2 {
 	public void setReportLabel(String reportLabel) {
 		this.reportLabel = reportLabel;
 	}
-
-
-
-	public boolean isVisible() {
-		return isVisible;
-	}
-
-
-
-	public boolean isDefault() {
-		return isDefault;
-	}
-
-
-
-	public boolean isActive() {
-		return isActive;
-	}
-
 
 
 	@Override
