@@ -67,6 +67,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.FileSystemUtils;
 
@@ -135,6 +136,9 @@ public class DataframeService {
 
 	@Autowired
 	private FavouriteDao_v2 favouriteDao_v2;
+	
+	@Autowired
+	JdbcTemplate jdbc;
 
 	private String dbUrl = DBUtils.getPostgres().get("dbUrl");
 
@@ -1833,6 +1837,10 @@ public class DataframeService {
 	}
 
 	public DataResult getCloudCostData(ServerSideGetRowsRequest request) {
+		
+		JSONArray cloudCostData = getCloudCostDataFromPostgres(request);
+		
+		
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		String viewName = request.getSiteKey().replaceAll("\\s+", "").replaceAll("-", "") + "_cloudcost";
 
@@ -1935,6 +1943,87 @@ public class DataframeService {
 		dataset = sparkSession.emptyDataFrame();
 		return paginate(dataset, request);
 
+	}
+
+	private JSONArray getCloudCostDataFromPostgres(ServerSideGetRowsRequest request) {
+		JSONArray cloudCostData = new JSONArray();
+		String siteKey = request.getSiteKey();
+		String deviceType = request.getDeviceType();
+
+		String reportName = request.getReportType();
+		String deviceTypeHeder = "All";
+		String reportBy = request.getReportType();
+		JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+		String discoveryFilterqry = "";
+
+		List<String> columnHeaders = new ArrayList<>();
+		List<String> numberColumnHeaders = new ArrayList<>();
+		if (headers != null && headers.size() > 0) {
+			for (Object o : headers) {
+				if (o instanceof JSONObject) {
+					String col = (String) ((JSONObject) o).get("actualName");
+					String dataType = (String) ((JSONObject) o).get("dataType");
+					if (dataType.equalsIgnoreCase("String")) {
+						columnHeaders.add(col);
+					} else {
+						numberColumnHeaders.add(col);
+					}
+
+				}
+			}
+		}
+
+		List<String> taskListServers = new ArrayList<>();
+		if (request.getProjectId() != null && !request.getProjectId().isEmpty()) {
+			List<Map<String, Object>> resultMap = favouriteDao_v2
+					.getJsonarray("select server_name from tasklist where project_id='" + request.getProjectId() + "'");
+			if (resultMap != null && !resultMap.isEmpty()) {
+				for (Map<String, Object> map : resultMap) {
+					taskListServers.add((String) map.get("server_name"));
+				}
+			}
+		}
+
+		if (deviceType.equalsIgnoreCase("All") || !deviceType.isEmpty()) {
+			deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
+			discoveryFilterqry = " lower(source_type) in ('windows','linux', 'vmware')";
+		} else {
+			deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
+			discoveryFilterqry = " lower(source_type)='" + deviceType.toLowerCase() + "'";
+		}
+
+		if (!taskListServers.isEmpty()) {
+			String serverNames = String.join(",", taskListServers.stream().map(name -> ("'" + name.toLowerCase() + "'"))
+					.collect(Collectors.toList()));
+			deviceType = " lcase(aws.`Server Name`) in (" + serverNames + ")";
+			discoveryFilterqry = " lower(server_name) in (" + serverNames + ")";
+		}
+
+		System.out.println("----------------------deviceTypeCondition--------------------------" + deviceType);
+
+		
+
+		try {
+
+			List<Map<String, Object>> localDiscDatas = jdbc.queryForList("select * from mview_ccr_data where site_key='"+siteKey+"' and " + discoveryFilterqry);
+			
+			
+			System.out.println("------CCR Data size ---------- " + localDiscDatas);
+			
+			
+			
+
+			
+			return cloudCostData;
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			logger.error("Exception in getReport ", ex);
+			// ex.printStackTrace();
+		}
+
+		
+		return cloudCostData; // paginate(dataCheck, request);
 	}
 
 	public Dataset<Row> getOptimizationReport(ServerSideGetRowsRequest request) {
