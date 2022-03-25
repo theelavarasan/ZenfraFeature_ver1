@@ -98,7 +98,9 @@ public class ReportDataController {
 
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
 				System.out.println("------------last pointer for CCR----------------");
-				return new ResponseEntity<>(data, HttpStatus.OK);
+				JSONObject result = new JSONObject();
+				result.put("data", result);
+				return new ResponseEntity<>(result, HttpStatus.OK);
 
 			}
 
