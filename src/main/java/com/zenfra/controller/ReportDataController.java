@@ -99,7 +99,7 @@ public class ReportDataController {
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
 				System.out.println("------------last pointer for CCR----------------");
 				JSONObject result = new JSONObject();
-				result.put("data", result);
+				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
 
 			}
