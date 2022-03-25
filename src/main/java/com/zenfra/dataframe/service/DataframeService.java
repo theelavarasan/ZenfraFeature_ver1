@@ -1836,9 +1836,17 @@ public class DataframeService {
 		return paginate(dataset, request);
 	}
 
+	public List<Map<String, Object>> getCloudCostDataPostgresFn(ServerSideGetRowsRequest request) {
+		
+		List<Map<String, Object>> cloudCostData = getCloudCostDataFromPostgres(request);
+		
+		
+		return cloudCostData;
+		
+	}
 	public DataResult getCloudCostData(ServerSideGetRowsRequest request) {
 		
-		JSONArray cloudCostData = getCloudCostDataFromPostgres(request);
+		 
 		
 		
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
@@ -1945,7 +1953,7 @@ public class DataframeService {
 
 	}
 
-	private JSONArray getCloudCostDataFromPostgres(ServerSideGetRowsRequest request) {
+	private List<Map<String, Object>> getCloudCostDataFromPostgres(ServerSideGetRowsRequest request) {
 		JSONArray cloudCostData = new JSONArray();
 		String siteKey = request.getSiteKey();
 		String deviceType = request.getDeviceType();
@@ -1999,27 +2007,29 @@ public class DataframeService {
 			discoveryFilterqry = " lower(server_name) in (" + serverNames + ")";
 		}
 
-		System.out.println("----------------------deviceTypeCondition--------------------------" + deviceType);
+		System.out.println("----------------------deviceTypeCondition--------------------------" + discoveryFilterqry);
 
 		
 
 		try {
+			String sql = "select * from mview_ccr_data where site_key='"+siteKey+"' and " + discoveryFilterqry;
+			
+			System.out.println("----------------------sql--------------------------" + sql);
 
-			List<Map<String, Object>> localDiscDatas = jdbc.queryForList("select * from mview_ccr_data where site_key='"+siteKey+"' and " + discoveryFilterqry);
+			List<Map<String, Object>> localDiscDatas = jdbc.queryForList(sql);
 			
 			
-			System.out.println("------CCR Data size ---------- " + localDiscDatas);
+		
 			
 			
 			
 
 			
-			return cloudCostData;
+			return localDiscDatas;
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			logger.error("Exception in getReport ", ex);
-			// ex.printStackTrace();
+			 
 		}
 
 		

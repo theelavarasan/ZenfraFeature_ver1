@@ -3,6 +3,8 @@ package com.zenfra.controller;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -94,9 +96,9 @@ public class ReportDataController {
 				 * ResponseEntity<>(resultData.toString(), HttpStatus.OK); }
 				 */
 
-				DataResult data = dataframeService.getCloudCostData(request);
+				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
 				System.out.println("------------last pointer for CCR----------------");
-				return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+				return new ResponseEntity<>(data, HttpStatus.OK);
 
 			}
 
