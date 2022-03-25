@@ -122,7 +122,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				json.put("status", log.getStatus());
 				json.put("logFileId", log.getLogFileId());
 				if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
-					json.put("parsedDateTime", log.getParsedDateTime() != null? log.getParsedDateTime() : "");
+					json.put("parsedDateTime", log.getParsedDateTime() != null? common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()) : "");
 				}
 				resultArray.add(json);
 			}
