@@ -58,17 +58,6 @@ public class ChartController {
 //				chartModel.setActive(true);
 //				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
 //			}
-			if (chartModel.getChartId() == null || chartModel.getChartId().trim().isEmpty()) {
-				chartModel.setCreatedTime(functions.getCurrentDateWithTime());
-				chartModel.setChartId(functions.generateRandomId());
-				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
-				chartModel.setIsActive(true);
-
-			} else {
-
-				chartModel.setIsActive(true);
-				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
-			}
 			
 			responseModel.setResponseMessage("Success");
 			if (chartService.saveChart(chartModel)) {
