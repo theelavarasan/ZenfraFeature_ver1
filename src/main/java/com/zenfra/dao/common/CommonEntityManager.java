@@ -58,10 +58,10 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		data = dbUtils.getPostgres();
 		String insertQuery = "";
 		try {
-			insertQuery = "INSERT INTO chart(\r\n"
+			insertQuery = "INSERT INTO chart("
 					+ "	chart_id, chart_configuration, is_dashboard, site_key, report_name, chart_name, filter_property, "
 					+ "chart_type, created_time, update_time, is_active, user_id, user_access_list, site_access_list, chart_desc, "
-					+ "is_visible, is_default, analytics_for, analytics_type, category_list, chart_details, report_label)\r\n"
+					+ "is_visible, is_default, analytics_for, analytics_type, category_list, chart_details, report_label)"
 					+ "	VALUES ('" + chart.getChartId() + "', '" + chart.getChartConfiguration() + "', '" + chart.isDashboard() + "', '"
 					+ chart.getSiteKey() + "', '" + chart.getReportName() + "', '" + chart.getChartName() + "', '" + chart.getFilterProperty() + "', '"
 					+ chart.getChartType() + "', '" + chart.getCreatedTime() + "', '" + chart.getUpdateTime() + "', '" + chart.isActive() + "', '"
@@ -125,13 +125,14 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		String updateQuery = "";
 		
 		try {
-			updateQuery = "UPDATE chart\r\n"
+			updateQuery = "UPDATE chart"
 					+ "	SET chart_configuration= '" + chart.getChartConfiguration().toString()  + "', is_dashboard= '" + chart.isDashboard() + "', "
 					+ "site_key= '" + chart.getSiteKey() + "', report_name= '" + chart.getReportName() + "', "
 					+ "chart_name= '" + chart.getChartName() + "', filter_property= '" + chart.getFilterProperty()  + "',"
 					+ "chart_type= '" + chart.getChartType() + "', created_time= '" + chart.getCreatedTime() + "', "
 					+ "update_time= '" + chart.getUpdateTime() + "', is_active= '" + chart.getIsActive() + "', user_id= '" + chart.getUserId() + "', "
-					+ "user_access_list= '" + map.convertValue(chart.getUserAccessList() , JSONArray.class).toJSONString() + "', site_access_list= '" + map.convertValue(chart.getSiteAccessList(), JSONArray.class).toJSONString() + "', chart_desc= '" + chart.getChartDesc() + "', "
+					+ "user_access_list= '" + map.convertValue(chart.getUserAccessList() , JSONArray.class).toJSONString() + "', "
+					+ "site_access_list= '" + map.convertValue(chart.getSiteAccessList() , JSONArray.class).toJSONString() + "', chart_desc= '" + chart.getChartDesc() + "', "
 					+ "is_visible= '" + chart.getIsVisible() + "', is_default= '" + chart.getIsDefault() + "', analytics_for= '" + chart.getAnalyticsFor() + "', analytics_type= '" + chart.getAnalyticsType() + "', "
 					+ "category_list= '" + chart.getCategoryList() + "', chart_details= '" + chart.getChartDetails() + "', report_label= '" + chart.getReportLabel() + "'"
 					+ "	WHERE chart_id = '" + chart.getChartId() + "';";
@@ -198,6 +199,7 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 			chartModel_v2 = map.convertValue(object, ChartModel_v2.class);
 			chartModel_v2.setChartConfiguration(map.readValue(object.get("chartConfiguration").toString(), JSONObject.class));
 			chartModel_v2.setFilterProperty(map.readValue(object.get("filterProperty").toString(), JSONObject.class));
+			chartModel_v2.setSiteAccessList(map.readValue(object.get("siteAccessList").toString(), JSONArray.class));
 			chartModel_v2.setUserAccessList(map.readValue(object.get("userAccessList").toString(), JSONArray.class));
 			chartModel_v2.setChartDetails(map.readValue(object.get("chartDetails").toString(), JSONObject.class));
 		}catch (Exception e) {

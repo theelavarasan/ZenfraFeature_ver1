@@ -104,7 +104,7 @@ public class ChartController {
 				responseModel.setResponseCode(HttpStatus.NOT_FOUND);
 				return ResponseEntity.ok(responseModel);
 			}
-//			BeanUtils.copyProperties(chartModel, chartExit, NullAwareBeanUtilsBean.getNullPropertyNames(chartModel));
+			BeanUtils.copyProperties(chartModel, chartExit, NullAwareBeanUtilsBean.getNullPropertyNames(chartModel));
 			chartExit.setIsActive(true);
 			chartExit.setUpdateTime(functions.getCurrentDateWithTime());
 
