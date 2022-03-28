@@ -311,12 +311,12 @@ public class HealthCheckService {
 		String query = null;
 		try {
 			if (projectId != null && !projectId.isEmpty()) {
-				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,"
-						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList,"
-						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList,"
+				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName, "
+						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList, "
+						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
 						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
 						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
-						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy"
+						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy "
 						+ "FROM health_check h "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
@@ -324,28 +324,28 @@ public class HealthCheckService {
 						+ "' order by health_check_name ASC";
 
 			} else {
-				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,"
-						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList,"
-						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList,"
-						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,"
+				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName, "
+						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList, "
+						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
+						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
 						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
-						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy"
+						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy "
 						+ "FROM health_check h "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
 						+ "where is_active='true' and site_key='" + siteKey + "' order by health_check_name ASC";
 				
 				if (!isTenantAdmin) {
-					query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,"
-							+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList,"
-							+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList,"
-							+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,"
+					query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName, "
+							+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList, "
+							+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
+							+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
 							+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
 							+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy "
 							+ "FROM health_check h "
 							+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
-							+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id"
-							+ " where is_active='true' and ((create_by = '" + userId + "' " + "and site_key = '%"
+							+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
+							+ "where is_active='true' and ((create_by = '" + userId + "' " + "and site_key = '%"
 							+ siteKey + "%') or " + "((site_access_list like '%" + siteKey
 							+ "%' or site_access_list like '%All%') and " + "(user_access_list like '%" + userId
 							+ "%' or user_access_list  like '%All%'))) order by health_check_name ASC";
