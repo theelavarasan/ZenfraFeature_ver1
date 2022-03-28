@@ -326,10 +326,10 @@ public class HealthCheckService {
 			} else {
 				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName,"
 						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList,"
-						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList,\r\n"
+						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList,"
 						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime,"
 						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
-						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy\r\n"
+						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy"
 						+ "FROM health_check h"
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id"
