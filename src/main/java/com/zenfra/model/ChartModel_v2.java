@@ -128,7 +128,7 @@ public class ChartModel_v2 {
 	private List<String> siteAccessList = new ArrayList<>();
 	
 	@Type(type = "list-array")
-	@Column(name="category_list",columnDefinition = "text[]")
+	@Column(name="category_list",columnDefinition = "text")
 	private List<String> categoryList = new ArrayList<>();
 	
 	@Type(type = "jsonb")

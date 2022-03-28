@@ -19,6 +19,7 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.zenfra.dao.HealthCheckDao;
 import com.zenfra.dao.HealthCheckDisplayDao;
 import com.zenfra.model.HealthCheck;
@@ -308,6 +309,8 @@ public class HealthCheckService {
 
 	public JSONArray getAllHealthCheck(String siteKey, boolean isTenantAdmin, String userId, String projectId) {
 		JSONArray resultArray = new JSONArray();
+		JSONParser jsonParser = new JSONParser();
+		JsonMapper jsonMapper = new JsonMapper();
 		String query = null;
 		try {
 			if (projectId != null && !projectId.isEmpty()) {
@@ -363,12 +366,12 @@ public class HealthCheckService {
 						healthCheckModel.put("componentType", mapObject.get("componenttype"));
 						healthCheckModel.put("healthCheckName", mapObject.get("healthcheckname"));
 						healthCheckModel.put("reportBy", mapObject.get("reportby"));
-						healthCheckModel.put("reportCondition", mapObject.get("reportcondition"));
+						healthCheckModel.put("reportCondition", jsonMapper.convertValue(mapObject.get("reportcondition"), JSONArray.class));
 						healthCheckModel.put("reportName", mapObject.get("reportname"));
-						healthCheckModel.put("siteAccessList", Arrays.asList( mapObject.get("siteaccesslist") != null ?  ((String) mapObject.get("siteaccesslist")).split(",") : null));
+						healthCheckModel.put("siteAccessList", Arrays.asList( mapObject.get("siteaccesslist") != null ? jsonMapper.convertValue(mapObject.get("siteaccesslist"), JSONArray.class).toJSONString() : null));
 						healthCheckModel.put("siteKey", mapObject.get("sitekey"));
 //						 healthCheckModel.put("siteKey", mapObject.get("sitekey"));
-						healthCheckModel.put("userAccessList", Arrays.asList(mapObject.get("useraccesslist") != null ? ((String) mapObject.get("useraccesslist")).split(",") : null));
+						healthCheckModel.put("userAccessList", Arrays.asList(mapObject.get("useraccesslist") != null ? jsonMapper.convertValue(mapObject.get("useraccesslist"), JSONArray.class).toJSONString() : null));
 						healthCheckModel.put("createdTime", mapObject.get("createdtime"));
 						healthCheckModel.put("updatedTime", mapObject.get("updatedtime"));
 						healthCheckModel.put("userId", mapObject.get("userid"));
@@ -379,9 +382,6 @@ public class HealthCheckService {
 						healthCheckModel.put("updatedById", mapObject.get("updateby"));
 						healthCheckModel.put("createdBy", mapObject.get("createby"));
 						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
-						System.out.println("--------getAnalyticsType-----------" + mapObject.get("analyticstype"));
-						System.out.println("--------------getCreateBy-----------------------" + mapObject.get("createby")); 
-						System.out.println("--------------getCreatedDate-----------------------" + mapObject.get("createdtime"));
 							
 //						JSONObject response = convertEntityToModel((HealthCheck) obj);
 						boolean isWriteAccess = false;
