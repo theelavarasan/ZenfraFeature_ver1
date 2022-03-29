@@ -215,9 +215,12 @@ public class HealthCheckService {
 		}
 		try {
 			String getOverallStatusRuleList = healthCheck.getOverallStatusRuleList();
-			ObjectMapper mapper = new ObjectMapper();
-			JSONArray array = mapper.readValue(getOverallStatusRuleList, JSONArray.class);
-			response.put("overallStatusRuleList", array);
+			if(getOverallStatusRuleList != null) {
+				ObjectMapper mapper = new ObjectMapper();
+				JSONArray array = mapper.readValue(getOverallStatusRuleList, JSONArray.class);
+				response.put("overallStatusRuleList", array);
+			}
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
