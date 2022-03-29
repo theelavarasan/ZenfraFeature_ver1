@@ -1992,19 +1992,21 @@ public class DataframeService {
 			}
 		}
 
-		if (deviceType.equalsIgnoreCase("All") || !deviceType.isEmpty()) {
-			deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
+		if (deviceType.equalsIgnoreCase("All")) {
+			
 			discoveryFilterqry = " lower(source_type) in ('windows','linux', 'vmware')";
+			//deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
 		} else {
-			deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
 			discoveryFilterqry = " lower(source_type)='" + deviceType.toLowerCase() + "'";
+			//deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
+			
 		}
 
 		if (!taskListServers.isEmpty()) {
 			String serverNames = String.join(",", taskListServers.stream().map(name -> ("'" + name.toLowerCase() + "'"))
 					.collect(Collectors.toList()));
-			deviceType = " lcase(aws.`Server Name`) in (" + serverNames + ")";
-			discoveryFilterqry = " lower(server_name) in (" + serverNames + ")";
+			//deviceType = " lcase(aws.`Server Name`) in (" + serverNames + ")";
+			discoveryFilterqry = " lower(Server Name) in (" + serverNames + ")";
 		}
 
 		System.out.println("----------------------deviceTypeCondition--------------------------" + discoveryFilterqry);
