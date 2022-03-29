@@ -71,7 +71,7 @@ public class HealthCheck implements Serializable {
 	
 	@Column
 	@ApiModelProperty(value = "overallStatusRuleList", name = "overallStatusRuleList", dataType = "String", example = "")
-	@NotBlank(message = "overallStatusRuleList must not be empty")
+//	@NotBlank(message = "overallStatusRuleList must not be empty")
 	private String overallStatusRuleList;
 	
 	@Column
