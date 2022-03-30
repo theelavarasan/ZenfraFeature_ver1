@@ -941,7 +941,7 @@ public class ValidationRuleService {
 					") c order by keys \r\n" + 
 					") c1 order by data \r\n" +
 					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
-					") e where keys = '" + columnName + " \r\n" +
+					") e where keys = '" + columnName + "' \r\n" +
 					"union all \r\n" + 
 					"select keys, data from ( \r\n" + 
 					"select keys, json_agg(data) as data from ( \r\n" + 
