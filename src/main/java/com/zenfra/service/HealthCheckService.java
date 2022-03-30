@@ -328,16 +328,16 @@ public class HealthCheckService {
 		try {
 			if (projectId != null && !projectId.isEmpty()) {
 				query = "select * from health_check where site_key='" + siteKey + "' and report_by ='" + projectId
-						+ "' and is_active='true' order by health_check_name ASC";
+						+ "' and is_active='true' and report_by not in (select project_id from project) order by health_check_name ASC";
 
 			} else {
 				query = "select * from health_check where site_key='" + siteKey
-						+ "' and is_active='true' order by health_check_name ASC";
+						+ "' and is_active='true' and report_by not in (select project_id from project) order by health_check_name ASC";
 				if (!isTenantAdmin) {
 					query = "select * from health_check where is_active = 'true' and ((create_by = '" + userId
 							+ "' and site_key = '" + siteKey + "') or ((site_access_list like '%" + siteKey
 							+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
-							+ "%' or user_access_list  like '%All%')))order by health_check_name ASC";
+							+ "%' or user_access_list  like '%All%'))) and report_by not in (select project_id from project) order by health_check_name ASC";
 				}
 			}
 			System.out.println("--------------query--------------" + query);
