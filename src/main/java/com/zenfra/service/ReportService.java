@@ -509,20 +509,25 @@ public class ReportService {
 			Date date = new Date();
 			favouriteDao_v2.updateQuery("REFRESH MATERIALIZED VIEW " + view + " WITH DATA");
 			Date date2 = new Date();
-			System.out.println("----------refresh time----------- " + (date2.getTime() - date.getTime()));
+			System.out.println("----------refresh time for view :: "+view  + " : " + (date2.getTime() - date.getTime()));
 		} catch (Exception e) {
 			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			/*
+			 * StringWriter errors = new StringWriter(); e.printStackTrace(new
+			 * PrintWriter(errors)); String ex = errors.toString();
+			 * ExceptionHandlerMail.errorTriggerMail(ex);
+			 */
 		}
 
 	}
 
 	public void refreshCloudCostViews() {
-		refreshViews("mview_localdiscovery");
-		refreshViews("mview_aws_cost_report");
+		refreshViews("mview_local_discovery_data");
+		refreshViews("mview_localdisc_aws");
+		refreshViews("mview_localdisc_azure");
+		refreshViews("mview_localdisc_google");
+		refreshViews("mview_localdisc_all_cloud");
+		refreshViews("mview_ccr_data");
 
 	}
 
