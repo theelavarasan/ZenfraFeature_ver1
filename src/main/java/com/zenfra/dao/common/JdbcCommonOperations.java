@@ -161,7 +161,7 @@ public abstract class JdbcCommonOperations {
 			jdbc.setDataSource(d);
 			obj1 = jdbc.queryForList(query);
 
-			System.out.println(obj1);
+			//System.out.println(obj1);
 			obj = obj1.get(0) != null ? obj1.get(0) : new HashMap<String, Object>();
 
 		} catch (Exception e) {

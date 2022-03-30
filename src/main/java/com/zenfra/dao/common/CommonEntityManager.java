@@ -92,7 +92,7 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 		List<Object> obj = new ArrayList<Object>();
 		try {
 			obj = entityManager.createNativeQuery(query, c).getResultList();
-			System.out.println(obj);
+			//System.out.println(obj);
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();

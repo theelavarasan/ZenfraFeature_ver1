@@ -85,7 +85,7 @@ public class ChartService {
 	public ChartModel_v2 getChartByChartId(String chartId) {
 		ChartModel_v2 chart = new ChartModel_v2();
 		try {
-			System.out.println(chartDao.findEntityById(ChartModel_v2.class, chartId));
+			//System.out.println(chartDao.findEntityById(ChartModel_v2.class, chartId));
 			chart = (ChartModel_v2) chartDao.findEntityById(ChartModel_v2.class, chartId);
 		
 		} catch (Exception e) {
