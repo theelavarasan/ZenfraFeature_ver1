@@ -154,6 +154,9 @@ public class HealthCheckService {
 		if (healthCheckModel.getReportCondition() != null) {
 			healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString());
 		}
+		if(healthCheckModel.getOverallStatusRuleList() != null) {
+			healthCheck.setOverallStatusRuleList(healthCheckModel.getOverallStatusRuleList().toJSONString());
+		}
 		// ().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
 		healthCheck.setActive(true);
 		healthCheck.setUserId(healthCheckModel.getAuthUserId());
@@ -215,6 +218,23 @@ public class HealthCheckService {
 			String ex = errors.toString();
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
+		try {
+			String getOverallStatusRuleList = healthCheck.getOverallStatusRuleList();
+			if(getOverallStatusRuleList != null) {
+				ObjectMapper mapper = new ObjectMapper();
+				JSONArray array = mapper.readValue(getOverallStatusRuleList, JSONArray.class);
+				response.put("overallStatusRuleList", array);
+			}
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		
 
 //		List<String> uList = new ArrayList<String>();
 //		uList.addAll(Arrays.asList(healthCheck.getUserAccessList().split(",")));
