@@ -2020,13 +2020,6 @@ public class DataframeService {
 
 			List<Map<String, Object>> localDiscDatas = jdbc.queryForList(sql);
 			
-			
-		
-			
-			
-			
-
-			
 			return localDiscDatas;
 
 		} catch (Exception ex) {
@@ -3501,5 +3494,6 @@ public class DataframeService {
 		}
 
 	}
+
 
 }
