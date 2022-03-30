@@ -285,7 +285,7 @@ public class FavouriteApiService_v2 {
 			if (favView != null && favView.getCreated_by().equalsIgnoreCase(userId)) {
 				updateFavView = queries.favouriteView().getUpdateCreatedByEqualsUserId().replace(":favourite_id",
 						favouriteId);
-				System.out.println("3::" + updateFavView);
+				//System.out.println("3::" + updateFavView);
 			} else if (favView != null && favView.getUser_access_list().contains("All")) {
 				String user_remove_list = favView.getUser_remove_list();
 				if (user_remove_list != null && !user_remove_list.isEmpty()) {
@@ -297,15 +297,15 @@ public class FavouriteApiService_v2 {
 					user_remove_list = "[\"" + userId + "\"]";
 				}
 				params.put("user_remove_list", user_remove_list);
-				System.out.println(user_remove_list);
+				//System.out.println(user_remove_list);
 				updateFavView = queries.favouriteView().getUpdateCreatedByNotEqualsUserIdUserRemoveUpdate()
 						.replace(":user_remove_list", user_remove_list).replace(":favourite_id", favouriteId);
-				System.out.println("1::" + updateFavView);
+				//System.out.println("1::" + updateFavView);
 
 			} else {
 				updateFavView = queries.favouriteView().getUpdateCreatedByNotEqualsUserIdUserAccessUpdate()
 						.replace(":user_id", userId).replace(":favourite_id", favouriteId);
-				System.out.println("2::" + updateFavView);
+				//System.out.println("2::" + updateFavView);
 			}
 			String dynamicChartDeleteQuery = queries.dashBoardChartDetails()
 					.getUpdateDynamicChartDetailsActiveFalseQuery().replace(":is_active", String.valueOf(false))
@@ -313,7 +313,7 @@ public class FavouriteApiService_v2 {
 			String dashBoardChartsDeleteQuery = queries.dashBoardChart().getDelete().replace(":user_id", userId)
 					.replace(":favourite_id", favouriteId);
 
-			System.out.println(updateFavView);
+			//System.out.println(updateFavView);
 			responce = daoFav.updateQuery(updateFavView);
 
 			daoFav.updateQuery(dynamicChartDeleteQuery);
