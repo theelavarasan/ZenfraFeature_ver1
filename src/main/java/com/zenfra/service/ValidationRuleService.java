@@ -920,7 +920,64 @@ public class ValidationRuleService {
 					+ ") d where row_num = 1\r\n"
 					+ "order by report_type_column_value\r\n"
 					+ ") e where option_id is not null or option_id <> '' \r\n"
-					+ ") f where keys = '" + columnName + "' group by keys";
+					+ ") f where keys = '" + columnName + "' group by keys \r\n" +
+					"union all \r\n" +
+					"select keys, data from ( \r\n" + 
+					"select keys, json_agg(data) as data from (  \r\n" + 
+					"select keys, data from ( \r\n" +
+					"select distinct keys, json_array_elements(LocalDiscoveryData) ->> keys as data from ( \r\n" + 
+					"select LocalDiscoveryData, json_object_keys(data) as keys from ( \r\n" + 
+					"select LocalDiscoveryData, json_array_elements(LocalDiscoveryData) as data from (\r\n" + 
+					"Select TL.site_key,TL.task_data_id,lower(TL.server_name) as server_name,\r\n" + 
+					"(case when TL.is_manual = true then TL.server_type else LD.source_type end) as server_type,TL.project_id,TL.task_id,TL.default_custom_fields_new,\r\n" + 
+					"TL.updated_time,LD.source_category,LD.wwn,\r\n" + 
+					"LD.actual_os_type,LD.data_temp LocalDiscoveryData from Tasklist TL\r\n" + 
+					"left join (select *,Row_number() over(partition by server_name order by log_date desc) as Row_Num from local_discovery\r\n" + 
+					"where site_key = '" + siteKey + "') LD on LD.site_key = TL.site_key and lower(LD.source_id) = lower(TL.task_id) or lower(LD.server_name) = lower(TL.server_name)\r\n" + 
+					"and LD.Row_Num = 1\r\n" + 
+					"where TL.is_active=true and TL.project_id= '" + reportBy + "' \r\n" + 
+					") a \r\n" + 
+					") b \r\n" + 
+					") c order by keys \r\n" + 
+					") c1 order by data \r\n" +
+					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
+					") e where keys = '" + columnName + "' \r\n" +
+					"union all \r\n" + 
+					"select keys, data from ( \r\n" + 
+					"select keys, json_agg(data) as data from ( \r\n" + 
+					"select keys, data from ( \r\n" +
+					"select distinct keys, json_array_elements(data) ->> keys as data from ( \r\n" + 
+					"select data, json_object_keys(data1) as keys from ( \r\n" + 
+					"select ServerDiscoveryData as data, json_array_elements(ServerDiscoveryData) as data1 from ( \r\n" + 
+					"Select TL.site_key,TL.task_data_id,TL.server_type,lower(TL.server_name) as server_name,\r\n" + 
+					"TL.project_id,TL.task_id,TL.default_custom_fields_new,\r\n" + 
+					"TL.updated_time,SD.source_category,SD.wwn,coalesce(SD.source_type, server_type) as server_type,\r\n" + 
+					"coalesce(SD.data_temp, concat('[{\"Server Type\":\"',coalesce(SD.source_type, server_type), '\",\"Server Name\":\"',server_name, '\"}]')::json) ServerDiscoveryData\r\n" + 
+					"from Tasklist TL\r\n" + 
+					"left join (select site_key, source_id, source_category, wwn, source_type, data_temp, Row_number() over(partition by source_id order by log_date desc) as Row_Num\r\n" + 
+					"from server_discovery\r\n" + 
+					"where site_key = '" + siteKey + "') SD on SD.site_key = TL.site_key and SD.source_id = TL.task_id and\r\n" + 
+					"SD.Row_Num = 1\r\n" + 
+					"where TL.is_active=true and TL.project_id='" + reportBy + "' \r\n" + 
+					") a \r\n" + 
+					") b \r\n" + 
+					") c order by keys \r\n" + 
+					") c1 order by data \r\n" +
+					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
+					") e where keys = '" + columnName + "' \r\n " +
+					"union all \r\n " +
+					"select keys, json_agg(data) as data from (\r\n" + 
+					"select keys, data from (\r\n" + 
+					"select distinct keys, data::json ->> keys as data from ( \r\n" + 
+					"select data, keys from ( \r\n" + 
+					"select primary_key, data, json_object_keys(data::json) as keys from (  \r\n" + 
+					"select primary_key, data from source_data where source_id in (select json_array_elements_text(\r\n" + 
+					"(select input_source from project where project_id = '34720f30-57ec-43ac-8e0a-75df3937c6bc')::json))\r\n" + 
+					") a ) b where keys not in (primary_key, 'siteKey', 'sourceId') \r\n" + 
+					") c \r\n" + 
+					") d order by data\r\n" + 
+					") e where keys = '" + columnName + "' group by keys ";
+					
 			
 			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
 			List<Map<String,Object>> valueArray = getObjectFromQuery(uniqueFilterQuery); 

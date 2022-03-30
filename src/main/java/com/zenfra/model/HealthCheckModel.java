@@ -43,6 +43,8 @@ public class HealthCheckModel {
 	
 	private String analyticsType;
 	
+	private JSONArray overallStatusRuleList;
+	
 	public String getAuthUserId() {
 		return authUserId;
 	}
@@ -164,5 +166,15 @@ public class HealthCheckModel {
 	public void setAnalyticsType(String analyticsType) {
 		this.analyticsType = analyticsType;
 	}
+
+	public JSONArray getOverallStatusRuleList() {
+		return overallStatusRuleList;
+	}
+
+	public void setOverallStatusRuleList(JSONArray overallStatusRuleList) {
+		this.overallStatusRuleList = overallStatusRuleList;
+	}
+	
+	
 
 }

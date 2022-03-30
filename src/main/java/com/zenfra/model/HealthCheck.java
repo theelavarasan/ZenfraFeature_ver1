@@ -70,6 +70,11 @@ public class HealthCheck implements Serializable {
 	private String userAccessList;
 	
 	@Column
+	@ApiModelProperty(value = "overallStatusRuleList", name = "overallStatusRuleList", dataType = "String", example = "")
+//	@NotBlank(message = "overallStatusRuleList must not be empty")
+	private String overallStatusRuleList;
+	
+	@Column
     private String createBy;
 	
 	@Column
@@ -229,5 +234,14 @@ public class HealthCheck implements Serializable {
 	public void setAnalyticsType(String analyticsType) {
 		this.analyticsType = analyticsType;
 	}
+
+	public String getOverallStatusRuleList() {
+		return overallStatusRuleList;
+	}
+
+	public void setOverallStatusRuleList(String overallStatusRuleList) {
+		this.overallStatusRuleList = overallStatusRuleList;
+	}
+	
 	
 }

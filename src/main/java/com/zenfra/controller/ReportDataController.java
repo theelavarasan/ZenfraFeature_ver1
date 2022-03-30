@@ -3,6 +3,8 @@ package com.zenfra.controller;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -94,9 +96,11 @@ public class ReportDataController {
 				 * ResponseEntity<>(resultData.toString(), HttpStatus.OK); }
 				 */
 
-				DataResult data = dataframeService.getCloudCostData(request);
-				System.out.println("------------last pointer for CCR----------------");
-				return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
+				///System.out.println("------------last pointer for CCR----------------");
+				JSONObject result = new JSONObject();
+				result.put("data", data);
+				return new ResponseEntity<>(result, HttpStatus.OK);
 
 			}
 
@@ -177,7 +181,8 @@ public class ReportDataController {
 			String sourceTypeRef = sourceType.toLowerCase();
 			if (sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("linux")
 					|| sourceTypeRef.equalsIgnoreCase("vmware")) {
-				dataframeService.destroryCloudCostDataframe(siteKey);
+				//dataframeService.destroryCloudCostDataframe(siteKey);
+				reportService.refreshCloudCostViews();
 			}
 
 			/*if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {

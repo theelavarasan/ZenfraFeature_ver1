@@ -149,6 +149,9 @@ public class HealthCheckService {
 		if (healthCheckModel.getReportCondition() != null) {
 			healthCheck.setReportCondition(healthCheckModel.getReportCondition().toJSONString());
 		}
+		if(healthCheckModel.getOverallStatusRuleList() != null) {
+			healthCheck.setOverallStatusRuleList(healthCheckModel.getOverallStatusRuleList().toJSONString());
+		}
 		// ().replaceAll("\\s", "").replaceAll("\n", "").replaceAll("\r", "")
 		healthCheck.setActive(true);
 		healthCheck.setUserId(healthCheckModel.getAuthUserId());
@@ -210,6 +213,23 @@ public class HealthCheckService {
 			String ex = errors.toString();
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
+		try {
+			String getOverallStatusRuleList = healthCheck.getOverallStatusRuleList();
+			if(getOverallStatusRuleList != null) {
+				ObjectMapper mapper = new ObjectMapper();
+				JSONArray array = mapper.readValue(getOverallStatusRuleList, JSONArray.class);
+				response.put("overallStatusRuleList", array);
+			}
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		
 
 		List<String> uList = new ArrayList<String>();
 		uList.addAll(Arrays.asList(healthCheck.getUserAccessList().split(",")));
@@ -307,14 +327,13 @@ public class HealthCheckService {
 		String query = null;
 		try {
 			if (projectId != null && !projectId.isEmpty()) {
-				query = "select * from health_check where site_key='" + siteKey + "' and report_by ='" + projectId
-						+ "' and is_active='true' and report_by not in (select project_id from project) order by health_check_name ASC";
+				query = "select * from health_check where site_key='" + siteKey + "' and report_by ='" + projectId + "' and is_active = true  order by health_check_name ASC";
 
 			} else {
 				query = "select * from health_check where site_key='" + siteKey
-						+ "' and is_active='true' and report_by not in (select project_id from project) order by health_check_name ASC";
+						+ "' and is_active = true and report_by not in (select project_id from project) order by health_check_name ASC";
 				if (!isTenantAdmin) {
-					query = "select * from health_check where is_active = 'true' and ((create_by = '" + userId
+					query = "select * from health_check where is_active = true and ((create_by = '" + userId
 							+ "' and site_key = '" + siteKey + "') or ((site_access_list like '%" + siteKey
 							+ "%' or site_access_list like '%All%') and (user_access_list like '%" + userId
 							+ "%' or user_access_list  like '%All%'))) and report_by not in (select project_id from project) order by health_check_name ASC";
