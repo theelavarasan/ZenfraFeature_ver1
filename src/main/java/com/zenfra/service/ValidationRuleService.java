@@ -851,6 +851,70 @@ public class ValidationRuleService {
 		return resultData;
 	}
 	
+	
+	public JSONArray getCloudCostReportValuesPostgres(String siteKey, String columnName, String category, String deviceType,
+			String report_by) {
+		JSONArray resultData = new JSONArray();
+		try {
+			String inputDeviceType = deviceType;	
+			if (deviceType.equalsIgnoreCase("All")) {
+				deviceType = " lower(source_type) in ('windows','linux', 'vmware')";
+			} else {
+				deviceType = " lower(source_type)='" + deviceType.toLowerCase() + "'";
+			}
+
+			if (category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
+				if (deviceType.equalsIgnoreCase("All")) {
+					deviceType = " lower(source_type)='ec2'  and lower(actual_os) in ('windows','linux', 'vmware')";
+				} else {
+					deviceType = " lower(source_type)='ec2'  and lower(actual_os) = '" + inputDeviceType.toLowerCase()
+							+ "'";
+				}
+
+			}
+
+			if (report_by.equalsIgnoreCase("All")) {
+				report_by = "report_by in ('Physical Servers','AWS Instances','Custom Excel Data')";
+			} else {
+				report_by = "report_by='" + report_by + "'";
+			}
+
+			List<String> data = new ArrayList<>();
+			try {
+				String query = "select distinct(\""+columnName+"\") from mview_ccr_data where \""+columnName+"\" is not null and \""+columnName+"\" !='' and site_key='"+siteKey+"' and "+ deviceType + " and " + report_by;
+				data = jdbc.queryForList(query, String.class);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}		 
+
+			boolean isPriceColumn = false;
+			if (columnName.toLowerCase().contains("price")) {
+				isPriceColumn = true;
+			}
+			if (data != null && !data.isEmpty()) {
+				for (String str : data) {
+					if (str != null && !str.isEmpty()) {
+						if (!isPriceColumn) {
+							resultData.add(str);
+						} else {
+							resultData.add("$" + str);
+						}
+					}
+
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultData;
+	}
+	
 	public JSONArray getUniqueValues(String siteKey,String reportBy,String columnName) throws ParseException {
 		JSONParser parser = new JSONParser();
 		JSONArray resultArray = new JSONArray();
@@ -966,17 +1030,19 @@ public class ValidationRuleService {
 					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
 					") e where keys = '" + columnName + "' \r\n " +
 					"union all \r\n " +
-					"select keys, json_agg(data) as data from (\r\n" + 
-					"select keys, data from (\r\n" + 
-					"select distinct keys, data::json ->> keys as data from ( \r\n" + 
-					"select data, keys from ( \r\n" + 
-					"select primary_key, data, json_object_keys(data::json) as keys from (  \r\n" + 
-					"select primary_key, data from source_data where source_id in (select json_array_elements_text(\r\n" + 
-					"(select input_source from project where project_id = '34720f30-57ec-43ac-8e0a-75df3937c6bc')::json))\r\n" + 
-					") a ) b where keys not in (primary_key, 'siteKey', 'sourceId') \r\n" + 
-					") c \r\n" + 
+					" select keys, json_agg(data) as data from (\r\n" + 
+					"select concat(source_name,'_',keys) as keys, data from (\r\n" + 
+					"select distinct source_name, keys, data::json ->> keys as data from (\r\n" + 
+					"select source_name, data, keys from (\r\n" + 
+					"select source_name, primary_key, data, json_object_keys(data::json) as keys from (\r\n" + 
+					"select source_name, primary_key, data from source_data sd \r\n" + 
+					"LEFT JOIN source sc on sc.source_id = sd.source_id\r\n" + 
+					"where sd.source_id in (select json_array_elements_text(\r\n" + 
+					"(select input_source from project where project_id = '" + reportBy + "')::json))\r\n" + 
+					") a ) b where keys not in (primary_key, 'siteKey', 'sourceId')\r\n" + 
+					") c\r\n" + 
 					") d order by data\r\n" + 
-					") e where keys = '" + columnName + "' group by keys ";
+					") e where keys = '" + columnName + "' group by keys";
 					
 			
 			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
