@@ -851,6 +851,70 @@ public class ValidationRuleService {
 		return resultData;
 	}
 	
+	
+	public JSONArray getCloudCostReportValuesPostgres(String siteKey, String columnName, String category, String deviceType,
+			String report_by) {
+		JSONArray resultData = new JSONArray();
+		try {
+			String inputDeviceType = deviceType;	
+			if (deviceType.equalsIgnoreCase("All")) {
+				deviceType = " lower(source_type) in ('windows','linux', 'vmware')";
+			} else {
+				deviceType = " lower(source_type)='" + deviceType.toLowerCase() + "'";
+			}
+
+			if (category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
+				if (deviceType.equalsIgnoreCase("All")) {
+					deviceType = " lower(source_type)='ec2'  and lower(actual_os) in ('windows','linux', 'vmware')";
+				} else {
+					deviceType = " lower(source_type)='ec2'  and lower(actual_os) = '" + inputDeviceType.toLowerCase()
+							+ "'";
+				}
+
+			}
+
+			if (report_by.equalsIgnoreCase("All")) {
+				report_by = "report_by in ('Physical Servers','AWS Instances','Custom Excel Data')";
+			} else {
+				report_by = "report_by='" + report_by + "'";
+			}
+
+			List<String> data = new ArrayList<>();
+			try {
+				String query = "select distinct(\""+columnName+"\") from mview_ccr_data where \""+columnName+"\" is not null and \""+columnName+"\" !='' and site_key='"+siteKey+"' and "+ deviceType + " and " + report_by;
+				data = jdbc.queryForList(query, String.class);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}		 
+
+			boolean isPriceColumn = false;
+			if (columnName.toLowerCase().contains("price")) {
+				isPriceColumn = true;
+			}
+			if (data != null && !data.isEmpty()) {
+				for (String str : data) {
+					if (str != null && !str.isEmpty()) {
+						if (!isPriceColumn) {
+							resultData.add(str);
+						} else {
+							resultData.add("$" + str);
+						}
+					}
+
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultData;
+	}
+	
 	public JSONArray getUniqueValues(String siteKey,String reportBy,String columnName) throws ParseException {
 		JSONParser parser = new JSONParser();
 		JSONArray resultArray = new JSONArray();
@@ -918,9 +982,68 @@ public class ValidationRuleService {
 					+ ") b\r\n"
 					+ ") c\r\n"
 					+ ") d where row_num = 1\r\n"
-					+ "order by report_type_column_value\r\n"
+					+ "order by option_value \r\n"
 					+ ") e where option_id is not null or option_id <> '' \r\n"
-					+ ") f where keys = '" + columnName + "' group by keys";
+					+ ") f where keys = '" + columnName + "' group by keys \r\n" +
+					"union all \r\n" +
+					"select keys, data from ( \r\n" + 
+					"select keys, json_agg(data) as data from (  \r\n" + 
+					"select keys, data from ( \r\n" +
+					"select distinct keys, json_array_elements(LocalDiscoveryData) ->> keys as data from ( \r\n" + 
+					"select LocalDiscoveryData, json_object_keys(data) as keys from ( \r\n" + 
+					"select LocalDiscoveryData, json_array_elements(LocalDiscoveryData) as data from (\r\n" + 
+					"Select TL.site_key,TL.task_data_id,lower(TL.server_name) as server_name,\r\n" + 
+					"(case when TL.is_manual = true then TL.server_type else LD.source_type end) as server_type,TL.project_id,TL.task_id,TL.default_custom_fields_new,\r\n" + 
+					"TL.updated_time,LD.source_category,LD.wwn,\r\n" + 
+					"LD.actual_os_type,LD.data_temp LocalDiscoveryData from Tasklist TL\r\n" + 
+					"left join (select *,Row_number() over(partition by server_name order by log_date desc) as Row_Num from local_discovery\r\n" + 
+					"where site_key = '" + siteKey + "') LD on LD.site_key = TL.site_key and lower(LD.source_id) = lower(TL.task_id) or lower(LD.server_name) = lower(TL.server_name)\r\n" + 
+					"and LD.Row_Num = 1\r\n" + 
+					"where TL.is_active=true and TL.project_id= '" + reportBy + "' \r\n" + 
+					") a \r\n" + 
+					") b \r\n" + 
+					") c order by keys \r\n" + 
+					") c1 order by data \r\n" +
+					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
+					") e where keys = '" + columnName + "' \r\n" +
+					"union all \r\n" + 
+					"select keys, data from ( \r\n" + 
+					"select keys, json_agg(data) as data from ( \r\n" + 
+					"select keys, data from ( \r\n" +
+					"select distinct keys, json_array_elements(data) ->> keys as data from ( \r\n" + 
+					"select data, json_object_keys(data1) as keys from ( \r\n" + 
+					"select ServerDiscoveryData as data, json_array_elements(ServerDiscoveryData) as data1 from ( \r\n" + 
+					"Select TL.site_key,TL.task_data_id,TL.server_type,lower(TL.server_name) as server_name,\r\n" + 
+					"TL.project_id,TL.task_id,TL.default_custom_fields_new,\r\n" + 
+					"TL.updated_time,SD.source_category,SD.wwn,coalesce(SD.source_type, server_type) as server_type,\r\n" + 
+					"coalesce(SD.data_temp, concat('[{\"Server Type\":\"',coalesce(SD.source_type, server_type), '\",\"Server Name\":\"',server_name, '\"}]')::json) ServerDiscoveryData\r\n" + 
+					"from Tasklist TL\r\n" + 
+					"left join (select site_key, source_id, source_category, wwn, source_type, data_temp, Row_number() over(partition by source_id order by log_date desc) as Row_Num\r\n" + 
+					"from server_discovery\r\n" + 
+					"where site_key = '" + siteKey + "') SD on SD.site_key = TL.site_key and SD.source_id = TL.task_id and\r\n" + 
+					"SD.Row_Num = 1\r\n" + 
+					"where TL.is_active=true and TL.project_id='" + reportBy + "' \r\n" + 
+					") a \r\n" + 
+					") b \r\n" + 
+					") c order by keys \r\n" + 
+					") c1 order by data \r\n" +
+					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
+					") e where keys = '" + columnName + "' \r\n " +
+					"union all \r\n " +
+					" select keys, json_agg(data) as data from (\r\n" + 
+					"select concat(source_name,'_',keys) as keys, data from (\r\n" + 
+					"select distinct source_name, keys, data::json ->> keys as data from (\r\n" + 
+					"select source_name, data, keys from (\r\n" + 
+					"select source_name, primary_key, data, json_object_keys(data::json) as keys from (\r\n" + 
+					"select source_name, primary_key, data from source_data sd \r\n" + 
+					"LEFT JOIN source sc on sc.source_id = sd.source_id\r\n" + 
+					"where sd.source_id in (select json_array_elements_text(\r\n" + 
+					"(select input_source from project where project_id = '" + reportBy + "')::json))\r\n" + 
+					") a ) b where keys not in (primary_key, 'siteKey', 'sourceId')\r\n" + 
+					") c\r\n" + 
+					") d order by data\r\n" + 
+					") e where keys = '" + columnName + "' group by keys";
+					
 			
 			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
 			List<Map<String,Object>> valueArray = getObjectFromQuery(uniqueFilterQuery); 

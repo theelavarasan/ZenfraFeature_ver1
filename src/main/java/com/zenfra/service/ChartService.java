@@ -104,7 +104,7 @@ public class ChartService {
 //			chart = (ChartModel_v2) chartDao.findEntityById(ChartModel_v2.class, chartId);
 			
 			chart = chartDao.getChartNew(chartId);
-		
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();

@@ -1971,11 +1971,12 @@ public class DataframeService {
 				if (o instanceof JSONObject) {
 					String col = (String) ((JSONObject) o).get("actualName");
 					String dataType = (String) ((JSONObject) o).get("dataType");
-					if (dataType.equalsIgnoreCase("String")) {
+					/*if (dataType.equalsIgnoreCase("String")) {
 						columnHeaders.add(col);
 					} else {
 						numberColumnHeaders.add(col);
-					}
+					}*/
+					columnHeaders.add(col);
 
 				}
 			}
@@ -2001,15 +2002,25 @@ public class DataframeService {
 			//deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
 			
 		}
+		boolean isTaskListReport = false;
 
 		if (!taskListServers.isEmpty()) {
 			String serverNames = String.join(",", taskListServers.stream().map(name -> ("'" + name.toLowerCase() + "'"))
 					.collect(Collectors.toList()));
 			//deviceType = " lcase(aws.`Server Name`) in (" + serverNames + ")";
 			discoveryFilterqry = " lower(Server Name) in (" + serverNames + ")";
+			isTaskListReport = true;
 		}
 
 		System.out.println("----------------------deviceTypeCondition--------------------------" + discoveryFilterqry);
+
+		List<String> categoryList = new ArrayList<>();
+		List<String> sourceList = new ArrayList<>();
+
+		if (!isTaskListReport) {			
+			categoryList.add("All");
+			sourceList.add("All");
+		}
 
 		
 
@@ -2021,11 +2032,31 @@ public class DataframeService {
 			List<Map<String, Object>> localDiscDatas = jdbc.queryForList(sql);
 			
 			
-		
 			
-			
-			
+		/*	Dataset<Row> awsInstanceData = null;
+			if (!isTaskListReport && (categoryList.contains("All") || categoryList.contains("AWS Instances"))) {
+				 getAwsInstanceDataPostgres(columnHeaders, siteKey, deviceTypeHeder);
+				 
+			}
 
+			List<String> physicalServerNames = new ArrayList<String>();
+			if (categoryList.contains("All")) {
+				List<Row> serverNames = dataCheck.select(functions.col("Server Name")).collectAsList();
+				serverNames.forEach((Consumer<? super Row>) row -> physicalServerNames.add(row.getAs("Server Name")));
+			}
+
+			Dataset<Row> thirdPartyData = null;
+			if (!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {
+
+				thirdPartyData = getThirdPartyData(columnHeaders, siteKey, deviceTypeHeder, sourceList,
+						request.getDeviceType(), physicalServerNames);
+ 
+
+			}
+			
+			
+			*/
+			
 			
 			return localDiscDatas;
 
@@ -2784,6 +2815,47 @@ public class DataframeService {
 		return df;
 
 	}
+	
+	
+	private List<Map<String, Object>> getAwsInstanceDataPostgres(List<String> columnHeaders, String siteKey, String deviceType) {
+		List<Map<String, Object>> result = new ArrayList<>();
+		Connection conn = null;
+		Statement stmt = null;
+		if (deviceType.equalsIgnoreCase("All")) {
+			deviceType = " (lower(img.platformdetails) like '%linux%' or lower(img.platformdetails) like '%windows%' or lower(img.platformdetails) like '%vmware%')";
+		} else {
+			deviceType = " lower(img.platformdetails) like '%" + deviceType.toLowerCase() + "%'";
+		}
+		try {
+			String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"
+					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
+														// it.vcpuinfo, it.memoryinfo";
+
+			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+
+			List<Map<String, String>> awsData = parseAwsData(rs);
+			
+			
+			
+			
+			
+			
+ 
+		} catch (Exception e) {
+			e.printStackTrace();
+			 
+		} finally {
+			try {
+				conn.close();
+				// AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
+			} catch (Exception e2) {
+				// TODO: handle exception
+			}
+		}
+		return result;
+	}
 
 	private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
 		Dataset<Row> result = sparkSession.emptyDataFrame();
@@ -2973,6 +3045,61 @@ public class DataframeService {
 		return rows;
 	}
 
+	
+	private List<Map<String, String>> parseAwsData(ResultSet rs) throws SQLException {
+		ResultSetMetaData md = rs.getMetaData();
+		int columns = md.getColumnCount();
+		List<Map<String, String>> rows = new ArrayList<>();
+		while (rs.next()) {
+			Map<String, String> row = new HashMap<String, String>(columns);
+
+			for (int i = 1; i <= columns; ++i) {
+				String colName = md.getColumnName(i);
+				String value = rs.getString(i);
+				if (md.getColumnName(i).equals("vcpuinfo")) {
+					value = getValueFromJson("DefaultVCpus", rs.getString(i));
+				}
+				if (md.getColumnName(i).equals("memoryinfo")) {
+					value = getValueFromJson("SizeInMiB", rs.getString(i));
+					value = Integer.parseInt(value) / 1024 + "";
+				}
+
+				if (md.getColumnName(i).equals("region")) {
+					if (rs.getString(i).equalsIgnoreCase("us-east-2")) {
+						value = "US East (Ohio)";
+					}
+				}
+				if (md.getColumnName(i).equals("platformdetails")) {
+					String actualOsType = "";
+					value = rs.getString(i);
+					if (StringUtils.containsIgnoreCase(value, "CentOS")) {
+						value = "LINUX";
+						actualOsType = "CentOS";
+					} else if (StringUtils.containsIgnoreCase(value, "SUSE")) {
+						value = "SUSE";
+						actualOsType = "SUSE";
+					} else if (StringUtils.containsIgnoreCase(value, "Red")) {
+						value = "RHEL";
+						actualOsType = "RHEL";
+					} else if (StringUtils.containsIgnoreCase(value, "LINUX")) {
+						value = "LINUX";
+						actualOsType = "UBUNTU";
+					} else if (StringUtils.containsIgnoreCase(value, "WINDOWS")) {
+						value = "WINDOWS";
+						actualOsType = "WINDOWS";
+					}
+					row.put("actualOsType", actualOsType);
+				}
+				row.put(colName, value);
+				row.put("report_by", "AWS Instances");
+				row.put("custom_excel_src_id", "0");
+			}
+			
+			rows.add(row);
+		}
+		return rows;
+	}
+	
 	private String getValueFromJson(String key, String jsonString) {
 		try {
 			JSONParser jSONParser = new JSONParser();
@@ -3501,5 +3628,6 @@ public class DataframeService {
 		}
 
 	}
+
 
 }
