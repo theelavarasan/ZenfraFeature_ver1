@@ -402,7 +402,7 @@ public class ReportDataController {
 					}
 				}	
 				
-			
+				System.out.println("--------------jsonArray----------------- " + jsonArray.size());
 				return new ResponseEntity<>(jsonArray, HttpStatus.OK);
 		}
 
