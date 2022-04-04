@@ -61,18 +61,21 @@ public class FavouriteApiService_v2 {
 
 			if (reportName.equalsIgnoreCase("migrationreport")) {
 				reportName = "'migrationreport','discovery','compatability','migration-method'";
-			} else {
-				reportName = "'" + reportName + "'";
-			}
+			} 
+//			else {
+//				reportName = "'" + reportName + "'";
+//			}
 			String favourite_view_query = queries.favouriteView().getGetFavView();
 			favourite_view_query = favourite_view_query.replace(":report_name_value", reportName)
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
+			System.out.println("--------favourite_view_query------ " + favourite_view_query);
 
 			String favourite_order_query = queries.favouriteOrder().getGetFavouriteOrder();
 			favourite_order_query = favourite_order_query.replace(":report_name_value", reportName)
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
 			List<Map<String, Object>> rows = daoFav.getJsonarray(favourite_view_query);
-			
+			System.out.println("--------favourite_order_query------ " + favourite_order_query);
+
 			List<String> processedLogs = logFileDetailsRepo.getDistinctLogTypeBySiteKeyAndStatusIsActive(siteKey, "success",true);
 			System.out.println("--------favourite_view_query------ " + favourite_view_query);
 			ObjectMapper map = new ObjectMapper();
@@ -88,7 +91,7 @@ public class FavouriteApiService_v2 {
 					
 					// Map<String, Object> rowMap = row;
 					// rowMap = setDeviceType(rowMap);
-					if (!reportNameRef.equalsIgnoreCase("healthcheck")) {
+					if (!reportNameRef.equalsIgnoreCase("healthcheck")  && !reportNameRef.equalsIgnoreCase("project-summary")) {
 						Map<String, Object> filteredFavView = filterFavViewByProcessedLogs(row,processedLogs);							
 						if(filteredFavView != null && !filteredFavView.isEmpty()) {						
 							viewArr.add(row);
