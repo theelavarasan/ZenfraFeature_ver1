@@ -1037,8 +1037,8 @@ public class ValidationRuleService {
 					"select source_name, primary_key, data, json_object_keys(data::json) as keys from (\r\n" + 
 					"select source_name, primary_key, data from source_data sd \r\n" + 
 					"LEFT JOIN source sc on sc.source_id = sd.source_id\r\n" + 
-					"where sd.source_id in (select json_array_elements_text(\r\n" + 
-					"(select input_source from project where project_id = '" + reportBy + "')::json))\r\n" + 
+					"where sd.source_id in (select json_array_elements_text((input_source::jsonb || third_party_list::jsonb)::json) from project where project_id = '" + reportBy + "') \r\n" + 
+					"and lower(primary_key_value) in (select lower(server_name) from tasklist where is_active = true and project_id = '" + reportBy+ "') \r\n" +
 					") a ) b where keys not in (primary_key, 'siteKey', 'sourceId')\r\n" + 
 					") c\r\n" + 
 					") d order by data\r\n" + 
