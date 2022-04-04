@@ -357,7 +357,7 @@ public class ReportDataController {
 	@PostMapping("getReportDataFromClickHouse")
 	public ResponseEntity<?> getReportDataFromClickHouse(@RequestParam("siteKey") String siteKey) {
 			
-			 String url = "jdbc:clickhouse://164.52.218.85:8123/alpha";
+			 String url = "jdbc:ch://164.52.218.85:8123/alpha";
 				String user = "default";
 				String password = "fdcDAxec";
 				Connection connection = null;
