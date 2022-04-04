@@ -1952,7 +1952,7 @@ public class DataframeService {
 		return paginate(dataset, request);
 
 	}
-
+	
 	private List<Map<String, Object>> getCloudCostDataFromPostgres(ServerSideGetRowsRequest request) {
 		JSONArray cloudCostData = new JSONArray();
 		String siteKey = request.getSiteKey();
@@ -2016,13 +2016,12 @@ public class DataframeService {
 
 		List<String> categoryList = new ArrayList<>();
 		List<String> sourceList = new ArrayList<>();
-
-		if (!isTaskListReport) {			
-			categoryList.add("All");
-			sourceList.add("All");
-		}
-
-		
+		if (!isTaskListReport) {
+			
+			  categoryList.add(request.getCategoryOpt());
+			  sourceList.add(request.getSource());
+		} 
+				
 
 		try {
 			String sql = "select * from mview_ccr_data where site_key='"+siteKey+"' and " + discoveryFilterqry;
@@ -2032,30 +2031,33 @@ public class DataframeService {
 			List<Map<String, Object>> localDiscDatas = jdbc.queryForList(sql);
 			
 			
-			
-		/*	Dataset<Row> awsInstanceData = null;
-			if (!isTaskListReport && (categoryList.contains("All") || categoryList.contains("AWS Instances"))) {
-				 getAwsInstanceDataPostgres(columnHeaders, siteKey, deviceTypeHeder);
-				 
-			}
-
-			List<String> physicalServerNames = new ArrayList<String>();
-			if (categoryList.contains("All")) {
-				List<Row> serverNames = dataCheck.select(functions.col("Server Name")).collectAsList();
-				serverNames.forEach((Consumer<? super Row>) row -> physicalServerNames.add(row.getAs("Server Name")));
-			}
-
-			Dataset<Row> thirdPartyData = null;
 			if (!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {
 
-				thirdPartyData = getThirdPartyData(columnHeaders, siteKey, deviceTypeHeder, sourceList,
-						request.getDeviceType(), physicalServerNames);
- 
+				System.out.println("-------------------sourceList--------------------" + sourceList);
+
+				try {
+					String thirdPartySql = "select * from mview_custom_excel_data where site_key='"+siteKey+"' and "+discoveryFilterqry;
+					if(sourceList.contains("All")) {
+						thirdPartySql = "select * from mview_custom_excel_data where site_key='"+siteKey+"'  and "+discoveryFilterqry;
+					} else {
+						thirdPartySql = "select * from mview_custom_excel_data where site_key='"+siteKey+"' and "+discoveryFilterqry + " and source_id='"+request.getSource()+"'";
+					}
+					
+					System.out.println("-------------------thirdPartySql--------------------" + thirdPartySql);
+					
+					List<Map<String, Object>> thirdPartyData = jdbc.queryForList(thirdPartySql);
+					localDiscDatas.addAll(thirdPartyData);
+					
+				} catch(Exception e) {
+					e.printStackTrace();
+				}  
 
 			}
 			
-			
-			*/
+			if (!isTaskListReport && !taskListServers.isEmpty()) {
+				String taskListQuery = "select * from mview_ccr_data where site_key='"+siteKey+"' and " + discoveryFilterqry;
+				localDiscDatas = jdbc.queryForList(taskListQuery);
+			}
 			
 			
 			return localDiscDatas;
