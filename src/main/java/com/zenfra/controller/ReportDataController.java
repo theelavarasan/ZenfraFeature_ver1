@@ -372,9 +372,16 @@ public class ReportDataController {
 	            properties.setProperty("user", "default");
 	            properties.setProperty("password","fdcDAxec");
 					//connection = DriverManager.getConnection(url, user, password);
+					try {
+						  Class.forName("com.clickhouse.jdbc.ClickHouseDriver");
+						  ClickHouseDataSource dataSource = new ClickHouseDataSource(url, properties);				
+							connection = dataSource.getConnection();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+	              
+	            
 					
-					ClickHouseDataSource dataSource = new ClickHouseDataSource(url, properties);				
-					connection = dataSource.getConnection();
 					
 					
 					System.out.println("--------------connection------  121----------- " + connection.isClosed());
