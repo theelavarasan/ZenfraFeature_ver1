@@ -11,12 +11,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.roaringbitmap.longlong.Roaring64NavigableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.clickhouse.jdbc.ClickHouseDataSource;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -357,7 +360,7 @@ public class ReportDataController {
 	@PostMapping("getReportDataFromClickHouse")
 	public ResponseEntity<?> getReportDataFromClickHouse(@RequestParam("siteKey") String siteKey) {
 			
-			 String url = "jdbc:clickhouse://164.52.218.85:8123/alpha";
+			 String url = "jdbc:ch://164.52.218.85:8123/alpha";
 				String user = "default";
 				String password = "fdcDAxec";
 				Connection connection = null;
@@ -365,7 +368,14 @@ public class ReportDataController {
 				try {
 					//siteKey="b8f6a026-0a0b-4aca-a24a-767a0fd25316";
 	            System.out.println("----------------1-----------------");
-					connection = DriverManager.getConnection(url, user, password);
+	            Properties properties = new Properties();
+	            properties.setProperty("user", "default");
+	            properties.setProperty("password","fdcDAxec");
+					//connection = DriverManager.getConnection(url, user, password);
+					
+					ClickHouseDataSource dataSource = new ClickHouseDataSource(url, properties);				
+					connection = dataSource.getConnection();
+					
 					
 					System.out.println("--------------connection------  121----------- " + connection.isClosed());
 					
