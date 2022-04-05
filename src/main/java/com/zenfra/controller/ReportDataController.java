@@ -412,7 +412,7 @@ public class ReportDataController {
 					}
 				}	
 				
-				System.out.println("--------------jsonArray----------------- " + jsonArray.size());
+				System.out.println("--------------jsonArray----------------- " + jsonArray);
 				return new ResponseEntity<>(jsonArray, HttpStatus.OK);
 		}
 
