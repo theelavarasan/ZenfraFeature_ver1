@@ -341,7 +341,7 @@ public class HealthCheckService {
 						+ "FROM health_check h "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
-						+ "where is_active='true' and site_key='" + siteKey + "' and report_by ='" + projectId
+						+ "where is_active = true and site_key='" + siteKey + "' and report_by ='" + projectId
 						+ "' order by health_check_name ASC";
 
 			} else {
@@ -354,7 +354,7 @@ public class HealthCheckService {
 						+ "FROM health_check h "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
-						+ "where is_active='true' and site_key='" + siteKey + "' order by health_check_name ASC";
+						+ "where is_active = true and site_key='" + siteKey + "' and report_by not in (select project_id from project) order by health_check_name ASC";
 				
 				if (!isTenantAdmin) {
 					query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName, "
@@ -366,10 +366,10 @@ public class HealthCheckService {
 							+ "FROM health_check h "
 							+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 							+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
-							+ "where is_active='true' and ((create_by = '" + userId + "' " + "and site_key = '%"
+							+ "where is_active = true and ((create_by = '" + userId + "' " + "and site_key = '%"
 							+ siteKey + "%') or " + "((site_access_list like '%" + siteKey
 							+ "%' or site_access_list like '%All%') and " + "(user_access_list like '%" + userId
-							+ "%' or user_access_list  like '%All%'))) order by health_check_name ASC";
+							+ "%' or user_access_list  like '%All%'))) and report_by not in (select project_id from project) order by health_check_name ASC";
 				}
 			}
 			System.out.println("--------------query--------------" + query);
