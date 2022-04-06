@@ -439,7 +439,7 @@ public class ReportDataController {
 				JSONArray jsonArray = new JSONArray();
 				try {
 					//siteKey="b8f6a026-0a0b-4aca-a24a-767a0fd25316";
-	            System.out.println("----------------1-----------------");
+	            System.out.println("------------Direct query for click house------------");
 	            Properties properties = new Properties();
 	            properties.setProperty("user", "default");
 	            properties.setProperty("password","fdcDAxec");
