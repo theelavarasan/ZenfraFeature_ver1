@@ -337,8 +337,8 @@ public class HealthCheckService {
 						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
 						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
 						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
-						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList "
-						+ "FROM health_check h "
+						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList, "
+						+ "create_by as createdById, update_by as updatedById FROM health_check h "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
 						+ "where is_active = true and site_key='" + siteKey + "' and report_by ='" + projectId
@@ -350,8 +350,8 @@ public class HealthCheckService {
 						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
 						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
 						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
-						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList "
-						+ "FROM health_check h "
+						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList, "
+						+ "create_by as createdById, update_by as updatedById FROM health_check h "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
 						+ "where is_active = true and site_key='" + siteKey + "' and report_by not in (select project_id from project) order by health_check_name ASC";
@@ -362,8 +362,8 @@ public class HealthCheckService {
 							+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
 							+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
 							+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
-							+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList "
-							+ "FROM health_check h "
+							+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList, "
+							+ "create_by as createdById, update_by as updatedById FROM health_check h "
 							+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 							+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
 							+ "where is_active = true and ((create_by = '" + userId + "' " + "and site_key = '%"
@@ -393,11 +393,9 @@ public class HealthCheckService {
 						healthCheckModel.put("createdTime", mapObject.get("createdtime"));
 						healthCheckModel.put("updatedTime", mapObject.get("updatedtime"));
 						healthCheckModel.put("userId", mapObject.get("userid"));
-						healthCheckModel.put("createdById", mapObject.get("userid"));
-						healthCheckModel.put("updatedById", mapObject.get("userid"));
 						healthCheckModel.put("analyticsType", mapObject.get("analyticstype"));
-						healthCheckModel.put("createdById", mapObject.get("createby"));
-						healthCheckModel.put("updatedById", mapObject.get("updateby"));
+						healthCheckModel.put("createdById", mapObject.get("createdbyid"));
+						healthCheckModel.put("updatedById", mapObject.get("updatedbyid"));
 						healthCheckModel.put("createdBy", mapObject.get("createby"));
 						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
 						healthCheckModel.put("overallStatusRuleList", jsonParser.parse(mapObject.get("overallstatusrulelist") != null ? mapObject.get("overallstatusrulelist").toString() : "[]"));
