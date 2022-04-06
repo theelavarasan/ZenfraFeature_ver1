@@ -24,6 +24,12 @@ public class PureConfigController {
 
 	@RequestMapping(value = "/pure/insert", method = RequestMethod.POST)
 	public ResponseEntity<Response> insertPureConfig(@RequestBody PureConfigModel model) {
+		System.out.println("!!!!! 1");
+		System.out.println("!!!!! Id: " + model.getPureKeyConfigId());
+		System.out.println("!!!!! name: " + model.getArrayName());
+		System.out.println("!!!!! siteKey: " + model.getSiteKey());
+		System.out.println("!!!!! tenantId: " + model.getTenantId());
+		
 		return ResponseEntity.ok(dao.insertPureConfig(model));
 	}
 

@@ -27,6 +27,13 @@ public class PureConfigDao implements PureConfigService {
 		JSONObject jsonObject = new JSONObject();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
+			
+			
+			System.out.println("!!!!! 1");
+			System.out.println("!!!!! Id: " + model.getPureKeyConfigId());
+			System.out.println("!!!!! name: " + model.getArrayName());
+			System.out.println("!!!!! siteKey: " + model.getSiteKey());
+			System.out.println("!!!!! tenantId: " + model.getTenantId());
 			String insertQuery = "insert into pure_key_config(pure_key_config_id, array_name, public_key, private_key, site_key, tenant_id, is_active, created_by, updated_by, "
 					+ "	created_time, updated_time) VALUES ('" + commonFunctions.generateRandomId() + "', '"+ model.getArrayName() + "', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
 					+ "	'" + model.getSiteKey() + "','" + model.getTenantId() + "', true, '" + model.getCreatedBy() + "', '" + model.getUpdatedBy() + "', " + "	'" + commonFunctions.getCurrentDateWithTime() + "',"
