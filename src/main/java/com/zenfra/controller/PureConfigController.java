@@ -28,8 +28,8 @@ public class PureConfigController {
 	}
 
 	@RequestMapping(value = "/pure/update", method = RequestMethod.PUT)
-	public ResponseEntity<Response> updatePureConfig(@RequestBody PureConfigModel model) {
-		return ResponseEntity.ok(dao.updatePureConfig(model));
+	public ResponseEntity<Response> updatePureConfig(@RequestBody PureConfigModel model, @RequestAttribute String pureKeyConfigId) {
+		return ResponseEntity.ok(dao.updatePureConfig(model, pureKeyConfigId));
 	}
 
 	@RequestMapping(value = "/pure/get", method = RequestMethod.GET)

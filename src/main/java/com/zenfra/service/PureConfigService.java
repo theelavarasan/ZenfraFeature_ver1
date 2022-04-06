@@ -9,7 +9,7 @@ public interface PureConfigService {
 
 	public Response insertPureConfig(PureConfigModel model);
 
-	public Response updatePureConfig(PureConfigModel model);
+	public Response updatePureConfig(PureConfigModel model, String pureKeyConfigId);
 
 	public Response getPureConfig(String pureKeyConfigId);
 

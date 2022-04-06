@@ -28,11 +28,9 @@ public class PureConfigDao implements PureConfigService {
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 			String insertQuery = "insert into pure_key_config(pure_key_config_id, array_name, public_key, private_key, site_key, tenant_id, is_active, created_by, updated_by, "
-					+ "	created_time, updated_time) VALUES ('" + commonFunctions.generateRandomId() + "', '"
-					+ model.getArrayName() + "', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
-					+ "	'" + model.getSiteKey() + "','" + model.getTenantId() + "', true, '" + model.getCreatedBy()
-					+ "', '" + model.getUpdatedBy() + "', " + "	'" + commonFunctions.getCurrentDateWithTime() + "', '"
-					+ commonFunctions.getCurrentDateWithTime() + "')";
+					+ "	created_time, updated_time) VALUES ('" + commonFunctions.generateRandomId() + "', '"+ model.getArrayName() + "', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
+					+ "	'" + model.getSiteKey() + "','" + model.getTenantId() + "', true, '" + model.getCreatedBy() + "', '" + model.getUpdatedBy() + "', " + "	'" + commonFunctions.getCurrentDateWithTime() + "',"
+					+ " 	'"+ commonFunctions.getCurrentDateWithTime() + "')";
 			System.out.println("-----------------Insert Query Pure:" + insertQuery);
 			statement.executeUpdate(insertQuery);
 			jsonObject.put("arrayName", model.getArrayName());
@@ -49,16 +47,14 @@ public class PureConfigDao implements PureConfigService {
 
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@Override
-	public Response updatePureConfig(PureConfigModel model) {
+	public Response updatePureConfig(PureConfigModel model, String pureKeyConfigId) {
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
-			String updateQuery = "update pure_key_config set array_name='" + model.getArrayName() + "', public_key='"
-					+ model.getPublicKey() + "', private_key='" + model.getPrivateKey() + "'," + "	true, tenant_id='"
-					+ model.getTenantId() + "' updated_by='" + model.getUpdatedBy() + "', updated_time='"
-					+ model.getUpdatedTime() + "' where site_key='" + model.getSiteKey() + "'";
+			String updateQuery = "update pure_key_config set array_name='" + model.getArrayName() + "', public_key='" + model.getPublicKey() + "', private_key='" + model.getPrivateKey() + "',"
+					+ "is_active = true, tenant_id='" + model.getTenantId() + "' updated_by='" + model.getUpdatedBy() + "', updated_time='" + model.getUpdatedTime() + "' where pure_key_config_id='" + pureKeyConfigId + "'";
 			System.out.println("---------------------Update Query Pure:" + updateQuery);
 			statement.executeUpdate(updateQuery);
 			jsonObject.put("arrayName", model.getArrayName());
@@ -105,8 +101,7 @@ public class PureConfigDao implements PureConfigService {
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
-		String listQuery = "select * from pure_key_config where pure_key_config_id='" + pureKeyConfigId
-				+ "' and is_active='true'";
+		String listQuery = "select * from pure_key_config where pure_key_config_id='" + pureKeyConfigId + "' and is_active=true";
 		System.out.println("-----------------List Query Pure:" + listQuery);
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password"));
