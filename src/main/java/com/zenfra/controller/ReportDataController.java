@@ -361,9 +361,9 @@ public class ReportDataController {
 	@PostMapping("getReportDataFromClickHouse")
 	public ResponseEntity<?> getReportDataFromClickHouse(@RequestParam("siteKey") String siteKey) {
 			
-		
+		JSONArray jsonArray = new JSONArray();
 		System.out.println("-------------Start Time--------------" + new Date());
-		JSONArray jsonArray = getDirectReportClickHouse(siteKey);
+		//JSONArray jsonArray = getDirectReportClickHouse(siteKey);
 	
 		
 			    String url = "jdbc:ch://164.52.218.85:8123/alpha";
