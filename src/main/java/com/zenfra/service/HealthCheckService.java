@@ -400,7 +400,7 @@ public class HealthCheckService {
 						healthCheckModel.put("updatedById", mapObject.get("updateby"));
 						healthCheckModel.put("createdBy", mapObject.get("createby"));
 						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
-						healthCheckModel.put("overallStatusRuleList", mapObject.get("overallstatusrulelist"));
+						healthCheckModel.put("overallStatusRuleList", jsonParser.parse(mapObject.get("overallstatusrulelist") != null ? mapObject.get("overallstatusrulelist").toString() : "[]"));
 							
 //						JSONObject response = convertEntityToModel((HealthCheck) obj);
 						boolean isWriteAccess = false;
