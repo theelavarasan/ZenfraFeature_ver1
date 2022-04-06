@@ -19,6 +19,7 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.zenfra.dao.HealthCheckDao;
 import com.zenfra.dao.HealthCheckDisplayDao;
 import com.zenfra.model.HealthCheck;
@@ -366,7 +367,7 @@ public class HealthCheckService {
 							+ "create_by as createdById, update_by as updatedById FROM health_check h "
 							+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 							+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
-							+ "where is_active = true and ((create_by = '" + userId + "' " + "and site_key = '%"
+							+ "where is_active = true and ((create_by ilike '" + userId + "' " + "and site_key ilike '%"
 							+ siteKey + "%') or " + "((site_access_list like '%" + siteKey
 							+ "%' or site_access_list like '%All%') and " + "(user_access_list like '%" + userId
 							+ "%' or user_access_list  like '%All%'))) and report_by not in (select project_id from project) order by health_check_name ASC";
@@ -386,10 +387,10 @@ public class HealthCheckService {
 						healthCheckModel.put("reportBy", mapObject.get("reportby"));
 						healthCheckModel.put("reportCondition", jsonParser.parse(mapObject.get("reportcondition").toString()));
 						healthCheckModel.put("reportName", mapObject.get("reportname"));
-						healthCheckModel.put("siteAccessList", Arrays.asList( mapObject.get("siteaccesslist") != null ?  ((String) mapObject.get("siteaccesslist")).split(",") : null));
+						healthCheckModel.put("siteAccessList", mapObject.get("siteaccesslist"));
 						healthCheckModel.put("siteKey", mapObject.get("sitekey"));
 //						 healthCheckModel.put("siteKey", mapObject.get("sitekey"));
-						healthCheckModel.put("userAccessList", Arrays.asList(mapObject.get("useraccesslist") != null ? ((String) mapObject.get("useraccesslist")).split(",") : null));
+						healthCheckModel.put("userAccessList", mapObject.get("useraccesslist"));
 						healthCheckModel.put("createdTime", mapObject.get("createdtime"));
 						healthCheckModel.put("updatedTime", mapObject.get("updatedtime"));
 						healthCheckModel.put("userId", mapObject.get("userid"));
@@ -623,8 +624,11 @@ public class HealthCheckService {
 					jObj.put("isWriteAccess", isWriteAccess);
 
 					if (jObj.containsKey("siteAccessList")) {
-						JSONArray siteAccessList = new ObjectMapper().convertValue(jObj.get("siteAccessList"),
-								JSONArray.class);
+						JSONArray siteAccessList = new JSONArray();
+						siteAccessList = (JSONArray) parser.parse((String) jObj.get("siteAccessList"));
+												
+//						JSONArray siteAccessList = new ObjectMapper().convertValue(jObj.get("siteAccessList"),
+//								JSONArray.class);
 						if (!siteAccessList.isEmpty()) {
 							JSONArray siteList = new JSONArray();
 							for (int j = 0; j < siteAccessList.size(); j++) {
@@ -644,8 +648,10 @@ public class HealthCheckService {
 						}
 					}
 					if (jObj.containsKey("userAccessList")) {
-						JSONArray userAccessList = new ObjectMapper().convertValue(jObj.get("userAccessList"),
-								JSONArray.class);
+						JSONArray userAccessList = new JSONArray();
+						userAccessList = (JSONArray) parser.parse((String) jObj.get("userAccessList"));
+//						JSONArray userAccessList = new ObjectMapper().convertValue(jObj.get("userAccessList"),
+//								JSONArray.class);
 						if (!userAccessList.isEmpty()) {
 							JSONArray userList = new JSONArray();
 							for (int j = 0; j < userAccessList.size(); j++) {
