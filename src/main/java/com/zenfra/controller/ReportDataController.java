@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -360,7 +361,12 @@ public class ReportDataController {
 	@PostMapping("getReportDataFromClickHouse")
 	public ResponseEntity<?> getReportDataFromClickHouse(@RequestParam("siteKey") String siteKey) {
 			
+		
+		System.out.println("-------------Start Time--------------" + new Date());
 		JSONArray jsonArray = getDirectReportClickHouse(siteKey);
+		System.out.println(" ------- result Size : " + jsonArray.size());
+		
+		System.out.println("-------------End Time ------------- "+ new Date());
 		
 			 /*   String url = "jdbc:ch://164.52.218.85:8123/alpha";
 				String user = "default";
