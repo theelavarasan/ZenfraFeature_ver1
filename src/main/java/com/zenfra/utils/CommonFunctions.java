@@ -402,12 +402,15 @@ public class CommonFunctions {
 
 	public Object updateLogFile(JSONObject json, String token) {
 		ResponseEntity<String> response = null;
-		System.out.println(DBUtils.getParsingServerIP());
+		System.out.println("-----------------URL"+DBUtils.getParsingServerIP());
 		try {
 			// String token="Bearer "+getZenfraToken(Constants.ftp_email,
 			// Constants.ftp_password);
 			HttpEntity<Object> request = new HttpEntity<>(json.toString(), createHeaders(token));
-			response = restTemplate.exchange(DBUtils.getParsingServerIP() + "/parsing/rest/api/excute-aws-call",
+			String url = DBUtils.getParsingServerIP() +" /parsing/rest/api/excute-aws-call";
+			url = CommonUtils.checkPortNumberForWildCardCertificate(url);
+			System.out.println("-----------AWS ----------- URL--------------:"+url);
+			response = restTemplate.exchange(url,
 					HttpMethod.POST, request, String.class);
 
 			return response.getBody();
