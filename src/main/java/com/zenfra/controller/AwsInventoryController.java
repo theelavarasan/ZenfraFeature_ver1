@@ -360,6 +360,7 @@ public class AwsInventoryController {
 			request.put("rid", "");
 
 			response = common.updateLogFile(request, token).toString();
+			System.out.println("--------------------------------Update Log:"+response);
 
 			System.out.println("checkConnection script response::" + response);
 		} catch (Exception e) {

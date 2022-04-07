@@ -408,8 +408,9 @@ public class CommonFunctions {
 			// Constants.ftp_password);
 			HttpEntity<Object> request = new HttpEntity<>(json.toString(), createHeaders(token));
 			String url = DBUtils.getParsingServerIP() +" /parsing/rest/api/excute-aws-call";
+			System.out.println("-----------AWS ----------- URL1--------------:"+url);
 			url = CommonUtils.checkPortNumberForWildCardCertificate(url);
-			System.out.println("-----------AWS ----------- URL--------------:"+url);
+			System.out.println("-----------AWS ----------- URL2--------------:"+url);
 			response = restTemplate.exchange(url,
 					HttpMethod.POST, request, String.class);
 
