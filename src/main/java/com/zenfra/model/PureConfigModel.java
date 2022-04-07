@@ -4,6 +4,7 @@ public class PureConfigModel {
 
 	private String pureKeyConfigId;
 	private String arrayName;
+	private String applicationId;
 	private String publicKey;
 	private String privateKey;
 	private String siteKey;
@@ -28,6 +29,14 @@ public class PureConfigModel {
 
 	public void setArrayName(String arrayName) {
 		this.arrayName = arrayName;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 
 	public String getPublicKey() {
