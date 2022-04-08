@@ -96,11 +96,12 @@ public class ReportDataController {
 				 * ResponseEntity<>(resultData.toString(), HttpStatus.OK); }
 				 */
 
-				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
+				//List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
+				//JSONObject result = new JSONObject();
+				//result.put("data", data);
 				///System.out.println("------------last pointer for CCR----------------");
-				JSONObject result = new JSONObject();
-				result.put("data", data);
-				return new ResponseEntity<>(result, HttpStatus.OK);
+				DataResult data = dataframeService.getCloudCostData(request);
+				return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 
 			}
 
@@ -181,8 +182,8 @@ public class ReportDataController {
 			String sourceTypeRef = sourceType.toLowerCase();
 			if (sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("linux")
 					|| sourceTypeRef.equalsIgnoreCase("vmware")) {
-				//dataframeService.destroryCloudCostDataframe(siteKey);
-				reportService.refreshCloudCostViews();
+				dataframeService.destroryCloudCostDataframe(siteKey);
+				//reportService.refreshCloudCostViews();
 			}
 
 			/*if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
