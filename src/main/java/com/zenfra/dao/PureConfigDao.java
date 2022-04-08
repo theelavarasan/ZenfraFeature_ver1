@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
 import com.zenfra.model.PureConfigModel;
 import com.zenfra.model.Response;
 import com.zenfra.service.PureConfigService;
@@ -115,6 +116,7 @@ public class PureConfigDao implements PureConfigService {
 				ResultSet rs = statement.executeQuery(getQuery);) {
 			while (rs.next()) {
 				jsonObject.put("arrayName", rs.getString("array_name"));
+				jsonObject.put("pureKeyConfigId", rs.getString("pure_key_config_id"));
 				jsonObject.put("applicationId", rs.getString("application_id"));
 				jsonObject.put("publicKey", rs.getString("public_key"));
 				jsonObject.put("privateKey", rs.getString("private_key"));
@@ -124,8 +126,8 @@ public class PureConfigDao implements PureConfigService {
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
 			}
 			
+			String[] array = {"arrayName", "applicationId", "pureKeyConfigId", "createdBy", "updatedBy", "createdTime", "updatedTime"};
 //			jsonObject1.put("\"columnOrder\"", "\n\"arrayName\", \n\"applicationId\", \n\"createdBy\", \n\"updatedBy\", \n\"createdTime\", \n\"updatedTime\"");
-			jsonObject1.put("columnOrder", "arrayName, applicationId, createdBy, updatedBy, createdTime, updatedTime");
 			
 			JSONArray headerInfo = new JSONArray ();
 			JSONObject obj1 = new JSONObject ();
@@ -142,13 +144,13 @@ public class PureConfigDao implements PureConfigService {
 			headerInfo.add(obj2);
 			JSONObject obj3 = new JSONObject ();
 			obj3.put("actualName", "publicKey");
-			obj3.put("hide", false);
+			obj3.put("hide", true);
 			obj3.put("displayName", "Public Key");
 			obj3.put("dataType", "String");
 			headerInfo.add(obj3);
 			JSONObject obj4 = new JSONObject ();
 			obj4.put("actualName", "privateKey");
-			obj4.put("hide", false);
+			obj4.put("hide", true);
 			obj4.put("displayName", "Private Key");
 			obj4.put("dataType", "String");
 			headerInfo.add(obj4);
@@ -177,12 +179,13 @@ public class PureConfigDao implements PureConfigService {
 			obj8.put("dataType", "date");
 			headerInfo.add(obj8);
 			JSONArray jsonArray = new JSONArray();
-			jsonArray.add(jsonObject1);
-			jsonArray.add(headerInfo);
+			jsonObject1.put("columnOrder", array);
 			jsonArray.add(jsonObject);
+			jsonObject1.put("data", jsonArray);
+			jsonObject1.put("headerInfo", headerInfo);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
-			response.setjData(jsonArray);
+			response.setjData(jsonObject1);
 		} catch (Exception e) {
 			response.setResponseCode(500);
 			response.setResponseMsg("failure");
@@ -206,6 +209,7 @@ public class PureConfigDao implements PureConfigService {
 				ResultSet rs = statement.executeQuery(listQuery);) {
 			while (rs.next()) {
 				jsonObject.put("arrayName", rs.getString("array_name"));
+				jsonObject.put("pureKeyConfigId", rs.getString("pure_key_config_id"));
 				jsonObject.put("applicationId", rs.getString("application_id"));
 				jsonObject.put("publicKey", rs.getString("public_key"));
 				jsonObject.put("privateKey", rs.getString("private_key"));
@@ -214,7 +218,7 @@ public class PureConfigDao implements PureConfigService {
 				jsonObject.put("createdTime", rs.getString("created_time"));
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
 			}
-	jsonObject1.put("columnOrder", "arrayName, applicationId, createdBy, updatedBy, createdTime, updatedTime");
+			String[] array = {"arrayName", "applicationId", "pureKeyConfigId", "createdBy", "updatedBy", "createdTime", "updatedTime"};
 			
 			JSONArray headerInfo = new JSONArray ();
 			JSONObject obj1 = new JSONObject ();
@@ -231,13 +235,13 @@ public class PureConfigDao implements PureConfigService {
 			headerInfo.add(obj2);
 			JSONObject obj3 = new JSONObject ();
 			obj3.put("actualName", "publicKey");
-			obj3.put("hide", false);
+			obj3.put("hide", true);
 			obj3.put("displayName", "Public Key");
 			obj3.put("dataType", "String");
 			headerInfo.add(obj3);
 			JSONObject obj4 = new JSONObject ();
 			obj4.put("actualName", "privateKey");
-			obj4.put("hide", false);
+			obj4.put("hide", true);
 			obj4.put("displayName", "Private Key");
 			obj4.put("dataType", "String");
 			headerInfo.add(obj4);
@@ -266,12 +270,13 @@ public class PureConfigDao implements PureConfigService {
 			obj8.put("dataType", "date");
 			headerInfo.add(obj8);
 			JSONArray jsonArray = new JSONArray();
-			jsonArray.add(jsonObject1);
-			jsonArray.add(headerInfo);
+			jsonObject1.put("columnOrder", array);
 			jsonArray.add(jsonObject);
+			jsonObject1.put("data", jsonArray);
+			jsonObject1.put("headerInfo", headerInfo);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
-			response.setjData(jsonArray);
+			response.setjData(jsonObject1);
 		} catch (Exception e) {
 			response.setResponseCode(500);
 			response.setResponseMsg("failure");
