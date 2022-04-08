@@ -7,13 +7,13 @@ import com.zenfra.model.Response;
 @Component
 public interface PureConfigService {
 
-	public Response insertPureConfig(PureConfigModel model);
+	public Response insertPureConfig(String userId, PureConfigModel model);
 
-	public Response updatePureConfig(PureConfigModel model, String pureKeyConfigId);
+	public Response updatePureConfig(String userId, PureConfigModel model, String pureKeyConfigId);
 
 	public Response getPureConfig(String pureKeyConfigId);
 
-	public Response listPureConfig(String pureKeyConfigId);
+	public Response listPureConfig();
 
 	public Response deletePureConfig(String pureKeyConfigId);
 

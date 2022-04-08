@@ -23,32 +23,32 @@ public class PureConfigController {
 	PureConfigService dao = new PureConfigDao();
 
 	@RequestMapping(value = "/pure/insert", method = RequestMethod.POST)
-	public ResponseEntity<Response> insertPureConfig(@RequestBody PureConfigModel model, @RequestAttribute String AuthId) {
+	public ResponseEntity<Response> insertPureConfig(@RequestParam("authUserId") String userId, @RequestBody PureConfigModel model) {
 		System.out.println("!!!!! 1");
 		System.out.println("!!!!! name: " + model.getArrayName());
 		System.out.println("!!!!! siteKey: " + model.getSiteKey());
 		System.out.println("!!!!! tenantId: " + model.getTenantId());
 		
-		return ResponseEntity.ok(dao.insertPureConfig(model));
+		return ResponseEntity.ok(dao.insertPureConfig(userId, model));
 	}
 
 	@RequestMapping(value = "/pure/update", method = RequestMethod.PUT)
-	public ResponseEntity<Response> updatePureConfig(@RequestBody PureConfigModel model, @RequestParam String pureKeyConfigId, @RequestAttribute String AuthId) {
-		return ResponseEntity.ok(dao.updatePureConfig(model, pureKeyConfigId));
+	public ResponseEntity<Response> updatePureConfig(@RequestParam("authUserId") String userId, @RequestBody PureConfigModel model, @RequestParam("pureKeyConfigId") String pureKeyConfigId) {
+		return ResponseEntity.ok(dao.updatePureConfig(userId, model, pureKeyConfigId));
 	}
 
 	@RequestMapping(value = "/pure/get", method = RequestMethod.GET)
-	public ResponseEntity<Response> getPureConfig(@RequestParam String pureKeyConfigId, @RequestAttribute String AuthId) {
+	public ResponseEntity<Response> getPureConfig(@RequestParam("authUserId") String userId, @RequestParam("pureKeyConfigId")  String pureKeyConfigId) {
 		return ResponseEntity.ok(dao.getPureConfig(pureKeyConfigId));
 	}
 
 	@RequestMapping(value = "/pure/list", method = RequestMethod.GET)
-	public ResponseEntity<Response> listPureConfig(String pureKeyConfigId, @RequestAttribute String AuthId) {
-		return ResponseEntity.ok(dao.listPureConfig(pureKeyConfigId));
+	public ResponseEntity<Response> listPureConfig(@RequestParam("authUserId") String userId) {
+		return ResponseEntity.ok(dao.listPureConfig());
 	}
 
 	@RequestMapping(value = "/pure/delete", method = RequestMethod.DELETE)
-	public ResponseEntity<Response> deletePureConfig(@RequestParam String pureKeyConfigId, @RequestAttribute String AuthId) {
+	public ResponseEntity<Response> deletePureConfig(@RequestParam("authUserId") String userId, @RequestParam("pureKeyConfigId")  String pureKeyConfigId) {
 		return ResponseEntity.ok(dao.deletePureConfig(pureKeyConfigId));
 	}
 }

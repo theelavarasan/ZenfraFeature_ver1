@@ -14,13 +14,13 @@ public class Response implements Serializable
 	private int responseCode;
 	private String type;
 	private String data;
-	private JSONObject jData;
+	private Object jData;
 
-	public JSONObject getjData() {
+	public Object getjData() {
 		return jData;
 	}
 
-	public void setjData(JSONObject jData) {
+	public void setjData(Object jData) {
 		this.jData = jData;
 	}
 
