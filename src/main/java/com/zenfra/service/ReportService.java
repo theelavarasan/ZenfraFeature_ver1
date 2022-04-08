@@ -507,7 +507,7 @@ public class ReportService {
 	private void refreshViews(String view) {
 		try {
 			Date date = new Date();
-			favouriteDao_v2.updateQuery("REFRESH MATERIALIZED VIEW " + view + " WITH DATA");
+			reportDao.executeNativeQuery("REFRESH MATERIALIZED VIEW " + view + " WITH DATA");
 			Date date2 = new Date();
 			System.out.println("----------refresh time for view :: "+view  + " : " + (date2.getTime() - date.getTime()));
 		} catch (Exception e) {
