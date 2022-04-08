@@ -1,5 +1,7 @@
 package com.zenfra.controller;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +56,12 @@ public class ValidationRuleController {
 		}	
 		
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access")) {
-			if(resultData.containsKey(colName)) {		
-				return ResponseEntity.ok(resultData.get(colName));
-			} else if(resultData.containsKey(model.getColumnName())) {		
-				return ResponseEntity.ok(resultData.get(model.getColumnName()));
+			if(resultData.containsKey(colName)) {	
+				List<Object> datas = resultData.get(colName);
+				return ResponseEntity.ok(datas.stream().sorted());
+			} else if(resultData.containsKey(model.getColumnName())) {
+				List<Object> datas = resultData.get(model.getColumnName());
+				return ResponseEntity.ok(datas.stream().sorted());
 			} 
 			
 		}

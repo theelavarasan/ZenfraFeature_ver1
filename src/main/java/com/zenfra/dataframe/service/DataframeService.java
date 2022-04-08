@@ -2008,7 +2008,7 @@ public class DataframeService {
 			String serverNames = String.join(",", taskListServers.stream().map(name -> ("'" + name.toLowerCase() + "'"))
 					.collect(Collectors.toList()));
 			//deviceType = " lcase(aws.`Server Name`) in (" + serverNames + ")";
-			discoveryFilterqry = " lower(Server Name) in (" + serverNames + ")";
+			discoveryFilterqry = " lower(`Server Name`) in (" + serverNames + ")";
 			isTaskListReport = true;
 		}
 

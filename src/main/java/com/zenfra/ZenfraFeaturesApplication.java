@@ -81,6 +81,7 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 
+		//
 		eolService.getEOLEOSHW();
 		eolService.getEOLEOSData();
 		dataframeService.createDataframeForLocalDiscovery("local_discovery");
