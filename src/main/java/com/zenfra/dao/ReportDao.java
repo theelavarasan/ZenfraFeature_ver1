@@ -282,4 +282,13 @@ public class ReportDao {
 		}
 		return result;
 	}
+	
+	public void executeNativeQuery(String query) {
+		try {
+			jdbc.execute(query);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
 }
