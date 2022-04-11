@@ -90,6 +90,7 @@ public class PureConfigDao implements PureConfigService {
 			jsonObject.put("isActive", "true");
 			jsonObject.put("updatedBy", "name");
 			jsonObject.put("updatedTime", commonFunctions.getCurrentDateWithTime());
+			jsonObject.put("createdTime", commonFunctions.getCurrentDateWithTime());
 			jsonArray.add(jsonObject);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
