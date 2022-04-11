@@ -221,15 +221,15 @@ public class PureConfigDao implements PureConfigService {
 				jsonObject.put("arrayName", rs.getString("array_name"));
 				jsonObject.put("pureKeyConfigId", rs.getString("pure_key_config_id"));
 				jsonObject.put("applicationId", rs.getString("application_id"));
-				jsonObject.put("publicKey", rs.getString("public_key"));
-				jsonObject.put("privateKey", rs.getString("private_key"));
+				jsonObject.put("publicKey", rs.getString("public_key").length() > 10 ? rs.getString("public_key").substring(rs.getString("public_key").length() - 10, rs.getString("public_key").length()) : rs.getString("public_key"));
+				jsonObject.put("privateKey", rs.getString("private_key").length() > 10 ? rs.getString("private_key").substring(rs.getString("private_key").length() - 10, rs.getString("private_key").length()) : rs.getString("private_key"));
 				jsonObject.put("createdBy", rs.getString("created_by"));
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
 				jsonObject.put("createdTime", rs.getString("created_time"));
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
 				resultArray.add(jsonObject);
 			}
-			String[] array = {"arrayName", "applicationId", "pureKeyConfigId", "createdBy", "updatedBy", "createdTime", "updatedTime"};
+			String[] array = {"arrayName", "applicationId", "publicKey", "privateKey", "pureKeyConfigId", "createdBy", "updatedBy", "createdTime", "updatedTime"};
 			
 			JSONArray headerInfo = new JSONArray ();
 			JSONObject obj1 = new JSONObject ();
