@@ -126,7 +126,7 @@ public class PureConfigDao implements PureConfigService {
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
 			}
 			
-			String[] array = {"arrayName", "applicationId", "pureKeyConfigId", "createdBy", "updatedBy", "createdTime", "updatedTime"};
+			String[] array = {"arrayName", "applicationId", "privateKey", "publicKey",  "createdBy", "updatedBy", "createdTime", "updatedTime"};
 //			jsonObject1.put("\"columnOrder\"", "\n\"arrayName\", \n\"applicationId\", \n\"createdBy\", \n\"updatedBy\", \n\"createdTime\", \n\"updatedTime\"");
 			
 			JSONArray headerInfo = new JSONArray ();
@@ -218,7 +218,7 @@ public class PureConfigDao implements PureConfigService {
 				jsonObject.put("createdTime", rs.getString("created_time"));
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
 			}
-			String[] array = {"arrayName", "applicationId", "pureKeyConfigId", "createdBy", "updatedBy", "createdTime", "updatedTime"};
+			String[] array = {"arrayName", "applicationId", "privateKey", "publicKey",  "createdBy", "updatedBy", "createdTime", "updatedTime"};
 			
 			JSONArray headerInfo = new JSONArray ();
 			JSONObject obj1 = new JSONObject ();
@@ -296,6 +296,7 @@ public class PureConfigDao implements PureConfigService {
 //			String deleteQuery = "delete from pure_key_config where pure_key_config_id ='" + pureKeyConfigId + "'";
 			System.out.println("-----------------Delete Query Pure:" + deleteQuery);
 			statement.executeUpdate(deleteQuery);
+			response.setjData(null);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
 		} catch (Exception e) {
