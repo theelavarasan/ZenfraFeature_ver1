@@ -199,8 +199,9 @@ public class PureConfigDao implements PureConfigService {
 	public Response listPureConfig() {
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
-		JSONObject jsonObject = new JSONObject();
+		
 		JSONObject jsonObject1 = new JSONObject();
+		JSONArray resultArray = new JSONArray();
 		String listQuery = "select * from pure_key_config where is_active=true";
 		System.out.println("-----------------List Query Pure:" + listQuery);
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
@@ -208,6 +209,7 @@ public class PureConfigDao implements PureConfigService {
 				Statement statement = connection.createStatement();
 				ResultSet rs = statement.executeQuery(listQuery);) {
 			while (rs.next()) {
+				JSONObject jsonObject = new JSONObject();
 				jsonObject.put("arrayName", rs.getString("array_name"));
 				jsonObject.put("pureKeyConfigId", rs.getString("pure_key_config_id"));
 				jsonObject.put("applicationId", rs.getString("application_id"));
@@ -217,6 +219,7 @@ public class PureConfigDao implements PureConfigService {
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
 				jsonObject.put("createdTime", rs.getString("created_time"));
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
+				resultArray.add(jsonObject);
 			}
 			String[] array = {"arrayName", "applicationId", "pureKeyConfigId", "createdBy", "updatedBy", "createdTime", "updatedTime"};
 			
@@ -271,7 +274,7 @@ public class PureConfigDao implements PureConfigService {
 			headerInfo.add(obj8);
 			JSONArray jsonArray = new JSONArray();
 			jsonObject1.put("columnOrder", array);
-			jsonArray.add(jsonObject);
+			jsonArray.add(resultArray);
 			jsonObject1.put("data", jsonArray);
 			jsonObject1.put("headerInfo", headerInfo);
 			response.setResponseCode(200);
