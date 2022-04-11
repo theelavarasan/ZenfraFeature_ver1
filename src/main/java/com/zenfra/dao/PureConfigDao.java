@@ -6,10 +6,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
 import com.zenfra.model.PureConfigModel;
 import com.zenfra.model.Response;
 import com.zenfra.service.PureConfigService;
@@ -30,17 +28,15 @@ public class PureConfigDao implements PureConfigService {
 		JSONObject jsonObject = new JSONObject();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
+			
 			JSONArray jsonArray = new JSONArray();
-			int id = model.getPureKeyConfigId();
-			id = 0;
 			System.out.println("!!!!! 1");
 			System.out.println("!!!!! name: " + model.getArrayName());
 			System.out.println("!!!!! siteKey: " + model.getSiteKey());
 			System.out.println("!!!!! tenantId: " + model.getTenantId());
 			String insertQuery = "insert into pure_key_config(pure_key_config_id, array_name, application_id,  public_key, private_key, site_key, tenant_id, is_active, created_by, updated_by, "
-					+ "	created_time, updated_time) VALUES ('" +id+++ "', '"+ model.getArrayName() + "', '"+model.getApplicationId()+"', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
-					+ "	'" + model.getSiteKey() + "', '"+model.getTenantId()+"', true, (select concat(first_name, ' ',last_name) as created_by from user_temp where user_id='"+userId+"'), "
-					+ "	(select concat(first_name, ' ',last_name) as created_by from user_temp where user_id='"+userId+"'), '" + commonFunctions.getCurrentDateWithTime() + "',"
+					+ "	created_time, updated_time) VALUES ('" +commonFunctions.generateRandomId()+ "', '"+ model.getArrayName() + "', '"+model.getApplicationId()+"', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
+					+ "	'" + model.getSiteKey() + "', '"+model.getTenantId()+"', true, '"+userId+"', '"+userId+"', '" + commonFunctions.getCurrentDateWithTime() + "',"
 					+ " 	'"+ commonFunctions.getCurrentDateWithTime() + "')";
 			System.out.println("-----------------Insert Query Pure:" + insertQuery);
 			statement.executeUpdate(insertQuery);
@@ -73,11 +69,10 @@ public class PureConfigDao implements PureConfigService {
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
 		JSONArray jsonArray = new JSONArray();
-		String name = "(select concat(first_name, ' ',last_name) as created_by from user_temp where user_id='"+userId+"')";
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 			String updateQuery = "update pure_key_config set array_name='" + model.getArrayName() + "', application_id='"+model.getApplicationId()+"', public_key='" + model.getPublicKey() + "', private_key='" + model.getPrivateKey() + "',"
-					+ "is_active = true, tenant_id='" + model.getTenantId() + "', updated_by ="+name+", "
+					+ "is_active = true, tenant_id='" + model.getTenantId() + "', updated_by ="+userId+", "
 					+ "updated_time='" + commonFunctions.getCurrentDateWithTime() + "' where pure_key_config_id='" + pureKeyConfigId + "'";
 			System.out.println("---------------------Update Query Pure:" + updateQuery);
 			statement.executeUpdate(updateQuery);
@@ -270,8 +265,8 @@ public class PureConfigDao implements PureConfigService {
 			obj8.put("dataType", "date");
 			headerInfo.add(obj8);
 			JSONArray jsonArray = new JSONArray();
-			jsonObject1.put("columnOrder", array);
 			jsonArray.add(jsonObject);
+			jsonObject1.put("columnOrder", array);
 			jsonObject1.put("data", jsonArray);
 			jsonObject1.put("headerInfo", headerInfo);
 			response.setResponseCode(200);
@@ -305,6 +300,34 @@ public class PureConfigDao implements PureConfigService {
 			e.printStackTrace();
 		}
 		return response;
+	}
+
+	@SuppressWarnings({ "static-access", "unchecked" })
+	@Override
+	public Response getPureKeyId() {
+		Map<String, String> data = new HashMap<>();
+		data = dbUtils.getPostgres();
+		JSONObject jsonObject = new JSONObject();
+		JSONArray jsonArray = new JSONArray();
+		String listQuery = "select pure_key_config_id, array_name from pure_key_config";
+		System.out.println("-----------------List Query Pure Key Id:" + listQuery);
+		try(Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),data.get("password"));
+				Statement statement = connection.createStatement();
+				ResultSet rs = statement.executeQuery(listQuery);)  {
+			while(rs.next()) {
+				jsonObject.put("data", rs.getString("array_name"));
+				jsonArray.add(jsonObject);
+//				jsonArray.add(rs.getString("array_name"));
+			}
+			response.setjData(jsonArray);
+			response.setResponseCode(200);
+			response.setResponseMsg("success");
+		} catch (Exception e) {
+			response.setResponseCode(500);
+			response.setResponseMsg("failure");
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }
