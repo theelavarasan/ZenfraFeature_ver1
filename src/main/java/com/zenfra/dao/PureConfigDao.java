@@ -198,7 +198,7 @@ public class PureConfigDao implements PureConfigService {
 
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@Override
-	public Response listPureConfig() {
+	public Response listPureConfig(String siteKey) {
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		
@@ -210,7 +210,7 @@ public class PureConfigDao implements PureConfigService {
 				"to_char(to_timestamp(pc.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time  from pure_key_config pc\r\n" + 
 				"LEFT JOIN user_temp ut1 on ut1.user_id = pc.created_by\r\n" + 
 				"LEFT JOIN user_temp ut2 on ut2.user_id = pc.updated_by\r\n" + 
-				"where pc.is_active=true";
+				"where pc.is_active=true and pc.site_key = '" + siteKey + "'";
 		System.out.println("-----------------List Query Pure:" + listQuery);
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password"));
