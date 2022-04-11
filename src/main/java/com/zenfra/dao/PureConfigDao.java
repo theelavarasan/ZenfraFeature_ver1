@@ -34,22 +34,33 @@ public class PureConfigDao implements PureConfigService {
 			System.out.println("!!!!! name: " + model.getArrayName());
 			System.out.println("!!!!! siteKey: " + model.getSiteKey());
 			System.out.println("!!!!! tenantId: " + model.getTenantId());
+			String uuid = commonFunctions.generateRandomId();
 			String insertQuery = "insert into pure_key_config(pure_key_config_id, array_name, application_id,  public_key, private_key, site_key, tenant_id, is_active, created_by, updated_by, "
-					+ "	created_time, updated_time) VALUES ('" +commonFunctions.generateRandomId()+ "', '"+ model.getArrayName() + "', '"+model.getApplicationId()+"', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
+					+ "	created_time, updated_time) VALUES ('" +uuid+ "', '"+ model.getArrayName() + "', '"+model.getApplicationId()+"', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
 					+ "	'" + model.getSiteKey() + "', '"+model.getTenantId()+"', true, '"+userId+"', '"+userId+"', '" + commonFunctions.getCurrentDateWithTime() + "',"
 					+ " 	'"+ commonFunctions.getCurrentDateWithTime() + "')";
 			System.out.println("-----------------Insert Query Pure:" + insertQuery);
 			statement.executeUpdate(insertQuery);
-			jsonObject.put("pureKeyConfigId", model.getPureKeyConfigId());
+			jsonObject.put("pureKeyConfigId", uuid);
 			jsonObject.put("arrayName", model.getArrayName());
 			jsonObject.put("applicationId", model.getApplicationId());
+			if(model.getPublicKey().length() > 10) {
+				jsonObject.put("publicKey", model.getPublicKey().substring(model.getPublicKey().length() - 10, model.getPublicKey().length()));
+			} else {
+				jsonObject.put("publicKey", model.getPublicKey());
+			}
+			if (model.getPrivateKey().length() >10) {
+				jsonObject.put("privateKey", model.getPrivateKey().substring(model.getPrivateKey().length() - 10, model.getPrivateKey().length()));					
+			} else {
+				jsonObject.put("privateKey", model.getPrivateKey());
+			}
 			jsonObject.put("siteKey", model.getSiteKey());
 			jsonObject.put("tenantId", model.getTenantId());
 			jsonObject.put("isActive", "true");
-			jsonObject.put("createdBy", model.getCreatedBy());
-			jsonObject.put("updatedBy", model.getUpdatedBy());
-			jsonObject.put("createdTime", model.getCreatedTime());
-			jsonObject.put("updatedTime", model.getUpdatedTime());
+			jsonObject.put("createdBy", userId);
+			jsonObject.put("updatedBy", userId);
+			jsonObject.put("createdTime", commonFunctions.getCurrentDateWithTime());
+			jsonObject.put("updatedTime", commonFunctions.getCurrentDateWithTime());
 			jsonArray.add(jsonObject);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
@@ -72,13 +83,23 @@ public class PureConfigDao implements PureConfigService {
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 			String updateQuery = "update pure_key_config set array_name='" + model.getArrayName() + "', application_id='"+model.getApplicationId()+"', public_key='" + model.getPublicKey() + "', private_key='" + model.getPrivateKey() + "',"
-					+ "is_active = true, tenant_id='" + model.getTenantId() + "', updated_by ="+userId+", "
+					+ "is_active = true, tenant_id='" + model.getTenantId() + "', updated_by ='"+userId+"', "
 					+ "updated_time='" + commonFunctions.getCurrentDateWithTime() + "' where pure_key_config_id='" + pureKeyConfigId + "'";
 			System.out.println("---------------------Update Query Pure:" + updateQuery);
 			statement.executeUpdate(updateQuery);
-			jsonObject.put("pureKeyConfigId", model.getPureKeyConfigId());
+			jsonObject.put("pureKeyConfigId", pureKeyConfigId);
 			jsonObject.put("arrayName", model.getArrayName());
 			jsonObject.put("applicationId", model.getApplicationId());
+			if(model.getPublicKey().length() > 10) {
+				jsonObject.put("publicKey", model.getPublicKey().substring(model.getPublicKey().length() - 10, model.getPublicKey().length()));
+			} else {
+				jsonObject.put("publicKey", model.getPublicKey());
+			}
+			if (model.getPrivateKey().length() >10) {
+				jsonObject.put("privateKey", model.getPrivateKey().substring(model.getPrivateKey().length() - 10, model.getPrivateKey().length()));					
+			} else {
+				jsonObject.put("privateKey", model.getPrivateKey());
+			}
 			jsonObject.put("siteKey", model.getSiteKey());
 			jsonObject.put("tenantId", model.getTenantId());
 			jsonObject.put("isActive", "true");
@@ -113,8 +134,16 @@ public class PureConfigDao implements PureConfigService {
 				jsonObject.put("arrayName", rs.getString("array_name"));
 				jsonObject.put("pureKeyConfigId", rs.getString("pure_key_config_id"));
 				jsonObject.put("applicationId", rs.getString("application_id"));
-				jsonObject.put("publicKey", rs.getString("public_key"));
-				jsonObject.put("privateKey", rs.getString("private_key"));
+				if(rs.getString("public_key").length() > 10) {
+					jsonObject.put("publicKey", rs.getString("public_key").substring(rs.getString("public_key").length() - 10, rs.getString("public_key").length()));
+				} else {
+					jsonObject.put("publicKey", rs.getString("public_key"));
+				}
+				if (rs.getString("private_key").length() >10) {
+					jsonObject.put("privateKey", rs.getString("private_key").substring(rs.getString("private_key").length() - 10, rs.getString("private_key").length()));					
+				} else {
+					jsonObject.put("privateKey", rs.getString("private_key"));
+				}
 				jsonObject.put("createdBy", rs.getString("created_by"));
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
 				jsonObject.put("createdTime", rs.getString("created_time"));
@@ -206,8 +235,16 @@ public class PureConfigDao implements PureConfigService {
 				jsonObject.put("arrayName", rs.getString("array_name"));
 				jsonObject.put("pureKeyConfigId", rs.getString("pure_key_config_id"));
 				jsonObject.put("applicationId", rs.getString("application_id"));
-				jsonObject.put("publicKey", rs.getString("public_key"));
-				jsonObject.put("privateKey", rs.getString("private_key"));
+				if(rs.getString("public_key").length() > 10) {
+					jsonObject.put("publicKey", rs.getString("public_key").substring(rs.getString("public_key").length() - 10, rs.getString("public_key").length()));
+				} else {
+					jsonObject.put("publicKey", rs.getString("public_key"));
+				}
+				if (rs.getString("private_key").length() >10) {
+					jsonObject.put("privateKey", rs.getString("private_key").substring(rs.getString("private_key").length() - 10, rs.getString("private_key").length()));					
+				} else {
+					jsonObject.put("privateKey", rs.getString("private_key"));
+				}
 				jsonObject.put("createdBy", rs.getString("created_by"));
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
 				jsonObject.put("createdTime", rs.getString("created_time"));
@@ -304,22 +341,22 @@ public class PureConfigDao implements PureConfigService {
 
 	@SuppressWarnings({ "static-access", "unchecked" })
 	@Override
-	public Response getPureKeyId() {
+	public Response getPureKeyList(String siteKey) {
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
-		JSONArray jsonArray = new JSONArray();
-		String listQuery = "select pure_key_config_id, array_name from pure_key_config";
+//		JSONArray jsonArray = new JSONArray();
+		String listQuery = "select pure_key_config_id, array_name from pure_key_config where site_key='"+siteKey+"'";
 		System.out.println("-----------------List Query Pure Key Id:" + listQuery);
 		try(Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),data.get("password"));
 				Statement statement = connection.createStatement();
 				ResultSet rs = statement.executeQuery(listQuery);)  {
 			while(rs.next()) {
-				jsonObject.put("data", rs.getString("array_name"));
-				jsonArray.add(jsonObject);
-//				jsonArray.add(rs.getString("array_name"));
+				jsonObject.put(rs.getString("pure_key_config_id"),rs.getString("array_name"));
+//				jsonArray.add(jsonObject.toString());
 			}
-			response.setjData(jsonArray);
+//			System.out.println(jsonArray.toJSONString());
+			response.setjData(jsonObject);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
 		} catch (Exception e) {
@@ -327,7 +364,7 @@ public class PureConfigDao implements PureConfigService {
 			response.setResponseMsg("failure");
 			e.printStackTrace();
 		}
-		return null;
+		return response;
 	}
 
 }
