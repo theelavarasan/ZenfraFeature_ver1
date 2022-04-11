@@ -54,6 +54,7 @@ public class FavouriteApiService_v2 {
 
 	public JSONObject getFavView(String userId, String siteKey, String reportName, String projectId) {
 
+
 		JSONObject arr = new JSONObject();
 		String reportNameRef = reportName;
 		try {
@@ -185,6 +186,7 @@ public class FavouriteApiService_v2 {
 		}
 
 		return arr;
+	
 	}
 
 	private Map<String, Object> filterFavViewByProcessedLogs(Map<String, Object> row, List<String> processedLogs) {

@@ -19,4 +19,6 @@ public interface PureConfigService {
 	
 	public Response getPureKeyList(String siteKey);
 
+	public Response getPureKeyList(String siteKey);
+
 }
