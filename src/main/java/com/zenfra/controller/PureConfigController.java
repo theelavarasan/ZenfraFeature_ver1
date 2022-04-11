@@ -43,8 +43,8 @@ public class PureConfigController {
 	}
 
 	@RequestMapping(value = "/pure/list", method = RequestMethod.GET)
-	public ResponseEntity<Response> listPureConfig(@RequestAttribute("authUserId") String userId) {
-		return ResponseEntity.ok(dao.listPureConfig());
+	public ResponseEntity<Response> listPureConfig(@RequestAttribute("authUserId") String userId,  @RequestParam("siteKey")  String siteKey) {
+		return ResponseEntity.ok(dao.listPureConfig(siteKey));
 	}
 
 	@RequestMapping(value = "/pure/delete", method = RequestMethod.DELETE)
@@ -53,7 +53,7 @@ public class PureConfigController {
 	}
 	
 	@RequestMapping(value = "/pure/key-list", method = RequestMethod.GET)
-	public ResponseEntity<Response> getKeyList(@RequestAttribute("authUserId") String userId, @RequestAttribute("authUserId") String siteKey) {
+	public ResponseEntity<Response> getKeyList(@RequestAttribute("authUserId") String userId, @RequestParam("siteKey")  String siteKey) {
 		return ResponseEntity.ok(dao.getPureKeyList(siteKey));
 	}
 }
