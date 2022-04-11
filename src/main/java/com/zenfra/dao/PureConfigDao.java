@@ -73,11 +73,11 @@ public class PureConfigDao implements PureConfigService {
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
 		JSONArray jsonArray = new JSONArray();
-		String name = "(select concat(first_name, ' ',last_name) as created_by from user_temp where user_id='"+userId+"')";
+		
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 			String updateQuery = "update pure_key_config set array_name='" + model.getArrayName() + "', application_id='"+model.getApplicationId()+"', public_key='" + model.getPublicKey() + "', private_key='" + model.getPrivateKey() + "',"
-					+ "is_active = true, tenant_id='" + model.getTenantId() + "', updated_by ="+name+", "
+					+ "is_active = true, tenant_id='" + model.getTenantId() + "', updated_by ="+userId+", "
 					+ "updated_time='" + commonFunctions.getCurrentDateWithTime() + "' where pure_key_config_id='" + pureKeyConfigId + "'";
 			System.out.println("---------------------Update Query Pure:" + updateQuery);
 			statement.executeUpdate(updateQuery);
