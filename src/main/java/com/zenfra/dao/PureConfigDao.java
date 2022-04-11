@@ -341,6 +341,7 @@ public class PureConfigDao implements PureConfigService {
 			
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
+			response.setjData(jsonObject);
 			
 		} catch(Exception e) {
 			response.setResponseCode(500);
