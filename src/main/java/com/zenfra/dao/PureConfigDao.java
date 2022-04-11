@@ -202,7 +202,13 @@ public class PureConfigDao implements PureConfigService {
 		
 		JSONObject jsonObject1 = new JSONObject();
 		JSONArray resultArray = new JSONArray();
-		String listQuery = "select * from pure_key_config where is_active=true";
+		String listQuery = "select array_name, pure_key_config_id, application_id, public_key,private_key, trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as created_by, \r\n" + 
+				"trim(concat(trim(ut2.first_name), ' ', trim(coalesce(ut2.last_name, '')))) as updated_by, \r\n" + 
+				"to_char(to_timestamp(pc.created_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as created_time, \r\n" + 
+				"to_char(to_timestamp(pc.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time  from pure_key_config pc\r\n" + 
+				"LEFT JOIN user_temp ut1 on ut1.user_id = pc.created_by\r\n" + 
+				"LEFT JOIN user_temp ut2 on ut2.user_id = pc.updated_by\r\n" + 
+				"where pc.is_active=true";
 		System.out.println("-----------------List Query Pure:" + listQuery);
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password"));
@@ -302,6 +308,33 @@ public class PureConfigDao implements PureConfigService {
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
 		} catch (Exception e) {
+			response.setResponseCode(500);
+			response.setResponseMsg("failure");
+			e.printStackTrace();
+		}
+		return response;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Response getPureKeyList(String siteKey) {
+		
+		
+		Map<String, String> data = new HashMap<>();
+		data = dbUtils.getPostgres();
+		JSONObject jsonObject = new JSONObject();
+		String query = "select pure_key_config_id, array_name from pure_key_config where is_active = true";
+		try(Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query)) {
+			
+			while(rs.next()) {
+				jsonObject.put(rs.getString("pure_key_config_id"), rs.getString("array_name"));
+			}
+			
+			response.setResponseCode(200);
+			response.setResponseMsg("success");
+			
+		} catch(Exception e) {
 			response.setResponseCode(500);
 			response.setResponseMsg("failure");
 			e.printStackTrace();

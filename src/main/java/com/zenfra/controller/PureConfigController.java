@@ -51,4 +51,9 @@ public class PureConfigController {
 	public ResponseEntity<Response> deletePureConfig(@RequestAttribute("authUserId") String userId, @RequestParam("pureKeyConfigId")  String pureKeyConfigId) {
 		return ResponseEntity.ok(dao.deletePureConfig(pureKeyConfigId));
 	}
+	
+	@RequestMapping(value = "/pure/key-list", method = RequestMethod.GET)
+	public ResponseEntity<Response> getKeyList(@RequestAttribute("authUserId") String userId, @RequestAttribute("authUserId") String siteKey) {
+		return ResponseEntity.ok(dao.getPureKeyList(siteKey));
+	}
 }

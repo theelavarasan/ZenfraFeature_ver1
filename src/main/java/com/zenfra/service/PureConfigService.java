@@ -16,5 +16,7 @@ public interface PureConfigService {
 	public Response listPureConfig();
 
 	public Response deletePureConfig(String pureKeyConfigId);
+	
+	public Response getPureKeyList(String siteKey);
 
 }
