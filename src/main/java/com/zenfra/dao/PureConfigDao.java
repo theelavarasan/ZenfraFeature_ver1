@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -31,14 +32,14 @@ public class PureConfigDao implements PureConfigService {
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 			JSONArray jsonArray = new JSONArray();
-			int id = model.getPureKeyConfigId();
-			id = 0;
+			
+			model.setPureKeyConfigId(UUID.randomUUID().toString());
 			System.out.println("!!!!! 1");
 			System.out.println("!!!!! name: " + model.getArrayName());
 			System.out.println("!!!!! siteKey: " + model.getSiteKey());
 			System.out.println("!!!!! tenantId: " + model.getTenantId());
 			String insertQuery = "insert into pure_key_config(pure_key_config_id, array_name, application_id,  public_key, private_key, site_key, tenant_id, is_active, created_by, updated_by, "
-					+ "	created_time, updated_time) VALUES ('" +id+++ "', '"+ model.getArrayName() + "', '"+model.getApplicationId()+"', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
+					+ "	created_time, updated_time) VALUES ('" + model.getPureKeyConfigId()+ "', '"+ model.getArrayName() + "', '"+model.getApplicationId()+"', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
 					+ "	'" + model.getSiteKey() + "', '"+model.getTenantId()+"', true, (select concat(first_name, ' ',last_name) as created_by from user_temp where user_id='"+userId+"'), "
 					+ "	(select concat(first_name, ' ',last_name) as created_by from user_temp where user_id='"+userId+"'), '" + commonFunctions.getCurrentDateWithTime() + "',"
 					+ " 	'"+ commonFunctions.getCurrentDateWithTime() + "')";
