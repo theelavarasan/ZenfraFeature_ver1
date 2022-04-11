@@ -202,15 +202,11 @@ public class ReportDataController {
 	}
 
 	@GetMapping("test")
-	public ResponseEntity<String> test(@RequestParam("siteKey") String siteKey,
-			@RequestParam("sourceType") String sourceType) {
-		System.out.println("-------------test----------------" + sourceType + " : " + siteKey);
+	public ResponseEntity<String> test( ) {
+		 
+		reportService.runQuery();
 
-		try {
-			chartService.getChartDatas(siteKey, sourceType);
-		} catch (Exception e) {
-			System.out.println("Not able to save local discovery in dataframe {}" + e);
-		}
+		
 
 		return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
 	}
