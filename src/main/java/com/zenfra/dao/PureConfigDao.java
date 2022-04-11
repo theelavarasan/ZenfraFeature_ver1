@@ -19,13 +19,14 @@ import com.zenfra.utils.DBUtils;
 
 public class PureConfigDao implements PureConfigService {
 
-	Response response = new Response();
+	//Response response = new Response();
 	CommonFunctions commonFunctions = new CommonFunctions();
 	DBUtils dbUtils;
 
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@Override
 	public Response insertPureConfig(String userId, PureConfigModel model) {
+		Response response = new Response();
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
@@ -70,6 +71,7 @@ public class PureConfigDao implements PureConfigService {
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@Override
 	public Response updatePureConfig(String userId, PureConfigModel model, String pureKeyConfigId) {
+		Response response = new Response();
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
@@ -106,6 +108,7 @@ public class PureConfigDao implements PureConfigService {
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@Override
 	public Response getPureConfig(String pureKeyConfigId) {
+		Response response = new Response();
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
@@ -199,6 +202,7 @@ public class PureConfigDao implements PureConfigService {
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@Override
 	public Response listPureConfig(String siteKey) {
+		Response response = new Response();
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		
@@ -299,6 +303,7 @@ public class PureConfigDao implements PureConfigService {
 	@SuppressWarnings("static-access")
 	@Override
 	public Response deletePureConfig(String pureKeyConfigId) {
+		Response response = new Response();
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
@@ -320,6 +325,7 @@ public class PureConfigDao implements PureConfigService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Response getPureKeyList(String siteKey) {
+		Response response = new Response();
 		
 		
 		Map<String, String> data = new HashMap<>();
