@@ -280,10 +280,10 @@ public class PureConfigDao implements PureConfigService {
 			obj8.put("displayName", "Updated Time");
 			obj8.put("dataType", "date");
 			headerInfo.add(obj8);
-			JSONArray jsonArray = new JSONArray();
+			//JSONArray jsonArray = new JSONArray();
 			jsonObject1.put("columnOrder", array);
-			jsonArray.add(resultArray);
-			jsonObject1.put("data", jsonArray);
+			//jsonArray.add(resultArray);
+			jsonObject1.put("data", resultArray);
 			jsonObject1.put("headerInfo", headerInfo);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
