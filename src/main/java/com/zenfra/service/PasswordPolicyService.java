@@ -7,5 +7,11 @@ import com.zenfra.model.Response;
 @Component
 public interface PasswordPolicyService {
 
-	public Response createPwdPolicy(PasswordPolicyModel model);
+	public Response createPwdPolicy(String userId, PasswordPolicyModel model);
+
+	public Response updatePwdPolicy(String userId, String pwdPolicyId, PasswordPolicyModel model);
+
+	public Response listPwdPolicy(String pwdPolicyId);
+
+	public Response deletePwdPolicy(String pwdPolicyId);
 }
