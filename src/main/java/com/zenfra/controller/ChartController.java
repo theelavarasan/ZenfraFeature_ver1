@@ -206,9 +206,11 @@ public class ChartController {
 		
 		if(isDeleted) {
 			responseModel.setResponseDescription("Chart Successfully deleted");
+			responseModel.setResponseMessage("Success");
 			responseModel.setResponseCode(HttpStatus.OK);
 		} else {
 			responseModel.setResponseDescription("Chart not deleted");
+			responseModel.setResponseMessage("Failure");
 			responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
