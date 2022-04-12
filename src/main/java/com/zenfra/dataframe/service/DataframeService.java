@@ -2028,8 +2028,17 @@ public class DataframeService {
 		} 
 			
 		//putAwsInstanceDataToPostgres(columnHeaders, siteKey, deviceType);
-		
+		String categoryQuery = "";
+		String sourceQuery = "";
+		if(request.getCategoryOpt() != null && !request.getCategoryOpt().equalsIgnoreCase("All")) {
+			categoryQuery = " and report_by'="+request.getCategoryOpt()+"'";
+			
+		}
 
+		if(request.getSource() != null && !request.getSource().equalsIgnoreCase("All") && request.getCategoryOpt() != null && request.getCategoryOpt().equalsIgnoreCase("Custom Excel Data")) {
+			sourceQuery = " and source_id='"+request.getSource()+"'";
+		}
+		
 		try {
 			String sql = " SELECT cpu_chz as \"CPU GHz\",\r\n" + 
 					"    db_service As \"DB Service\",\r\n" + 
@@ -2094,7 +2103,7 @@ public class DataframeService {
 					"    end_of_extended_support_os As \"End Of Extended Support - OS\",\r\n" + 
 					"    end_of_life_hw As \"End Of Life - HW\",\r\n" + 
 					"    end_of_extended_support_hw As \"End Of Extended Support - HW\",\r\n" + 
-					"    report_by  from cloud_cost_report_data where site_key='"+siteKey+"' and " + discoveryFilterqry;
+					"    report_by  from cloud_cost_report_data where site_key='"+siteKey+"' and " + discoveryFilterqry + categoryQuery + sourceQuery;
 			
 			System.out.println("----------------------sql--------------------------" + sql);
 
