@@ -202,7 +202,17 @@ public class ChartController {
 	public ResponseEntity<?> delelteChartByChartId(@RequestParam String chartId) {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
-		try {
+		boolean isDeleted = chartService.deleteChartById(chartId);
+		
+		if(isDeleted) {
+			responseModel.setResponseDescription("Chart Successfully deleted");
+			responseModel.setResponseCode(HttpStatus.OK);
+		} else {
+			responseModel.setResponseDescription("Chart not deleted");
+			responseModel.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		/*try {
 			responseModel.setResponseMessage("Success");
 			ChartModel_v2 chart = chartService.getChartByChartId(chartId);
 			if (chart == null || chart.getChartId().isEmpty()) {
@@ -232,7 +242,9 @@ public class ChartController {
 			responseModel.setResponseDescription(e.getMessage());
 		} finally {
 			return ResponseEntity.ok(responseModel);
-		}
+		}*/
+		
+		return ResponseEntity.ok(responseModel);
 	}
 
 	@PostMapping("/create-chart-details")
