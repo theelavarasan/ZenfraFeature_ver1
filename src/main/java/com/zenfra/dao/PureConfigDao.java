@@ -56,6 +56,8 @@ public class PureConfigDao implements PureConfigService {
 			jsonObject.put("updatedBy", model.getUpdatedBy());
 			jsonObject.put("createdTime", model.getCreatedTime());
 			jsonObject.put("updatedTime", model.getUpdatedTime());
+			jsonObject.put("publicKey", model.getPublicKey().length() > 10 ? model.getPublicKey().substring(model.getPublicKey().length() - 10, model.getPublicKey().length()) : model.getPublicKey());
+			jsonObject.put("privateKey", model.getPrivateKey().length() > 10 ? model.getPrivateKey().substring(model.getPrivateKey().length() - 10, model.getPrivateKey().length()) : model.getPrivateKey());
 			jsonArray.add(jsonObject);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
@@ -92,7 +94,9 @@ public class PureConfigDao implements PureConfigService {
 			jsonObject.put("isActive", "true");
 			jsonObject.put("updatedBy", "name");
 			jsonObject.put("updatedTime", commonFunctions.getCurrentDateWithTime());
-			jsonObject.put("createdTime", commonFunctions.getCurrentDateWithTime());
+			jsonObject.put("createdTime", model.getCreatedTime());
+			jsonObject.put("publicKey", model.getPublicKey().length() > 10 ? model.getPublicKey().substring(model.getPublicKey().length() - 10, model.getPublicKey().length()) : model.getPublicKey());
+			jsonObject.put("privateKey", model.getPrivateKey().length() > 10 ? model.getPrivateKey().substring(model.getPrivateKey().length() - 10, model.getPrivateKey().length()) : model.getPrivateKey());
 			jsonArray.add(jsonObject);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
@@ -331,7 +335,7 @@ public class PureConfigDao implements PureConfigService {
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
-		String query = "select pure_key_config_id, array_name from pure_key_config where is_active = true";
+		String query = "select pure_key_config_id, array_name from pure_key_config where is_active = true and site_key = '" + siteKey + "'";
 		System.out.println("!!!!! pure key list query: " + query);
 		try(Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query)) {
