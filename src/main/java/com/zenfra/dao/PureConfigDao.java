@@ -335,7 +335,7 @@ public class PureConfigDao implements PureConfigService {
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
-		String query = "select pure_key_config_id, array_name from pure_key_config where is_active = true";
+		String query = "select pure_key_config_id, array_name from pure_key_config where is_active = true and site_key = '" + siteKey + "'";
 		System.out.println("!!!!! pure key list query: " + query);
 		try(Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query)) {
