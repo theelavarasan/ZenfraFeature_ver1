@@ -56,6 +56,8 @@ public class PureConfigDao implements PureConfigService {
 			jsonObject.put("updatedBy", model.getUpdatedBy());
 			jsonObject.put("createdTime", model.getCreatedTime());
 			jsonObject.put("updatedTime", model.getUpdatedTime());
+			jsonObject.put("publicKey", model.getPublicKey().length() > 10 ? model.getPublicKey().substring(model.getPublicKey().length() - 10, model.getPublicKey().length()) : model.getPublicKey());
+			jsonObject.put("privateKey", model.getPrivateKey().length() > 10 ? model.getPrivateKey().substring(model.getPrivateKey().length() - 10, model.getPrivateKey().length()) : model.getPrivateKey());
 			jsonArray.add(jsonObject);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
@@ -92,7 +94,9 @@ public class PureConfigDao implements PureConfigService {
 			jsonObject.put("isActive", "true");
 			jsonObject.put("updatedBy", "name");
 			jsonObject.put("updatedTime", commonFunctions.getCurrentDateWithTime());
-			jsonObject.put("createdTime", commonFunctions.getCurrentDateWithTime());
+			jsonObject.put("createdTime", model.getCreatedTime());
+			jsonObject.put("publicKey", model.getPublicKey().length() > 10 ? model.getPublicKey().substring(model.getPublicKey().length() - 10, model.getPublicKey().length()) : model.getPublicKey());
+			jsonObject.put("privateKey", model.getPrivateKey().length() > 10 ? model.getPrivateKey().substring(model.getPrivateKey().length() - 10, model.getPrivateKey().length()) : model.getPrivateKey());
 			jsonArray.add(jsonObject);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
