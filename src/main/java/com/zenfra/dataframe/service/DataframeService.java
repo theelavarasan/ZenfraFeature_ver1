@@ -599,8 +599,7 @@ public class DataframeService {
 
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
-			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();
-			
+			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();			
 
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
@@ -1701,36 +1700,8 @@ public class DataframeService {
 			if (files != null) {
 				DataframeUtil.formatJsonFile(files);
 			}
-
-			for (File file : files) {
-
-				String filePath = file.getAbsolutePath();
-				if (filePath.endsWith(".json")) {
-					String dataframeFilePath = path + siteKey + File.separator + "site_key=" + siteKey + File.separator
-							+ "source_type=" + sourceType + File.separator + "*.json";
-					String viewName = siteKey + "_" + sourceType.toLowerCase();
-					viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
-
-					try {
-						Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath);
-						dataset.createOrReplaceTempView("tmpView");
-						sparkSession.sql(
-								"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-						dataset.createOrReplaceGlobalTempView(viewName);
-						dataset.cache();
-						System.out.println("---------View created-------- :: " + viewName);
-					} catch (Exception e) {
-						e.printStackTrace();
-						StringWriter errors = new StringWriter();
-						e.printStackTrace(new PrintWriter(errors));
-						String ex = errors.toString();
-						ExceptionHandlerMail.errorTriggerMail(ex);
-						System.out.println("---------Not able to create View-------- :: " + viewName);
-					}
-
-				}
-
-			}
+			createLocalDiscoveryView(files);
+			
 		} catch (Exception e) {
 			logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(),
 					e);
@@ -2028,7 +1999,8 @@ public class DataframeService {
 			  sourceList.add(request.getSource());
 		} 
 			
-		//putAwsInstanceDataToPostgres(columnHeaders, siteKey, deviceType);
+		putAwsInstanceDataToPostgres(columnHeaders, siteKey, deviceType);
+		
 		String categoryQuery = "";
 		String sourceQuery = "";
 		if(request.getCategoryOpt() != null && !request.getCategoryOpt().equalsIgnoreCase("All")) {
@@ -2108,31 +2080,7 @@ public class DataframeService {
 			
 			System.out.println("----------------------sql--------------------------" + sql);
 
-			List<Map<String, Object>> localDiscDatas = jdbc.queryForList(sql);
-			
-			
-			/*if (!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {
-
-				System.out.println("-------------------sourceList--------------------" + sourceList);
-
-				try {
-					String thirdPartySql = "select * from mview_custom_excel_data where site_key='"+siteKey+"' and "+discoveryFilterqry;
-					if(sourceList.contains("All")) {
-						thirdPartySql = "select * from mview_custom_excel_data where site_key='"+siteKey+"'  and "+discoveryFilterqry;
-					} else {
-						thirdPartySql = "select * from mview_custom_excel_data where site_key='"+siteKey+"' and "+discoveryFilterqry + " and source_id='"+request.getSource()+"'";
-					}
-					
-					System.out.println("-------------------thirdPartySql--------------------" + thirdPartySql);
-					
-					List<Map<String, Object>> thirdPartyData = jdbc.queryForList(thirdPartySql);
-					localDiscDatas.addAll(thirdPartyData);
-					
-				} catch(Exception e) {
-					e.printStackTrace();
-				}  
-
-			}*/
+			List<Map<String, Object>> localDiscDatas = jdbc.queryForList(sql);			
 			
 			if (!isTaskListReport && !taskListServers.isEmpty()) {
 				String taskListQuery = "select * from cloud_cost_report_data where site_key='"+siteKey+"' and " + discoveryFilterqry;

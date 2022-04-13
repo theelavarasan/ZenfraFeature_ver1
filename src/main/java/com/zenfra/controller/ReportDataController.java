@@ -188,12 +188,7 @@ public class ReportDataController {
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
 
-			String sourceTypeRef = sourceType.toLowerCase();
-			if (sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("linux")
-					|| sourceTypeRef.equalsIgnoreCase("vmware")) {
-				//dataframeService.destroryCloudCostDataframe(siteKey);
-				reportService.refreshCloudCostViews();
-			}
+			
 
 			/*if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
 				chartService.getChartDatas(siteKey, sourceType);
