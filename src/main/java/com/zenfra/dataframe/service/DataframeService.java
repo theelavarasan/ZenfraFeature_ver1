@@ -2056,48 +2056,48 @@ public class DataframeService {
 					"    server_model As \"Server Model\",\r\n" + 
 					"    server_name As \"Server Name\",\r\n" + 
 					"    total_size As \"Total Size\",\r\n" + 
-					"        CASE\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN aws_on_demand_price IS NOT NULL THEN aws_on_demand_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"AWS On Demand Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"AWS On Demand Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN aws_1_year_price IS NOT NULL THEN aws_1_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"AWS 1 Year Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"AWS 1 Year Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN aws_3_year_price IS NOT NULL THEN aws_3_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"AWS 3 Year Price\",\r\n" + 
+					"        END as float) AS \"AWS 3 Year Price\",\r\n" + 
 					"    aws_instance As \"AWS Instance Type\",\r\n" + 
 					"    aws_region As \"AWS Region\",\r\n" + 
 					"    aws_specs As \"AWS Specs\",\r\n" + 
-					"        CASE\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN azure_on_demand_price IS NOT NULL THEN azure_on_demand_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Azure On Demand Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"Azure On Demand Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN azure_1_year_price IS NOT NULL THEN azure_1_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Azure 1 Year Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"Azure 1 Year Price\",\r\n" + 
+					"       cast( CASE\r\n" + 
 					"            WHEN azure_3_year_price IS NOT NULL THEN azure_3_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Azure 3 Year Price\",\r\n" + 
+					"        END as float) AS \"Azure 3 Year Price\",\r\n" + 
 					"    azure_instance As \"Azure Instance Type\",\r\n" + 
 					"    azure_specs As \"Azure Specs\",\r\n" + 
 					"    google_instance As \"Google Instance Type\",\r\n" + 
-					"        CASE\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN google_on_demand_price IS NOT NULL THEN google_on_demand_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Google On Demand Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"Google On Demand Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN google_1_year_price IS NOT NULL THEN google_1_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Google 1 Year Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"Google 1 Year Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN google_3_year_price IS NOT NULL THEN google_3_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Google 3 Year Price\",\r\n" + 
+					"        END as float) AS \"Google 3 Year Price\",\r\n" + 
 					"     site_key,\r\n" + 
 					"     source_type,\r\n" + 
 					"    end_of_life_os As \"End Of Life - OS\",\r\n" + 
