@@ -2032,7 +2032,7 @@ public class DataframeService {
 		String categoryQuery = "";
 		String sourceQuery = "";
 		if(request.getCategoryOpt() != null && !request.getCategoryOpt().equalsIgnoreCase("All")) {
-			categoryQuery = " and report_by'="+request.getCategoryOpt()+"'";
+			categoryQuery = " and report_by='"+request.getCategoryOpt()+"'";
 			
 		}
 
