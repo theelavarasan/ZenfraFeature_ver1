@@ -138,18 +138,22 @@ public class EolService {
 				Dataset<Row> dataCheck = sparkSession.sql(
 						"Select concat_ws(',', concat('Operating System: ',az.OperatingSystem),concat('vCPU: ',az.VCPUs)"
 								+ " ,concat('Memory: ',az.Memory)) as `Azure Specs`,az.InstanceType"
-								+ ",az.OperatingSystem,az.VCPUs,az.Memory"
-								+ ",(Min(az.PricePerHour)*730)+min(ifnull(az.SoftwareCost,0)) as demandPrice"
-								+ ",(Min(b.PricePerHour)*730)+min(ifnull(b.SoftwareCost,0)) as 3YrPrice "
-								+ ",(Min(c.PricePerHour)*730)+min(ifnull(c.SoftwareCost,0)) as 1YrPrice "
+								+ ",az.OperatingSystem,cast(az.VCPUs as int), cast(az.Memory as int)"
+								+ ",cast((Min(az.PricePerHour)*730)+min(ifnull(az.SoftwareCost,0)) as float) as demandPrice"
+								+ ",cast((Min(b.PricePerHour)*730)+min(ifnull(b.SoftwareCost,0)) as float) as 3YrPrice "
+								+ ",cast((Min(c.PricePerHour)*730)+min(ifnull(c.SoftwareCost,0)) as float) as 1YrPrice "
 								+ "from AzurePricing az "
-								+ "join AzurePricing b on b.InstanceType=az.InstanceType and b.Type='3yr' and b.OperatingSystem = az.OperatingSystem "
-								+ "join AzurePricing c on c.InstanceType=az.InstanceType and c.Type='1yr' and c.OperatingSystem = az.OperatingSystem "
+								+ "left join AzurePricing b on b.InstanceType=az.InstanceType and b.Type='3yr' and b.OperatingSystem = az.OperatingSystem "
+								+ "left join AzurePricing c on c.InstanceType=az.InstanceType and c.Type='1yr' and c.OperatingSystem = az.OperatingSystem "
 								+ "where az.Region = 'US East' and az.Type = 'OnDemand' and az.OperatingSystem is not null and az.InstanceType is not NULL "
-								+ "group by az.OperatingSystem,az.InstanceType,az.VCPUs,az.Memory");
+								+ "group by az.VCPUs, az.Memory, az.InstanceType, az.OperatingSystem");
 				dataCheck.createOrReplaceGlobalTempView("azurePricingDF");
-				dataCheck.cache();
 				System.out.println("-----azurePriceDataSet----------- " + dataCheck.count());
+				
+				Dataset<Row> dataCheck12 = sparkSession.sql("select `Azure Specs`, InstanceType, demandPrice, 3YrPrice,1YrPrice from global_temp.azurePricingDF where  OperatingSystem='Windows'");
+				
+						dataCheck12.show(50000, false);
+				
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				logger.error("Exception in getAzurePricing:", ex);
