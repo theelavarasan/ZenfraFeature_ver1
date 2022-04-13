@@ -599,7 +599,9 @@ public class DataframeService {
 
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
-			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();
+			//List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();
+			List<String> siteKeys = new ArrayList<String>();
+			siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
 
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
@@ -1288,7 +1290,7 @@ public class DataframeService {
 				// log_date desc) as rank from tmpView ) ld where ld.rank=1
 
 				String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"
-						+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";
+						+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.`OS`)";  // and lcase(eol.os_type)=lcase(ldView.`Server Type`)
 				try {
 					dataset = sparkSession.sql(sql);
 					dataset.createOrReplaceTempView("datawithoutFilter");
@@ -2028,8 +2030,17 @@ public class DataframeService {
 		} 
 			
 		//putAwsInstanceDataToPostgres(columnHeaders, siteKey, deviceType);
-		
+		String categoryQuery = "";
+		String sourceQuery = "";
+		if(request.getCategoryOpt() != null && !request.getCategoryOpt().equalsIgnoreCase("All")) {
+			categoryQuery = " and report_by'="+request.getCategoryOpt()+"'";
+			
+		}
 
+		if(request.getSource() != null && !request.getSource().equalsIgnoreCase("All") && request.getCategoryOpt() != null && request.getCategoryOpt().equalsIgnoreCase("Custom Excel Data")) {
+			sourceQuery = " and source_id='"+request.getSource()+"'";
+		}
+		
 		try {
 			String sql = " SELECT cpu_chz as \"CPU GHz\",\r\n" + 
 					"    db_service As \"DB Service\",\r\n" + 
@@ -2094,7 +2105,7 @@ public class DataframeService {
 					"    end_of_extended_support_os As \"End Of Extended Support - OS\",\r\n" + 
 					"    end_of_life_hw As \"End Of Life - HW\",\r\n" + 
 					"    end_of_extended_support_hw As \"End Of Extended Support - HW\",\r\n" + 
-					"    report_by  from cloud_cost_report_data where site_key='"+siteKey+"' and " + discoveryFilterqry;
+					"    report_by  from cloud_cost_report_data where site_key='"+siteKey+"' and " + discoveryFilterqry + categoryQuery + sourceQuery;
 			
 			System.out.println("----------------------sql--------------------------" + sql);
 
