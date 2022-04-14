@@ -204,15 +204,7 @@ public class ReportDataController {
 		return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
 	}
 
-	@GetMapping("test")
-	public ResponseEntity<String> test( ) {
-		 
-		reportService.runQuery();
-
-		
-
-		return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
-	}
+	
 
 	@PostMapping("getReportHeader")
 	public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {

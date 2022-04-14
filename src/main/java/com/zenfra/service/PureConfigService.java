@@ -13,8 +13,10 @@ public interface PureConfigService {
 
 	public Response getPureConfig(String pureKeyConfigId);
 
-	public Response listPureConfig();
+	public Response listPureConfig(String siteKey);
 
 	public Response deletePureConfig(String pureKeyConfigId);
+	
+	public Response getPureKeyList(String siteKey);
 
 }
