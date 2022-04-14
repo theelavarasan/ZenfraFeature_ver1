@@ -2,7 +2,7 @@ package com.zenfra.model;
 
 public class PureConfigModel {
 
-	private int pureKeyConfigId;
+	private String pureKeyConfigId;
 	private String arrayName;
 	private String applicationId;
 	private String publicKey;
@@ -15,11 +15,11 @@ public class PureConfigModel {
 	private String createdTime;
 	private String updatedTime;
 
-	public int getPureKeyConfigId() {
+	public String getPureKeyConfigId() {
 		return pureKeyConfigId;
 	}
 
-	public void setPureKeyConfigId(int pureKeyConfigId) {
+	public void setPureKeyConfigId(String pureKeyConfigId) {
 		this.pureKeyConfigId = pureKeyConfigId;
 	}
 

@@ -599,7 +599,7 @@ public class DataframeService {
 
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
-			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();
+			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();			
 
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
@@ -1288,7 +1288,7 @@ public class DataframeService {
 				// log_date desc) as rank from tmpView ) ld where ld.rank=1
 
 				String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"
-						+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";
+						+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.`OS`)";  // and lcase(eol.os_type)=lcase(ldView.`Server Type`)
 				try {
 					dataset = sparkSession.sql(sql);
 					dataset.createOrReplaceTempView("datawithoutFilter");
@@ -1700,36 +1700,8 @@ public class DataframeService {
 			if (files != null) {
 				DataframeUtil.formatJsonFile(files);
 			}
-
-			for (File file : files) {
-
-				String filePath = file.getAbsolutePath();
-				if (filePath.endsWith(".json")) {
-					String dataframeFilePath = path + siteKey + File.separator + "site_key=" + siteKey + File.separator
-							+ "source_type=" + sourceType + File.separator + "*.json";
-					String viewName = siteKey + "_" + sourceType.toLowerCase();
-					viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
-
-					try {
-						Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath);
-						dataset.createOrReplaceTempView("tmpView");
-						sparkSession.sql(
-								"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-						dataset.createOrReplaceGlobalTempView(viewName);
-						dataset.cache();
-						System.out.println("---------View created-------- :: " + viewName);
-					} catch (Exception e) {
-						e.printStackTrace();
-						StringWriter errors = new StringWriter();
-						e.printStackTrace(new PrintWriter(errors));
-						String ex = errors.toString();
-						ExceptionHandlerMail.errorTriggerMail(ex);
-						System.out.println("---------Not able to create View-------- :: " + viewName);
-					}
-
-				}
-
-			}
+			createLocalDiscoveryView(files);
+			
 		} catch (Exception e) {
 			logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(),
 					e);
@@ -2056,48 +2028,48 @@ public class DataframeService {
 					"    server_model As \"Server Model\",\r\n" + 
 					"    server_name As \"Server Name\",\r\n" + 
 					"    total_size As \"Total Size\",\r\n" + 
-					"        cast(CASE\r\n" + 
+					"        CASE\r\n" + 
 					"            WHEN aws_on_demand_price IS NOT NULL THEN aws_on_demand_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END as float) AS \"AWS On Demand Price\",\r\n" + 
-					"        cast(CASE\r\n" + 
+					"        END AS \"AWS On Demand Price\",\r\n" + 
+					"        CASE\r\n" + 
 					"            WHEN aws_1_year_price IS NOT NULL THEN aws_1_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END as float) AS \"AWS 1 Year Price\",\r\n" + 
-					"        cast(CASE\r\n" + 
+					"        END AS \"AWS 1 Year Price\",\r\n" + 
+					"        CASE\r\n" + 
 					"            WHEN aws_3_year_price IS NOT NULL THEN aws_3_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END as float) AS \"AWS 3 Year Price\",\r\n" + 
+					"        END AS \"AWS 3 Year Price\",\r\n" + 
 					"    aws_instance As \"AWS Instance Type\",\r\n" + 
 					"    aws_region As \"AWS Region\",\r\n" + 
 					"    aws_specs As \"AWS Specs\",\r\n" + 
-					"        cast(CASE\r\n" + 
+					"        CASE\r\n" + 
 					"            WHEN azure_on_demand_price IS NOT NULL THEN azure_on_demand_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END as float) AS \"Azure On Demand Price\",\r\n" + 
-					"        cast(CASE\r\n" + 
+					"        END AS \"Azure On Demand Price\",\r\n" + 
+					"        CASE\r\n" + 
 					"            WHEN azure_1_year_price IS NOT NULL THEN azure_1_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END as float) AS \"Azure 1 Year Price\",\r\n" + 
-					"       cast( CASE\r\n" + 
+					"        END AS \"Azure 1 Year Price\",\r\n" + 
+					"        CASE\r\n" + 
 					"            WHEN azure_3_year_price IS NOT NULL THEN azure_3_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END as float) AS \"Azure 3 Year Price\",\r\n" + 
+					"        END AS \"Azure 3 Year Price\",\r\n" + 
 					"    azure_instance As \"Azure Instance Type\",\r\n" + 
 					"    azure_specs As \"Azure Specs\",\r\n" + 
 					"    google_instance As \"Google Instance Type\",\r\n" + 
-					"        cast(CASE\r\n" + 
+					"        CASE\r\n" + 
 					"            WHEN google_on_demand_price IS NOT NULL THEN google_on_demand_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END as float) AS \"Google On Demand Price\",\r\n" + 
-					"        cast(CASE\r\n" + 
+					"        END AS \"Google On Demand Price\",\r\n" + 
+					"        CASE\r\n" + 
 					"            WHEN google_1_year_price IS NOT NULL THEN google_1_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END as float) AS \"Google 1 Year Price\",\r\n" + 
-					"        cast(CASE\r\n" + 
+					"        END AS \"Google 1 Year Price\",\r\n" + 
+					"        CASE\r\n" + 
 					"            WHEN google_3_year_price IS NOT NULL THEN google_3_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END as float) AS \"Google 3 Year Price\",\r\n" + 
+					"        END AS \"Google 3 Year Price\",\r\n" + 
 					"     site_key,\r\n" + 
 					"     source_type,\r\n" + 
 					"    end_of_life_os As \"End Of Life - OS\",\r\n" + 
@@ -2177,7 +2149,6 @@ public class DataframeService {
 		}
 		return result;
 	}
-	
 	
 
 	public Dataset<Row> getOptimizationReport(ServerSideGetRowsRequest request) {
@@ -2967,7 +2938,9 @@ public class DataframeService {
 		}
 		return result;
 	}
-
+	
+	
+	
 	private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
 		Dataset<Row> result = sparkSession.emptyDataFrame();
 		Connection conn = null;
