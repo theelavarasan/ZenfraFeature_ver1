@@ -1,7 +1,9 @@
 package com.zenfra.service;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -544,6 +546,38 @@ public class ReportService {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return result;
+	}
+
+	public void runQuery() {
+		
+		try  
+		{  
+		File file=new File("C:\\Users\\Aravind\\Downloads\\ccr_insert_query.sql");    //creates a new file instance  
+		FileReader fr=new FileReader(file);   //reads the file  
+		BufferedReader br=new BufferedReader(fr);  //creates a buffering character input stream  
+		StringBuffer sb=new StringBuffer();    //constructs a string buffer with no characters  
+		String line;  
+		int i = 0;
+		while((line=br.readLine())!=null)  
+		{  
+		if(line.contains("cloud_cost_report_data")) {
+			reportDao.executeNativeQuery(line);
+			System.out.println(i + " <<--->> " + line);  
+			
+			i++;
+		}
+		}  
+		fr.close();    //closes the stream and release the resources  
+		System.out.println("Contents of File: ");  
+		 
+		}  
+		catch(IOException e)  
+		{  
+		e.printStackTrace();  
+		}  
+		
+		
+		
 	}
 
 }
