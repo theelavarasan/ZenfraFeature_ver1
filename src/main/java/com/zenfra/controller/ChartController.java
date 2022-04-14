@@ -47,23 +47,26 @@ public class ChartController {
 		try {
 			System.out.println(chartModel.getUserId());
 
-			if (chartModel.getChartId() == null || chartModel.getChartId().trim().isEmpty()) {
-				chartModel.setCreatedTime(functions.getCurrentDateWithTime());
-				chartModel.setChartId(functions.generateRandomId());
-				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
-				chartModel.setActive(true);
-
-			} else {
-
-				chartModel.setActive(true);
-				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
-			}
+//			if (chartModel.getChartId() == null || chartModel.getChartId().trim().isEmpty()) {
+//				chartModel.setCreatedTime(functions.getCurrentDateWithTime());
+//				chartModel.setChartId(functions.generateRandomId());
+//				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
+//				chartModel.setActive(true);
+//
+//			} else {
+//
+//				chartModel.setActive(true);
+//				chartModel.setUpdateTime(functions.getCurrentDateWithTime());
+//			}
 			
 			responseModel.setResponseMessage("Success");
 			if (chartService.saveChart(chartModel)) {
 				responseModel.setjData(functions.convertEntityToJsonObject(chartModel));
 				responseModel.setResponseDescription("Chart Successfully saved");
+				responseModel.setResponseMessage("Success");
 				responseModel.setResponseCode(HttpStatus.OK);
+//				mapService.deleteCategoryMappingFavouriteIdOrChartId(chartModel.getChartId());
+//				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
 				mapService.deleteCategoryMappingFavouriteIdOrChartId(chartModel.getChartId());
 				mapService.saveMap(chartModel.getCategoryList(), chartModel.getChartId());
 			} else {
@@ -102,7 +105,7 @@ public class ChartController {
 				return ResponseEntity.ok(responseModel);
 			}
 			BeanUtils.copyProperties(chartModel, chartExit, NullAwareBeanUtilsBean.getNullPropertyNames(chartModel));
-			chartExit.setActive(true);
+			chartExit.setIsActive(true);
 			chartExit.setUpdateTime(functions.getCurrentDateWithTime());
 
 			if (chartService.saveChart(chartExit)) {
@@ -223,7 +226,7 @@ public class ChartController {
 				return ResponseEntity.ok(responseModel);
 			}
 
-			chart.setActive(false);
+			chart.setIsActive(false);
 			if (chartService.deleteChartByObject(chart)) {
 				// responseModel.setjData(functions.convertEntityToJsonObject(chartService.getChartByChartId(chartId)));
 				responseModel.setResponseDescription("Chart Successfully deleted");

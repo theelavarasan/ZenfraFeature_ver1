@@ -881,7 +881,7 @@ public class ValidationRuleService {
 
 			List<String> data = new ArrayList<>();
 			try {
-				String query = "select distinct(\""+columnName+"\") from mview_ccr_data where \""+columnName+"\" is not null and \""+columnName+"\" !='' and site_key='"+siteKey+"' and "+ deviceType + " and " + report_by;
+				String query = "select distinct(`"+columnName+"`) from cloud_cost_report_data where `"+columnName+"` is not null and `"+columnName+"` !='' and site_key='"+siteKey+"' and "+ deviceType + " and " + report_by + " order by `"+columnName+"`";
 				data = jdbc.queryForList(query, String.class);
 			} catch (Exception e) {
 				e.printStackTrace();

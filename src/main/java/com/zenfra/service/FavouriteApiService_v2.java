@@ -54,35 +54,27 @@ public class FavouriteApiService_v2 {
 
 	public JSONObject getFavView(String userId, String siteKey, String reportName, String projectId) {
 
+
 		JSONObject arr = new JSONObject();
 		String reportNameRef = reportName;
 		try {
-			JSONObject obj = new JSONObject();
 
 			if (reportName.equalsIgnoreCase("migrationreport")) {
 				reportName = "'migrationreport','discovery','compatability','migration-method'";
-			} 
-//			else {
-//				reportName = "'" + reportName + "'";
-//			}
+			}
+
 			String favourite_view_query = queries.favouriteView().getGetFavView();
 			favourite_view_query = favourite_view_query.replace(":report_name_value", reportName)
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
-			System.out.println("--------favourite_view_query------ " + favourite_view_query);
 
 			String favourite_order_query = queries.favouriteOrder().getGetFavouriteOrder();
 			favourite_order_query = favourite_order_query.replace(":report_name_value", reportName)
 					.replace(":site_key_value", siteKey).replace(":user_id_value", userId);
 			List<Map<String, Object>> rows = daoFav.getJsonarray(favourite_view_query);
-			System.out.println("--------favourite_order_query------ " + favourite_order_query);
-
+			
 			List<String> processedLogs = logFileDetailsRepo.getDistinctLogTypeBySiteKeyAndStatusIsActive(siteKey, "success",true);
-			System.out.println("--------favourite_view_query------ " + favourite_view_query);
-			ObjectMapper map = new ObjectMapper();
+//			System.out.println("------processedLogs----------" + processedLogs);
 			JSONArray viewArr = new JSONArray();
-			JSONParser parser = new JSONParser();
-
-			// System.out.println(rows.size() + " :: " + rows);
 
 			rows.forEach(row -> {
 				try {
@@ -91,17 +83,15 @@ public class FavouriteApiService_v2 {
 					
 					// Map<String, Object> rowMap = row;
 					// rowMap = setDeviceType(rowMap);
-					if (!reportNameRef.equalsIgnoreCase("healthcheck")  && !reportNameRef.equalsIgnoreCase("project-summary")) {
-						Map<String, Object> filteredFavView = filterFavViewByProcessedLogs(row,processedLogs);							
-						if(filteredFavView != null && !filteredFavView.isEmpty()) {						
+					if (!reportNameRef.equalsIgnoreCase("healthcheck") && !reportNameRef.equalsIgnoreCase("project-summary")) {
+						Map<String, Object> filteredFavView = filterFavViewByProcessedLogs(row,processedLogs);	
+						if(filteredFavView != null && !filteredFavView.isEmpty()) {	
 							viewArr.add(row);
 						}
-					} else {		
-							viewArr.add(row);						
-					}
+					}else {
+						viewArr.add(row);
+						}
 					
-					
-
 				} catch (Exception e) {
 					e.printStackTrace();
 					/*try {
@@ -115,15 +105,14 @@ public class FavouriteApiService_v2 {
 					
 				}
 			});
-
 			Object orderArr = daoFav.getSingleColumnAsObject(favourite_order_query);
 			arr.put("view", viewArr);
+			System.out.println("---------arr----------" + arr);
 			if (orderArr != null) {
 				arr.put("order", common.convertObjectToJsonArray(orderArr));
 			} else {
 				arr.put("order", new JSONArray());
 			}
-
 			if (reportNameRef.equalsIgnoreCase("healthcheck")) {
 				JSONArray hcFilterArray = new JSONArray();
 
@@ -193,17 +182,19 @@ public class FavouriteApiService_v2 {
 		}
 
 		return arr;
+	
 	}
 
 	private Map<String, Object> filterFavViewByProcessedLogs(Map<String, Object> row, List<String> processedLogs) {
+		
 		try {
 			if (row.get("filterProperty") != null && !row.get("filterProperty").equals("[]")) {
 				JSONArray filterProp =  (JSONArray) jSONParser.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", ""));
 				for(int i=0; i<filterProp.size(); i++) {
-					JSONObject prop = (JSONObject) filterProp.get(i);					
+					JSONObject prop = (JSONObject) filterProp.get(i);
 					if(prop.containsKey("selection")) {
 						String values = prop.get("selection").toString().trim();
-						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase)) {						
+						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase)) {
 							return common.getFavViewCheckNull(row);
 						}
 					}
