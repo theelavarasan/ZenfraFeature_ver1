@@ -1997,9 +1997,7 @@ public class DataframeService {
 			
 			  categoryList.add(request.getCategoryOpt());
 			  sourceList.add(request.getSource());
-		} 
-			
-		putAwsInstanceDataToPostgres(columnHeaders, siteKey, deviceType);
+		} 		
 		
 		String categoryQuery = "";
 		String sourceQuery = "";
@@ -2098,6 +2096,63 @@ public class DataframeService {
 		
 		return cloudCostData; // paginate(dataCheck, request);
 	}
+	
+	
+	public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
+		
+		Connection conn = null;
+		Statement stmt = null;
+		if (deviceType.equalsIgnoreCase("All")) {
+			deviceType = " (lower(img.platformdetails) like '%linux%' or lower(img.platformdetails) like '%windows%' or lower(img.platformdetails) like '%vmware%')";
+		} else {
+			deviceType = " lower(img.platformdetails) like '%" + deviceType.toLowerCase() + "%'";
+		}
+		try {
+			String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"
+					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
+														// it.vcpuinfo, it.memoryinfo";
+
+			
+			System.out.println("------AWS query-------- " + query);
+			
+			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+
+			List<AwsInstanceData> resultRows = resultSetToList(rs);
+			
+			System.out.println("------AWS resultRows-------- " + resultRows.size());
+			 
+			for(AwsInstanceData aws : resultRows) {
+				
+				AwsInstanceCcrData awsInstanceCcrData = new AwsInstanceCcrData();
+				awsInstanceCcrData.setInstanceType(aws.getInstancetype());
+				awsInstanceCcrData.setMemory(aws.getMemoryinfo());
+				awsInstanceCcrData.setSourceType(aws.getServerType());
+				awsInstanceCcrData.setOsName(aws.getPlatformdetails());
+				awsInstanceCcrData.setNumberOfCores(aws.getVcpuinfo());
+				awsInstanceCcrData.setServerName(aws.getDescription());
+				awsInstanceCcrData.setRegion(aws.getRegion());
+				awsInstanceCcrDataRepository.save(awsInstanceCcrData);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		} finally {
+			try {
+				conn.close();
+				// AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
+			} catch (Exception e2) {
+				// TODO: handle exception
+			}
+		}
+		
+	}
+	
 
 	public Dataset<Row> getOptimizationReport(ServerSideGetRowsRequest request) {
 
@@ -2888,56 +2943,7 @@ public class DataframeService {
 	}
 	
 	
-	private Dataset<Row> putAwsInstanceDataToPostgres(List<String> columnHeaders, String siteKey, String deviceType) {
-		Dataset<Row> result = sparkSession.emptyDataFrame();
-		Connection conn = null;
-		Statement stmt = null;
-		if (deviceType.equalsIgnoreCase("All")) {
-			deviceType = " (lower(img.platformdetails) like '%linux%' or lower(img.platformdetails) like '%windows%' or lower(img.platformdetails) like '%vmware%')";
-		} else {
-			deviceType = " lower(img.platformdetails) like '%" + deviceType.toLowerCase() + "%'";
-		}
-		try {
-			String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"
-					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
-														// it.vcpuinfo, it.memoryinfo";
-
-			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(query);
-
-			List<AwsInstanceData> resultRows = resultSetToList(rs);
-			 
-			for(AwsInstanceData aws : resultRows) {
-				
-				AwsInstanceCcrData awsInstanceCcrData = new AwsInstanceCcrData();
-				awsInstanceCcrData.setInstanceType(aws.getInstancetype());
-				awsInstanceCcrData.setMemory(aws.getMemoryinfo());
-				awsInstanceCcrData.setSourceType(aws.getServerType());
-				awsInstanceCcrData.setOsName(aws.getPlatformdetails());
-				awsInstanceCcrData.setNumberOfCores(aws.getVcpuinfo());
-				awsInstanceCcrData.setServerName(aws.getDescription());
-				awsInstanceCcrData.setRegion(aws.getRegion());
-				awsInstanceCcrDataRepository.save(awsInstanceCcrData);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		} finally {
-			try {
-				conn.close();
-				// AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
-			} catch (Exception e2) {
-				// TODO: handle exception
-			}
-		}
-		return result;
-	}
-
+	
 	private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
 		Dataset<Row> result = sparkSession.emptyDataFrame();
 		Connection conn = null;
