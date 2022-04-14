@@ -558,6 +558,11 @@ public class ChartService {
 		return query;
 	}
 
+	public boolean deleteChartById(String chartId) {
+		// TODO Auto-generated method stub
+		return chartDao.deleteChartById(chartId);
+	}
+
 	/*
 	 * public void refreshChart(String chartId, String siteKey) { try { String
 	 * chartConfigQuery =

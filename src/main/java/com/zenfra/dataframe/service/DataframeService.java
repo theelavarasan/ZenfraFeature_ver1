@@ -1288,7 +1288,7 @@ public class DataframeService {
 				// log_date desc) as rank from tmpView ) ld where ld.rank=1
 
 				String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"
-						+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";
+						+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.`OS`) ";
 				try {
 					dataset = sparkSession.sql(sql);
 					dataset.createOrReplaceTempView("datawithoutFilter");
@@ -1861,7 +1861,10 @@ public class DataframeService {
 			dataset = sparkSession.sql("select * from global_temp." + viewName);
 			dataset.cache();
 		} catch (Exception e) {
-			String cloudCostDfPath = commonPath + "Dataframe" + File.separator + "CCR" + File.separator
+			dataset = getOptimizationReport(request);
+			dataset.cache();
+			
+			/*String cloudCostDfPath = commonPath + "Dataframe" + File.separator + "CCR" + File.separator
 					+ request.getSiteKey() + File.separator;
 			File filePath = new File(commonPath + "Dataframe" + File.separator + "CCR" + File.separator
 					+ request.getSiteKey() + File.separator);
@@ -1873,7 +1876,7 @@ public class DataframeService {
 			} else {
 				dataset = getOptimizationReport(request);
 				dataset.cache();
-			}
+			}*/
 
 		}
 
@@ -3314,6 +3317,8 @@ public class DataframeService {
 				  }
    	        	
    	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
+   	        	dataset.show();
+   	        	System.out.println("----------localDiscoveryTemp---------- " +dataset.count());
    		        // dataset.cache();	
    		         
    		      //dataset.printSchema();
@@ -3398,10 +3403,10 @@ public class DataframeService {
 		" lcase(awsPricing.`Operating System`) = lcase((case when localDiscoveryDF.OS like '%Red Hat%' then 'RHEL'" +
 		" when localDiscoveryDF.OS like '%SUSE%' then 'SUSE' when localDiscoveryDF.OS like '%Linux%' OR localDiscoveryDF.OS like '%CentOS%' then 'Linux'" +
 		" when localDiscoveryDF.OS like '%Windows%' then 'Windows' else localDiscoveryDF.`Server Type` end)) and" +
-		" cast(awsPricing.Memory as int) >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
-		" and cast(awsPricing.vCPU as int) >= (case when localDiscoveryDF.`Logical Processor Count` is null and localDiscoveryDF.`Number of Processors` is not null then " +
+		" (cast(awsPricing.Memory as int) >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
+		" or cast(awsPricing.vCPU as int) >= (case when localDiscoveryDF.`Logical Processor Count` is null and localDiscoveryDF.`Number of Processors` is not null then " +
 		" cast(localDiscoveryDF.`Number of Processors` as int) when localDiscoveryDF.`Logical Processor Count` is not null then " +
-		" cast(localDiscoveryDF.`Logical Processor Count` as int) else 0 end)" +
+		" cast(localDiscoveryDF.`Logical Processor Count` as int) else 0 end))" +
 		" left join global_temp.awsPricingDF awsPricing2 on awsPricing2.`Operating System` = awsPricing.`Operating System` and cast(awsPricing2.PricePerUnit as float) = cast(awsPricing.pricePerUnit as float) and cast(awsPricing.Memory as int) = " +
 		" cast(awsPricing2.Memory as int) and cast(awsPricing.vCPU as int) = cast(awsPricing2.vCPU as int) and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData" +
 		" where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();

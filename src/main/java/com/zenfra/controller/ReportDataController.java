@@ -106,11 +106,12 @@ public class ReportDataController {
 				 * ResponseEntity<>(resultData.toString(), HttpStatus.OK); }
 				 */
 
-				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
+				//List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
+				//JSONObject result = new JSONObject();
+				//result.put("data", data);
 				///System.out.println("------------last pointer for CCR----------------");
-				JSONObject result = new JSONObject();
-				result.put("data", data);
-				return new ResponseEntity<>(result, HttpStatus.OK);
+				DataResult data = dataframeService.getCloudCostData(request);
+				return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 
 			}
 
@@ -188,8 +189,6 @@ public class ReportDataController {
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
 
-			
-
 			/*if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
 				chartService.getChartDatas(siteKey, sourceType);
 			}*/
@@ -206,15 +205,11 @@ public class ReportDataController {
 	}
 
 	@GetMapping("test")
-	public ResponseEntity<String> test(@RequestParam("siteKey") String siteKey,
-			@RequestParam("sourceType") String sourceType) {
-		System.out.println("-------------test----------------" + sourceType + " : " + siteKey);
+	public ResponseEntity<String> test( ) {
+		 
+		reportService.runQuery();
 
-		try {
-			chartService.getChartDatas(siteKey, sourceType);
-		} catch (Exception e) {
-			System.out.println("Not able to save local discovery in dataframe {}" + e);
-		}
+		
 
 		return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
 	}

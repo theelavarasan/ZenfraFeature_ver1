@@ -124,4 +124,17 @@ public class ChartDAO extends CommonEntityManager {
 		return charts;
 	}
 
+	public boolean deleteChartById(String chartId) {
+		try {
+			int resultCode = updateQuery("update chart set is_active='false' where chart_id='"+chartId+"'");
+			
+			if(resultCode > 0) {
+				return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 }
