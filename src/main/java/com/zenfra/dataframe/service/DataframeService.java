@@ -1997,9 +1997,7 @@ public class DataframeService {
 			
 			  categoryList.add(request.getCategoryOpt());
 			  sourceList.add(request.getSource());
-		} 
-			
-		putAwsInstanceDataToPostgres(columnHeaders, siteKey, deviceType);
+		} 		
 		
 		String categoryQuery = "";
 		String sourceQuery = "";
@@ -2100,8 +2098,8 @@ public class DataframeService {
 	}
 	
 	
-	private Dataset<Row> putAwsInstanceDataToPostgres(List<String> columnHeaders, String siteKey, String deviceType) {
-		Dataset<Row> result = sparkSession.emptyDataFrame();
+	public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
+		
 		Connection conn = null;
 		Statement stmt = null;
 		if (deviceType.equalsIgnoreCase("All")) {
@@ -2114,11 +2112,16 @@ public class DataframeService {
 					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
 														// it.vcpuinfo, it.memoryinfo";
 
+			
+			System.out.println("------AWS query-------- " + query);
+			
 			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
 			stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
 
 			List<AwsInstanceData> resultRows = resultSetToList(rs);
+			
+			System.out.println("------AWS resultRows-------- " + resultRows.size());
 			 
 			for(AwsInstanceData aws : resultRows) {
 				
@@ -2147,7 +2150,7 @@ public class DataframeService {
 				// TODO: handle exception
 			}
 		}
-		return result;
+		
 	}
 	
 

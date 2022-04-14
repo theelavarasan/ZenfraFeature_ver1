@@ -211,7 +211,7 @@ public class ReportDataController {
 		System.out.println("-------------test----------------" + sourceType + " : " + siteKey);
 
 		try {
-			chartService.getChartDatas(siteKey, sourceType);
+			//dataframeService.putAwsInstanceDataToPostgres(null, siteKey, sourceType);
 		} catch (Exception e) {
 			System.out.println("Not able to save local discovery in dataframe {}" + e);
 		}
