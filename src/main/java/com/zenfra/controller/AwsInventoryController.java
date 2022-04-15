@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.configuration.AESEncryptionDecryption;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
+import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.AwsInventory;
 import com.zenfra.model.LogFileDetails;
 import com.zenfra.model.ResponseModel_v2;
@@ -62,6 +63,9 @@ public class AwsInventoryController {
 
 	@Autowired
 	LogFileDetailsService logFileService;
+	
+	@Autowired
+	private DataframeService dataframeService;
 
 	@PostMapping
 	public ResponseModel_v2 saveAws(@RequestBody AwsInventory aws, HttpServletRequest request) {
@@ -327,6 +331,9 @@ public class AwsInventoryController {
 					logFileId + "~" + response + "~" + responseRest != null && !responseRest.toString().isEmpty()
 							? responseRest.toString()
 							: "unable to update logupload API");
+			
+			dataframeService.putAwsInstanceDataToPostgres(siteKey, "All");
+			
 			status.setStatus("complete");
 			System.out.println("responseRest::" + responseRest.toString());
 			serivce.updateMerge(status);

@@ -97,17 +97,7 @@ public class ReportDataController {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 				}
 			} else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
-				/*
-				 * JSONArray data = reportService.getCloudCostData(request);
-				 * 
-				 * if(data != null) { JSONObject resultData = new JSONObject();
-				 * resultData.put("data", data); resultData.put("lastRow", data.size());
-				 * resultData.put("totalCount", data.size()); return new
-				 * ResponseEntity<>(resultData.toString(), HttpStatus.OK); }
-				 */
-
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
-				///System.out.println("------------last pointer for CCR----------------");
 				JSONObject result = new JSONObject();
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
@@ -188,13 +178,6 @@ public class ReportDataController {
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
 
-			String sourceTypeRef = sourceType.toLowerCase();
-			if (sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("linux")
-					|| sourceTypeRef.equalsIgnoreCase("vmware")) {
-				//dataframeService.destroryCloudCostDataframe(siteKey);
-				reportService.refreshCloudCostViews();
-			}
-
 			/*if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
 				chartService.getChartDatas(siteKey, sourceType);
 			}*/
@@ -210,19 +193,7 @@ public class ReportDataController {
 		return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
 	}
 
-	@GetMapping("test")
-	public ResponseEntity<String> test(@RequestParam("siteKey") String siteKey,
-			@RequestParam("sourceType") String sourceType) {
-		System.out.println("-------------test----------------" + sourceType + " : " + siteKey);
-
-		try {
-			chartService.getChartDatas(siteKey, sourceType);
-		} catch (Exception e) {
-			System.out.println("Not able to save local discovery in dataframe {}" + e);
-		}
-
-		return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
-	}
+	
 
 	@PostMapping("getReportHeader")
 	public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {

@@ -35,14 +35,14 @@ public class PureConfigDao implements PureConfigService {
 			JSONArray jsonArray = new JSONArray();
 			
 			model.setPureKeyConfigId(UUID.randomUUID().toString());
+			
 			System.out.println("!!!!! 1");
 			System.out.println("!!!!! name: " + model.getArrayName());
 			System.out.println("!!!!! siteKey: " + model.getSiteKey());
 			System.out.println("!!!!! tenantId: " + model.getTenantId());
 			String insertQuery = "insert into pure_key_config(pure_key_config_id, array_name, application_id,  public_key, private_key, site_key, tenant_id, is_active, created_by, updated_by, "
 					+ "	created_time, updated_time) VALUES ('" + model.getPureKeyConfigId()+ "', '"+ model.getArrayName() + "', '"+model.getApplicationId()+"', '" + model.getPublicKey() + "', '" + model.getPrivateKey() + "', "
-					+ "	'" + model.getSiteKey() + "', '"+model.getTenantId()+"', true, (select concat(first_name, ' ',last_name) as created_by from user_temp where user_id='"+userId+"'), "
-					+ "	(select concat(first_name, ' ',last_name) as created_by from user_temp where user_id='"+userId+"'), '" + commonFunctions.getCurrentDateWithTime() + "',"
+					+ "	'" + model.getSiteKey() + "', '"+model.getTenantId()+"', true, '"+userId+"', '"+userId+"', '" + commonFunctions.getCurrentDateWithTime() + "',"
 					+ " 	'"+ commonFunctions.getCurrentDateWithTime() + "')";
 			System.out.println("-----------------Insert Query Pure:" + insertQuery);
 			statement.executeUpdate(insertQuery);
@@ -52,10 +52,10 @@ public class PureConfigDao implements PureConfigService {
 			jsonObject.put("siteKey", model.getSiteKey());
 			jsonObject.put("tenantId", model.getTenantId());
 			jsonObject.put("isActive", "true");
-			jsonObject.put("createdBy", model.getCreatedBy());
-			jsonObject.put("updatedBy", model.getUpdatedBy());
-			jsonObject.put("createdTime", model.getCreatedTime());
-			jsonObject.put("updatedTime", model.getUpdatedTime());
+			jsonObject.put("createdBy", userId);
+			jsonObject.put("updatedBy", userId);
+			jsonObject.put("createdTime", commonFunctions.getCurrentDateWithTime());
+			jsonObject.put("updatedTime", commonFunctions.getCurrentDateWithTime());
 			jsonObject.put("publicKey", model.getPublicKey().length() > 10 ? model.getPublicKey().substring(model.getPublicKey().length() - 10, model.getPublicKey().length()) : model.getPublicKey());
 			jsonObject.put("privateKey", model.getPrivateKey().length() > 10 ? model.getPrivateKey().substring(model.getPrivateKey().length() - 10, model.getPrivateKey().length()) : model.getPrivateKey());
 			jsonArray.add(jsonObject);

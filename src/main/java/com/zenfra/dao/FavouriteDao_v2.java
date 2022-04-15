@@ -108,7 +108,7 @@ public class FavouriteDao_v2 extends CommonEntityManager {
 		try {
 
 			// map.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-			rows = jdbc.queryForList(query);
+			rows = jdbc.queryForList(query);			
 
 		} catch (Exception e) {
 			e.printStackTrace();
