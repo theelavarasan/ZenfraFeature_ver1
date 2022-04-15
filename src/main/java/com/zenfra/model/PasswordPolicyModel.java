@@ -16,6 +16,10 @@ public class PasswordPolicyModel {
 	private String updatedBy;
 	private String createdTime;
 	private String updatedTime;
+	private boolean isActive;
+	private String passRegexFormat;
+	private String siteKey;
+	private String tenantId;
 
 	public String getPwdPolicyId() {
 		return pwdPolicyId;
@@ -127,6 +131,38 @@ public class PasswordPolicyModel {
 
 	public void setUpdatedTime(String updatedTime) {
 		this.updatedTime = updatedTime;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getPassRegexFormat() {
+		return passRegexFormat;
+	}
+
+	public void setPassRegexFormat(String passRegexFormat) {
+		this.passRegexFormat = passRegexFormat;
+	}
+
+	public String getSiteKey() {
+		return siteKey;
+	}
+
+	public void setSiteKey(String siteKey) {
+		this.siteKey = siteKey;
+	}
+
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
 	}
 
 }
