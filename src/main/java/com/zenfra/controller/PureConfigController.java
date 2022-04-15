@@ -37,10 +37,10 @@ public class PureConfigController {
 		return ResponseEntity.ok(dao.updatePureConfig(userId, model, pureKeyConfigId));
 	}
 
-	@RequestMapping(value = "/pure/get", method = RequestMethod.GET)
-	public ResponseEntity<Response> getPureConfig(@RequestAttribute("authUserId") String userId, @RequestParam("pureKeyConfigId")  String pureKeyConfigId) {
-		return ResponseEntity.ok(dao.getPureConfig(pureKeyConfigId));
-	}
+//	@RequestMapping(value = "/pure/get", method = RequestMethod.GET)
+//	public ResponseEntity<Response> getPureConfig(@RequestAttribute("authUserId") String userId, @RequestParam("pureKeyConfigId")  String pureKeyConfigId) {
+//		return ResponseEntity.ok(dao.getPureConfig(pureKeyConfigId));
+//	}
 
 	@RequestMapping(value = "/pure/list", method = RequestMethod.GET)
 	public ResponseEntity<Response> listPureConfig(@RequestAttribute("authUserId") String userId,  @RequestParam("siteKey")  String siteKey) {

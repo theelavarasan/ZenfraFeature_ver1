@@ -14,6 +14,10 @@ public class PureConfigModel {
 	private String updatedBy;
 	private String createdTime;
 	private String updatedTime;
+	private String hostName;
+	private String apiToken;
+	private String userName;
+	private String password;
 
 	public String getPureKeyConfigId() {
 		return pureKeyConfigId;
@@ -109,6 +113,38 @@ public class PureConfigModel {
 
 	public void setUpdatedTime(String updatedTime) {
 		this.updatedTime = updatedTime;
+	}
+
+	public String getHostName() {
+		return hostName;
+	}
+
+	public void setHostName(String hostName) {
+		this.hostName = hostName;
+	}
+
+	public String getApiToken() {
+		return apiToken;
+	}
+
+	public void setApiToken(String apiToken) {
+		this.apiToken = apiToken;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 }
