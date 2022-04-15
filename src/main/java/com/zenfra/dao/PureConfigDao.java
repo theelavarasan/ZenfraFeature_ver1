@@ -228,7 +228,7 @@ public class PureConfigDao implements PureConfigService {
 		String listQuery = "select pure_key_config_id, host_name, trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as created_by, \r\n" + 
 				"trim(concat(trim(ut2.first_name), ' ', trim(coalesce(ut2.last_name, '')))) as updated_by, \r\n" + 
 				"to_char(to_timestamp(pc.created_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as created_time, \r\n" + 
-				"to_char(to_timestamp(pc.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time, api_token, user_name, password, connection_type from pure_key_config pc\r\n" + 
+				"to_char(to_timestamp(pc.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time, pc.api_token, pc.user_name, pc.password, pc.connection_type from pure_key_config pc\r\n" + 
 				"LEFT JOIN user_temp ut1 on ut1.user_id = pc.created_by\r\n" + 
 				"LEFT JOIN user_temp ut2 on ut2.user_id = pc.updated_by\r\n" + 
 				"where pc.is_active=true and pc.site_key = '" + siteKey + "'";

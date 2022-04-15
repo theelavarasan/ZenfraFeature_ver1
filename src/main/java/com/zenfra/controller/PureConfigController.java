@@ -33,7 +33,7 @@ public class PureConfigController {
 	}
 
 	@RequestMapping(value = "/pure/update", method = RequestMethod.PUT)
-	public ResponseEntity<Response> updatePureConfig(@RequestAttribute("authUserId") String userId, @RequestBody PureConfigModel model, @RequestParam("pureKeyConfigId") String pureKeyConfigId) {
+	public ResponseEntity<Response> updatePureConfig(@RequestAttribute("authUserId") String userId, @RequestBody PureConfigModel model, @RequestAttribute("pureKeyConfigId") String pureKeyConfigId) {
 		return ResponseEntity.ok(dao.updatePureConfig(userId, model, pureKeyConfigId));
 	}
 
@@ -43,17 +43,17 @@ public class PureConfigController {
 //	}
 
 	@RequestMapping(value = "/pure/list", method = RequestMethod.GET)
-	public ResponseEntity<Response> listPureConfig(@RequestAttribute("authUserId") String userId,  @RequestParam("siteKey")  String siteKey) {
+	public ResponseEntity<Response> listPureConfig(@RequestAttribute("authUserId") String userId,  @RequestAttribute("siteKey")  String siteKey) {
 		return ResponseEntity.ok(dao.listPureConfig(siteKey));
 	}
 
 	@RequestMapping(value = "/pure/delete", method = RequestMethod.DELETE)
-	public ResponseEntity<Response> deletePureConfig(@RequestAttribute("authUserId") String userId, @RequestParam("pureKeyConfigId")  String pureKeyConfigId) {
+	public ResponseEntity<Response> deletePureConfig(@RequestAttribute("authUserId") String userId, @RequestAttribute("pureKeyConfigId")  String pureKeyConfigId) {
 		return ResponseEntity.ok(dao.deletePureConfig(pureKeyConfigId));
 	}
 	
 	@RequestMapping(value = "/pure/key-list", method = RequestMethod.GET)
-	public ResponseEntity<Response> getKeyList(@RequestAttribute("authUserId") String userId, @RequestParam("siteKey")  String siteKey) {
+	public ResponseEntity<Response> getKeyList(@RequestAttribute("authUserId") String userId, @RequestAttribute("siteKey")  String siteKey) {
 		return ResponseEntity.ok(dao.getPureKeyList(siteKey));
 	}
 }
