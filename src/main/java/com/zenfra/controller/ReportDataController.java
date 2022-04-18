@@ -106,12 +106,13 @@ public class ReportDataController {
 				 * ResponseEntity<>(resultData.toString(), HttpStatus.OK); }
 				 */
 
-				//List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
-				//JSONObject result = new JSONObject();
-				//result.put("data", data);
+				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
+				JSONObject result = new JSONObject();
+				result.put("data", data);
+				return new ResponseEntity<>(result, HttpStatus.OK);
 				///System.out.println("------------last pointer for CCR----------------");
-				DataResult data = dataframeService.getCloudCostData(request);
-				return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+				//DataResult data = dataframeService.getCloudCostData(request);
+				//return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 
 			}
 
