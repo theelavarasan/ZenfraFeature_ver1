@@ -118,8 +118,11 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 			model.setTenantId(tenantId);
+			System.out.println("---------------------TenantId"+model.getTenantId());
 			model.setUpdatedBy(userId);
+			System.out.println("---------------------UpdatedBy"+model.getUpdatedBy());
 			model.setUpdatedTime(commonFunctions.getCurrentDateWithTime().toString());
+			System.out.println("---------------------UpdatedTime"+model.getUpdatedTime());
 			
 			String updateQuery = "update password_policy set min_length=" + model.getMinLength() + ", max_length="
 					+ model.getMaxLength() + ", min_upper_case=" + model.getMinUpperCase() + "," + "	min_lower_case="
@@ -129,9 +132,9 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 					+ model.getPwdExpiryDays() + "', updated_by='" + model.getUpdatedBy() + "', updated_time= '"+model.getUpdatedTime()+"'"
 					+ "	where tenant_id='" + model.getTenantId() + "'";
 			System.out.println("----------------------Password Policy Update Query:" + updateQuery);
+			
 			statement.executeUpdate(updateQuery);
 
-			jsonObject.put("pwdPolicyId", model.getPwdPolicyId());
 			jsonObject.put("minLength", model.getMinLength());
 			jsonObject.put("maxLength", model.getMaxLength());
 			jsonObject.put("minUpperCase", model.getMinUpperCase());
@@ -183,7 +186,7 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 				jsonObject.put("minNumbers", rs.getInt("min_numbers"));
 				jsonObject.put("minSpecial", rs.getInt("min_special"));
 				jsonObject.put("prevPwdAllowed", rs.getInt("prev_pwd_allowed"));
-				jsonObject.put("firstLastName", rs.getString("first_last_name"));
+				jsonObject.put("firstLastName", rs.getBoolean("first_last_name"));
 				jsonObject.put("noOfpwdAttempt", rs.getInt("no_of_pwd_attempt"));
 				jsonObject.put("pwdExpiryDays", rs.getInt("pwd_expiry_days"));
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
