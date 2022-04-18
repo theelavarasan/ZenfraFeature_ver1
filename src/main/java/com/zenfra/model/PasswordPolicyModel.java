@@ -3,22 +3,18 @@ package com.zenfra.model;
 public class PasswordPolicyModel {
 
 	private String pwdPolicyId;
-	private int pwdLength;
-	private int pwdExpire;
-	private int pwdLock;
-	private int noOfExistingPwd;
-	private boolean alphaUpper;
-	private boolean alphaLower;
-	private boolean numbers;
-	private boolean nonAlphaNumeric;
-	private boolean isNonFnIn;
-	private String createdBy;
+	private int minLength;
+	private int maxLength;
+	private int minUpperCase;
+	private int minLowerCase;
+	private int minNumbers;
+	private int minSpecial;
+	private int prevPwdAllowed;
+	private boolean firstLastName;
+	private int noOfpwdAttempt;
+	private int pwdExpiryDays;
 	private String updatedBy;
-	private String createdTime;
 	private String updatedTime;
-	private boolean isActive;
-	private String passRegexFormat;
-	private String siteKey;
 	private String tenantId;
 
 	public String getPwdPolicyId() {
@@ -29,84 +25,84 @@ public class PasswordPolicyModel {
 		this.pwdPolicyId = pwdPolicyId;
 	}
 
-	public int getPwdLength() {
-		return pwdLength;
+	public int getMinLength() {
+		return minLength;
 	}
 
-	public void setPwdLength(int pwdLength) {
-		this.pwdLength = pwdLength;
+	public void setMinLength(int minLength) {
+		this.minLength = minLength;
 	}
 
-	public int getPwdExpire() {
-		return pwdExpire;
+	public int getMaxLength() {
+		return maxLength;
 	}
 
-	public void setPwdExpire(int pwdExpire) {
-		this.pwdExpire = pwdExpire;
+	public void setMaxLength(int maxLength) {
+		this.maxLength = maxLength;
 	}
 
-	public int getPwdLock() {
-		return pwdLock;
+	public int getMinUpperCase() {
+		return minUpperCase;
 	}
 
-	public void setPwdLock(int pwdLock) {
-		this.pwdLock = pwdLock;
+	public void setMinUpperCase(int minUpperCase) {
+		this.minUpperCase = minUpperCase;
 	}
 
-	public int getNoOfExistingPwd() {
-		return noOfExistingPwd;
+	public int getMinLowerCase() {
+		return minLowerCase;
 	}
 
-	public void setNoOfExistingPwd(int noOfExistingPwd) {
-		this.noOfExistingPwd = noOfExistingPwd;
+	public void setMinLowerCase(int minLowerCase) {
+		this.minLowerCase = minLowerCase;
 	}
 
-	public boolean isAlphaUpper() {
-		return alphaUpper;
+	public int getMinNumbers() {
+		return minNumbers;
 	}
 
-	public void setAlphaUpper(boolean alphaUpper) {
-		this.alphaUpper = alphaUpper;
+	public void setMinNumbers(int minNumbers) {
+		this.minNumbers = minNumbers;
 	}
 
-	public boolean isAlphaLower() {
-		return alphaLower;
+	public int getMinSpecial() {
+		return minSpecial;
 	}
 
-	public void setAlphaLower(boolean alphaLower) {
-		this.alphaLower = alphaLower;
+	public void setMinSpecial(int minSpecial) {
+		this.minSpecial = minSpecial;
 	}
 
-	public boolean isNumbers() {
-		return numbers;
+	public int getPrevPwdAllowed() {
+		return prevPwdAllowed;
 	}
 
-	public void setNumbers(boolean numbers) {
-		this.numbers = numbers;
+	public void setPrevPwdAllowed(int prevPwdAllowed) {
+		this.prevPwdAllowed = prevPwdAllowed;
 	}
 
-	public boolean isNonAlphaNumeric() {
-		return nonAlphaNumeric;
+	public boolean isFirstLastName() {
+		return firstLastName;
 	}
 
-	public void setNonAlphaNumeric(boolean nonAlphaNumeric) {
-		this.nonAlphaNumeric = nonAlphaNumeric;
+	public void setFirstLastName(boolean firstLastName) {
+		this.firstLastName = firstLastName;
 	}
 
-	public boolean isNonFnIn() {
-		return isNonFnIn;
+	public int getNoOfpwdAttempt() {
+		return noOfpwdAttempt;
 	}
 
-	public void setNonFnIn(boolean isNonFnIn) {
-		this.isNonFnIn = isNonFnIn;
+	public void setNoOfpwdAttempt(int noOfpwdAttempt) {
+		this.noOfpwdAttempt = noOfpwdAttempt;
 	}
 
-	public String getCreatedBy() {
-		return createdBy;
+	public int getPwdExpiryDays() {
+		return pwdExpiryDays;
 	}
 
-	public void setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
+	public void setPwdExpiryDays(int pwdExpiryDays) {
+		this.pwdExpiryDays = pwdExpiryDays;
 	}
 
 	public String getUpdatedBy() {
@@ -117,44 +113,12 @@ public class PasswordPolicyModel {
 		this.updatedBy = updatedBy;
 	}
 
-	public String getCreatedTime() {
-		return createdTime;
-	}
-
-	public void setCreatedTime(String createdTime) {
-		this.createdTime = createdTime;
-	}
-
 	public String getUpdatedTime() {
 		return updatedTime;
 	}
 
 	public void setUpdatedTime(String updatedTime) {
 		this.updatedTime = updatedTime;
-	}
-
-	public boolean isActive() {
-		return isActive;
-	}
-
-	public void setActive(boolean isActive) {
-		this.isActive = isActive;
-	}
-
-	public String getPassRegexFormat() {
-		return passRegexFormat;
-	}
-
-	public void setPassRegexFormat(String passRegexFormat) {
-		this.passRegexFormat = passRegexFormat;
-	}
-
-	public String getSiteKey() {
-		return siteKey;
-	}
-
-	public void setSiteKey(String siteKey) {
-		this.siteKey = siteKey;
 	}
 
 	public String getTenantId() {
