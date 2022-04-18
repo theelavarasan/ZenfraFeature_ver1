@@ -9,7 +9,7 @@ public interface PasswordPolicyService {
 
 	public Response updatePwdPolicy(String userId, String tenantId, PasswordPolicyModel model);
 
-	public Response listPwdPolicy(String tenantId);
+	public Response getPwdPolicy(String tenantId);
 
 	public Response deletePwdPolicy(String tenantId);
 }

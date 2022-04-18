@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import com.zenfra.model.PasswordPolicyModel;
 import com.zenfra.model.Response;
@@ -159,41 +158,39 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 
 	@SuppressWarnings({ "unchecked", "static-access", "rawtypes" })
 	@Override
-	public Response listPwdPolicy(String tenantId) {
+	public Response getPwdPolicy(String tenantId) {
 		Map<String, String> data = new HashMap();
 		data = dbUtils.getPostgres();
 		Response response = new Response();
-		JSONArray jsonArray = new JSONArray();
+		JSONObject jsonObject = new JSONObject();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 
-			String listQuery = "SELECT pwd_policy_id, min_length, max_length, min_upper_case, min_lower_case, min_numbers, min_special, prev_pwd_allowed, \r\n"
+			String getQuery = "SELECT pwd_policy_id, min_length, max_length, min_upper_case, min_lower_case, min_numbers, min_special, prev_pwd_allowed, \r\n"
 					+ "first_last_name, no_of_pwd_attempt, pwd_expiry_days, \r\n"
 					+ "trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as updated_by, \r\n"
 					+ "to_char(to_timestamp(pp.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time from password_policy pp\r\n"
 					+ "LEFT JOIN user_temp ut1 on ut1.user_id = pp.updated_by\r\n"
 					+ "where pp.tenant_id = '" + tenantId + "'";
-			System.out.println("--------------------------------------------Password Policy List Query:"+listQuery);
-			ResultSet rs = statement.executeQuery(listQuery);
+			System.out.println("--------------------------------------------Password Policy List Query:"+getQuery);
+			ResultSet rs = statement.executeQuery(getQuery);
 			while (rs.next()) {
-				JSONObject jsonObject = new JSONObject();
 				jsonObject.put("pwdPolicyId", rs.getString("pwd_policy_id"));
-				jsonObject.put("minLength", rs.getString("min_length"));
-				jsonObject.put("maxLength", rs.getString("max_length"));
-				jsonObject.put("minUpperCase", rs.getString("min_upper_case"));
-				jsonObject.put("minLowerCase", rs.getString("min_lower_case"));
-				jsonObject.put("minNumbers", rs.getString("min_numbers"));
-				jsonObject.put("minSpecial", rs.getString("min_special"));
-				jsonObject.put("prevPwdAllowed", rs.getString("prev_pwd_allowed"));
+				jsonObject.put("minLength", rs.getInt("min_length"));
+				jsonObject.put("maxLength", rs.getInt("max_length"));
+				jsonObject.put("minUpperCase", rs.getInt("min_upper_case"));
+				jsonObject.put("minLowerCase", rs.getInt("min_lower_case"));
+				jsonObject.put("minNumbers", rs.getInt("min_numbers"));
+				jsonObject.put("minSpecial", rs.getInt("min_special"));
+				jsonObject.put("prevPwdAllowed", rs.getInt("prev_pwd_allowed"));
 				jsonObject.put("firstLastName", rs.getString("first_last_name"));
-				jsonObject.put("noOfpwdAttempt", rs.getString("no_of_pwd_attempt"));
-				jsonObject.put("pwdExpiryDays", rs.getString("pwd_expiry_days"));
+				jsonObject.put("noOfpwdAttempt", rs.getInt("no_of_pwd_attempt"));
+				jsonObject.put("pwdExpiryDays", rs.getInt("pwd_expiry_days"));
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
 				jsonObject.put("tenantId", tenantId);
-				jsonArray.add(jsonObject);
 			}
-			response.setjData(jsonArray);
+			response.setjData(jsonObject);
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
 		} catch (Exception e) {

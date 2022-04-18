@@ -43,9 +43,9 @@ public class PasswordPolicyController {
 		return ResponseEntity.ok(dao.updatePwdPolicy(userId, tenantId, model));
 	}
 
-	@RequestMapping(value = "/pwd/policy/list", method = RequestMethod.GET)
-	public ResponseEntity<Response> listPwdPolicy(@RequestParam String tenantId) {
-		return ResponseEntity.ok(dao.listPwdPolicy(tenantId));
+	@RequestMapping(value = "/pwd/policy/get", method = RequestMethod.GET)
+	public ResponseEntity<Response> getPwdPolicy(@RequestParam String tenantId) {
+		return ResponseEntity.ok(dao.getPwdPolicy(tenantId));
 	}
 
 	@RequestMapping(value = "/pwd/policy/delete", method = RequestMethod.DELETE)
