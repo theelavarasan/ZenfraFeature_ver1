@@ -102,6 +102,7 @@ public class ReportDataController {
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
 
+
 			}
 
 		} catch (Exception e) {
