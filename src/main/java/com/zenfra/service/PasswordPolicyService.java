@@ -13,5 +13,5 @@ public interface PasswordPolicyService {
 
 	public Response deletePwdPolicy(String tenantId);
 
-	public Response existingPwdPolicy();
+	public Response existingPwdPolicy(String userId);
 }

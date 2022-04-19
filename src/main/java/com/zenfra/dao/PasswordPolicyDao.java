@@ -237,14 +237,14 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 
 	@SuppressWarnings({ "unchecked", "static-access", "rawtypes" })
 	@Override
-	public Response existingPwdPolicy() {
+	public Response existingPwdPolicy(String userId) {
 		Map<String, String> data = new HashMap();
 		data = dbUtils.getPostgres();
 		Response response = new Response();
 		JSONArray resultArray = new JSONArray();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
-			String existingQuery = "select user_id, email, password from(select user_id, email, password, row_number() over(partition by user_id, email order by updated_time desc) as row_num from user_pwd_audit)a where row_num <=5";
+			String existingQuery = "select user_id, email, password from(select user_id, email, password, row_number() over(partition by user_id, email order by updated_time desc) as row_num from user_pwd_audit)a where user_id = '"+userId+"' and row_num <=5";
 			System.out.println("-------------------Checking Last 5 Password Query:"+existingQuery);
 			ResultSet rs = statement.executeQuery(existingQuery);
 			while (rs.next()) {

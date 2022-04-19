@@ -52,8 +52,8 @@ public class PasswordPolicyController {
 	}
 	
 	@RequestMapping(value = "/pwd/policy/last-passwords", method = RequestMethod.GET)
-	public ResponseEntity<Response> existingPwdPolicy() {
-		return ResponseEntity.ok(dao.existingPwdPolicy());
+	public ResponseEntity<Response> existingPwdPolicy(String userId) {
+		return ResponseEntity.ok(dao.existingPwdPolicy(userId));
 	}
 }
 
