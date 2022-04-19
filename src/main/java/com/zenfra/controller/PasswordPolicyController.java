@@ -1,7 +1,5 @@
 package com.zenfra.controller;
 
-
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,5 +51,9 @@ public class PasswordPolicyController {
 		return ResponseEntity.ok(dao.deletePwdPolicy(tenantId));
 	}
 	
+	@RequestMapping(value = "/pwd/policy/last-passwords", method = RequestMethod.GET)
+	public ResponseEntity<Response> existingPwdPolicy(String userId) {
+		return ResponseEntity.ok(dao.existingPwdPolicy(userId));
+	}
 }
 
