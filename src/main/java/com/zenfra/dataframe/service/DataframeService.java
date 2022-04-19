@@ -2137,6 +2137,7 @@ public class DataframeService {
 				awsInstanceCcrData.setNumberOfCores(aws.getVcpuinfo());
 				awsInstanceCcrData.setServerName(aws.getDescription());
 				awsInstanceCcrData.setRegion(aws.getRegion());
+				awsInstanceCcrData.setSiteKey(siteKey);
 				awsInstanceCcrDataRepository.save(awsInstanceCcrData);
 			}
 
