@@ -1,11 +1,18 @@
 package com.zenfra.dao;
 
+import java.security.spec.KeySpec;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESedeKeySpec;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import com.zenfra.model.PasswordPolicyModel;
 import com.zenfra.model.Response;
@@ -17,6 +24,8 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 
 	DBUtils dbUtils;
 
+	Cipher cipher;  
+	
 	CommonFunctions commonFunctions = new CommonFunctions();
 
 	/*
@@ -226,4 +235,66 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 		return response;
 	}
 
+	@SuppressWarnings({ "unchecked", "static-access", "rawtypes" })
+	@Override
+	public Response existingPwdPolicy() {
+		Map<String, String> data = new HashMap();
+		data = dbUtils.getPostgres();
+		Response response = new Response();
+		JSONArray resultArray = new JSONArray();
+		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+				data.get("password")); Statement statement = connection.createStatement();) {
+			String existingQuery = "select user_id, email, password from(select user_id, email, password, row_number() over(partition by user_id, email order by updated_time desc) as row_num from user_pwd_audit)a where row_num <=5";
+			System.out.println("-------------------Checking Last 5 Password Query:"+existingQuery);
+			ResultSet rs = statement.executeQuery(existingQuery);
+			while (rs.next()) {
+				byte[] result = rs.getString("password").getBytes();
+				String decrypted=decrypt(result);
+				    resultArray.add(decrypted);
+			}
+			response.setResponseCode(200);
+			response.setResponseMsg("success");
+			response.setjData(resultArray);
+		} catch (Exception e) {
+			response.setResponseCode(500);
+			response.setResponseMsg("failure");
+			e.printStackTrace();
+		}
+		
+		return response;
+	}
+
+	private String decrypt(byte[] result) throws Exception {
+		   
+
+			 String UNICODE_FORMAT = "UTF8";
+		     String DESEDE_ENCRYPTION_SCHEME = "DESede";
+		     KeySpec ks;
+		     SecretKeyFactory skf;
+		     byte[] arrayBytes;
+		     String myEncryptionKey;
+		     String myEncryptionScheme;
+		     SecretKey key;
+		     
+		myEncryptionKey = "ThisIsSpartaThisIsSparta";
+        myEncryptionScheme = DESEDE_ENCRYPTION_SCHEME;
+        arrayBytes = myEncryptionKey.getBytes(UNICODE_FORMAT);
+        ks = new DESedeKeySpec(arrayBytes);
+        skf = SecretKeyFactory.getInstance(myEncryptionScheme);
+        cipher = Cipher.getInstance(myEncryptionScheme);
+        key = skf.generateSecret(ks);
+		 String decryptedText=null;
+		 
+	        try {
+	            cipher.init(Cipher.DECRYPT_MODE, key);
+	            byte[] encryptedText = Base64.getDecoder().decode(result);
+	            byte[] plainText = cipher.doFinal(encryptedText);
+	            decryptedText= new String(plainText);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	        return decryptedText;
+	}
+
+	
 }
