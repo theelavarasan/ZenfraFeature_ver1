@@ -1976,11 +1976,11 @@ public class DataframeService {
 
 		if (deviceType.equalsIgnoreCase("All")) {
 			
-			discoveryFilterqry = " lower(source_type) in ('windows','linux', 'vmware')";
+			discoveryFilterqry = " lower(source_type) in ('windows','linux', 'vmware', 'ec2')";
 			//deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
 		} else {
 			discoveryFilterqry = " lower(source_type)='" + deviceType.toLowerCase() + "'";
-			//deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
+			//deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'"; 
 			
 		}
 		boolean isTaskListReport = false;
@@ -1989,7 +1989,7 @@ public class DataframeService {
 			String serverNames = String.join(",", taskListServers.stream().map(name -> ("'" + name.toLowerCase() + "'"))
 					.collect(Collectors.toList()));
 			//deviceType = " lcase(aws.`Server Name`) in (" + serverNames + ")";
-			discoveryFilterqry = " lower(`Server Name`) in (" + serverNames + ")";
+			discoveryFilterqry = " lower(server_name) in (" + serverNames + ")";
 			isTaskListReport = true;
 		}
 
@@ -2006,8 +2006,7 @@ public class DataframeService {
 		String categoryQuery = "";
 		String sourceQuery = "";
 		if(request.getCategoryOpt() != null && !request.getCategoryOpt().equalsIgnoreCase("All")) {
-			categoryQuery = " and report_by='"+request.getCategoryOpt()+"'";
-			
+			categoryQuery = " and report_by='"+request.getCategoryOpt()+"'"; 			
 		}
 
 		if(request.getSource() != null && !request.getSource().equalsIgnoreCase("All") && request.getCategoryOpt() != null && request.getCategoryOpt().equalsIgnoreCase("Custom Excel Data")) {
@@ -2019,11 +2018,11 @@ public class DataframeService {
 					"    db_service As \"DB Service\",\r\n" + 
 					"    hba_speed As \"HBA Speed\",\r\n" + 
 					"    host As \"Host\",\r\n" + 
-					"    logical_processor_count As \"Logical Processor Count\",\r\n" + 
-					"    memory As \"Memory\",\r\n" + 
-					"    number_of_cores As \"Number of Cores\",\r\n" + 
-					"    number_of_ports As \"Number of Ports\",\r\n" + 
-					"    number_of_processors As \"Number of Processors\",\r\n" + 
+					"    cast(logical_processor_count as int) As \"Logical Processor Count\",\r\n" + 
+					"    cast(memory as int) As \"Memory\",\r\n" + 
+					"    cast(number_of_cores as int) As \"Number of Cores\",\r\n" + 
+					"    cast(number_of_ports as int) As \"Number of Ports\",\r\n" + 
+					"    cast(number_of_processors as int) As \"Number of Processors\",\r\n" + 
 					"    os_name As \"OS Name\",\r\n" + 
 					"    os_version As \"OS Version\",\r\n" + 
 					"    processor_name As \"Processor Name\",\r\n" + 
@@ -2073,7 +2072,7 @@ public class DataframeService {
 					"            ELSE 0::numeric\r\n" + 
 					"        END as float) AS \"Google 3 Year Price\",\r\n" + 
 					"     site_key,\r\n" + 
-					"     source_type,\r\n" + 
+					"     server_type as \"Server Type\",\r\n" + 
 					"    end_of_life_os As \"End Of Life - OS\",\r\n" + 
 					"    end_of_extended_support_os As \"End Of Extended Support - OS\",\r\n" + 
 					"    end_of_life_hw As \"End Of Life - HW\",\r\n" + 
