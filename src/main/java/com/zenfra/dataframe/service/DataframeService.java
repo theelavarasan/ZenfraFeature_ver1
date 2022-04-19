@@ -2124,21 +2124,28 @@ public class DataframeService {
 			ResultSet rs = stmt.executeQuery(query);
 
 			List<AwsInstanceData> resultRows = resultSetToList(rs);
+			resultRows = resultRows.stream().distinct().collect(Collectors.toList());
 			
 			System.out.println("------AWS resultRows-------- " + resultRows.size());
 			 
 			for(AwsInstanceData aws : resultRows) {
 				
-				AwsInstanceCcrData awsInstanceCcrData = new AwsInstanceCcrData();
-				awsInstanceCcrData.setInstanceType(aws.getInstancetype());
-				awsInstanceCcrData.setMemory(aws.getMemoryinfo());
-				awsInstanceCcrData.setSourceType(aws.getServerType());
-				awsInstanceCcrData.setOsName(aws.getPlatformdetails());
-				awsInstanceCcrData.setNumberOfCores(aws.getVcpuinfo());
-				awsInstanceCcrData.setServerName(aws.getDescription());
-				awsInstanceCcrData.setRegion(aws.getRegion());
-				awsInstanceCcrData.setSiteKey(siteKey);
-				awsInstanceCcrDataRepository.save(awsInstanceCcrData);
+				try {
+					if(aws.getDescription() != null && aws.getMemoryinfo() != null && aws.getVcpuinfo() != null) {					
+						AwsInstanceCcrData awsInstanceCcrData = new AwsInstanceCcrData();
+						awsInstanceCcrData.setInstanceType(aws.getInstancetype());
+						awsInstanceCcrData.setMemory(aws.getMemoryinfo());
+						awsInstanceCcrData.setSourceType("EC2");
+						awsInstanceCcrData.setOsName(aws.getPlatformdetails());
+						awsInstanceCcrData.setNumberOfCores(aws.getVcpuinfo());
+						awsInstanceCcrData.setServerName(aws.getDescription());
+						awsInstanceCcrData.setRegion(aws.getRegion());
+						awsInstanceCcrData.setSiteKey(siteKey);					
+						awsInstanceCcrDataRepository.save(awsInstanceCcrData);
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
 			}
 
 		} catch (Exception e) {
