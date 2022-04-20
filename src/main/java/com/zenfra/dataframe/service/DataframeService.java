@@ -2019,7 +2019,7 @@ public class DataframeService {
 					"    hba_speed As \"HBA Speed\",\r\n" + 
 					"    host As \"Host\",\r\n" + 
 					"    cast(logical_processor_count as int) As \"Logical Processor Count\",\r\n" + 
-					"    cast(memory as int) As \"Memory\",\r\n" + 
+					"    memory As \"Memory\",\r\n" + 
 					"    cast(number_of_cores as int) As \"Number of Cores\",\r\n" + 
 					"    cast(number_of_ports as int) As \"Number of Ports\",\r\n" + 
 					"    cast(number_of_processors as int) As \"Number of Processors\",\r\n" + 
