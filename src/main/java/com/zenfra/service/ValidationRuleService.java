@@ -855,6 +855,7 @@ public class ValidationRuleService {
 	public JSONArray getCloudCostReportValuesPostgres(String siteKey, String columnName, String category, String deviceType,
 			String report_by) {
 		JSONArray resultData = new JSONArray();
+		columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
 		try {
 			String inputDeviceType = deviceType;	
 			if (deviceType.equalsIgnoreCase("All")) {
