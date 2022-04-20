@@ -2014,7 +2014,7 @@ public class DataframeService {
 		}
 		
 		try {
-			String sql = " SELECT cpu_chz as \"CPU GHz\",\r\n" + 
+			String sql = " SELECT cpu_ghz as \"CPU GHz\",\r\n" + 
 					"    db_service As \"DB Service\",\r\n" + 
 					"    hba_speed As \"HBA Speed\",\r\n" + 
 					"    host As \"Host\",\r\n" + 

@@ -858,16 +858,16 @@ public class ValidationRuleService {
 		try {
 			String inputDeviceType = deviceType;	
 			if (deviceType.equalsIgnoreCase("All")) {
-				deviceType = " lower(source_type) in ('windows','linux', 'vmware')";
+				deviceType = " lower(source_type) in ('windows','linux', 'vmware', 'ec2')";
 			} else {
 				deviceType = " lower(source_type)='" + deviceType.toLowerCase() + "'";
 			}
 
 			if (category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
-				if (deviceType.equalsIgnoreCase("All")) {
-					deviceType = " lower(source_type)='ec2'  and lower(actual_os) in ('windows','linux', 'vmware')";
+				if (inputDeviceType.equalsIgnoreCase("All")) {
+					deviceType = " lower(server_type)='ec2'  and lower(source_type) in ('windows','linux', 'vmware')";
 				} else {
-					deviceType = " lower(source_type)='ec2'  and lower(actual_os) = '" + inputDeviceType.toLowerCase()
+					inputDeviceType = " lower(server_type)='ec2'  and lower(source_type) = '" + inputDeviceType.toLowerCase()
 							+ "'";
 				}
 
@@ -881,7 +881,9 @@ public class ValidationRuleService {
 
 			List<String> data = new ArrayList<>();
 			try {
-				String query = "select distinct(`"+columnName+"`) from cloud_cost_report_data where `"+columnName+"` is not null and `"+columnName+"` !='' and site_key='"+siteKey+"' and "+ deviceType + " and " + report_by + " order by `"+columnName+"`";
+				String query = "select distinct("+columnName+") from cloud_cost_report_data where "+columnName+" is not null and "+columnName+" !='' and site_key='"+siteKey+"' and "+ deviceType + " and " + report_by + " order by "+columnName+"";
+				System.out.println("--query--------- " + query);
+				
 				data = jdbc.queryForList(query, String.class);
 			} catch (Exception e) {
 				e.printStackTrace();
