@@ -170,14 +170,21 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 
 	@SuppressWarnings({ "unchecked", "static-access", "rawtypes" })
 	@Override
-	public Response getPwdPolicy(String tenantId) {
+	public Response getPwdPolicy() {
 		Map<String, String> data = new HashMap();
 		data = dbUtils.getPostgres();
 		Response response = new Response();
 		JSONObject jsonObject = new JSONObject();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
-
+			String tenantId = null;
+			String getTenantIdQuery = "select tenant_id from user_temp where is_tenant_admin ='1'";
+			ResultSet rs1 = statement.executeQuery(getTenantIdQuery);
+			while (rs1.next()) {
+				tenantId = rs1.getString("tenant_id");
+			}
+			System.out.println("------------------------------------Getting Tenant Id Query:"+getTenantIdQuery);
+			
 			String getQuery = "SELECT pwd_policy_id, min_length, max_length, min_upper_case, min_lower_case, min_numbers, min_special, prev_pwd_allowed, \r\n"
 					+ "first_last_name, no_of_pwd_attempt, pwd_expiry_days, \r\n"
 					+ "trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as updated_by, \r\n"
