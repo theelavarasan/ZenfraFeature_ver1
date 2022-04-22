@@ -15,7 +15,7 @@ import io.swagger.annotations.Api;
 
 @CrossOrigin("*")
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/auth")
 @Api(value = "Password Policy Controller", description = "Password Policy CRUD Operations")
 public class PasswordPolicyController {
 	
