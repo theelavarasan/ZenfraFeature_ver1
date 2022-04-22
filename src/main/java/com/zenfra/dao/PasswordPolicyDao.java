@@ -190,7 +190,7 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 					+ "trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as updated_by, \r\n"
 					+ "to_char(to_timestamp(pp.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time from password_policy pp\r\n"
 					+ "LEFT JOIN user_temp ut1 on ut1.user_id = pp.updated_by\r\n"
-					+ "where pp.tenant_id = '" + tenantId + "'";
+					+ "where pp.tenant_id = '"+tenantId+"'";
 			System.out.println("--------------------------------------------Password Policy List Query:"+getQuery);
 			ResultSet rs = statement.executeQuery(getQuery);
 			while (rs.next()) {
