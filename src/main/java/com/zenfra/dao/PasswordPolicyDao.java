@@ -178,7 +178,7 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 			
-			String getQuery = "SELECT pwd_policy_id, min_length, max_length, min_upper_case, min_lower_case, min_numbers, min_special, prev_pwd_allowed, \r\n"
+			String getQuery = "SELECT pp.tenant_id, pwd_policy_id, min_length, max_length, min_upper_case, min_lower_case, min_numbers, min_special, prev_pwd_allowed, \r\n"
 					+ "first_last_name, no_of_pwd_attempt, pwd_expiry_days, \r\n"
 					+ "trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as updated_by, \r\n"
 					+ "to_char(to_timestamp(pp.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time from password_policy pp\r\n"
