@@ -177,20 +177,12 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 		JSONObject jsonObject = new JSONObject();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
-			String tenantId = null;
-			String getTenantIdQuery = "select tenant_id from user_temp where is_tenant_admin ='1'";
-			ResultSet rs1 = statement.executeQuery(getTenantIdQuery);
-			while (rs1.next()) {
-				tenantId = rs1.getString("tenant_id");
-			}
-			System.out.println("------------------------------------Getting Tenant Id Query:"+getTenantIdQuery);
 			
 			String getQuery = "SELECT pwd_policy_id, min_length, max_length, min_upper_case, min_lower_case, min_numbers, min_special, prev_pwd_allowed, \r\n"
 					+ "first_last_name, no_of_pwd_attempt, pwd_expiry_days, \r\n"
 					+ "trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as updated_by, \r\n"
 					+ "to_char(to_timestamp(pp.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time from password_policy pp\r\n"
-					+ "LEFT JOIN user_temp ut1 on ut1.user_id = pp.updated_by\r\n"
-					+ "where pp.tenant_id = '"+tenantId+"'";
+					+ "LEFT JOIN user_temp ut1 on ut1.user_id = pp.updated_by ";
 			System.out.println("--------------------------------------------Password Policy List Query:"+getQuery);
 			ResultSet rs = statement.executeQuery(getQuery);
 			while (rs.next()) {
@@ -207,7 +199,7 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 				jsonObject.put("pwdExpiryDays", rs.getInt("pwd_expiry_days"));
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
-				jsonObject.put("tenantId", tenantId);
+				jsonObject.put("tenantId", rs.getString("tenant_id"));
 			}
 			response.setjData(jsonObject);
 			response.setResponseCode(200);
