@@ -138,7 +138,7 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 					+ model.getMinLowerCase() + ", min_numbers=" + model.getMinNumbers() + ", min_special="
 					+ model.getMinSpecial() + ", prev_pwd_allowed=" + model.getPrevPwdAllowed() + "," + "	first_last_name="
 					+ model.isFirstLastName() + ", no_of_pwd_attempt=" + model.getNoOfpwdAttempt() + ", pwd_expiry_days='"
-					+ model.getPwdExpiryDays() + "', updated_by='" + model.getUpdatedBy() + "', updated_time= '"+model.getUpdatedTime()+"'"
+					+ model.getPwdExpiryDays() + "', updated_by='" + model.getUpdatedBy() + "', updated_time= '"+model.getUpdatedTime()+"', combination="+model.getCombination()+""
 					+ "	where tenant_id='" + model.getTenantId() + "'";
 			System.out.println("----------------------Password Policy Update Query:" + updateQuery);
 			
@@ -157,6 +157,7 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 			jsonObject.put("updatedBy", model.getUpdatedBy());
 			jsonObject.put("updatedTime", model.getUpdatedTime());
 			jsonObject.put("tenantId", model.getTenantId());
+			jsonObject.put("combination", model.getCombination());
 			response.setResponseCode(200);
 			response.setResponseMsg("success");
 			response.setjData(jsonObject);
@@ -179,7 +180,7 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 				data.get("password")); Statement statement = connection.createStatement();) {
 			
 			String getQuery = "SELECT pp.tenant_id, pwd_policy_id, min_length, max_length, min_upper_case, min_lower_case, min_numbers, min_special, prev_pwd_allowed, \r\n"
-					+ "first_last_name, no_of_pwd_attempt, pwd_expiry_days, \r\n"
+					+ "first_last_name, no_of_pwd_attempt, pwd_expiry_days, combination \r\n"
 					+ "trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as updated_by, \r\n"
 					+ "to_char(to_timestamp(pp.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time from password_policy pp\r\n"
 					+ "LEFT JOIN user_temp ut1 on ut1.user_id = pp.updated_by ";
@@ -200,6 +201,7 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
 				jsonObject.put("tenantId", rs.getString("tenant_id"));
+				jsonObject.put("combination", rs.getString("combination"));
 			}
 			response.setjData(jsonObject);
 			response.setResponseCode(200);
