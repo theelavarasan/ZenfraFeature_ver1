@@ -16,6 +16,7 @@ public class PasswordPolicyModel {
 	private String updatedBy;
 	private String updatedTime;
 	private String tenantId;
+	private int combination;
 
 	public String getPwdPolicyId() {
 		return pwdPolicyId;
@@ -127,6 +128,14 @@ public class PasswordPolicyModel {
 
 	public void setTenantId(String tenantId) {
 		this.tenantId = tenantId;
+	}
+
+	public int getCombination() {
+		return combination;
+	}
+
+	public void setCombination(int combination) {
+		this.combination = combination;
 	}
 
 }
