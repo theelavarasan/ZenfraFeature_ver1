@@ -38,7 +38,7 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 	@Query(value="select log_type from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status and lower(log_type) not in ('custom excel data','aws','vmax','tanium')  group by log_type order by log_type" ,nativeQuery = true)
 	List<String> getBySiteKeyAndStatusIsActive(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive, @Param("status") String status);
 
-	@Query(value="select distinct(log_type) from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status group by log_type order by log_type" ,nativeQuery = true)
+	@Query(value="select distinct((case when log_type ilike 'tanium' then 'Linux' else log_type end)) from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status group by log_type order by log_type" ,nativeQuery = true)
 	List<String> getDistinctLogTypeBySiteKeyAndStatusIsActive(@Param("siteKey") String siteKey, @Param("status") String status, @Param("isActive") boolean isActive);
 
 }
