@@ -1633,7 +1633,7 @@ public class DataframeService {
 			options.put("url", dbUrl);
 			options.put("dbtable", "local_discovery");
 
-			sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
+			//sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
 
 			boolean isMultipleSourceType = false;
 			if (sourceType.contains("hyper") || sourceType.contains("vmware") || sourceType.contains("nutanix")) {
