@@ -205,6 +205,7 @@ public class DataframeService {
 		if (!isGrouping)
 			return df;
 
+		  System.out.println("-------------groupBy-------- " + df.count());
 		Column[] groups = rowGroups.stream().limit(groupKeys.size() + 1).map(functions::col).toArray(Column[]::new);
 
 		return agg(pivot(df.groupBy(groups)));
@@ -251,34 +252,39 @@ public class DataframeService {
 	}
 
 	
-	  private Dataset<Row> filter(Dataset<Row> df) { 
-		  Function<Map.Entry<String,
-	  ColumnFilter>, String> applyColumnFilters = entry -> {
-		  String columnName = entry.getKey(); ColumnFilter filter = entry.getValue();
-		  
-		  columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
-	  
-	  if (filter instanceof SetColumnFilter) { return setFilter().apply(columnName,
-	  (SetColumnFilter) filter); }
-	  
-	  if (filter instanceof NumberColumnFilter) { return
-	  numberFilter().apply(columnName, (NumberColumnFilter) filter); }
-	  
-	  if (filter instanceof TextColumnFilter) { return
-	  textFilter().apply(columnName, (TextColumnFilter) filter); }
-	  
-	  return ""; 
-	  };
+	private Dataset<Row> filter(Dataset<Row> df) {
+		Function<Map.Entry<String, ColumnFilter>, String> applyColumnFilters = entry -> {
+			String columnName = entry.getKey();
+			ColumnFilter filter = entry.getValue();
+
+			columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
+
+			if (filter instanceof SetColumnFilter) {
+				return setFilter().apply(columnName, (SetColumnFilter) filter);
+			}
+
+			if (filter instanceof NumberColumnFilter) {
+				return numberFilter().apply(columnName, (NumberColumnFilter) filter);
+			}
+
+			if (filter instanceof TextColumnFilter) {
+				return textFilter().apply(columnName, (TextColumnFilter) filter);
+			}
+
+			return "";
+		};
 	  
 	  
 	  Stream<String> columnFilters = filterModel.entrySet().stream()
 	  .map(applyColumnFilters);
+	  	
+	  
 	  
 	  Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(),
 	  (key, group) -> group + " = '" + key + "'");
 	  
 	  String filters = concat(columnFilters, groupToFilter)
-	  .collect(joining(" AND "));
+	  .collect(joining(" AND "));	 
 	  
 	  return filters.isEmpty() ? df : df.filter(filters); }
 	 
@@ -396,23 +402,35 @@ public class DataframeService {
 	}
 */
 	private String formNumberQuery(String columnName, NumberColumnFilter filter) {
+		Integer filterValue = filter.getFilter();
+		String filerType = filter.getType();
+		
 		columnName = "`" + columnName + "`";
 		columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
-		JSONObject condition1 = filter.getCondition1();
-		JSONObject condition2 = filter.getCondition2();
-		String operator = filter.getOperator();
+		
+		String filterQuery = formatNumberFilterType(columnName, filerType, filterValue, 0);
+		
+		System.out.println("-----Number Query--------- " + filterQuery);
+		
+		  if(filter.getCondition1() != null && filter.getCondition1().containsKey("filter")) {
+			  JSONObject condition1 = filter.getCondition1();
+				JSONObject condition2 = filter.getCondition2();
+				String operator = filter.getOperator();
 
-		String condition1Type = (String) condition1.get("type");
-		int condition1Filter = (Integer) condition1.get("filter");
-		int condition1FilterTo = (Integer) condition1.get("filterTo");
+				String condition1Type = (String) condition1.get("type");
+				int condition1Filter = (Integer) condition1.get("filter");
+				int condition1FilterTo = (Integer) condition1.get("filterTo");
 
-		String condition2Type = (String) condition2.get("type");
-		int condition2Filter = (Integer) condition2.get("filter");
-		int condition2FilterTo = (Integer) condition2.get("filterTo");
+				String condition2Type = (String) condition2.get("type");
+				int condition2Filter = (Integer) condition2.get("filter");
+				int condition2FilterTo = (Integer) condition2.get("filterTo");
 
-		String query1 = formatNumberFilterType(columnName, condition1Type, condition1Filter, condition1FilterTo);
-		String query2 = formatNumberFilterType(columnName, condition2Type, condition2Filter, condition2FilterTo);
-		String filterQuery = "( " + query1 + " " + operator + " " + query2 + " )";
+				String query1 = formatNumberFilterType(columnName, condition1Type, condition1Filter, condition1FilterTo);
+				String query2 = formatNumberFilterType(columnName, condition2Type, condition2Filter, condition2FilterTo);
+				filterQuery = "( " + query1 + " " + operator + " " + query2 + " )";
+		  }
+		
+		
 		return filterQuery;
 	}
 
@@ -537,13 +555,16 @@ public class DataframeService {
 
 	private BiFunction<String, NumberColumnFilter, String> numberFilter() {
 		return (String columnName, NumberColumnFilter filter) -> {
-			Integer filterValue = filter.getFilter();
-			String filerType = filter.getType();
-			String operator = operatorMap.get(filerType);
+			
+			
+			/*
+			 * return columnName + (filerType.equals("inRange") ? " BETWEEN " + filterValue
+			 * + " AND " + filter.getFilterTo() : " " + operator + " " + filterValue);
+			 */
+			
+			return formNumberQuery(columnName, (NumberColumnFilter) filter);
 
-			return columnName
-					+ (filerType.equals("inRange") ? " BETWEEN " + filterValue + " AND " + filter.getFilterTo()
-							: " " + operator + " " + filterValue);
+			
 		};
 	}
 
@@ -555,12 +576,11 @@ public class DataframeService {
 		// save schema to recreate data frame
 		StructType schema = df.schema();
 
-		System.out.println("-------------dataset----last-rc---------- " + new Date());
-
+	
 		// obtain row count
 		long rowCount = df.count();
 
-		System.out.println("-------------after----last-rc---------- " + new Date());
+	
 
 		// convert data frame to RDD and introduce a row index so we can filter results
 		// by range
@@ -747,7 +767,7 @@ public class DataframeService {
 			}
 		}
 
-		System.out.println("--------dataset-------" + dataset.count());
+	
 		dataset.printSchema();
 		/*if (request.getEndRow() == 0) { // temp code
 			request.setEndRow((int) dataset.count());
@@ -779,15 +799,19 @@ public class DataframeService {
 
 			//dataset = orderBy(groupBy(filter(df, viewName + "renamedDataSet")));
 			
-			System.out.println("--------dataset---kkkkkk----" + dataset.count());
+			
 			dataset = orderBy(groupBy(filter(df)));
+			
+		
 
 			dataset = reassignColumnName(actualColumnNames, renamedColumnNames, dataset);
 		//}
 
-
+		
 		dataset = dataset.dropDuplicates();
 
+	
+		
 		return paginate(dataset, request);
 
 	}
