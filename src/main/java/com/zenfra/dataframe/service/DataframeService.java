@@ -2102,7 +2102,7 @@ public class DataframeService {
 	}
 	
 	
-	public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
+public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		
 		Connection conn = null;
 		Statement stmt = null;
@@ -2115,9 +2115,7 @@ public class DataframeService {
 			String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"
 					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
 														// it.vcpuinfo, it.memoryinfo";
-
-			
-			System.out.println("------AWS query-------- " + query);
+		
 			
 			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
 			stmt = conn.createStatement();
@@ -2125,11 +2123,8 @@ public class DataframeService {
 
 			List<AwsInstanceData> resultRows = resultSetToList(rs);
 			resultRows = resultRows.stream().distinct().collect(Collectors.toList());
-			
-			System.out.println("------AWS resultRows-------- " + resultRows.size());
 			 
 			for(AwsInstanceData aws : resultRows) {
-				
 				try {
 					if(aws.getDescription() != null && aws.getMemoryinfo() != null && aws.getVcpuinfo() != null) {					
 						AwsInstanceCcrData awsInstanceCcrData = new AwsInstanceCcrData();
