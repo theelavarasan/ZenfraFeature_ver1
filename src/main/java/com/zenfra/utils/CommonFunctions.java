@@ -64,28 +64,26 @@ public class CommonFunctions {
 			JSONParser parser = new JSONParser();
 
 			if (row.get("filterProperty") != null && !row.get("filterProperty").equals("[]")) {
-				row.put("filterProperty", (JSONArray) parser
-						.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", "")));
+				row.put("filterProperty", (JSONArray) parser.parse(row.get("filterProperty").toString()));
 			} else {
 				row.put("filterProperty", new JSONArray());
 			}
 
 			if (row.get("categoryList") != null && !row.get("categoryList").equals("[]")) {
 				row.put("categoryList", (JSONArray) parser
-						.parse(row.get("categoryList").toString().replace("\\[", "").replace("\\]", "")));
+						.parse(row.get("categoryList").toString()));
 			} else {
 				row.put("categoryList", new JSONArray());
 			}
 			if (row.get("siteAccessList") != null && !row.get("siteAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
 				row.put("siteAccessList", (JSONArray) parser
-						.parse(row.get("siteAccessList").toString().replace("\\[", "").replace("\\]", "")));
+						.parse(row.get("siteAccessList").toString()));
 			} else {
 				row.put("siteAccessList", new JSONArray());
 			}
 			if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]")) {
 
-				row.put("groupedColumns", (JSONArray) parser
-						.parse(row.get("groupedColumns").toString().replace("\\[", "").replace("\\]", "")));
+				row.put("groupedColumns", (JSONArray) parser.parse(row.get("groupedColumns").toString()));
 			} else {
 				row.put("groupedColumns", new JSONArray());
 			}
@@ -93,7 +91,7 @@ public class CommonFunctions {
 			
 			if (row.get("userAccessList") != null && !row.get("userAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
 				row.put("userAccessList", (JSONArray) parser
-						.parse(row.get("userAccessList").toString().replace("\\[", "").replace("\\]", "")));
+						.parse(row.get("userAccessList").toString()));
 			}
 			 
 

@@ -1633,8 +1633,9 @@ public class DataframeService {
 			options.put("url", dbUrl);
 			options.put("dbtable", "local_discovery");
 
+			
 			sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
-
+			
 			boolean isMultipleSourceType = false;
 			if (sourceType.contains("hyper") || sourceType.contains("vmware") || sourceType.contains("nutanix")) {
 				isMultipleSourceType = true;
@@ -2014,12 +2015,12 @@ public class DataframeService {
 		}
 		
 		try {
-			String sql = " SELECT cpu_chz as \"CPU GHz\",\r\n" + 
+			String sql = " SELECT cpu_ghz as \"CPU GHz\",\r\n" + 
 					"    db_service As \"DB Service\",\r\n" + 
 					"    hba_speed As \"HBA Speed\",\r\n" + 
 					"    host As \"Host\",\r\n" + 
 					"    cast(logical_processor_count as int) As \"Logical Processor Count\",\r\n" + 
-					"    cast(memory as int) As \"Memory\",\r\n" + 
+					"    memory As \"Memory\",\r\n" + 
 					"    cast(number_of_cores as int) As \"Number of Cores\",\r\n" + 
 					"    cast(number_of_ports as int) As \"Number of Ports\",\r\n" + 
 					"    cast(number_of_processors as int) As \"Number of Processors\",\r\n" + 
