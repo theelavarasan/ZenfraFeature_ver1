@@ -231,54 +231,66 @@ public class DataframeService {
 	}
 
 	private Dataset<Row> orderBy(Dataset<Row> df) {
-		Stream<String> groupCols = rowGroups.stream().limit(groupKeys.size() + 1);
+		try {
+			Stream<String> groupCols = rowGroups.stream().limit(groupKeys.size() + 1);
 
-		Stream<String> valCols = valueColumns.stream().map(ColumnVO::getField);
+			Stream<String> valCols = valueColumns.stream().map(ColumnVO::getField);
 
-		List<String> allCols = concat(groupCols, valCols).collect(toList());
+			List<String> allCols = concat(groupCols, valCols).collect(toList());
 
-		Column[] cols = sortModel.stream().map(model -> Pair.of(model.getColId(), model.getSort().equals("asc")))
-				.filter(p -> !isGrouping || allCols.contains(p.getKey()))
-				.map(p -> p.getValue() ? col(p.getKey()).asc() : col(p.getKey()).desc()).toArray(Column[]::new);
+			Column[] cols = sortModel.stream().map(model -> Pair.of(model.getColId(), model.getSort().equals("asc")))
+					.filter(p -> !isGrouping || allCols.contains(p.getKey()))
+					.map(p -> p.getValue() ? col(p.getKey()).asc() : col(p.getKey()).desc()).toArray(Column[]::new);
 
-		return df.orderBy(cols);
+			return df.orderBy(cols);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		return df;
 	}
 
-	/*
-	 * private Dataset<Row> filter(Dataset<Row> df) { Function<Map.Entry<String,
-	 * ColumnFilter>, String> applyColumnFilters = entry -> { String columnName =
-	 * entry.getKey(); ColumnFilter filter = entry.getValue();
-	 * 
-	 * if (filter instanceof SetColumnFilter) { return setFilter().apply(columnName,
-	 * (SetColumnFilter) filter); }
-	 * 
-	 * if (filter instanceof NumberColumnFilter) { return
-	 * numberFilter().apply(columnName, (NumberColumnFilter) filter); }
-	 * 
-	 * if (filter instanceof TextColumnFilter) { return
-	 * textFilter().apply(columnName, (TextColumnFilter) filter); }
-	 * 
-	 * return ""; };
-	 * 
-	 * 
-	 * Stream<String> columnFilters = filterModel.entrySet() .stream()
-	 * .map(applyColumnFilters);
-	 * 
-	 * Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(),
-	 * (key, group) -> group + " = '" + key + "'");
-	 * 
-	 * String filters = concat(columnFilters, groupToFilter)
-	 * .collect(joining(" AND "));
-	 * 
-	 * return filters.isEmpty() ? df : df.filter(filters); }
-	 */
+	
+	  private Dataset<Row> filter(Dataset<Row> df) { 
+		  Function<Map.Entry<String,
+	  ColumnFilter>, String> applyColumnFilters = entry -> {
+		  String columnName = entry.getKey(); ColumnFilter filter = entry.getValue();
+		  
+		  columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
+	  
+	  if (filter instanceof SetColumnFilter) { return setFilter().apply(columnName,
+	  (SetColumnFilter) filter); }
+	  
+	  if (filter instanceof NumberColumnFilter) { return
+	  numberFilter().apply(columnName, (NumberColumnFilter) filter); }
+	  
+	  if (filter instanceof TextColumnFilter) { return
+	  textFilter().apply(columnName, (TextColumnFilter) filter); }
+	  
+	  return ""; 
+	  };
+	  
+	  
+	  Stream<String> columnFilters = filterModel.entrySet().stream()
+	  .map(applyColumnFilters);
+	  
+	  Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(),
+	  (key, group) -> group + " = '" + key + "'");
+	  
+	  String filters = concat(columnFilters, groupToFilter)
+	  .collect(joining(" AND "));
+	  
+	  return filters.isEmpty() ? df : df.filter(filters); }
+	 
 
-	private Dataset<Row> filter(Dataset<Row> df, String viewName) {
+	/*private Dataset<Row> filter(Dataset<Row> df, String viewName) {
 
 		Function<Map.Entry<String, ColumnFilter>, String> applyColumnFilters = entry -> {
 			String columnName = entry.getKey();
 			ColumnFilter filter = entry.getValue();
 
+			System.out.println("-----------------filter ---------genfilter-------- " + filter);
+			
 			if (filter instanceof SetColumnFilter) {
 				return setFilter().apply(columnName, (SetColumnFilter) filter);
 			}
@@ -288,93 +300,101 @@ public class DataframeService {
 				return numberFilter().apply(columnName, (NumberColumnFilter) filter);
 			}
 
-			/*
-			 * if (filter instanceof TextColumnFilter) {
-			 * 
-			 * return formTextQuery(columnName, (TextColumnFilter) filter);
-			 * //textFilter().apply(columnName, (TextColumnFilter) filter);
-			 * 
-			 * }
-			 */
+			
+			  if (filter instanceof TextColumnFilter) {
+			  
+			 // return ///formTextQuery(columnName, (TextColumnFilter) filter);
+					System.out.println("-----------------filter ---------genfilter->>>>------- " + textFilter().apply(columnName, (TextColumnFilter) filter));
+			   return textFilter().apply(columnName, (TextColumnFilter) filter);
+			   
+			  
+			 }
+			 
 
 			return "";
 		};
 
+		System.out.println("------------------ :filterModel: ---------gen-------- " + filterModel);
 		String finalTextFilterQueryTemp = "";
 		boolean customQuery = false;
 
-		if (filterModel.toString().contains("condition1")) { // custom query
+		if(filterModel != null) {
+			if (filterModel.toString().contains("condition1")) { // custom query
 
-			for (Map.Entry<String, ColumnFilter> entry : filterModel.entrySet()) {
-				String columnName = entry.getKey();
-				columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
-				ColumnFilter filter = entry.getValue();
+				for (Map.Entry<String, ColumnFilter> entry : filterModel.entrySet()) {
+					String columnName = entry.getKey();
+					columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
+					ColumnFilter filter = entry.getValue();
 
-				if (filter instanceof NumberColumnFilter) {
-					customQuery = true;
+					if (filter instanceof NumberColumnFilter) {
+						customQuery = true;
 
-					df.select(col(columnName).cast("int").as(columnName));
+						df.select(col(columnName).cast("int").as(columnName));
 
-					String str = formNumberQuery(columnName, (NumberColumnFilter) filter);
+						String str = formNumberQuery(columnName, (NumberColumnFilter) filter);
 
-					if (finalTextFilterQueryTemp.isEmpty()) {
-						finalTextFilterQueryTemp = str;
-					} else {
-						finalTextFilterQueryTemp = finalTextFilterQueryTemp + " AND " + str;
-					}
-				}
-
-				if (filter instanceof TextColumnFilter) {
-					customQuery = true;
-					String str = formTextQuery(columnName, (TextColumnFilter) filter);
-
-					if (finalTextFilterQueryTemp.isEmpty()) {
-						finalTextFilterQueryTemp = str;
-					} else {
-						finalTextFilterQueryTemp = finalTextFilterQueryTemp + " AND " + str;
+						if (finalTextFilterQueryTemp.isEmpty()) {
+							finalTextFilterQueryTemp = str;
+						} else {
+							finalTextFilterQueryTemp = finalTextFilterQueryTemp + " AND " + str;
+						}
 					}
 
-				}
+					if (filter instanceof TextColumnFilter) {
+						customQuery = true;
+						String str = formTextQuery(columnName, (TextColumnFilter) filter);
 
-			}
-		} else if (filterModel.toString().contains("defaultFilter")) { // && filterModel.toString().contains("text")
-			for (Map.Entry<String, ColumnFilter> entry : filterModel.entrySet()) {
-				String columnName = entry.getKey();
-				columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
-				columnName = "lower(" + "" + columnName + "" + ")";
+						if (finalTextFilterQueryTemp.isEmpty()) {
+							finalTextFilterQueryTemp = str;
+						} else {
+							finalTextFilterQueryTemp = finalTextFilterQueryTemp + " AND " + str;
+						}
 
-				ColumnFilter filter = entry.getValue();
-				if (filter instanceof TextColumnFilter) {
-					customQuery = true;
-					TextColumnFilter textColumnFilter = (TextColumnFilter) filter;
-
-					String expression = textColumnFilter.getType();
-					String filterText = textColumnFilter.getFilter();
-
-					finalTextFilterQueryTemp = formatTextFilterType(columnName, expression, filterText);
+					}
 
 				}
+			} else if (filterModel.toString().contains("defaultFilter")) { // && filterModel.toString().contains("text")
+				for (Map.Entry<String, ColumnFilter> entry : filterModel.entrySet()) {
+					String columnName = entry.getKey();
+					columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
+					columnName = "lower(" + "" + columnName + "" + ")";
+
+					ColumnFilter filter = entry.getValue();
+					if (filter instanceof TextColumnFilter) {
+						customQuery = true;
+						TextColumnFilter textColumnFilter = (TextColumnFilter) filter;
+
+						String expression = textColumnFilter.getType();
+						String filterText = textColumnFilter.getFilter();
+
+						finalTextFilterQueryTemp = formatTextFilterType(columnName, expression, filterText);
+
+					}
+				}
 			}
+
+			if (customQuery) {
+				Dataset<Row> filteredData = df.sqlContext()
+						.sql("select * from " + viewName + " where " + finalTextFilterQueryTemp);
+
+				return filteredData;
+			} else {
+				System.out.println("------------------ :filterModel: ---------else-------- " + filterModel);
+
+				Stream<String> columnFilters = filterModel.entrySet().stream().map(applyColumnFilters);
+
+				Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(),
+						(key, group) -> group + " = '" + key + "'");
+
+				String filters = concat(columnFilters, groupToFilter).collect(joining(" AND "));
+
+				return filters.isEmpty() ? df : df.filter(filters);
+			}
+				
 		}
-
-		if (customQuery) {
-			Dataset<Row> filteredData = df.sqlContext()
-					.sql("select * from " + viewName + " where " + finalTextFilterQueryTemp);
-
-			return filteredData;
-		} else {
-
-			Stream<String> columnFilters = filterModel.entrySet().stream().map(applyColumnFilters);
-
-			Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(),
-					(key, group) -> group + " = '" + key + "'");
-
-			String filters = concat(columnFilters, groupToFilter).collect(joining(" AND "));
-
-			return filters.isEmpty() ? df : df.filter(filters);
-		}
+		return df;
 	}
-
+*/
 	private String formNumberQuery(String columnName, NumberColumnFilter filter) {
 		columnName = "`" + columnName + "`";
 		columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
@@ -461,24 +481,59 @@ public class DataframeService {
 				+ (filter.getValues().isEmpty() ? " IN ('') " : " IN " + asString(filter.getValues()));
 	}
 
-	/*
-	 * private BiFunction<String, TextColumnFilter, String> textFilter() { return
-	 * (String columnName, TextColumnFilter filter) -> textFilterInput(columnName,
-	 * filter.getCondition1(), filter.getCondition2(), filter.getOperator()); }
-	 */
+	
+	  private BiFunction<String, TextColumnFilter, String> textFilter() { 
+			/*
+			 * return (String columnName, TextColumnFilter filter) ->
+			 * textFilterInput(columnName, filter.getCondition1(), filter.getCondition2(),
+			 * filter.getOperator());
+			 */
+		  
+		  return (String columnName, TextColumnFilter filter) -> textFilterInput(filter, columnName);
+	  }
+	 
 
-	/*
-	 * private String textFilterInput(String columnName, JSONObject condition1,
-	 * JSONObject condition2, String operator) {
-	 * 
-	 * 
-	 * 
-	 * String query = columnName +"=\"" +condition1.get("filter").toString()+"\"" +
-	 * " " + operator + " " + columnName +"=\""
-	 * +condition2.get("filter").toString()+"\"";
-	 * System.out.println("============query=====================================" +
-	 * query); return query; }
-	 */
+	
+	  private String textFilterInput(TextColumnFilter textFilter, String columnName) {		  
+		 // String query = "`"+columnName+"`" +" like %" +textFilter.getFilter() +"%" ;		
+		    columnName = "lower(`" + columnName + "`)";
+			String query = formatTextFilterType(columnName, textFilter.getType(), textFilter.getFilter());
+		  
+		  System.out.println("--------query" + query);
+		  
+		  if(textFilter.getCondition1() != null && textFilter.getCondition1().containsKey("filter")) {
+			
+
+				JSONObject condition1 = textFilter.getCondition1();
+				JSONObject condition2 = textFilter.getCondition2();
+				String operator = textFilter.getOperator();
+
+				String condition1Type = (String) condition1.get("type");
+				String condition1Filter = (String) condition1.get("filter");
+
+				String condition2Type = (String) condition2.get("type");
+				String condition2Filter = (String) condition2.get("filter");
+
+				String query1 = formatTextFilterType(columnName, condition1Type, condition1Filter);
+				String query2 = formatTextFilterType(columnName, condition2Type, condition2Filter);
+
+				query = "( " + query1 + " " + operator + " " + query2 + " )";
+		  }
+		  System.out.println("------text --query" + query);
+		return query;
+	}
+
+	private String textFilterInput(String columnName, JSONObject condition1,
+	  JSONObject condition2, String operator) {
+	  
+		  System.out.println("=======columnName============================" +columnName + " : " + condition1 + " : " + operator);
+	  
+	  String query = columnName +"=\"" +condition1.get("filter").toString()+"\"" +
+	  " " + operator + " " + columnName +"=\""
+	  +condition2.get("filter").toString()+"\"";
+	  System.out.println("============query=====================================" +
+	  query); return query; }
+	 
 
 	private BiFunction<String, NumberColumnFilter, String> numberFilter() {
 		return (String columnName, NumberColumnFilter filter) -> {
@@ -599,7 +654,10 @@ public class DataframeService {
 
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
-			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();			
+			//List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();		
+			
+			List<String> siteKeys = new ArrayList<String>();
+			siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
 
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
@@ -691,22 +749,11 @@ public class DataframeService {
 
 		System.out.println("--------dataset-------" + dataset.count());
 		dataset.printSchema();
-		if (request.getEndRow() == 0) { // temp code
+		/*if (request.getEndRow() == 0) { // temp code
 			request.setEndRow((int) dataset.count());
 		} else { // actual server side pagniation
-
-			actualColumnNames = Arrays.asList(dataset.columns());
-			Dataset<Row> renamedDataSet = renameDataFrame(dataset);
-			renamedDataSet.createOrReplaceTempView(viewName + "renamedDataSet");
-
-			Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from " + viewName + "renamedDataSet");
-			renamedColumnNames = Arrays.asList(df.columns());
-
-			dataset = orderBy(groupBy(filter(df, viewName + "renamedDataSet")));
-
-			dataset = reassignColumnName(actualColumnNames, renamedColumnNames, dataset);
-		}
-
+		
+		*/
 		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
 		groupKeys = request.getGroupKeys();
 		valueColumns = request.getValueCols();
@@ -719,6 +766,25 @@ public class DataframeService {
 		rowGroups = formatInputColumnNames(rowGroups);
 		groupKeys = formatInputColumnNames(groupKeys);
 		sortModel = formatSortModel(sortModel);
+		
+
+			actualColumnNames = Arrays.asList(dataset.columns());
+			Dataset<Row> renamedDataSet = renameDataFrame(dataset);
+			renamedDataSet.createOrReplaceTempView(viewName + "renamedDataSet");
+			
+			
+
+			Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from " + viewName + "renamedDataSet");
+			renamedColumnNames = Arrays.asList(df.columns());
+
+			//dataset = orderBy(groupBy(filter(df, viewName + "renamedDataSet")));
+			
+			System.out.println("--------dataset---kkkkkk----" + dataset.count());
+			dataset = orderBy(groupBy(filter(df)));
+
+			dataset = reassignColumnName(actualColumnNames, renamedColumnNames, dataset);
+		//}
+
 
 		dataset = dataset.dropDuplicates();
 
@@ -868,8 +934,8 @@ public class DataframeService {
 			Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from " + viewName + "renamedDataSet");
 			renamedColumnNames = Arrays.asList(df.columns());
 
-			Dataset<Row> results = orderBy(groupBy(filter(df, viewName + "renamedDataSet")));
-
+			Dataset<Row> results = dataset = orderBy(groupBy(filter(df)));
+			//dataset = orderBy(groupBy(filter(df)));
 			results = reassignColumnName(actualColumnNames, renamedColumnNames, results);
 			// results.printSchema();
 
@@ -3722,6 +3788,11 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 
+	}
+
+	public DataResult getReportDataFromOdbDf(ServerSideGetRowsRequest request) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

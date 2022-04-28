@@ -61,14 +61,14 @@ public class ServerSideGetRowsRequest implements Serializable {
     private String categoryOpt;  
 
 
-	public ServerSideGetRowsRequest() {
+	/*public ServerSideGetRowsRequest() {
         this.rowGroupCols = emptyList();
         this.valueCols = emptyList();
         this.pivotCols = emptyList();
         this.groupKeys = emptyList();
         this.filterModel = emptyMap();
         this.sortModel = emptyList();
-    }
+    }*/
 
     public int getStartRow() {
         return startRow;
@@ -131,6 +131,7 @@ public class ServerSideGetRowsRequest implements Serializable {
     }
 
     public void setFilterModel(Map<String, ColumnFilter> filterModel) {
+    	System.out.println("-----------filterModel---------" + filterModel);
         this.filterModel = filterModel;
     }
 

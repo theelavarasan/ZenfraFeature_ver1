@@ -91,8 +91,14 @@ public class ReportDataController {
 	public ResponseEntity<?> getReportData(@RequestBody ServerSideGetRowsRequest request) {
 
 		try {
-			if (request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery")) {
+			//request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && 
+			if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
 				DataResult data = dataframeService.getReportData(request);
+				if (data != null) {
+					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+				}
+			} else if (request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") ) {
+				DataResult data = dataframeService.getReportDataFromOdbDf(request);
 				if (data != null) {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 				}
@@ -104,6 +110,7 @@ public class ReportDataController {
 
 
 			}
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
