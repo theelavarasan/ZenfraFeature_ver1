@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -3905,10 +3906,10 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
         String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
         uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
       
-        MultiValueMap<String, Object> map =   mapper.convertValue(request, new TypeReference<MultiValueMap<String, Object>>() {});
-        
-       	MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
-	    body.addAll(map);				     
+        Map<String, Object> map =   mapper.convertValue(request, new TypeReference<Map<String, Object>>() {});
+        System.out.println("-------map-------- " + map);
+       	  Map<String, Object> body= new LinkedHashMap<>();
+	    body.putAll(map); 			     
 		  
 	 RestTemplate restTemplate = new RestTemplate();
 	 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
