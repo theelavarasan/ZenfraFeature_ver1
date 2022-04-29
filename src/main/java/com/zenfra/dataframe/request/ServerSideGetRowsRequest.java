@@ -59,6 +59,13 @@ public class ServerSideGetRowsRequest implements Serializable {
     
     private String source;  
     private String categoryOpt;  
+    
+    private String switchtype;
+    private String storage;
+    private String project;
+    private String thirdPartyId;
+    private String providers;
+    
 
 
 	/*public ServerSideGetRowsRequest() {
@@ -248,6 +255,47 @@ public class ServerSideGetRowsRequest implements Serializable {
 	public void setCategoryOpt(String categoryOpt) {
 		this.categoryOpt = categoryOpt;
 	}
+
+	public String getSwitchtype() {
+		return switchtype;
+	}
+
+	public void setSwitchtype(String switchtype) {
+		this.switchtype = switchtype;
+	}
+
+	public String getStorage() {
+		return storage;
+	}
+
+	public void setStorage(String storage) {
+		this.storage = storage;
+	}
+
+	public String getProject() {
+		return project;
+	}
+
+	public void setProject(String project) {
+		this.project = project;
+	}
+
+	public String getThirdPartyId() {
+		return thirdPartyId;
+	}
+
+	public void setThirdPartyId(String thirdPartyId) {
+		this.thirdPartyId = thirdPartyId;
+	}
+
+	public String getProviders() {
+		return providers;
+	}
+
+	public void setProviders(String providers) {
+		this.providers = providers;
+	}
+	
 	
 
     

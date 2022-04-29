@@ -67,11 +67,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+ 
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.AwsInstanceCcrDataRepository;
 import com.zenfra.dao.FavouriteDao_v2;
@@ -89,6 +98,7 @@ import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.AwsInstanceCcrData;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
@@ -110,6 +120,8 @@ public class DataframeService {
 	private static DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
 	JSONParser parser = new JSONParser();
+	
+	private ObjectMapper mapper = new ObjectMapper();
 
 	@Autowired
 	SparkSession sparkSession;
@@ -3785,8 +3797,123 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	}
 
 	public DataResult getReportDataFromOdbDf(ServerSideGetRowsRequest request) {
-		// TODO Auto-generated method stub
-		return null;
+
+		String siteKey = request.getSiteKey();
+		
+		String componentName = "";
+		if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
+			componentName = request.getOstype();
+		} else if(request.getSwitchtype() != null && !request.getSwitchtype().isEmpty()) { //switch
+			componentName = request.getSwitchtype();
+		} else if(request.getStorage() != null && !request.getStorage().isEmpty()) { //Storage
+			componentName = request.getStorage();
+		} else if(request.getThirdPartyId() != null && !request.getThirdPartyId().isEmpty()) { //Project
+			componentName = request.getThirdPartyId();
+		} else if(request.getProviders() != null && !request.getProviders().isEmpty()) { //Providers
+			componentName = request.getProviders();
+		} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
+			componentName = request.getProject();
+		}
+		
+		
+		String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
+				+ request.getCategory() + "_" + componentName + "_" + request.getReportList() + "_"
+				+ request.getReportBy();
+		String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
+		
+		System.out.println("-----ODB viewName-------" + viewName);
+		
+		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ "migrationReport" + File.separator + siteKey + File.separator + componentName
+				+ File.separator + viewNameWithHypen + ".json");
+		
+
+		System.out.println("-----ODB verifyDataframePath-------" + verifyDataframePath);
+		
+		boolean isDiscoveryDataInView = false;
+		Dataset<Row> dataset = null;
+	
+		try {
+			dataset = sparkSession.sql("select * from global_temp." + viewName);		
+			isDiscoveryDataInView = true;
+		} catch (Exception e) {
+			System.out.println("---------View Not exists--------");
+		}
+
+		if (!isDiscoveryDataInView) {		
+
+			if (verifyDataframePath.exists()) {
+				createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
+				dataset = sparkSession.sql("select * from global_temp." + viewName);
+			
+			} else {
+				createDataframeFromOdb(request);
+				if (verifyDataframePath.exists()) {
+					createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
+					dataset = sparkSession.sql("select * from global_temp." + viewName); 
+				} 
+				
+			}
+		}
+
+	
+		dataset.printSchema();
+		
+		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+		groupKeys = request.getGroupKeys();
+		valueColumns = request.getValueCols();
+		pivotColumns = request.getPivotCols();
+		filterModel = request.getFilterModel();
+		sortModel = request.getSortModel();
+		isPivotMode = request.isPivotMode();
+		isGrouping = rowGroups.size() > groupKeys.size();
+
+		rowGroups = formatInputColumnNames(rowGroups);
+		groupKeys = formatInputColumnNames(groupKeys);
+		sortModel = formatSortModel(sortModel);
+			
+		dataset = orderBy(groupBy(filter(dataset)));	
+		
+		return paginate(dataset, request);
+
+	
+	 
+	}
+
+	
+	private void createDataframeFromJsonFile(String viewName, String filePath) {
+		if (filePath.endsWith(".json")) {
+			try {
+				Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
+				dataset.createOrReplaceGlobalTempView(viewName);
+				dataset.show();
+				System.out.println("---------View created-------- :: " + viewName);
+			} catch (Exception e) {
+				e.printStackTrace();
+
+			}
+
+		}
+
+	}
+	
+	
+	private void createDataframeFromOdb(ServerSideGetRowsRequest request) {
+		String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
+        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+      
+        MultiValueMap<String, Object> map =   mapper.convertValue(request, new TypeReference<MultiValueMap<String, Object>>() {});
+        
+       	MultiValueMap<String, Object> body= new LinkedMultiValueMap<>();
+	    body.addAll(map);				     
+		  
+	 RestTemplate restTemplate = new RestTemplate();
+	 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
+	 ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
+		
 	}
 
 

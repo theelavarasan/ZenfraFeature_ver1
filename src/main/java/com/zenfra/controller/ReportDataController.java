@@ -97,18 +97,16 @@ public class ReportDataController {
 				if (data != null) {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 				}
-			} else if (request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") ) {
-				DataResult data = dataframeService.getReportDataFromOdbDf(request);
-				if (data != null) {
-					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
-				}
 			} else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
 				JSONObject result = new JSONObject();
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
-
-
+			} else  {  // orient db reports
+				DataResult data = dataframeService.getReportDataFromOdbDf(request);
+				if (data != null) {
+					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+				}
 			}
 			
 
