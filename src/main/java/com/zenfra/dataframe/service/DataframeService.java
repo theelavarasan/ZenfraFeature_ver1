@@ -257,7 +257,6 @@ public class DataframeService {
 			String columnName = entry.getKey();
 			ColumnFilter filter = entry.getValue();
 			columnName = "`"+columnName+"`";
-			//columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
 
 			if (filter instanceof SetColumnFilter) {
 				return setFilter().apply(columnName, (SetColumnFilter) filter);
@@ -511,12 +510,9 @@ public class DataframeService {
 	 
 
 	
-	  private String textFilterInput(TextColumnFilter textFilter, String columnName) {		  
-		 // String query = "`"+columnName+"`" +" like %" +textFilter.getFilter() +"%" ;		
+	  private String textFilterInput(TextColumnFilter textFilter, String columnName) {	
 		    columnName = "lower(" + columnName + ")";
-			String query = formatTextFilterType(columnName, textFilter.getType(), textFilter.getFilter());
-		  
-		  System.out.println("--------query" + query);
+			String query = formatTextFilterType(columnName, textFilter.getType(), textFilter.getFilter());		
 		  
 		  if(textFilter.getCondition1() != null && textFilter.getCondition1().containsKey("filter")) {
 			
@@ -536,7 +532,7 @@ public class DataframeService {
 
 				query = "( " + query1 + " " + operator + " " + query2 + " )";
 		  }
-		  System.out.println("------text --query" + query);
+		
 		return query;
 	}
 
@@ -768,11 +764,7 @@ public class DataframeService {
 
 	
 		dataset.printSchema();
-		/*if (request.getEndRow() == 0) { // temp code
-			request.setEndRow((int) dataset.count());
-		} else { // actual server side pagniation
 		
-		*/
 		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
 		groupKeys = request.getGroupKeys();
 		valueColumns = request.getValueCols();
@@ -785,31 +777,10 @@ public class DataframeService {
 		rowGroups = formatInputColumnNames(rowGroups);
 		groupKeys = formatInputColumnNames(groupKeys);
 		sortModel = formatSortModel(sortModel);
+			
+		dataset = orderBy(groupBy(filter(dataset)));		
 		
-
-			//actualColumnNames = Arrays.asList(dataset.columns());
-			//Dataset<Row> renamedDataSet = renameDataFrame(dataset);
-			//renamedDataSet.createOrReplaceTempView(viewName + "renamedDataSet");
-			
-			
-
-			//Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from " + viewName + "renamedDataSet");
-			//renamedColumnNames = Arrays.asList(df.columns());
-
-			//dataset = orderBy(groupBy(filter(df, viewName + "renamedDataSet")));
-			
-			
-			dataset = orderBy(groupBy(filter(dataset)));
-			
-		
-
-			//dataset = reassignColumnName(actualColumnNames, renamedColumnNames, dataset);
-		//}
-
-		
-		dataset = dataset.dropDuplicates();
-
-	
+		//dataset = dataset.dropDuplicates();	
 		
 		return paginate(dataset, request);
 
