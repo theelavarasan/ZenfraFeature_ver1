@@ -256,8 +256,8 @@ public class DataframeService {
 		Function<Map.Entry<String, ColumnFilter>, String> applyColumnFilters = entry -> {
 			String columnName = entry.getKey();
 			ColumnFilter filter = entry.getValue();
-
-			columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
+			columnName = "`"+columnName+"`";
+			//columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
 
 			if (filter instanceof SetColumnFilter) {
 				return setFilter().apply(columnName, (SetColumnFilter) filter);
@@ -405,8 +405,7 @@ public class DataframeService {
 		Integer filterValue = filter.getFilter();
 		String filerType = filter.getType();
 		
-		columnName = "`" + columnName + "`";
-		columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
+		 
 		
 		String filterQuery = formatNumberFilterType(columnName, filerType, filterValue, 0);
 		
@@ -514,7 +513,7 @@ public class DataframeService {
 	
 	  private String textFilterInput(TextColumnFilter textFilter, String columnName) {		  
 		 // String query = "`"+columnName+"`" +" like %" +textFilter.getFilter() +"%" ;		
-		    columnName = "lower(`" + columnName + "`)";
+		    columnName = "lower(" + columnName + ")";
 			String query = formatTextFilterType(columnName, textFilter.getType(), textFilter.getFilter());
 		  
 		  System.out.println("--------query" + query);
@@ -788,23 +787,23 @@ public class DataframeService {
 		sortModel = formatSortModel(sortModel);
 		
 
-			actualColumnNames = Arrays.asList(dataset.columns());
-			Dataset<Row> renamedDataSet = renameDataFrame(dataset);
-			renamedDataSet.createOrReplaceTempView(viewName + "renamedDataSet");
+			//actualColumnNames = Arrays.asList(dataset.columns());
+			//Dataset<Row> renamedDataSet = renameDataFrame(dataset);
+			//renamedDataSet.createOrReplaceTempView(viewName + "renamedDataSet");
 			
 			
 
-			Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from " + viewName + "renamedDataSet");
-			renamedColumnNames = Arrays.asList(df.columns());
+			//Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from " + viewName + "renamedDataSet");
+			//renamedColumnNames = Arrays.asList(df.columns());
 
 			//dataset = orderBy(groupBy(filter(df, viewName + "renamedDataSet")));
 			
 			
-			dataset = orderBy(groupBy(filter(df)));
+			dataset = orderBy(groupBy(filter(dataset)));
 			
 		
 
-			dataset = reassignColumnName(actualColumnNames, renamedColumnNames, dataset);
+			//dataset = reassignColumnName(actualColumnNames, renamedColumnNames, dataset);
 		//}
 
 		
