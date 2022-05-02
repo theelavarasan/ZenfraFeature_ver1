@@ -80,7 +80,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
  
@@ -3829,14 +3831,17 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				+ request.getReportBy();
 		String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
 		
-		System.out.println("-----ODB viewName-------" + viewName);
+		System.out.println("-----ODB viewName---viewNameWithHypen----" + viewName);
 		
 		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ "migrationReport" + File.separator + siteKey + File.separator + componentName
 				+ File.separator + viewNameWithHypen + ".json");
 		
+		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ "migrationReport" + File.separator + siteKey + File.separator + componentName + File.separator );
+		
 
-		System.out.println("-----ODB verifyDataframePath-------" + verifyDataframePath);
+		System.out.println("-----ODB verifyDataframePath--2233-----" + verifyDataframePath);
 		
 		boolean isDiscoveryDataInView = false;
 		Dataset<Row> dataset = null;
@@ -3850,18 +3855,28 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 
 		if (!isDiscoveryDataInView) {		
 
+			
+			/*createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
 			if (verifyDataframePath.exists()) {
+				createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
+				dataset = sparkSession.sql("select * from global_temp." + viewName); 
+			} */
+			
+			
+			if (verifyDataframePath.exists()) {
+				System.out.println("------verifyDataframePath----1234554654654654564---");
 				createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
 				dataset = sparkSession.sql("select * from global_temp." + viewName);
 			
 			} else {
-				createDataframeFromOdb(request);
+				
+				createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
 				if (verifyDataframePath.exists()) {
 					createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
 					dataset = sparkSession.sql("select * from global_temp." + viewName); 
-				} 
+				}
 				
-			}
+			} 
 		}
 
 	
@@ -3907,11 +3922,15 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	}
 	
 	
-	private void createDataframeFromOdb(ServerSideGetRowsRequest request) {
+	private void createDataframeFromOdb(ServerSideGetRowsRequest request, File filePath, File verifyDataframeParentPath) {
+		
+		System.out.println("------verifyDataframePath----0000000---");
+		
 		String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
     	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
     	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
-        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
+       String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
+    	//String uri = "https://uat.zenfra.co/ZenfraV2/rest/reports/getReportData/migrationreport";
     	uri = uri+"?authUserId="+request.getStartRow()
     	+"&reportCategory="+request.getReportCategory()
     	+"&reportType="+request.getReportType()
@@ -3948,11 +3967,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
         map.put("skip", 0);
         map.put("limit", 0);
        	  Map<String, Object> body= new LinkedHashMap<>();
-	    body.putAll(map); 	
+	    body.putAll(map); 
 	   
-	    
-	    System.out.println("-------map---166545654----- " + map);
-	    
 	    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
 	    		builder.build(map);
 	    System.out.println(builder.buildAndExpand(map).toUri());
@@ -3971,9 +3987,31 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	    		httpRequest, String.class);
 	   
 	///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
-	 System.out.println("-----resultObjresultObj-vvvvvvvvvvvvv-- " + restResult.getBody());
-	// JSONObject resultObj =  mapper.convertValue(restResult.getBody(), JSONObject.class);
-	// System.out.println("-----resultObjresultObj--- " + resultObj.get("data"));
+	 //System.out.println("-----resultObjresultObj-vvvvvvvvvvvvv-- " + restResult.getBody());
+	 JSONObject resultObj = new JSONObject();
+	try {
+		resultObj = (JSONObject) parser.parse(restResult.getBody());
+	} catch (ParseException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	}
+	  System.out.println("-----resultObjresultObj--- " + resultObj.get("data"));
+	  try {		
+         if(!verifyDataframeParentPath.exists()) {
+        	 verifyDataframeParentPath.mkdirs();
+         }
+          
+		mapper.writeValue(filePath, resultObj.get("data"));
+	} catch (JsonGenerationException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (JsonMappingException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
 		
 	}
 

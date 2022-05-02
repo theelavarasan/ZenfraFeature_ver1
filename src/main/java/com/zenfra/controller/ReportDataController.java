@@ -103,6 +103,7 @@ public class ReportDataController {
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
 			} else  {  // orient db reports
+				System.out.println("-------------SSDDDDD---------------");
 				DataResult data = dataframeService.getReportDataFromOdbDf(request);
 				if (data != null) {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
