@@ -50,6 +50,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
@@ -581,7 +582,7 @@ public class DataframeService {
 		};
 	}
 
-	private DataResult paginate(Dataset<Row> df, ServerSideGetRowsRequest request) {
+	private DataResult paginate(Dataset<Row> df, ServerSideGetRowsRequest request, List<String> countData ) {
 
 		int startRow = request.getStartRow();
 		int endRow = request.getEndRow();
@@ -606,12 +607,13 @@ public class DataframeService {
 
 		// collect paginated results into a list of json objects
 		List<String> paginatedResults = sparkSession.sqlContext().createDataFrame(filteredRdd, schema).toJSON()
-				.collectAsList();
+				.collectAsList(); 
+		 
 
 		// calculate last row
 		long lastRow = endRow >= rowCount ? rowCount : -1;
 
-		return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count());
+		return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count(), countData );
 	}
 
 	private List<String> getSecondaryColumns(Dataset<Row> df) {
@@ -685,13 +687,13 @@ public class DataframeService {
 			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
 			formattedDataframe.createOrReplaceTempView("local_discovery");
 
-			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
+			/*Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
 			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();		
+			*/
 			
-			
-			//List<String> siteKeys = new ArrayList<String>();
-			//siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
+			List<String> siteKeys = new ArrayList<String>();
+			siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
 
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
@@ -798,23 +800,30 @@ public class DataframeService {
 		sortModel = formatSortModel(sortModel);
 			
 		dataset = orderBy(groupBy(filter(dataset)));	
+		Dataset<Row> countData = sparkSession.emptyDataFrame(); 
 		
-		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
+		try {
+			List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
+			if(numericColumns != null) {
+				dataset.createTempView("tmpReport");
+				String numericCol = String.join(",", numericColumns
+			            .stream()
+			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
+			            .collect(Collectors.toList()));	
+				
+				countData = dataset.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+				 
+			}
+			
+		} catch (AnalysisException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		
-		String numericCol = String.join(",", numericColumns
-	            .stream()
-	            .map(col -> ("sum(`" + col + "`)"))
-	            .collect(Collectors.toList()));
-		
-		System.out.println("-----numericCol---- " + numericCol);
-		
-		
-		Dataset<Row> countData = dataset.selectExpr("select `Total Size`");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
-		countData.printSchema();
-		countData.show();
-		
-		return paginate(dataset, request);
+		System.out.println("-------Count----ccff----------- " +countData.toJSON().collectAsList() );
+	
+		return paginate(dataset, request, countData.toJSON().collectAsList());
 
 	}
 
@@ -983,7 +992,7 @@ public class DataframeService {
 				results = results.withColumn("Server Type", lit("vmware-host"));
 			}
 
-			return paginate(results, request);
+			return paginate(results, request, df.toJSON().collectAsList());
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -1903,7 +1912,7 @@ public class DataframeService {
 
 		dataset.show();
 
-		return paginate(dataset, request);
+		return paginate(dataset, request, dataset.toJSON().collectAsList());
 	}
 
 	public List<Map<String, Object>> getCloudCostDataPostgresFn(ServerSideGetRowsRequest request) {
@@ -2011,7 +2020,7 @@ public class DataframeService {
 			isPivotMode = request.isPivotMode();
 			isGrouping = rowGroups.size() > groupKeys.size();
 
-			return paginate(dataset, request);
+			return paginate(dataset, request, dataset.toJSON().collectAsList());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2022,7 +2031,7 @@ public class DataframeService {
 		}
 
 		dataset = sparkSession.emptyDataFrame();
-		return paginate(dataset, request);
+		return paginate(dataset, request, dataset.toJSON().collectAsList());
 
 	}
 	
@@ -3903,18 +3912,27 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			
 		dataset = orderBy(groupBy(filter(dataset)));	
 		
-		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
+		Dataset<Row> countData = sparkSession.emptyDataFrame();
+		try {
+			List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
+			if(numericColumns != null) {
+				dataset.createTempView("tmpReport");
+				String numericCol = String.join(",", numericColumns
+			            .stream()
+			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
+			            .collect(Collectors.toList()));	
+				
+				countData = dataset.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+				 
+			}
+			
+		} catch (AnalysisException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		String numericCol = String.join(",", numericColumns
-	            .stream()
-	            .map(col -> ("sum(`" + col + "`)"))
-	            .collect(Collectors.toList()));
-		
-		Dataset<Row> countData = dataset.sqlContext().sql("select numericCol");
-		countData.printSchema();
-		countData.show();
-		
-		return paginate(dataset, request);
+	
+		return paginate(dataset, request, countData.toJSON().collectAsList());
 
 	
 	 
