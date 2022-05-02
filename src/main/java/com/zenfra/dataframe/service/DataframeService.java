@@ -3904,8 +3904,37 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
     	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
     	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
-       // String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
-    	String uri = "https://uat.zenfra.co/ZenfraV2/rest/reports/getReportData/migrationreport";
+        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
+    	uri = uri+"?authUserId="+request.getStartRow()
+    	+"&reportCategory="+request.getReportCategory()
+    	+"&reportType="+request.getReportType()
+    	+"&siteKey="+request.getSiteKey()
+    	+"&category="+request.getCategory()
+    	+"&project="+request.getProject()
+    	+"&filters="+request.getFilterModel()
+    	+"&analyticstype="+request.getAnalyticstype()
+    	+"&migrationtype="
+    	+"&method="
+    	+"&reportview="
+    	+"&logDate="
+    	+"&skip=0"
+    	+"&limit=0"
+    	+"&mode=" 
+    	+"&ostype="+request.getOstype()
+    	+"&arraytype=" 
+    	+"&vendor="
+    	+"&providers="+request.getProviders()
+    	+"&type="
+    	+"&switchtype="+request.getSwitchtype()
+    	+"&thirdPartyId="+request.getThirdPartyId()
+    	+"&isSubReportAccess=0"
+    	+"&reportList="+request.getReportList()
+    	+"&destinationtype="
+    	+"&collectiondate="
+    	+"&reportBy="+request.getReportBy()
+    	+"&isTasklist=0"
+    	+"&storage="+request.getStorage()    	
+    	;
         uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
       
         Map<String, Object> map =   mapper.convertValue(request, new TypeReference<Map<String, Object>>() {});
@@ -3920,24 +3949,24 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
 	    		builder.build(map);
 	    System.out.println(builder.buildAndExpand(map).toUri());
-	    /**
-	     * Console output:
-	     * http://test.com/solarSystem/planets/Mars/moons/Phobos?firstName=Mark&lastName=Watney
-	     */
+	   
 
 	 
 	    
 	    
 		  
 	 RestTemplate restTemplate = new RestTemplate();
+	 
+	 
 	
 	 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
 	 ResponseEntity<String> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
 	    		httpRequest, String.class);
 	   
 	///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
-	 
-	  System.out.println("-------restResult-------- " + restResult);
+	 System.out.println("-----resultObjresultObj-vvvvvvvvvvvvv-- " + restResult.getBody());
+	 JSONObject resultObj =  mapper.convertValue(restResult.getBody(), JSONObject.class);
+	 System.out.println("-----resultObjresultObj--- " + resultObj.get("data"));
 		
 	}
 
