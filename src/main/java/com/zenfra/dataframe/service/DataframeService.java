@@ -811,8 +811,9 @@ public class DataframeService {
 			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
 			            .collect(Collectors.toList()));	
 				
-				countData = dataset.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
 				 
+				sparkSession.catalog().dropTempView("tmpReport");
 			}
 			
 		} catch (AnalysisException e) {
@@ -3922,8 +3923,9 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
 			            .collect(Collectors.toList()));	
 				
-				countData = dataset.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
 				 
+				sparkSession.catalog().dropTempView("tmpReport");
 			}
 			
 		} catch (AnalysisException e) {

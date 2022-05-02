@@ -212,16 +212,22 @@ public class ReportDataController {
 			String siteKey = "";
 			String reportList = "";
 
-			if (request.getReportType().equalsIgnoreCase("discovery")) {
+			/*if (request.getReportType().equalsIgnoreCase("discovery")) {
 				reportName = request.getReportType();
 				deviceType = request.getOstype();
 				reportBy = request.getReportBy();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else if (request.getReportType().equalsIgnoreCase("optimization")) {
+			} else*/ if (request.getReportType().equalsIgnoreCase("optimization")) {
 				reportName = request.getReportType();
 				deviceType = "All";
 				reportBy = request.getReportType();
+				siteKey = request.getSiteKey();
+				reportList = request.getReportList();
+			} else {
+				reportName = request.getReportType();
+				deviceType = request.getOstype();
+				reportBy = request.getReportBy();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
 			}
