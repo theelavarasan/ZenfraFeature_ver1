@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
@@ -3746,6 +3747,11 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+			ObjectMapper mapper = new ObjectMapper();
+			JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
+			JSONArray jData = (JSONArray) jsonObject.get("data");
+			
+			mapper.writeValue(new File(filePath), jData);
 			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 					.option("mode", "PERMISSIVE").json(filePath);
 			File f = new File(filePath);
@@ -3876,6 +3882,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			
 		dataset = orderBy(groupBy(filter(dataset)));	
 		
+		
 		return paginate(dataset, request);
 
 	
@@ -3965,8 +3972,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	   
 	///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
 	 System.out.println("-----resultObjresultObj-vvvvvvvvvvvvv-- " + restResult.getBody());
-	 JSONObject resultObj =  mapper.convertValue(restResult.getBody(), JSONObject.class);
-	 System.out.println("-----resultObjresultObj--- " + resultObj.get("data"));
+	// JSONObject resultObj =  mapper.convertValue(restResult.getBody(), JSONObject.class);
+	// System.out.println("-----resultObjresultObj--- " + resultObj.get("data"));
 		
 	}
 
