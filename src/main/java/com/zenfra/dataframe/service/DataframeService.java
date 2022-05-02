@@ -69,6 +69,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mapping.AccessOptions.GetOptions.GetNulls;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -686,10 +687,11 @@ public class DataframeService {
 
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
-			//List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();		
+			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();		
 			
-			List<String> siteKeys = new ArrayList<String>();
-			siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
+			
+			//List<String> siteKeys = new ArrayList<String>();
+			//siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
 
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
@@ -795,9 +797,22 @@ public class DataframeService {
 		groupKeys = formatInputColumnNames(groupKeys);
 		sortModel = formatSortModel(sortModel);
 			
-		dataset = orderBy(groupBy(filter(dataset)));		
+		dataset = orderBy(groupBy(filter(dataset)));	
 		
-		//dataset = dataset.dropDuplicates();	
+		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
+		
+		
+		String numericCol = String.join(",", numericColumns
+	            .stream()
+	            .map(col -> ("sum(`" + col + "`)"))
+	            .collect(Collectors.toList()));
+		
+		System.out.println("-----numericCol---- " + numericCol);
+		
+		
+		Dataset<Row> countData = dataset.selectExpr("select `Total Size`");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+		countData.printSchema();
+		countData.show();
 		
 		return paginate(dataset, request);
 
@@ -3853,15 +3868,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			System.out.println("---------View Not exists--------");
 		}
 
-		if (!isDiscoveryDataInView) {		
-
-			
-			/*createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
-			if (verifyDataframePath.exists()) {
-				createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
-				dataset = sparkSession.sql("select * from global_temp." + viewName); 
-			} */
-			
+		if (!isDiscoveryDataInView) {			
 			
 			if (verifyDataframePath.exists()) {
 				System.out.println("------verifyDataframePath----1234554654654654564---");
@@ -3869,7 +3876,6 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				dataset = sparkSession.sql("select * from global_temp." + viewName);
 			
 			} else {
-				
 				createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
 				if (verifyDataframePath.exists()) {
 					createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
@@ -3897,6 +3903,16 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			
 		dataset = orderBy(groupBy(filter(dataset)));	
 		
+		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
+		
+		String numericCol = String.join(",", numericColumns
+	            .stream()
+	            .map(col -> ("sum(`" + col + "`)"))
+	            .collect(Collectors.toList()));
+		
+		Dataset<Row> countData = dataset.sqlContext().sql("select numericCol");
+		countData.printSchema();
+		countData.show();
 		
 		return paginate(dataset, request);
 
