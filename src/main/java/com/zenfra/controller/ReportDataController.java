@@ -205,6 +205,7 @@ public class ReportDataController {
 	@PostMapping("getReportHeader")
 	public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {
 
+		System.out.println("--------requestrequestrequest----------" +request.getReportType());
 		try {
 			String reportName = "";
 			String deviceType = "";
@@ -224,13 +225,37 @@ public class ReportDataController {
 				reportBy = request.getReportType();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else {
+			} else	if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
 				reportName = request.getReportType();
-				deviceType = request.getOstype();
+				reportName = request.getOstype();
 				reportBy = request.getReportBy();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
+				
+			} else {
+			
+				String componentName = "";
+				if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
+					componentName = request.getOstype();
+				} else if(request.getSwitchtype() != null && !request.getSwitchtype().isEmpty()) { //switch
+					componentName = request.getSwitchtype();
+				} else if(request.getStorage() != null && !request.getStorage().isEmpty()) { //Storage
+					componentName = request.getStorage();
+				} else if(request.getThirdPartyId() != null && !request.getThirdPartyId().isEmpty()) { //Project
+					componentName = request.getThirdPartyId();
+				} else if(request.getProviders() != null && !request.getProviders().isEmpty()) { //Providers
+					componentName = request.getProviders();
+				} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
+					componentName = request.getProject();
+				}
+				reportName = request.getReportType();
+				deviceType = componentName;
+				reportBy = request.getReportBy();
+				siteKey = request.getSiteKey();
+				reportList = request.getReportList();				
 			}
+			
+		
 
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()
 					&& reportBy != null && !reportBy.isEmpty()) {
