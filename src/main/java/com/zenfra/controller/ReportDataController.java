@@ -227,11 +227,26 @@ public class ReportDataController {
 				reportBy = request.getReportType();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else	if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && request.getReportList().equalsIgnoreCase("Local") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
-				reportName = request.getReportType();				
-				reportBy = request.getReportBy();
-				siteKey = request.getSiteKey();
-				reportList = request.getReportList();
+			} else	if (
+					request.getCategory().equalsIgnoreCase("Server") &&
+					request.getAnalyticstype() != null 
+					&& request.getAnalyticstype().equalsIgnoreCase("Discovery") 
+					&& request.getReportList().equalsIgnoreCase("Local") ) {
+				if(!request.getReportBy().contains("End-")) {  // || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host")
+					reportName = request.getReportType();				
+					reportBy = request.getReportBy();
+					siteKey = request.getSiteKey();
+					reportList = request.getReportList();
+					deviceType = request.getOstype();					
+					
+				} else {
+					reportName =  request.getReportList();				
+					reportBy = request.getReportBy();
+					siteKey = request.getSiteKey();
+					reportList = request.getReportList();
+					deviceType = request.getOstype();
+					
+				}
 				
 			} else {
 			
@@ -249,11 +264,13 @@ public class ReportDataController {
 				} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
 					componentName = request.getProject();
 				}
-				reportName = request.getReportList();
+				reportName = request.getReportType();
 				deviceType = componentName;
 				reportBy = request.getReportBy();
 				siteKey = request.getSiteKey();
-				reportList = request.getReportList();				
+				reportList = request.getReportList();	
+				
+				System.out.println("--------reportBy---2222-------"  );
 			}
 			
 		
