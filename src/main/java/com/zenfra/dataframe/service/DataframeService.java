@@ -3784,8 +3784,15 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			File f = new File(filePath);
 			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
 			dataset.createOrReplaceGlobalTempView(viewName);
-			dataset.show();
+			
+			  Path filePathPermission = Paths.get(filePath);
+		        UserPrincipal owner1 = filePathPermission.getFileSystem().getUserPrincipalLookupService()
+		                .lookupPrincipalByName(ZKModel.getProperty("zenuser"));
+		       	Files.setOwner(filePathPermission, owner1);	  
+		       	
+		       	
 			System.out.println("------------ODB View Name create------------" + viewName);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -3856,7 +3863,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				+ request.getReportBy();
 		String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
 		
-		System.out.println("-----ODB viewName---viewNameWithHypen----" + viewName);
+	
 		
 		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ "migrationReport" + File.separator + siteKey + File.separator + componentName
@@ -3866,7 +3873,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				+ "migrationReport" + File.separator + siteKey + File.separator + componentName + File.separator );
 		
 
-		System.out.println("-----ODB verifyDataframePath--2233-----" + verifyDataframePath);
+	
 		
 		boolean isDiscoveryDataInView = false;
 		Dataset<Row> dataset = null;
@@ -3881,7 +3888,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		if (!isDiscoveryDataInView) {			
 			
 			if (verifyDataframePath.exists()) {
-				System.out.println("------verifyDataframePath----1234554654654654564---");
+				
 				createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
 				dataset = sparkSession.sql("select * from global_temp." + viewName);
 			
@@ -4031,7 +4038,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		// TODO Auto-generated catch block
 		e1.printStackTrace();
 	}
-	  System.out.println("-----resultObjresultObj--- " + resultObj.get("data"));
+	 
 	  try {		
          if(!verifyDataframeParentPath.exists()) {
         	 verifyDataframeParentPath.mkdirs();
@@ -4048,6 +4055,69 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
+		
+	}
+
+	public void recreateReportForDataframe(String siteKey, String sourceType, String userId) {
+
+		List<Map<String, Object>> reportCombination = reportDao.getReportCombinationByLogType(sourceType);
+		
+		if(!reportCombination.isEmpty()) {
+			for(Map<String, Object> reportInput : reportCombination) {
+				String reportList = (String) reportInput.get("reportList");
+				String reportBy = (String) reportInput.get("reportBy");
+				String reportCategory = (String) reportInput.get("category");
+				String deviceType = (String) reportInput.get("device");
+				
+				 if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") || reportCategory.equalsIgnoreCase("Storage")) {
+					 ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
+						if(reportCategory.equalsIgnoreCase("server")) { //server
+							request.setOstype(deviceType);
+						} else if(reportCategory.equalsIgnoreCase("switch")) { //switch
+							request.setSwitchtype(deviceType);
+						} else if(reportCategory.equalsIgnoreCase("Storage")) { //Storage
+							request.setStorage(deviceType);
+						} 
+						
+					
+						request.setReportCategory("migration");
+						request.setSiteKey(siteKey);
+						request.setCategory(reportCategory);						
+						request.setAnalyticstype("Discovery");
+						request.setReportList(reportList);
+						request.setReportBy(reportBy);
+						request.setReportType("discovery");
+						
+						
+						String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
+								+ request.getCategory() + "_" + deviceType + "_" + request.getReportList() + "_"
+								+ request.getReportBy();
+						String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
+						
+						System.out.println("------viewName------- " + viewName);
+						
+						File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+								+ "migrationReport" + File.separator + siteKey + File.separator + deviceType
+								+ File.separator + viewNameWithHypen + ".json");
+						
+						File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
+								+ "migrationReport" + File.separator + siteKey + File.separator + deviceType + File.separator );
+						
+						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
+						
+				 }
+				
+				/*else if(request.getThirdPartyId() != null && !request.getThirdPartyId().isEmpty()) { //Project
+					componentName = request.getThirdPartyId();
+				} else if(request.getProviders() != null && !request.getProviders().isEmpty()) { //Providers
+					componentName = request.getProviders();
+				} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
+					componentName = request.getProject();
+				}*/
+				
+				
+			}
+		}
 		
 	}
 

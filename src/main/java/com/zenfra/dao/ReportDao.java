@@ -3,6 +3,7 @@ package com.zenfra.dao;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -290,5 +291,19 @@ public class ReportDao {
 			e.printStackTrace();
 		}
 		
+	}
+
+	public List<Map<String, Object>> getReportCombinationByLogType(String sourceType) {
+		List<Map<String, Object>> reportCombination = new ArrayList<>();
+		try {
+			reportCombination = jdbc.queryForList("SELECT report_type as \"reportList\", report_by as \"reportBy\", category, device FROM public.device_discovery_report_config where lower(name)='"+sourceType.toLowerCase()+"' and enabled ='1'");
+	
+			 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("----reportCombination------------ "+ reportCombination);
+		return reportCombination;
 	}
 }

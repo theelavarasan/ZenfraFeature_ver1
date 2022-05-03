@@ -157,6 +157,8 @@ public class ReportDataController {
 			@RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) {
 		System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : "
 				+ siteKey + " : " + userId);
+		
+		 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 
 		try {
 			/*
@@ -361,6 +363,20 @@ public class ReportDataController {
 		eolService.recreateEolEosDataframe();
 	}
 
+	
+
+	@GetMapping("test")
+	public void test(HttpServletRequest request) {
+		String siteKey = "ddccdf5f-674f-40e6-9d05-52ab36b10d0e";
+		String sourceType = "AIX";
+		String userId = "5f02cb34-ab38-4321-9749-0698e37de8cd";
+		 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
+	}
+	
+	
+
+	 
+	 
 	@GetMapping("deleteCloudCostDf")
 	public void deleteCloudCostDf(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {
 		dataframeService.destroryCloudCostDataframe(siteKey);
