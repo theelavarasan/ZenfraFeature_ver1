@@ -207,7 +207,7 @@ public class ReportDataController {
 	@PostMapping("getReportHeader")
 	public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {
 
-		System.out.println("--------requestrequestrequest----------" +request.getReportType());
+	
 		try {
 			String reportName = "";
 			String deviceType = "";
@@ -227,9 +227,8 @@ public class ReportDataController {
 				reportBy = request.getReportType();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else	if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
-				reportName = request.getReportType();
-				reportName = request.getOstype();
+			} else	if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && request.getReportList().equalsIgnoreCase("Local") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
+				reportName = request.getReportType();				
 				reportBy = request.getReportBy();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
@@ -250,7 +249,7 @@ public class ReportDataController {
 				} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
 					componentName = request.getProject();
 				}
-				reportName = request.getReportType();
+				reportName = request.getReportList();
 				deviceType = componentName;
 				reportBy = request.getReportBy();
 				siteKey = request.getSiteKey();
@@ -258,7 +257,12 @@ public class ReportDataController {
 			}
 			
 		
-
+			System.out.println("--------reportName----------" +reportName + " : " +  deviceType + " : " + request.getSwitchtype() + " : " + request.getStorage()) ;
+			System.out.println("--------deviceType----------" +reportList);
+			System.out.println("--------reportBy----------" +reportBy);
+			System.out.println("--------reportName----------" +reportName);
+			
+			
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()
 					&& reportBy != null && !reportBy.isEmpty()) {
 				String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey,
@@ -270,6 +274,7 @@ public class ReportDataController {
 
 		} catch (Exception e) {
 
+			e.printStackTrace();
 			System.out.println("Not able to get report headers {}" + e);
 		}
 

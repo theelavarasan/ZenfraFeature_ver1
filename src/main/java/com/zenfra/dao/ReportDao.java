@@ -43,6 +43,7 @@ public class ReportDao {
 			params.put("report_name", reportName.toLowerCase());
 			params.put("device_type", deviceType.toLowerCase());
 			params.put("report_by", reportBy.toLowerCase());
+			System.out.println("------params--------- " + params);
 			List<Map<String, Object>> result = namedJdbc.queryForList(reportQueries.getHeader(), params);
 			reportHeaders = parseResultSetForHeaderInfo(result);
 		} catch (Exception e) {
