@@ -388,9 +388,8 @@ public class ReportDataController {
 	
 
 	@GetMapping("test")
-	public void test(HttpServletRequest request) {
-		String siteKey = "ddccdf5f-674f-40e6-9d05-52ab36b10d0e";
-		String sourceType = "AIX";
+	public void test(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, HttpServletRequest request) {
+	
 		String userId = "5f02cb34-ab38-4321-9749-0698e37de8cd";
 		 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 	}

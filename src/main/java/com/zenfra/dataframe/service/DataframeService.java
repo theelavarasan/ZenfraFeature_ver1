@@ -4054,7 +4054,7 @@ private void repalceEmptyFromJson(String filePath) {
         	
          }
          setFileOwner(verifyDataframeParentPath);
-		mapper.writeValue(filePath, resultObj.get("data"));
+		  mapper.writeValue(filePath, resultObj.get("data"));
 		 setFileOwner(filePath);
 		 System.out.println("-----------------Write DF PAth----------" + filePath.getAbsolutePath());
 	} catch (Exception e) {
