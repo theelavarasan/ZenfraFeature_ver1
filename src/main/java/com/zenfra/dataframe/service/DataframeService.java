@@ -3976,13 +3976,13 @@ private void repalceEmptyFromJson(String filePath) {
 	
 	private void createDataframeFromOdb(ServerSideGetRowsRequest request, File filePath, File verifyDataframeParentPath) {
 		
-		System.out.println("------verifyDataframePath----0000000---");
+		System.out.println("-----initate migration API--");
 		
 		String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
     	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
     	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
-       String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
-    	//String uri = "https://uat.zenfra.co/ZenfraV2/rest/reports/getReportData/migrationreport";
+      // String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
+    	String uri = "https://uat.zenfra.co/ZenfraV2/rest/reports/getReportData/migrationreport";
     	uri = uri+"?authUserId="+request.getStartRow()
     	+"&reportCategory="+request.getReportCategory()
     	+"&reportType="+request.getReportType()
@@ -4056,18 +4056,11 @@ private void repalceEmptyFromJson(String filePath) {
          setFileOwner(verifyDataframeParentPath);
 		mapper.writeValue(filePath, resultObj.get("data"));
 		 setFileOwner(filePath);
-	} catch (JsonGenerationException e) {
+		 System.out.println("-----------------Write DF PAth----------" + filePath.getAbsolutePath());
+	} catch (Exception e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
-	} catch (JsonMappingException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-		
-	 
+	} 
 		
 	}
 	
