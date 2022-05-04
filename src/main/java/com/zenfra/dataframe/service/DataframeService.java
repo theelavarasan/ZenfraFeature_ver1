@@ -3776,7 +3776,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		}
 		try {
 			
-			repalceEmptyFromJson(filePath);
+			//repalceEmptyFromJson(filePath);
 			
 			ObjectMapper mapper = new ObjectMapper();
 			JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
@@ -3789,20 +3789,12 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
 			dataset.createOrReplaceGlobalTempView(viewName);
 			
-			  Path filePathPermission = Paths.get(filePath);
-		        UserPrincipal owner1 = filePathPermission.getFileSystem().getUserPrincipalLookupService()
-		                .lookupPrincipalByName("zenuser");
-		       	Files.setOwner(filePathPermission, owner1);	  
-		       	
+			setFileOwner(new File(filePath));
 		       	
 			System.out.println("------------ODB View Name create------------" + viewName);
 			
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			e.printStackTrace();			
 		}
 
 	}
@@ -3946,6 +3938,7 @@ private void repalceEmptyFromJson(String filePath) {
 			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
 			            .collect(Collectors.toList()));	
 				
+				System.out.println("-----numericCol-------- " + numericCol);
 				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
 				 
 				
@@ -4046,7 +4039,7 @@ private void repalceEmptyFromJson(String filePath) {
 	    		httpRequest, String.class);
 	   
 	///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
-	 //System.out.println("-----resultObjresultObj-vvvvvvvvvvvvv-- " + restResult.getBody());
+	
 	 JSONObject resultObj = new JSONObject();
 	try {
 		resultObj = (JSONObject) parser.parse(restResult.getBody());
@@ -4058,9 +4051,11 @@ private void repalceEmptyFromJson(String filePath) {
 	  try {		
          if(!verifyDataframeParentPath.exists()) {
         	 verifyDataframeParentPath.mkdirs();
+        	
          }
-          
+         setFileOwner(verifyDataframeParentPath);
 		mapper.writeValue(filePath, resultObj.get("data"));
+		 setFileOwner(filePath);
 	} catch (JsonGenerationException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
@@ -4072,16 +4067,20 @@ private void repalceEmptyFromJson(String filePath) {
 		e.printStackTrace();
 	}
 		
-	  try {
-
+	 
+		
+	}
+	
+	
+	private void setFileOwner(File filePath) {
+		try {
 			Path resultFilePath = Paths.get(filePath.getAbsolutePath());
 			UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
 					.lookupPrincipalByName("zenuser");
 			Files.setOwner(resultFilePath, owner);
-			
-	} catch (Exception e) {
-		// TODO: handle exception
-	}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		
 	}
 
