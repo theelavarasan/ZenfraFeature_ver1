@@ -3811,7 +3811,7 @@ private void repalceEmptyFromJson(String filePath) {
         
         Path path = Paths.get(filePath);       
         try (Stream<String> stream = Files.lines(path, StandardCharsets.UTF_8)) {          
-            List<String> list = stream.map(line -> line.replaceAll("\":,\"", "null")).collect(Collectors.toList());         
+            List<String> list = stream.map(line -> line.replaceAll("\":,\"", "\":null,\"")).collect(Collectors.toList());         
             Files.write(path, list, StandardCharsets.UTF_8);
         } catch (IOException e) {         
             e.printStackTrace();
