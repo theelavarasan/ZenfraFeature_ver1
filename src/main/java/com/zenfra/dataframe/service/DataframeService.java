@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -3774,6 +3775,9 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+			
+			repalceEmptyFromJson(filePath);
+			
 			ObjectMapper mapper = new ObjectMapper();
 			JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
 			JSONArray jData = (JSONArray) jsonObject.get("data");
@@ -3787,7 +3791,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			
 			  Path filePathPermission = Paths.get(filePath);
 		        UserPrincipal owner1 = filePathPermission.getFileSystem().getUserPrincipalLookupService()
-		                .lookupPrincipalByName(ZKModel.getProperty("zenuser"));
+		                .lookupPrincipalByName("zenuser");
 		       	Files.setOwner(filePathPermission, owner1);	  
 		       	
 		       	
@@ -3802,6 +3806,18 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		}
 
 	}
+	
+private void repalceEmptyFromJson(String filePath) {
+        
+        Path path = Paths.get(filePath);       
+        try (Stream<String> stream = Files.lines(path, StandardCharsets.UTF_8)) {          
+            List<String> list = stream.map(line -> line.replaceAll("\":,\"", "null")).collect(Collectors.toList());         
+            Files.write(path, list, StandardCharsets.UTF_8);
+        } catch (IOException e) {         
+            e.printStackTrace();
+        }
+    }
+
 
 	public void createCloudCostDataframeFromJsonData(String filePath, String viewName) {
 
@@ -3903,7 +3919,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		}
 
 	
-		dataset.printSchema();
+		
 		
 		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
 		groupKeys = request.getGroupKeys();
@@ -3953,7 +3969,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			try {
 				Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
 				dataset.createOrReplaceGlobalTempView(viewName);
-				dataset.show();
+				dataset.show();			
 				System.out.println("---------View created-------- :: " + viewName);
 			} catch (Exception e) {
 				e.printStackTrace();
