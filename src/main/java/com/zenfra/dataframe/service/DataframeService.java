@@ -805,7 +805,7 @@ public class DataframeService {
 		try {
 			List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
 			if(numericColumns != null) {
-				dataset.createTempView("tmpReport");
+				dataset.createOrReplaceTempView("tmpReport");
 				String numericCol = String.join(",", numericColumns
 			            .stream()
 			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
@@ -813,10 +813,10 @@ public class DataframeService {
 				
 				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
 				 
-				sparkSession.catalog().dropTempView("tmpReport");
+				 
 			}
 			
-		} catch (AnalysisException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -3924,7 +3924,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		try {
 			List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
 			if(numericColumns != null) {
-				dataset.createTempView("tmpReport");
+				dataset.createOrReplaceTempView("tmpReport");
 				String numericCol = String.join(",", numericColumns
 			            .stream()
 			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
@@ -3932,10 +3932,10 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				
 				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
 				 
-				sparkSession.catalog().dropTempView("tmpReport");
+				
 			}
 			
-		} catch (AnalysisException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -4054,6 +4054,17 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	} catch (IOException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
+	}
+		
+	  try {
+
+			Path resultFilePath = Paths.get(filePath.getAbsolutePath());
+			UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
+					.lookupPrincipalByName("zenuser");
+			Files.setOwner(resultFilePath, owner);
+			
+	} catch (Exception e) {
+		// TODO: handle exception
 	}
 		
 	}
