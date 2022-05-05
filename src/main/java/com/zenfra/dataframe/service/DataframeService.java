@@ -4261,7 +4261,7 @@ private void repalceEmptyFromJson(String filePath) {
 		
 		JSONObject header = new JSONObject();
 		
-		String dfFileName = request.getSiteKey() + "_" + request.getAnalyticstype().toLowerCase() + "_"
+		String viewNameWithHypen = request.getSiteKey() + "_" + request.getAnalyticstype().toLowerCase() + "_"
 				+ request.getCategory() + "_" + "Linux" + "_" + request.getReportList() + "_"
 				+ request.getReportBy();
 		
@@ -4269,10 +4269,23 @@ private void repalceEmptyFromJson(String filePath) {
 		
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + "Linux"
-				+ File.separator + dfFileName + ".json");
+				+ File.separator + viewNameWithHypen + ".json");
+		
+		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + request.getDeviceType()
+				+ File.separator + viewNameWithHypen + ".json");
+		
+		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + request.getDeviceType() + File.separator );
+		
+		
+		
+		if(!dfFilePath.exists()) {
+			createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
+		}
 		
 		JSONArray taniumData = new JSONArray();
-		if(!dfFilePath.exists()) {
+		if(dfFilePath.exists()) {
 			try {
 			 taniumData = mapper.readValue(dfFilePath, JSONArray.class);
 			 
@@ -4288,7 +4301,7 @@ private void repalceEmptyFromJson(String filePath) {
 				e.printStackTrace();
 			}
 			
-		}
+		} 
 		
 		return null;
 	} 
