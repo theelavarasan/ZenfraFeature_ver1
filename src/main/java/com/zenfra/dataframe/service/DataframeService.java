@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1718,18 +1719,18 @@ public class DataframeService {
 			List<Map<String, Object>> resultMap = new ArrayList<>();
 			if (reportName != null && !reportName.isEmpty()) {
 				if (reportName.equalsIgnoreCase("capacity")) {
-					String query = "select column_name from report_capacity_columns where lower(device_type)= '"
+					String query = "select distinct(column_name) from report_capacity_columns where lower(device_type)= '"
 							+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
-					String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else {
-					String query = "select column_name from report_columns where lower(report_name) = '"
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = '"
 							+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
 							+ "' and is_size_metrics = '1'";
 
@@ -1738,11 +1739,11 @@ public class DataframeService {
 
 			}
 
-			JSONArray capacityMetricsColumns = new JSONArray();
+			Set<String> capacityMetricsColumns = new HashSet<>();
 			JSONObject capacityMetricsColumnObject = new JSONObject();
 			for (Map<String, Object> list : resultMap) {
 				for (Map.Entry<String, Object> entry : list.entrySet()) {
-					capacityMetricsColumns.add(entry.getValue());
+					capacityMetricsColumns.add((String) entry.getValue());
 				}
 			}
 
