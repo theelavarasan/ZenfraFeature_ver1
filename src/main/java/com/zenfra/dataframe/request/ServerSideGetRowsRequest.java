@@ -65,6 +65,7 @@ public class ServerSideGetRowsRequest implements Serializable {
     private String project;
     private String thirdPartyId;
     private String providers;
+    private String userId;
     
 
 
@@ -137,8 +138,7 @@ public class ServerSideGetRowsRequest implements Serializable {
         return filterModel;
     }
 
-    public void setFilterModel(Map<String, ColumnFilter> filterModel) {
-    	System.out.println("-----------filterModel---------" + filterModel);
+    public void setFilterModel(Map<String, ColumnFilter> filterModel) {    
         this.filterModel = filterModel;
     }
 
@@ -294,6 +294,14 @@ public class ServerSideGetRowsRequest implements Serializable {
 
 	public void setProviders(String providers) {
 		this.providers = providers;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 	
 	

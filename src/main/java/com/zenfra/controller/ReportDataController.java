@@ -227,8 +227,11 @@ public class ReportDataController {
 				reportBy = request.getReportType();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else	if (
-					request.getCategory().equalsIgnoreCase("Server") &&
+			} else if(request.getOstype().equalsIgnoreCase("Linux") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
+				
+				String columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
+				return new ResponseEntity<>(columnHeaders, HttpStatus.OK); 
+			} else if (request.getCategory().equalsIgnoreCase("Server") &&
 					request.getAnalyticstype() != null 
 					&& request.getAnalyticstype().equalsIgnoreCase("Discovery") 
 					&& request.getReportList().equalsIgnoreCase("Local") ) {
@@ -270,14 +273,9 @@ public class ReportDataController {
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();	
 				
-				System.out.println("--------reportBy---2222-------"  );
 			}
 			
 		
-			System.out.println("--------reportName----------" +reportName + " : " +  deviceType + " : " + request.getSwitchtype() + " : " + request.getStorage()) ;
-			System.out.println("--------deviceType----------" +reportList);
-			System.out.println("--------reportBy----------" +reportBy);
-			System.out.println("--------reportName----------" +reportName);
 			
 			
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()

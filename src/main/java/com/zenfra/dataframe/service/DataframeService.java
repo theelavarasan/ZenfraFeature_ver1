@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -4254,6 +4255,153 @@ private void repalceEmptyFromJson(String filePath) {
 		}
 		return value;
 	}
+
+
+	public String getReportHeaderForLinuxTanium(ServerSideGetRowsRequest request) {
+		
+		JSONObject header = new JSONObject();
+		
+		String dfFileName = request.getSiteKey() + "_" + request.getAnalyticstype().toLowerCase() + "_"
+				+ request.getCategory() + "_" + "Linux" + "_" + request.getReportList() + "_"
+				+ request.getReportBy();
+		
+	
+		
+		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + "Linux"
+				+ File.separator + dfFileName + ".json");
+		
+		JSONArray taniumData = new JSONArray();
+		if(!dfFilePath.exists()) {
+			try {
+			 taniumData = mapper.readValue(dfFilePath, JSONArray.class);
+			 
+			 if(!taniumData.isEmpty()) {
+				 JSONArray taniumHeader =  getPrivillegedAccessHeaderInfofromData(taniumData, request.getSiteKey(), request.getUserId());
+				 header.put("headerInfo", taniumHeader);	
+				 header.put("report_label", "Server Linux by Privileged Access");
+				 header.put("report_name", "Local_Linux_by_Privileged Access");
+				 header.put("unit_conv_details", new JSONArray());
+				 
+				 }
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+		return null;
+	} 
+
+
+	
+	@SuppressWarnings("unchecked")
+	private JSONArray getPrivillegedAccessHeaderInfofromData(JSONArray dataArray, String siteKey, String userId) {
+		
+		
+		JSONArray resultArray = new JSONArray();
+		Set<String> checkKeys = new HashSet<String>();
+		
+		try {
+			
+			JSONArray columnsArray = getPrivillegedAccessHeaderInfo(siteKey, userId);
+			JSONArray columnsGroupArray = new JSONArray();
+			for(int i = 0; i < columnsArray.size(); i++) {
+				columnsGroupArray.add(columnsArray.get(i).toString().substring(0, columnsArray.get(i).toString().indexOf("~")));
+			}
+			for(int i = 0; i < dataArray.size(); i++) {
+				ZenfraJSONObject dataObject = (ZenfraJSONObject) dataArray.get(i);
+				Set<String> dataKeys = dataObject.keySet();
+				for(String key: dataKeys) {
+					if(columnsGroupArray.contains(key.substring(0, key.indexOf("~"))) && (columnsArray.contains(key) || key.contains("Last Updated Time"))) {
+						if(!key.contains("rid") && !key.contains("sourceId") && !key.contains("siteKey")) {
+							if(!checkKeys.contains(key)) {
+								ZenfraJSONObject jsonObject = new ZenfraJSONObject();
+								jsonObject.put("actualName", key);
+								if(key.equalsIgnoreCase("Server Data~Processed Date") || key.contains("Last Updated Time")) {
+									jsonObject.put("dataType", "date");
+								} else {
+									jsonObject.put("dataType", "String");
+								}
+								
+								jsonObject.put("displayName", key.substring(key.indexOf("~") + 1, key.length()));
+								
+									if(key.equalsIgnoreCase("Server Data~Server Name") || key.equalsIgnoreCase("Server Data~User Name")) {
+										jsonObject.put("lockPinned", true);
+										jsonObject.put("lockPosition", true);
+										jsonObject.put("pinned", "left");
+									} else {
+										jsonObject.put("lockPinned", false);
+										jsonObject.put("lockPosition", false);
+										jsonObject.put("pinned", "");
+									}
+									resultArray.add(jsonObject);
+								
+								
+								checkKeys.add(key);
+							}
+						}
+					}
+					
+				}
+				
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+	}
+ 
+
+
+	private JSONArray getPrivillegedAccessHeaderInfo(String siteKey, String userId) {
+		
+		
+		JSONArray resultArray = new JSONArray();
+		
+		String query = "select 'Server Data' as category, concat('Server Data~', column_names) as actual_name, column_names as display_name from (\r\n" + 
+				"select column_name as column_names from report_columns where report_name = 'Discovery' and report_by = 'Privileged Access' \r\n" + 
+				") a\r\n" + 
+				"union all\r\n" + 
+				"select source_name as category, concat(source_name, '~', display_label) as actual_name, display_label as display_name from ( \r\n" + 
+				"select source_name, created_by, display_label, read_policy, update_policy, ut.user_id, is_tenant_admin from ( \r\n" + 
+				"select source_name, created_by, display_label, json_array_elements_text((case when read_policy = '[]' then '[\"test\"]' else read_policy end)::json) as read_policy, \r\n" + 
+				"json_array_elements_text((case when update_policy = '[]' then '[\"test\"]' else update_policy end)::json) as update_policy from ( \r\n" + 
+				"select source_name, created_by, json_array_elements(fields::json) ->> 'displayLabel' as display_label, \r\n" + 
+				"json_array_elements(fields::json) ->> 'read' as read_policy, \r\n" + 
+				"json_array_elements(fields::json) ->> 'update' as update_policy \r\n" + 
+				"from source where is_active = true and site_key = '" + siteKey + "'  \r\n" + 
+				") a1  \r\n" + 
+				") a  \r\n" + 
+				"LEFT JOIN ( \r\n" + 
+				"select user_id, is_tenant_admin, first_name, last_name, site_key, json_array_elements_text(policy_set::json) as policy_set from ( \r\n" + 
+				"select user_id, is_tenant_admin, first_name, last_name, json_array_elements(custom_policy::json) ->> 'siteKey'  as site_key,  \r\n" + 
+				"json_array_elements(custom_policy::json) ->> 'policset' as policy_set from user_temp  \r\n" + 
+				"where user_id = '" + userId + "'  \r\n" + 
+				") a where is_tenant_admin = true or site_key = '" + siteKey + "'  \r\n" + 
+				") ut on ut.policy_set = a.read_policy or ut.policy_set = a.update_policy or is_tenant_admin = true  \r\n" + 
+				") a where user_id is not null or is_tenant_admin = true or created_by = '" + userId + "'";
+		
+		System.out.println("!!!!! privilleges report headerInfo query: " + query);
+		
+		try {
+			List<Map<String, Object>> resultList = reportDao.getListOfMapByQuery(query);
+		for(Map<String, Object> rs : resultList) { 
+				resultArray.add(rs.get("actual_name"));
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+	}
+	
+	
+	
+
 	
 	//------------------------ Tanium Report------------------------------------------------//
 }
