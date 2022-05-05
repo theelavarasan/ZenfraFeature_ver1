@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -88,7 +89,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
- 
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.AwsInstanceCcrDataRepository;
 import com.zenfra.dao.FavouriteDao_v2;
@@ -106,6 +106,8 @@ import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.AwsInstanceCcrData;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
+import com.zenfra.model.ZenfraJSONObject;
+import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
@@ -164,6 +166,9 @@ public class DataframeService {
 	
 	@Autowired
 	AwsInstanceCcrDataRepository awsInstanceCcrDataRepository;
+	
+	@Autowired
+	CommonFunctions commonFunctions;
 
 	private String dbUrl = DBUtils.getPostgres().get("dbUrl");
 
@@ -3877,6 +3882,8 @@ private void repalceEmptyFromJson(String filePath) {
 				+ "migrationReport" + File.separator + siteKey + File.separator + componentName
 				+ File.separator + viewNameWithHypen + ".json");
 		
+		System.out.println("------verifyDataframePath-------" + verifyDataframePath);
+		
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ "migrationReport" + File.separator + siteKey + File.separator + componentName + File.separator );
 		
@@ -3900,8 +3907,8 @@ private void repalceEmptyFromJson(String filePath) {
 				createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
 				dataset = sparkSession.sql("select * from global_temp." + viewName);
 			
-			} else {
-				createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
+			} else {				
+					createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);				
 				if (verifyDataframePath.exists()) {
 					createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
 					dataset = sparkSession.sql("select * from global_temp." + viewName); 
@@ -4140,5 +4147,113 @@ private void repalceEmptyFromJson(String filePath) {
 		
 	}
 
-
+	
+	
+	
+	//------------------------ Tanium Report------------------------------------------------//
+	@SuppressWarnings("unchecked")
+	private JSONArray getPrivillegeAccessReportData(String siteKey, File filePath) {
+		
+		JSONArray resultArray = new JSONArray(); 
+		JSONParser parser = new JSONParser();
+		String query = "select source_id, server_name, privillege_data, json_agg(source_data) as source_data from (\r\n" + 
+				"select a.source_id, server_name, a.data as privillege_data, td.data as source_data from ( \r\n" + 
+				"select source_id, server_name, replace(data, '.0\"', '\"') as data from privillege_data \r\n" + 
+				"where site_key = '" + siteKey + "' \r\n" + 
+				") a\r\n" + 
+				"LEFT JOIN (select primary_key_value, json_object_agg(source_name, data::json) as data from (\r\n" + 
+				"select source_id, source_name, primary_key_value, data - 'sourceId' - 'siteKey' - 'User Name' - 'Server Name' as data from ( \r\n" +
+				"select source_id, source_name, primary_key_value, data::jsonb || concat('{\"Last Updated Time\":\"', update_time, '\"}')::jsonb as data from (\r\n" + 
+				"select sd.source_id, s.source_name, primary_key_value, \r\n" + 
+				"to_char(to_timestamp(update_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as update_time, \r\n" + 
+				"replace(data, '.0\"', '\"') as data, \r\n" + 
+				"row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num from source_data sd  \r\n" + 
+				"JOIN source s on s.source_id = sd.source_id and s.is_active = true and s.site_key = '" + siteKey + "'  \r\n" + 
+				"where sd.site_key = '" + siteKey + "' \r\n" + 
+				") b  \r\n" + 
+				"where row_num = 1 \r\n" + 
+				") c\r\n" + 
+				") e \r\n" +
+				"group by primary_key_value \r\n" + 
+				") td on td.primary_key_value ilike (a.source_id || '%') or td.primary_key_value ilike (a.server_name || '%') \r\n" + 
+				") c group by source_id, server_name, privillege_data";
+				
+		System.out.println("!!!!! privillege data query: " + query);
+		try {
+			
+			List<Map<String, Object>> taniumData = reportDao.getListOfMapByQuery(query);
+			
+			System.out.println("!!!!! --------------------------------------  !!!!! ");
+			
+			System.out.println(taniumData.size());
+			
+			System.out.println("!!!!! --------------------------------------  !!!!! ");
+			
+			for(Map<String, Object> rs : taniumData) {
+				ZenfraJSONObject dataObject = new ZenfraJSONObject();
+				JSONArray privilegeDataArray = (JSONArray) parser.parse(rs.get("privillege_data") == null ? "[]" : (String) rs.get("privillege_data"));
+				if(!privilegeDataArray.isEmpty()) {
+					JSONObject jsonObject = (JSONObject) privilegeDataArray.get(0);
+					Set<String> keySet = jsonObject.keySet();
+					for(String key : keySet) {
+						dataObject.put("Server Data~" + key, jsonObject.get(key).toString());
+					}
+				}
+				
+				JSONArray sourceDataArray = (JSONArray) parser.parse((rs.get("source_data") == null || (String.valueOf(rs.get("source_data"))).equalsIgnoreCase("[null]")) ? "[]" : String.valueOf(rs.get("source_data")));
+				if(!sourceDataArray.isEmpty()) {
+					for(int i = 0; i < sourceDataArray.size(); i++) {
+						JSONObject sourceDataObject = (JSONObject) sourceDataArray.get(i);
+						Set<String> keySet = sourceDataObject.keySet();
+						for(String key : keySet) {
+							JSONObject jsonObject1 = (JSONObject) sourceDataObject.get(key);
+							Set<String> innerKeySet = jsonObject1.keySet();
+							for(String key1 : innerKeySet) {
+								if(key1 != null && key1.isEmpty() && (key1.equalsIgnoreCase("Processed Date") || key1.equalsIgnoreCase("Date of Last Password Change"))) {
+									String value = jsonObject1.get(key1).toString();
+									value = formatDateStringToUtc(value);
+									dataObject.put(key + "~" + key1, value);
+								} else {
+									dataObject.put(key + "~" + key1, jsonObject1.get(key1).toString());
+								}
+								dataObject.put(key + "~" + key1, jsonObject1.get(key1).toString());
+							}
+						}
+					}
+					
+				}
+				
+				if(!dataObject.isEmpty()) {
+					resultArray.add(dataObject);
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		if(!resultArray.isEmpty()) {
+			 
+			try {
+				  mapper.writeValue(filePath, resultArray);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		
+		return resultArray;
+	}
+	
+	private String formatDateStringToUtc(String value) {
+		try {
+			value = value.replaceAll("UTC", "").replaceAll("utc", "").trim();
+			value = commonFunctions.convertToUtc(TimeZone.getDefault(), value);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return value;
+	}
+	
+	//------------------------ Tanium Report------------------------------------------------//
 }

@@ -304,7 +304,21 @@ public class ReportDao {
 			e.printStackTrace();
 		}
 		
-		System.out.println("----reportCombination------------ "+ reportCombination);
+		 
+		return reportCombination;
+	}
+	
+	public List<Map<String, Object>> getListOfMapByQuery(String query) {
+		List<Map<String, Object>> reportCombination = new ArrayList<>();
+		try {
+			reportCombination = jdbc.queryForList(query);
+	
+			 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	 
 		return reportCombination;
 	}
 }
