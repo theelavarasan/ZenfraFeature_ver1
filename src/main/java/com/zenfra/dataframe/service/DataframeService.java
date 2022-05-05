@@ -1739,11 +1739,11 @@ public class DataframeService {
 
 			}
 
-			Set<String> capacityMetricsColumns = new HashSet<>();
+			JSONArray capacityMetricsColumns = new JSONArray();
 			JSONObject capacityMetricsColumnObject = new JSONObject();
 			for (Map<String, Object> list : resultMap) {
 				for (Map.Entry<String, Object> entry : list.entrySet()) {
-					capacityMetricsColumns.add((String) entry.getValue());
+					capacityMetricsColumns.add(entry.getValue());
 				}
 			}
 
