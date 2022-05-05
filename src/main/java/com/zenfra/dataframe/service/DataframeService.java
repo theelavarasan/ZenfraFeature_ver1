@@ -4074,7 +4074,7 @@ private void repalceEmptyFromJson(String filePath) {
 	
 	private void setFileOwner(File filePath) {
 		try {
-			Path resultFilePath = Paths.get(filePath.getAbsolutePath());
+			Path resultFilePath = Paths.get("/opt/ZENfra/Dataframe/migrationReport/");
 			UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
 					.lookupPrincipalByName("zenuser");
 			Files.setOwner(resultFilePath, owner);
