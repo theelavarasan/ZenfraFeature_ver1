@@ -82,9 +82,9 @@ public class ToolApiConfigService {
 		try {
 			List<ToolApiConfigModel> toolApiConfigData = toolApiConfigRepository.findByIsActive(true);
 			
-			Map<String, Object> userNameData = jdbc.queryForMap("select user_id, concat\r\n"
-					+ "(first_name, last_name)  as name from tool_api_config tac \r\n"
-					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by ");
+			Map<String, Object> userNameData = jdbc.queryForMap("select first_name, last_name \r\n"
+					+ "from tool_api_config tac \r\n"
+					+ "LEFT JOIN user_temp ut on ut.user_id = tac. ");
 				
 			
 			System.out.println("----userNameData----"+userNameData);
@@ -92,7 +92,7 @@ public class ToolApiConfigService {
 			for(ToolApiConfigModel toolApiConfigModel : toolApiConfigData) {
 				System.out.println("----toolApiConfigModel----"+toolApiConfigModel);
 				
-				String userName = (String) userNameData.get(toolApiConfigModel.getCreatedBy());
+				String userName = userNameData.get("first_name").toString()+" "+userNameData.get("last_name").toString();
 				System.out.println("----userName----"+userName);
 				toolApiConfigModel.setCreatedBy(userName);
 			}
