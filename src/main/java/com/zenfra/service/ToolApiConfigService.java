@@ -92,9 +92,7 @@ public class ToolApiConfigService {
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-				data.get("password"));
-				Statement statement = connection.createStatement();
-				Statement statement1 = connection.createStatement();) {
+				data.get("password")); Statement statement = connection.createStatement();) {
 
 			List<ToolApiConfigModel> toolApiConfigData = toolApiConfigRepository.findByIsActive(true);
 
@@ -108,9 +106,7 @@ public class ToolApiConfigService {
 
 			if (userIdsMap != null && !userIdsMap.isEmpty()) {
 				for (ToolApiConfigModel toolApiConfigModel : toolApiConfigData) {
-					System.out.println("------ToolApiConfigModel-----" + toolApiConfigModel);
 					for (Map<String, Object> userId : userIdsMap) {
-						System.out.println("------userId-----" + userId);
 						if (userId.get("user_id").toString().equalsIgnoreCase(toolApiConfigModel.getCreatedBy())) {
 							toolApiConfigModel.setCreatedBy((String) userId.get("name"));
 						}
