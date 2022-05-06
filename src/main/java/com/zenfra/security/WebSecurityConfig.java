@@ -75,8 +75,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(HttpMethod.GET, "/rest/df/deleteCloudCostDf").permitAll() 
             .antMatchers(HttpMethod.POST, "/rest/df/getReportDataFromClickHouse").permitAll() 
             .antMatchers(HttpMethod.POST, "/rest/reports/health-check/get-field-values").permitAll() 
-//            .antMatchers(HttpMethod.PUT, "/rest/password-migration-aes").permitAll() 
-//            .antMatchers(HttpMethod.PUT, "/rest/password-migration-rsa").permitAll() 
 
             //.antMatchers(HttpMethod.DELETE, "/rest/api/log-file/**").permitAll()
             // Our private endpoints
