@@ -1,7 +1,10 @@
 package com.zenfra.service;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
@@ -9,17 +12,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.zenfra.dao.HeaderInfoModalRepository;
 import com.zenfra.dao.ToolApiConfigRepository;
+import com.zenfra.model.HeaderInfoModel;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ToolApiConfigModel;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.DBUtils;
+import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
 public class ToolApiConfigService {
@@ -34,6 +42,9 @@ public class ToolApiConfigService {
 
 	@Autowired
 	ToolApiConfigRepository toolApiConfigRepository;
+	
+	@Autowired
+	HeaderInfoModalRepository headerInfoModalRepository;
 
 	public ResponseEntity<?> createApiConfig(ToolApiConfigModel toolApiConfigModel) {
 
@@ -85,8 +96,10 @@ public class ToolApiConfigService {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	public ResponseEntity<?> getListToolApiData(String siteKey) {
-
+		
+		JSONObject response = new JSONObject();
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
@@ -102,12 +115,20 @@ public class ToolApiConfigService {
 					+ "LEFT JOIN user_temp ut1 on ut1.user_id = tac.updated_by\r\n"
 					+ "where tac.is_active = true and site_key = '"+ siteKey +"'";
 
-			List<Map<String, Object>> res = jdbc.queryForList(selectQuery);
-
+			List<Map<String, Object>> toolData = jdbc.queryForList(selectQuery);
+			
+			JSONArray header = getToolHeaderInfo();
+			response.put("headerInfo", header);
+			System.out.println("----------headerInfo--------"+header);
+			response.put("data", toolData);
+			System.out.println("----------data--------"+toolData);
+			
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
-			responseModel.setjData(res);
+			responseModel.setjData(response);
+			
+			System.out.println("----------JData--------"+responseModel.getjData());
 			return ResponseEntity.ok(responseModel);
 
 		} catch (Exception e) {
@@ -176,6 +197,34 @@ public class ToolApiConfigService {
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return new ResponseEntity<String>(HttpStatus.BAD_REQUEST);
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public JSONArray getToolHeaderInfo() throws SQLException {
+		List<HeaderInfoModel> headerInfoModals = headerInfoModalRepository.getHeaderInfoModelByDeviceType("Tool");
+		JSONArray jsonArray = new JSONArray();
+		try {
+			if (headerInfoModals != null && !headerInfoModals.isEmpty()) {
+				{
+					for (HeaderInfoModel headerInfoModal : headerInfoModals) {
+						JSONObject jsonObject = new JSONObject();
+						jsonObject.put("displayName", headerInfoModal.getColumnName());
+						jsonObject.put("actualName", headerInfoModal.getDbFieldName());
+						jsonObject.put("dataType", headerInfoModal.getDataType());
+						jsonObject.put("hide", headerInfoModal.getHide());
+						jsonArray.add(jsonObject);
+					}
+				}
+			}
+			System.out.println("*-*-*-*-*-*-*-*-* " + jsonArray);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return jsonArray;
 	}
 
 }
