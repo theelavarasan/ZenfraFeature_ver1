@@ -3,6 +3,9 @@ package com.zenfra.controller;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -13,6 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -163,11 +167,7 @@ public class ReportDataController {
 		System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : "
 				+ siteKey + " : " + userId);
 
-		try {
-			/*
-			 * if(sourceType != null && !sourceType.trim().isEmpty() &&
-			 * sourceType.trim().equalsIgnoreCase("Tanium")) { sourceType="Linux"; }
-			 */
+		try {			 
 
 			try { // remove orient db dataframe
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
@@ -181,6 +181,22 @@ public class ReportDataController {
 						FileSystemUtils.deleteRecursively(dir);
 					}
 				}
+				
+				try { // delete end to end df file for all log folders
+					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
+
+				    List<Path> fileWithName = Files.walk(configFilePath)
+				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());
+				          
+
+				    for (Path name : fileWithName) {
+				    	FileSystemUtils.deleteRecursively(name);
+				    }
+				
+				} catch (Exception e) {
+					// TODO: handle exception
+				} 
+				
 
 			} catch (Exception e) {
 				e.printStackTrace();
