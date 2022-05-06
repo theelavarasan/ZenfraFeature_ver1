@@ -84,7 +84,7 @@ public class ToolApiConfigService {
 			
 			Map<String, Object> userNameData = jdbc.queryForMap("select first_name, last_name \r\n"
 					+ "from tool_api_config tac \r\n"
-					+ "LEFT JOIN user_temp ut on ut.user_id = tac. ");
+					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by ");
 				
 			
 			System.out.println("----userNameData----"+userNameData);
