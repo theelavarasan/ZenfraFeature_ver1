@@ -1,6 +1,7 @@
 package com.zenfra.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,7 +63,7 @@ public class ToolApiConfigService {
 	public ResponseEntity<?> getToolApiData(String toolApiConfigId) {
 		try {
 			Optional<ToolApiConfigModel> toolApiConfigData = toolApiConfigRepository.findById(toolApiConfigId);
-
+			
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
@@ -80,7 +81,22 @@ public class ToolApiConfigService {
 	public ResponseEntity<?> getListToolApiData() {
 		try {
 			List<ToolApiConfigModel> toolApiConfigData = toolApiConfigRepository.findByIsActive(true);
-
+			
+			Map<String, Object> userNameData = jdbc.queryForMap("select user_id, concat\r\n"
+					+ "(first_name, last_name)  as name from tool_api_config tac \r\n"
+					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by ");
+				
+			
+			System.out.println("----userNameData----"+userNameData);
+			
+			for(ToolApiConfigModel toolApiConfigModel : toolApiConfigData) {
+				System.out.println("----toolApiConfigModel----"+toolApiConfigModel);
+				
+				String userName = (String) userNameData.get(toolApiConfigModel.getCreatedBy());
+				System.out.println("----userName----"+userName);
+				toolApiConfigModel.setCreatedBy(userName);
+			}
+			
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
