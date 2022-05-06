@@ -377,13 +377,13 @@ public class CommonFunctions {
 			body.add("password", password);
 
 			RestTemplate restTemplate = new RestTemplate();
-			HttpEntity<Object> request = new HttpEntity<>(body, createHeaders(null));
-			ResponseEntity<String> response = restTemplate
-					// .exchange("http://localhost:8080/usermanagment/auth/login", HttpMethod.POST,
-					// request, String.class);
-					.exchange(Constants.current_url + "/UserManagement/auth/login", HttpMethod.POST, request,
+			HttpEntity<Object> request = new HttpEntity<>(body); //, createHeaders(null)
+			String url = Constants.current_url + "/UserManagement/auth/login";
+			url = CommonUtils.checkPortNumberForWildCardCertificate(url);
+		
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request,
 							String.class);
-			System.out.println(Constants.current_url);
+		
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
 			token = root.get("jData").get("AccessToken");
@@ -459,6 +459,7 @@ public class CommonFunctions {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<JSONObject> requestEntity = new HttpEntity<JSONObject>(partObj, headers);
 			String resetLink = hostName + "/mailservice/mail/send";
+			resetLink = CommonUtils.checkPortNumberForWildCardCertificate(resetLink);
 			ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
 			if (uri != null && uri.getBody() != null) {
 				if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {

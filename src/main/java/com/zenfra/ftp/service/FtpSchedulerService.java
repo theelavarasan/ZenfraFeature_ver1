@@ -39,6 +39,7 @@ import com.zenfra.model.ftp.ProcessingStatus;
 import com.zenfra.service.ProcessService;
 import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.Constants;
 import com.zenfra.utils.Contants;
 import com.zenfra.utils.DBUtils;
@@ -363,10 +364,10 @@ public class FtpSchedulerService extends CommonEntityManager {
 
 			System.out.println("Params::" + body);
 			HttpEntity<Object> request = new HttpEntity<>(body, createHeaders("Bearer " + token));
-			ResponseEntity<String> response = restTemplate
-					// .exchange("http://localhost:8080/usermanagment/rest/ftpScheduler",
-					// HttpMethod.POST, request, String.class);
-					.exchange(parsingURL + "/parsing/upload", HttpMethod.POST, request, String.class);
+			String uri = parsingURL + "/parsing/upload";
+			uri =  CommonUtils.checkPortNumberForWildCardCertificate(uri);
+			
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
 
