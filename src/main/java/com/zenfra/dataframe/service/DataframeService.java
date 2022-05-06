@@ -2020,11 +2020,11 @@ public class DataframeService {
 					"    db_service As \"DB Service\",\r\n" + 
 					"    hba_speed As \"HBA Speed\",\r\n" + 
 					"    host As \"Host\",\r\n" + 
-					"	cast((case when logical_processor_count = '' then '0' else logical_processor_count end) as int) As \"Logical Processor Count\",\r\n" + 
+					"	cast((case when logical_processor_count = '' then null else logical_processor_count end) as int) As \"Logical Processor Count\",\r\n" + 
 					"    memory As \"Memory\",\r\n" + 
-					"    cast((case when number_of_cores = '' then '0' else number_of_cores end) as int) As \"Number of Cores\",\r\n" + 
-					"   	cast((case when number_of_ports = '' then '0' else number_of_ports end) as int) As \"Number of Ports\",\r\n" + 
-					"	cast((case when number_of_processors = '' then '0' else number_of_processors end) as int) As \"Number of Processors\",\r\n" + 
+					"    cast((case when number_of_cores = '' then null else number_of_cores end) as int) As \"Number of Cores\",\r\n" + 
+					"   	cast((case when number_of_ports = '' then null else number_of_ports end) as int) As \"Number of Ports\",\r\n" + 
+					"	cast((case when number_of_processors = '' then null else number_of_processors end) as int) As \"Number of Processors\",\r\n" + 
 					"    os_name As \"OS Name\",\r\n" + 
 					"    os_version As \"OS Version\",\r\n" + 
 					"    processor_name As \"Processor Name\",\r\n" + 
@@ -2081,7 +2081,7 @@ public class DataframeService {
 					"    end_of_extended_support_hw As \"End Of Extended Support - HW\",\r\n" + 
 					"    report_by  from cloud_cost_report_data where site_key='"+siteKey+"' and " + discoveryFilterqry + categoryQuery + sourceQuery;
 			
-		System.out.println("----------------------sql--------------------------" + sql);
+			System.out.println("----------------------sql--------------------------" + sql);
 
 			List<Map<String, Object>> localDiscDatas = jdbc.queryForList(sql);			
 			
