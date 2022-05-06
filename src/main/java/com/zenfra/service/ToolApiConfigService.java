@@ -92,44 +92,38 @@ public class ToolApiConfigService {
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-				data.get("password")); Statement statement = connection.createStatement();
+				data.get("password"));
+				Statement statement = connection.createStatement();
 				Statement statement1 = connection.createStatement();) {
-			
+
 			List<ToolApiConfigModel> toolApiConfigData = toolApiConfigRepository.findByIsActive(true);
-			
-			
 
-			String selectQuery = "select user_id, concat(first_name,' ', last_name)\r\n"
+			String selectQuery = "select user_id, concat(first_name,' ', last_name) as name \r\n"
 					+ "from tool_api_config tac \r\n"
-					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by  or ut.user_id = tac.updated_by\r\n"
-					+ " ";
+					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by  or ut.user_id = tac.updated_by\r\n";
 
-            List<Map<String, Object>> userIdsMap = jdbc.queryForList(selectQuery);
-            
-            System.out.println("----userIdsMap----"+userIdsMap);
+			List<Map<String, Object>> userIdsMap = jdbc.queryForList(selectQuery);
 
-            if(userIdsMap != null && userIdsMap.isEmpty()) {
-            	for (ToolApiConfigModel toolApiConfigModel : toolApiConfigData) {
-            		System.out.println("------ToolApiConfigModel-----"+toolApiConfigModel);            		
-            		for(Map<String, Object> userId : userIdsMap) {
-            			System.out.println("------userId-----"+userId);   
-            			for(Map.Entry m : userId.entrySet()) {
-            				System.out.println("------m-----"+m); 
-            				if(m.getKey().equals(toolApiConfigModel.getCreatedBy())) {
-            					toolApiConfigModel.setCreatedBy((String)m.getValue());
-            				}
-            				if(m.getKey().equals(toolApiConfigModel.getUpdatedBy())) {
-            					toolApiConfigModel.setUpdatedBy((String)m.getValue());
-            				}
-            			}
-            		}
-            		
-    				
-    			}
-            }
-            
-            System.out.println("------toolApiConfigData-----"+toolApiConfigData);
-			
+			System.out.println("----userIdsMap----" + userIdsMap);
+
+			if (userIdsMap != null && !userIdsMap.isEmpty()) {
+				for (ToolApiConfigModel toolApiConfigModel : toolApiConfigData) {
+					System.out.println("------ToolApiConfigModel-----" + toolApiConfigModel);
+					for (Map<String, Object> userId : userIdsMap) {
+						System.out.println("------userId-----" + userId);
+						if (userId.get("user_id").toString().equalsIgnoreCase(toolApiConfigModel.getCreatedBy())) {
+							toolApiConfigModel.setCreatedBy((String) userId.get("name"));
+						}
+						if (userId.get("user_id").toString().equalsIgnoreCase(toolApiConfigModel.getUpdatedBy())) {
+							toolApiConfigModel.setUpdatedBy((String) userId.get("name"));
+						}
+
+					}
+
+				}
+			}
+
+			System.out.println("------toolApiConfigData-----" + toolApiConfigData);
 
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
