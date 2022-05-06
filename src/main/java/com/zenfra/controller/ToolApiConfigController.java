@@ -33,8 +33,8 @@ public class ToolApiConfigController {
 	}
 
 	@GetMapping("/list")
-	public ResponseEntity<?> getListToolApiData() {
-		return ResponseEntity.ok(toolApiConfigService.getListToolApiData());
+	public ResponseEntity<?> getListToolApiData(@RequestParam String siteKey) {
+		return ResponseEntity.ok(toolApiConfigService.getListToolApiData(siteKey));
 	}
 
 	@PutMapping("/update")

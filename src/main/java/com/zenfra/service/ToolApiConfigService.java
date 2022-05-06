@@ -2,21 +2,17 @@ package com.zenfra.service;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.dao.ToolApiConfigRepository;
@@ -47,7 +43,9 @@ public class ToolApiConfigService {
 			toolApiConfigModel.setActive(true);
 			toolApiConfigModel.setApiConfigId(UUID.randomUUID().toString());
 			toolApiConfigModel.setCreatedTime(commonFunctions.getCurrentDateWithTime());
+			toolApiConfigModel.setUpdatedTime(commonFunctions.getCurrentDateWithTime());
 			toolApiConfigModel.setCreatedBy(toolApiConfigModel.getUserId());
+			toolApiConfigModel.setUpdatedBy(toolApiConfigModel.getUserId());
 //			Optional<ToolApiConfigModel> userName = toolApiConfigRepository
 //					.findById(toolApiConfigModel.getUserId());			
 //			String userNmae = userNameData.get("first_name").toString()+" "+userNameData.get("last_name").toString();		
@@ -87,44 +85,29 @@ public class ToolApiConfigService {
 
 	}
 
-	public ResponseEntity<?> getListToolApiData() {
+	public ResponseEntity<?> getListToolApiData(String siteKey) {
 
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 
-			List<ToolApiConfigModel> toolApiConfigData = toolApiConfigRepository.findByIsActive(true);
+			String selectQuery = "select trim(concat(trim(ut.first_name), ' ', coalesce(trim(ut.last_name), ''))) as created_by,\r\n"
+					+ "to_char(to_timestamp(tac.created_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as created_time, tac.site_key,\r\n"
+					+ "trim(concat(trim(ut1.first_name), ' ', coalesce(trim(ut1.last_name), ''))) as updated_by,\r\n"
+					+ "to_char(to_timestamp(tac.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time, tac.tenant_id, device_type,\r\n"
+					+ "api_key, api_secret_key, config_name\r\n"
+					+ "from tool_api_config tac\r\n"
+					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by\r\n"
+					+ "LEFT JOIN user_temp ut1 on ut1.user_id = tac.updated_by\r\n"
+					+ "where tac.is_active = true and site_key = '"+ siteKey +"'";
 
-			String selectQuery = "select user_id, concat(first_name,' ', last_name) as name \r\n"
-					+ "from tool_api_config tac \r\n"
-					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by  or ut.user_id = tac.updated_by\r\n";
-
-			List<Map<String, Object>> userIdsMap = jdbc.queryForList(selectQuery);
-
-			System.out.println("----userIdsMap----" + userIdsMap);
-
-			if (userIdsMap != null && !userIdsMap.isEmpty()) {
-				for (ToolApiConfigModel toolApiConfigModel : toolApiConfigData) {
-					for (Map<String, Object> userId : userIdsMap) {
-						if (userId.get("user_id").toString().equalsIgnoreCase(toolApiConfigModel.getCreatedBy())) {
-							toolApiConfigModel.setCreatedBy((String) userId.get("name"));
-						}
-						if (userId.get("user_id").toString().equalsIgnoreCase(toolApiConfigModel.getUpdatedBy())) {
-							toolApiConfigModel.setUpdatedBy((String) userId.get("name"));
-						}
-
-					}
-
-				}
-			}
-
-			System.out.println("------toolApiConfigData-----" + toolApiConfigData);
+			List<Map<String, Object>> res = jdbc.queryForList(selectQuery);
 
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
-			responseModel.setjData(toolApiConfigData);
+			responseModel.setjData(res);
 			return ResponseEntity.ok(responseModel);
 
 		} catch (Exception e) {
