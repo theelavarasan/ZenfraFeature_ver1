@@ -1,5 +1,10 @@
 package com.zenfra.service;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -9,12 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.dao.ToolApiConfigRepository;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ToolApiConfigModel;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.DBUtils;
 
 @Service
 public class ToolApiConfigService {
@@ -79,24 +86,27 @@ public class ToolApiConfigService {
 	}
 
 	public ResponseEntity<?> getListToolApiData() {
-		try {
+
+		Map<String, String> data = new HashMap<>();
+		data = DBUtils.getPostgres();
+		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+				data.get("password")); Statement statement = connection.createStatement();) {
+			
 			List<ToolApiConfigModel> toolApiConfigData = toolApiConfigRepository.findByIsActive(true);
-			
-			Map<String, Object> userNameData = jdbc.queryForMap("select first_name, last_name \r\n"
+
+			String selectQuery = "select first_name, last_name\r\n"
 					+ "from tool_api_config tac \r\n"
-					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by ");
-				
-			
-			System.out.println("----userNameData----"+userNameData);
-			
-			for(ToolApiConfigModel toolApiConfigModel : toolApiConfigData) {
-				System.out.println("----toolApiConfigModel----"+toolApiConfigModel);
-				
-				String userName = userNameData.get("first_name").toString()+" "+userNameData.get("last_name").toString();
-				System.out.println("----userName----"+userName);
+					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by";
+			ResultSet rs = statement.executeQuery(selectQuery);
+
+			for (ToolApiConfigModel toolApiConfigModel : toolApiConfigData) {
+				System.out.println("----toolApiConfigModel----" + toolApiConfigModel);
+
+				String userName = rs.getString("first_name").toString() + " " + rs.getString("last_name").toString();
+				System.out.println("----userName----" + userName);
 				toolApiConfigModel.setCreatedBy(userName);
 			}
-			
+
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
