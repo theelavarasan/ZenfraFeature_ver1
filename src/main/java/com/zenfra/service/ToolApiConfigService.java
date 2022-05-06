@@ -1,7 +1,6 @@
 package com.zenfra.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,16 +33,14 @@ public class ToolApiConfigService {
 
 		try {
 			
-			Map<String, Object> userNameData = jdbc.queryForMap("SELECT first_name, last_name FROM USER_TEMP WHERE user_id= '"+ toolApiConfigModel.getUserId() +"'");
+//			Map<String, Object> userNameData = jdbc.queryForMap("SELECT first_name, last_name FROM USER_TEMP WHERE user_id= '"+ toolApiConfigModel.getUserId() +"'");
 			toolApiConfigModel.setActive(true);
 			toolApiConfigModel.setApiConfigId(UUID.randomUUID().toString());
 			toolApiConfigModel.setCreatedTime(commonFunctions.getCurrentDateWithTime());
+			toolApiConfigModel.setCreatedBy(toolApiConfigModel.getUserId());
 //			Optional<ToolApiConfigModel> userName = toolApiConfigRepository
 //					.findById(toolApiConfigModel.getUserId());			
-			String userNmae = userNameData.get("first_name").toString()+" "+userNameData.get("last_name").toString();		
-			toolApiConfigModel.setCreatedBy(userNmae);
-			
-			System.out.println("---------userName----"+userNmae);     
+//			String userNmae = userNameData.get("first_name").toString()+" "+userNameData.get("last_name").toString();		
 				
 			toolApiConfigRepository.save(toolApiConfigModel);
 
@@ -105,13 +102,12 @@ public class ToolApiConfigService {
 			if(existingToolConfigData.isPresent()) {
 				ToolApiConfigModel getExistingToolConfigData = existingToolConfigData.get();
 //				Optional<ToolApiConfigModel> usernameData = toolApiConfigRepository.findByUserId(toolApiConfigModel.getUserId());
-				Map<String, Object> userNameData = jdbc.queryForMap("SELECT first_name, last_name FROM USER_TEMP WHERE user_id= '"+ toolApiConfigModel.getUserId() +"'");
-				String userName = userNameData.get("first_name").toString()+" "+userNameData.get("last_name").toString();
+//				Map<String, Object> userNameData = jdbc.queryForMap("SELECT first_name, last_name FROM USER_TEMP WHERE user_id= '"+ toolApiConfigModel.getUserId() +"'");
+//				String userName = userNameData.get("first_name").toString()+" "+userNameData.get("last_name").toString();
 				
-				System.out.println("------------userName------"+userName);
 				getExistingToolConfigData.setActive(true);
 				getExistingToolConfigData.setApiConfigId(toolApiConfigModel.getApiConfigId() == null ? "" : toolApiConfigModel.getApiConfigId());   
-				getExistingToolConfigData.setUpdatedBy(userName);
+				getExistingToolConfigData.setUpdatedBy(toolApiConfigModel.getUserId() == null ? "" : toolApiConfigModel.getUserId());
 				getExistingToolConfigData.setUpdatedTime(commonFunctions.getCurrentDateWithTime());
 				getExistingToolConfigData.setSiteKey(toolApiConfigModel.getSiteKey()  == null ? "" : toolApiConfigModel.getSiteKey());
 				getExistingToolConfigData.setTenantId(toolApiConfigModel.getTenantId()  == null ? "" : toolApiConfigModel.getTenantId());
