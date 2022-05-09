@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //	TrippleDes tripple;
 
 	 @Autowired
-		AesCrypto aesCrypto;
+	 AesCrypto aesCrypto;
 	 
 	@Override
 	protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
