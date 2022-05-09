@@ -488,7 +488,7 @@ public class CommonFunctions {
 			for (int i = 0; i < arr.size(); i++) {
 				list.add(arr.get(i));
 			}
-			list.add("aravind.krishnasamy@virtualtechgurus.com");
+			
 		} catch (Exception e) {
 			return list;
 		}
@@ -563,8 +563,9 @@ public class CommonFunctions {
 			RestTemplate restTemplate = new RestTemplate();
 			// token=token.replace("Bearer ","");
 			HttpEntity<Object> request = new HttpEntity<>(null, createHeaders(null));
-			ResponseEntity<String> response = restTemplate.exchange(
-					Constants.current_url + "UserManagement/auth/logout?token=" + token, HttpMethod.POST, request,
+			String url = Constants.current_url + "UserManagement/auth/logout?token="+ token;
+			url = CommonUtils.checkPortNumberForWildCardCertificate(url);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request,
 					String.class);
 
 			System.out.println(response.getBody());
@@ -620,11 +621,15 @@ public class CommonFunctions {
 		System.out.println(DBUtils.getParsingServerIP());
 		try {
 
-			URI uri = URI.create(DBUtils.getParsingServerIP() + "/parsing/rest/api/excute-aws-data-call" + builder);
+			String url = DBUtils.getParsingServerIP() + "/parsing/rest/api/excute-aws-data-call" + builder;
+			url = CommonUtils.checkPortNumberForWildCardCertificate(url);
+			
+			URI uri = URI.create(url);
 			System.out.println("URl::" + uri);
 			// String token="Bearer "+getZenfraToken(Constants.ftp_email,
 			// Constants.ftp_password);
 			HttpEntity<Object> request = new HttpEntity<>(createHeaders(token));
+			
 			response = restTemplate.exchange(uri, HttpMethod.GET, request, String.class);
 			// DBUtils.getParsingServerIP()+
 			return response.getBody();
