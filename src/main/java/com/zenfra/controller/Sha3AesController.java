@@ -111,7 +111,7 @@ public class Sha3AesController {
 				
 				try (Connection connection1 = DriverManager.getConnection(data.get("url"), data.get("userName"),
 						data.get("password")); Statement statement1 = connection1.createStatement();) {
-					updateQuery = "update user_temp set existing_email = '"+emailExisting+"',  existing_password = '"+passwordExisting+"', aes_email = '"+emailAesEncrypt+"', aes_password = '"+passwordAesEncrypt+"' where user_id = '"+rs.getString("user_id")+"'";
+					updateQuery = "update user_temp set email = '"+emailAesEncrypt+"',  password = '"+passwordAesEncrypt+"', aes_email = '"+emailAesEncrypt+"', aes_password = '"+passwordAesEncrypt+"' where user_id = '"+rs.getString("user_id")+"'";
 					statement1.executeUpdate(updateQuery);
 					System.out.println("----------------------Update Query-------------------------"+updateQuery);
 				} catch (Exception e) {
