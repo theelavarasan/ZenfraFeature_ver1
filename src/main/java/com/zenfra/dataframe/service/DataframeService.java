@@ -4257,12 +4257,12 @@ private void repalceEmptyFromJson(String filePath) {
 	}
 
 
-	public String getReportHeaderForLinuxTanium(ServerSideGetRowsRequest request) {
+	public JSONArray getReportHeaderForLinuxTanium(ServerSideGetRowsRequest request) {
 		
 		JSONObject header = new JSONObject();
 		
 		String viewNameWithHypen = request.getSiteKey() + "_" + request.getAnalyticstype().toLowerCase() + "_"
-				+ request.getCategory() + "_" + "Linux" + "_" + request.getReportList() + "_"
+				+ request.getCategory() + "_" + "Tanium" + "_" + request.getReportList() + "_"
 				+ request.getReportBy();
 		
 	
@@ -4292,10 +4292,10 @@ private void repalceEmptyFromJson(String filePath) {
 			 if(!taniumData.isEmpty()) {
 				 JSONArray taniumHeader =  getPrivillegedAccessHeaderInfofromData(taniumData, request.getSiteKey(), request.getUserId());
 				 header.put("headerInfo", taniumHeader);	
-				 header.put("report_label", "Server Linux by Privileged Access");
-				 header.put("report_name", "Local_Linux_by_Privileged Access");
+				 header.put("report_label", "Server Tanium by Privileged Access");
+				 header.put("report_name", "Local_Tanium_by_Privileged Access");
 				 header.put("unit_conv_details", new JSONArray());
-				 
+				 return taniumHeader;
 				 }
 			} catch (Exception e) {
 				e.printStackTrace();

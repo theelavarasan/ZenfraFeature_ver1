@@ -205,7 +205,7 @@ public class ReportDataController {
 	
 
 	@PostMapping("getReportHeader")
-	public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {
+	public ResponseEntity<?> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {
 
 	
 		try {
@@ -227,9 +227,9 @@ public class ReportDataController {
 				reportBy = request.getReportType();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else if(request.getOstype().equalsIgnoreCase("Linux") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
+			} else if(request.getOstype().equalsIgnoreCase("Tanium") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
 				
-				String columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
+				JSONArray columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK); 
 			} else if (request.getCategory().equalsIgnoreCase("Server") &&
 					request.getAnalyticstype() != null 
