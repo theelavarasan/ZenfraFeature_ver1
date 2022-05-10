@@ -38,9 +38,9 @@ public class SmtpConfigService {
 
 	}
 
-	public ResponseEntity<?> getSmtpData(String smtpConfigId) {
+	public ResponseEntity<?> getSmtpData(String tenantId) {
 		try {
-			Optional<SmtpConfigModel> smtpData = smtpConfigRepository.findById(smtpConfigId);
+			Optional<SmtpConfigModel> smtpData = smtpConfigRepository.findByTenantId(tenantId);
 
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
@@ -59,7 +59,7 @@ public class SmtpConfigService {
 
 	public ResponseEntity<?> updateSmtpData(SmtpConfigModel smtpConfigModel) {
 		try {
-			SmtpConfigModel existingSmtpData = smtpConfigRepository.findById(smtpConfigModel.getConfigId()== null ? "" : smtpConfigModel.getConfigId()).orElse(smtpConfigModel);
+			SmtpConfigModel existingSmtpData = smtpConfigRepository.findByTenantId(smtpConfigModel.getTenantId()== null ? "" : smtpConfigModel.getTenantId()).orElse(smtpConfigModel);
 			
 			existingSmtpData.setConfigId(smtpConfigModel.getConfigId() == null ? "" : smtpConfigModel.getConfigId());
 			existingSmtpData.setFromAddress(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
@@ -68,6 +68,7 @@ public class SmtpConfigService {
 			existingSmtpData.setSenderPort(smtpConfigModel.getSenderPort() == null ? "" : smtpConfigModel.getSenderPort());
 			existingSmtpData.setSenderUsername(smtpConfigModel.getSenderUsername() == null ? "" : smtpConfigModel.getSenderUsername());
 			existingSmtpData.setTransportProtocol(smtpConfigModel.getTransportProtocol() == null ? "" : smtpConfigModel.getTransportProtocol());
+			existingSmtpData.setTenantId((smtpConfigModel.getTenantId()== null ? "" : smtpConfigModel.getTenantId()));
 			
 			smtpConfigRepository.save(existingSmtpData);
 			
@@ -88,9 +89,9 @@ public class SmtpConfigService {
 		
 	}
 
-	public ResponseEntity<?> deleteSmtpData(String smtpConfigId) {
+	public ResponseEntity<?> deleteSmtpData(String tenantId) {
 		try {
-			smtpConfigRepository.deleteById(smtpConfigId);
+			smtpConfigRepository.deleteByTenantId(tenantId);
 
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
