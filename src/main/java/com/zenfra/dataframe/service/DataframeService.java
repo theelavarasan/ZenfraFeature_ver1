@@ -3946,9 +3946,9 @@ private void repalceEmptyFromJson(String filePath) {
 			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
 			            .collect(Collectors.toList()));	
 				
-				System.out.println("-----numericCol-------- " + numericCol);
+			if(numericCol != null && !numericCol.isEmpty()) {
 				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
-				 
+			}
 				
 			}
 			
@@ -4257,7 +4257,7 @@ private void repalceEmptyFromJson(String filePath) {
 	}
 
 
-	public JSONArray getReportHeaderForLinuxTanium(ServerSideGetRowsRequest request) {
+	public JSONObject getReportHeaderForLinuxTanium(ServerSideGetRowsRequest request) {
 		
 		JSONObject header = new JSONObject();
 		
@@ -4278,7 +4278,7 @@ private void repalceEmptyFromJson(String filePath) {
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + request.getDeviceType() + File.separator );
 		
-		
+		System.out.println("------Tanium verifyDataframeParentPath-------------- " + verifyDataframeParentPath);
 		
 		if(!dfFilePath.exists()) {
 			createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
@@ -4288,14 +4288,14 @@ private void repalceEmptyFromJson(String filePath) {
 		if(dfFilePath.exists()) {
 			try {
 			 taniumData = mapper.readValue(dfFilePath, JSONArray.class);
-			 
+			 System.out.println("------Tanium taniumData-------------- " + taniumData.size());
 			 if(!taniumData.isEmpty()) {
 				 JSONArray taniumHeader =  getPrivillegedAccessHeaderInfofromData(taniumData, request.getSiteKey(), request.getUserId());
 				 header.put("headerInfo", taniumHeader);	
 				 header.put("report_label", "Server Tanium by Privileged Access");
 				 header.put("report_name", "Local_Tanium_by_Privileged Access");
 				 header.put("unit_conv_details", new JSONArray());
-				 return taniumHeader;
+				 return header;
 				 }
 			} catch (Exception e) {
 				e.printStackTrace();

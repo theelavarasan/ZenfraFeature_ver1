@@ -229,7 +229,7 @@ public class ReportDataController {
 				reportList = request.getReportList();
 			} else if(request.getOstype().equalsIgnoreCase("Tanium") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
 				
-				JSONArray columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
+				JSONObject columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK); 
 			} else if (request.getCategory().equalsIgnoreCase("Server") &&
 					request.getAnalyticstype() != null 
