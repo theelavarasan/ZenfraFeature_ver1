@@ -91,27 +91,28 @@ public class Sha3AesController {
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {	
 			String updateQuery = null;
-			String selectQuery = "select user_id, email, password from user_temp";
+			String selectQuery = "select user_id, existing_email, existing_password from user_temp";
 			ResultSet rs = statement.executeQuery(selectQuery);
 			while (rs.next()) {	
 //				System.out.println("---------------------------------------------------------------------------------------------------------------DES PASSWORD"+rs.getString("password"));
-				String emailExisting = rs.getString("email");
-				String emailReal = trippleDes.decrypt(emailExisting);
-				String emailAesEncrypt = encrypt(emailReal);
-//				System.out.println("--------Encrypted AES Email-----------------"+emailAesEncrypt);
-				String emailAesDecrypt = decrypt(emailAesEncrypt);
-				System.out.println("--------Decrypted  AES Email------------------"+emailAesDecrypt);
+//				String emailExisting = rs.getString("email");
+//				String emailReal = trippleDes.decrypt(emailExisting);
+//				String emailAesEncrypt = encrypt(emailReal);
+////				System.out.println("--------Encrypted AES Email-----------------"+emailAesEncrypt);
+//				String emailAesDecrypt = decrypt(emailAesEncrypt);
+//				System.out.println("--------Decrypted  AES Email------------------"+emailAesDecrypt);
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------				
-				String passwordExisting = rs.getString("password");
-				String passwordReal = trippleDes.decrypt(passwordExisting);
-				String passwordAesEncrypt = encrypt(passwordReal);
-//				System.out.println("--------Encrypted AES Password-----------------"+passwordAesEncrypt);
-				String passwordAesDecrypt = decrypt(passwordAesEncrypt);
-				System.out.println("--------Decrypted AES Password------------------"+passwordAesDecrypt);
+//				String passwordExisting = rs.getString("password");
+//				String passwordReal = trippleDes.decrypt(passwordExisting);
+//				String passwordAesEncrypt = encrypt(passwordReal);
+////				System.out.println("--------Encrypted AES Password-----------------"+passwordAesEncrypt);
+//				String passwordAesDecrypt = decrypt(passwordAesEncrypt);
+//				System.out.println("--------Decrypted AES Password------------------"+passwordAesDecrypt);
 				
 				try (Connection connection1 = DriverManager.getConnection(data.get("url"), data.get("userName"),
 						data.get("password")); Statement statement1 = connection1.createStatement();) {
-					updateQuery = "update user_temp set email = '"+emailAesEncrypt+"',  password = '"+passwordAesEncrypt+"', aes_email = '"+emailAesEncrypt+"', aes_password = '"+passwordAesEncrypt+"' where user_id = '"+rs.getString("user_id")+"'";
+//					updateQuery = "update user_temp set email = '"+emailAesEncrypt+"',  password = '"+passwordAesEncrypt+"', aes_email = '"+emailAesEncrypt+"', aes_password = '"+passwordAesEncrypt+"' where user_id = '"+rs.getString("user_id")+"'";
+					updateQuery = "update user_temp set email = '"+rs.getString("existing_email")+"',  password = '"+rs.getString("existing_password")+"' where user_id = '"+rs.getString("user_id")+"'";
 					statement1.executeUpdate(updateQuery);
 					System.out.println("----------------------Update Query-------------------------"+updateQuery);
 				} catch (Exception e) {
