@@ -66,6 +66,8 @@ public class SmtpConfigService {
 			existingSmtpData
 					.setFromAddress(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
 			existingSmtpData
+			.setSenderUsername(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
+			existingSmtpData
 					.setSenderHost(smtpConfigModel.getSenderHost() == null ? "" : smtpConfigModel.getSenderHost());
 			existingSmtpData.setSenderPassword(
 					smtpConfigModel.getSenderPassword() == null ? "" : smtpConfigModel.getSenderPassword());
