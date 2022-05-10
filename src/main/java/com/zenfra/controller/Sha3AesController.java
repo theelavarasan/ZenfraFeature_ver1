@@ -95,14 +95,14 @@ public class Sha3AesController {
 			ResultSet rs = statement.executeQuery(selectQuery);
 			while (rs.next()) {	
 //				System.out.println("---------------------------------------------------------------------------------------------------------------DES PASSWORD"+rs.getString("password"));
-//				String emailExisting = rs.getString("email");
+				String emailExisting = rs.getString("existing_email");
 //				String emailReal = trippleDes.decrypt(emailExisting);
 //				String emailAesEncrypt = encrypt(emailReal);
 ////				System.out.println("--------Encrypted AES Email-----------------"+emailAesEncrypt);
 //				String emailAesDecrypt = decrypt(emailAesEncrypt);
 //				System.out.println("--------Decrypted  AES Email------------------"+emailAesDecrypt);
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------				
-//				String passwordExisting = rs.getString("password");
+				String passwordExisting = rs.getString("existing_password");
 //				String passwordReal = trippleDes.decrypt(passwordExisting);
 //				String passwordAesEncrypt = encrypt(passwordReal);
 ////				System.out.println("--------Encrypted AES Password-----------------"+passwordAesEncrypt);
@@ -112,7 +112,7 @@ public class Sha3AesController {
 				try (Connection connection1 = DriverManager.getConnection(data.get("url"), data.get("userName"),
 						data.get("password")); Statement statement1 = connection1.createStatement();) {
 //					updateQuery = "update user_temp set email = '"+emailAesEncrypt+"',  password = '"+passwordAesEncrypt+"', aes_email = '"+emailAesEncrypt+"', aes_password = '"+passwordAesEncrypt+"' where user_id = '"+rs.getString("user_id")+"'";
-					updateQuery = "update user_temp set email = '"+rs.getString("existing_email")+"',  password = '"+rs.getString("existing_password")+"' where user_id = '"+rs.getString("user_id")+"'";
+					updateQuery = "update user_temp set email = '"+emailExisting+"',  password = '"+passwordExisting+"' where user_id = '"+rs.getString("user_id")+"'";
 					statement1.executeUpdate(updateQuery);
 					System.out.println("----------------------Update Query-------------------------"+updateQuery);
 				} catch (Exception e) {
