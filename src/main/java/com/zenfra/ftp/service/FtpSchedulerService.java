@@ -317,7 +317,9 @@ public class FtpSchedulerService extends CommonEntityManager {
 			logFile.setFileName(fileName);
 			logFile.setFileSize(String.valueOf(convFile.length()));
 			logFile.setLogType(logType);
-			logFile.setExtractedPath(folderPath + "/" + fileName);
+			//logFile.setExtractedPath(folderPath + "/" + fileName);
+			System.out.println("----FTP PATH------   " + convFile.getAbsolutePath());
+			logFile.setExtractedPath(convFile.getAbsolutePath());
 			logFile.setSiteKey(siteKey);
 			logFile.setStatus(Contants.LOG_FILE_STATUS_QUEUE);
 			logFile.setUpdatedDateTime(functions.getCurrentDateWithTime());
@@ -376,7 +378,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 				System.out.println("invalid response");
 			}
 			System.out.println("Upload response::" + response);
-			final String rid = root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
+			//final String rid = root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
 
 			/*
 			 * StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");
