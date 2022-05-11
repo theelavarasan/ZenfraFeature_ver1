@@ -4268,15 +4268,15 @@ private void repalceEmptyFromJson(String filePath) {
 	
 		
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + "Linux"
+				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + "Tanium"
 				+ File.separator + viewNameWithHypen + ".json");
 		
 		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + request.getDeviceType()
+				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + "Tanium"
 				+ File.separator + viewNameWithHypen + ".json");
 		
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + request.getDeviceType() + File.separator );
+				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + "Tanium" + File.separator );
 		
 		System.out.println("------Tanium verifyDataframeParentPath-------------- " + verifyDataframeParentPath);
 		
@@ -4323,7 +4323,7 @@ private void repalceEmptyFromJson(String filePath) {
 				columnsGroupArray.add(columnsArray.get(i).toString().substring(0, columnsArray.get(i).toString().indexOf("~")));
 			}
 			for(int i = 0; i < dataArray.size(); i++) {
-				ZenfraJSONObject dataObject = (ZenfraJSONObject) dataArray.get(i);
+				LinkedHashMap dataObject = (LinkedHashMap) dataArray.get(i);
 				Set<String> dataKeys = dataObject.keySet();
 				for(String key: dataKeys) {
 					if(columnsGroupArray.contains(key.substring(0, key.indexOf("~"))) && (columnsArray.contains(key) || key.contains("Last Updated Time"))) {
