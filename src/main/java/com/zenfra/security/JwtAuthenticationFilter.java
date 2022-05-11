@@ -4,12 +4,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,10 +16,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import com.zenfra.configuration.RedisUtil;
+import com.zenfra.utils.AesCrypto;
 import com.zenfra.utils.ExceptionHandlerMail;
-import com.zenfra.utils.TrippleDes;
+//import com.zenfra.utils.TrippleDes;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
@@ -37,9 +35,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Autowired
 	RedisUtil redisUtil;
 
-	@Autowired
-	TrippleDes tripple;
+//	@Autowired
+//	TrippleDes tripple;
 
+	 @Autowired
+	 AesCrypto aesCrypto;
+	 
 	@Override
 	protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
 			throws IOException, ServletException {
