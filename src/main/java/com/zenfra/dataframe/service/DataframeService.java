@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1718,18 +1719,18 @@ public class DataframeService {
 			List<Map<String, Object>> resultMap = new ArrayList<>();
 			if (reportName != null && !reportName.isEmpty()) {
 				if (reportName.equalsIgnoreCase("capacity")) {
-					String query = "select column_name from report_capacity_columns where lower(device_type)= '"
+					String query = "select distinct(column_name) from report_capacity_columns where lower(device_type)= '"
 							+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
-					String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else {
-					String query = "select column_name from report_columns where lower(report_name) = '"
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = '"
 							+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
 							+ "' and is_size_metrics = '1'";
 
@@ -2103,7 +2104,7 @@ public class DataframeService {
 	}
 	
 	
-	public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
+public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		
 		Connection conn = null;
 		Statement stmt = null;
@@ -2116,9 +2117,7 @@ public class DataframeService {
 			String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"
 					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
 														// it.vcpuinfo, it.memoryinfo";
-
-			
-			System.out.println("------AWS query-------- " + query);
+		
 			
 			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
 			stmt = conn.createStatement();
@@ -2126,11 +2125,8 @@ public class DataframeService {
 
 			List<AwsInstanceData> resultRows = resultSetToList(rs);
 			resultRows = resultRows.stream().distinct().collect(Collectors.toList());
-			
-			System.out.println("------AWS resultRows-------- " + resultRows.size());
 			 
 			for(AwsInstanceData aws : resultRows) {
-				
 				try {
 					if(aws.getDescription() != null && aws.getMemoryinfo() != null && aws.getVcpuinfo() != null) {					
 						AwsInstanceCcrData awsInstanceCcrData = new AwsInstanceCcrData();

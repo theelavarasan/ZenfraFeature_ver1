@@ -101,22 +101,11 @@ public class ReportDataController {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 				}
 			} else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
-				/*
-				 * JSONArray data = reportService.getCloudCostData(request);
-				 * 
-				 * if(data != null) { JSONObject resultData = new JSONObject();
-				 * resultData.put("data", data); resultData.put("lastRow", data.size());
-				 * resultData.put("totalCount", data.size()); return new
-				 * ResponseEntity<>(resultData.toString(), HttpStatus.OK); }
-				 */
-
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
 				JSONObject result = new JSONObject();
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
-				///System.out.println("------------last pointer for CCR----------------");
-				//DataResult data = dataframeService.getCloudCostData(request);
-				//return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+
 
 			}
 
