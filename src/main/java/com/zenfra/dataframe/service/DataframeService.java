@@ -2016,15 +2016,16 @@ public class DataframeService {
 		}
 		
 		try {
+			
 			String sql = " SELECT cpu_ghz as \"CPU GHz\",\r\n" + 
 					"    db_service As \"DB Service\",\r\n" + 
 					"    hba_speed As \"HBA Speed\",\r\n" + 
 					"    host As \"Host\",\r\n" + 
-					"    cast(logical_processor_count as int) As \"Logical Processor Count\",\r\n" + 
+					"	cast((case when logical_processor_count = '' then null else logical_processor_count end) as int) As \"Logical Processor Count\",\r\n" + 
 					"    memory As \"Memory\",\r\n" + 
-					"    cast(number_of_cores as int) As \"Number of Cores\",\r\n" + 
-					"    cast(number_of_ports as int) As \"Number of Ports\",\r\n" + 
-					"    cast(number_of_processors as int) As \"Number of Processors\",\r\n" + 
+					"    cast((case when number_of_cores = '' then null else number_of_cores end) as int) As \"Number of Cores\",\r\n" + 
+					"   	cast((case when number_of_ports = '' then null else number_of_ports end) as int) As \"Number of Ports\",\r\n" + 
+					"	cast((case when number_of_processors = '' then null else number_of_processors end) as int) As \"Number of Processors\",\r\n" + 
 					"    os_name As \"OS Name\",\r\n" + 
 					"    os_version As \"OS Version\",\r\n" + 
 					"    processor_name As \"Processor Name\",\r\n" + 
