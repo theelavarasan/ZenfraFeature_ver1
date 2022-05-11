@@ -268,7 +268,7 @@ public class FavouriteApiService_v2 {
 		return responce;
 	}
 
-	public Integer deleteFavouriteViewData(String userId, String favouriteId, String createdBy, String siteKey) {
+	public Integer deleteFavouriteViewData(String userId, String favouriteId, String siteKey) {
 
 		int responce = 0;
 		try {
