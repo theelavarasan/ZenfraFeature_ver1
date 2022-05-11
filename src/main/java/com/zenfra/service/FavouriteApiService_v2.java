@@ -419,8 +419,7 @@ public class FavouriteApiService_v2 {
 					.toJSONString();
 			JSONArray category_list = map.convertValue(favouriteModel.getCategoryList(), JSONArray.class);
 
-			String grouped_columns = map.convertValue(favouriteModel.getGroupedColumns(), JSONArray.class)
-					.toJSONString();
+			String grouped_columns = map.convertValue(favouriteModel.getGroupedColumns() != null ? favouriteModel.getGroupedColumns() : new JSONArray() , JSONArray.class).toJSONString();
 
 			String updateQuery = common.getUpdateFavQuery(favouriteModel);
 
