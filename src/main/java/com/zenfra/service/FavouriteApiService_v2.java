@@ -23,6 +23,7 @@ import com.zenfra.ftp.repo.LogFileDetailsRepo;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.FavouriteView_v2;
+import com.zenfra.model.ZenfraJSONObject;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.ExceptionHandlerMail;
 
@@ -268,7 +269,7 @@ public class FavouriteApiService_v2 {
 		return responce;
 	}
 
-	public Integer deleteFavouriteViewData(String userId, String favouriteId, String createdBy, String siteKey) {
+	public Integer deleteFavouriteViewData(String userId, String favouriteId, String siteKey) {
 
 		int responce = 0;
 		try {
@@ -419,8 +420,7 @@ public class FavouriteApiService_v2 {
 					.toJSONString();
 			JSONArray category_list = map.convertValue(favouriteModel.getCategoryList(), JSONArray.class);
 
-			String grouped_columns = map.convertValue(favouriteModel.getGroupedColumns(), JSONArray.class)
-					.toJSONString();
+			String grouped_columns = map.convertValue(favouriteModel.getGroupedColumns() != null ? favouriteModel.getGroupedColumns() : new JSONArray() , JSONArray.class).toJSONString();
 
 			String updateQuery = common.getUpdateFavQuery(favouriteModel);
 

@@ -201,7 +201,7 @@ public class PasswordPolicyDao implements PasswordPolicyService {
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
 				jsonObject.put("updatedTime", rs.getString("updated_time"));
 				jsonObject.put("tenantId", rs.getString("tenant_id"));
-				jsonObject.put("combination", rs.getString("combination"));
+				jsonObject.put("combination", rs.getInt("combination"));
 			}
 			response.setjData(jsonObject);
 			response.setResponseCode(200);
