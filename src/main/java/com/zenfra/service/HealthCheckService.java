@@ -629,7 +629,7 @@ public class HealthCheckService {
 												
 //						JSONArray siteAccessList = new ObjectMapper().convertValue(jObj.get("siteAccessList"),
 //								JSONArray.class);
-						if (!siteAccessList.isEmpty()) {
+						if (!(siteAccessList == null) && !siteAccessList.isEmpty()) {
 							JSONArray siteList = new JSONArray();
 							for (int j = 0; j < siteAccessList.size(); j++) {
 								JSONObject siteObjList = new JSONObject();
@@ -652,12 +652,12 @@ public class HealthCheckService {
 						userAccessList = (JSONArray) parser.parse((String) jObj.get("userAccessList"));
 //						JSONArray userAccessList = new ObjectMapper().convertValue(jObj.get("userAccessList"),
 //								JSONArray.class);
-						if (!userAccessList.isEmpty()) {
+						if (!(userAccessList == null) && !userAccessList.isEmpty()) {
 							JSONArray userList = new JSONArray();
 							for (int j = 0; j < userAccessList.size(); j++) {
 								JSONObject userListObj = new JSONObject();
 								String accessUserId = (String) userAccessList.get(j);
-								if (accessUserId.equalsIgnoreCase("all")) {
+								if (!(accessUserId == null) && accessUserId.equalsIgnoreCase("all")) {
 									userListObj.put("value", "allUsers");
 									userListObj.put("label", "All Users");
 								} else if (userMap.containsKey(accessUserId)) {
