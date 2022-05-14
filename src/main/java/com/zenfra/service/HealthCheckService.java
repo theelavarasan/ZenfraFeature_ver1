@@ -634,7 +634,7 @@ public class HealthCheckService {
 							for (int j = 0; j < siteAccessList.size(); j++) {
 								JSONObject siteObjList = new JSONObject();
 								String siteKey1 = (String) siteAccessList.get(j);
-								if (siteKey1.equalsIgnoreCase("all")) {
+								if (!(siteKey1 == null) && siteKey1.equalsIgnoreCase("all")) {
 									siteObjList.put("value", "allSites");
 									siteObjList.put("label", "All Sites");
 								} else if (siteMap.containsKey(siteKey1)) {
