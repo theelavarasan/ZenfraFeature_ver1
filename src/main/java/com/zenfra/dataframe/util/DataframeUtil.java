@@ -137,9 +137,12 @@ public class DataframeUtil {
 						// List <String> replaced = lines.map(line ->
 						// line.replaceAll("\\\\","").replaceAll("(\"\\{\")","\\{\"").replaceAll("(\"\\}\")","\"\\}").replaceAll("\"data_temp\":\"\\{\"","").replaceAll("\\},","")).collect(Collectors.toList());
 						// //.replaceAll("\"data_temp\":\"\\[\\{\"","\"data_temp\":\\[\\{\"").replaceAll("\\]\",\"log_date\"","\\],\"log_date\"")
-						List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "")
+						List<String> replaced = lines.map(line -> line.replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\\\\", "")
 								.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
 								.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "")).collect(Collectors.toList());
+						
+						///System.out.println(replaced.toString());
+						//Thread.sleep(500000);
 						Files.write(path, replaced);
 						lines.close();
 						// System.out.println(file.getAbsolutePath());
