@@ -124,7 +124,6 @@ public class ReportDataController {
 	@PostMapping("saveLocalDiscoveryDF")
 	public ResponseEntity<String> saveLocalDiscoveryDF(@RequestParam("siteKey") String siteKey,
 			@RequestParam("sourceType") String sourceType, @RequestBody JSONObject localDiscoveryData) {
-		System.out.println("---------------api entered to add dataframe-----------------------");
 
 		try {
 			if (localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty()

@@ -3685,8 +3685,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		
 			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
 			dataset.createOrReplaceGlobalTempView(viewName);
-			dataset.show();
-			System.out.println("------------ODB View Name create------------" + viewName);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
