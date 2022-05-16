@@ -131,33 +131,33 @@ public class DataframeUtil {
 					if (file.getPath().endsWith(".crc")) {
 						file.delete();
 					} else if (file.getPath().endsWith(".json")) {
-
-						Path path = Paths.get(file.getAbsolutePath());
-						Stream<String> lines = Files.lines(path);
-						// List <String> replaced = lines.map(line ->
-						// line.replaceAll("\\\\","").replaceAll("(\"\\{\")","\\{\"").replaceAll("(\"\\}\")","\"\\}").replaceAll("\"data_temp\":\"\\{\"","").replaceAll("\\},","")).collect(Collectors.toList());
-						// //.replaceAll("\"data_temp\":\"\\[\\{\"","\"data_temp\":\\[\\{\"").replaceAll("\\]\",\"log_date\"","\\],\"log_date\"")
-						List<String> replaced = lines.map(line -> line.replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\\\\", "")
-								.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
-								.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "")).collect(Collectors.toList());
-						
-						///System.out.println(replaced.toString());
-						//Thread.sleep(500000);
-						Files.write(path, replaced);
-						lines.close();
-						// System.out.println(file.getAbsolutePath());
+						jsonFormatHanlder(file.getPath());
 					}
 
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			e.printStackTrace();			
 		}
 
+	}
+	
+	public static void jsonFormatHanlder(String filePath) {
+		try {
+			Path path = Paths.get(filePath);
+			Stream<String> lines = Files.lines(path);
+		List<String> replaced = lines.map(line -> line.replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\\\\", "")
+					.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
+					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "").replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")).collect(Collectors.toList());
+			
+			
+			Files.write(path, replaced);
+			lines.close();
+			
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static Dataset<Row> renameDataFrameColumn(Dataset<Row> dataset, String columnName, String aliasName) {
