@@ -601,7 +601,7 @@ public class DataframeService {
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
 			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();			
-
+			
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
 				try {
@@ -3675,9 +3675,14 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+			File f = new File(filePath);
+			String parentFilePath = f.getParent();
+			File[] files = new File(parentFilePath).listFiles();
+			DataframeUtil.formatJsonFile(files);
+			
 			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 					.option("mode", "PERMISSIVE").json(filePath);
-			File f = new File(filePath);
+		
 			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
 			dataset.createOrReplaceGlobalTempView(viewName);
 			dataset.show();
