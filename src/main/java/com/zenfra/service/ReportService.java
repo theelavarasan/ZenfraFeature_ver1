@@ -180,6 +180,7 @@ public class ReportService {
                         JSONObject jsonObject = (JSONObject) columnsArray.get(i);
                         if (jsonObject.containsKey(devicesArray.get(a).toString().toLowerCase())) {
                             columnsNameArray = (JSONArray) parser.parse(jsonObject.get(devicesArray.get(a).toString().toLowerCase()).toString());
+                            System.out.println("-----------------columnsNameArray---------------------"+columnsNameArray);
                             columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                         }
                     }
@@ -189,6 +190,7 @@ public class ReportService {
                 JSONArray columnsNameArray = new JSONArray();
                 columnsNameArray.add("Host Name");
                 columnsNameArray.add("Host_Host Name");
+                columnsNameArray.add("Replication Device Count");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                 }
@@ -199,6 +201,7 @@ public class ReportService {
                 columnsNameArray.add("VM");
                 columnsNameArray.add("Host Name");
                 columnsNameArray.add("Host_Host Name");
+                columnsNameArray.add("Replication Device Count");
                 //columnsNameArray.add("vCenter");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
@@ -348,7 +351,9 @@ public class ReportService {
     							} else if(deviceType.equalsIgnoreCase("vmwarehost")) {
     								postDataColumnArray.add("Server Name");
     								//postDataColumnArray.add("vCenter");
-    							} else {
+    							}else if(deviceType.equalsIgnoreCase("vmax")) {
+    								postDataColumnArray.add("Replication Device Count");
+    							}	else {
     								postDataColumnArray.add(columnsNameArray.get(j));
     							}
     							
