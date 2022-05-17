@@ -200,7 +200,7 @@ public class FavouriteApiService_v2 {
 					JSONObject prop = (JSONObject) filterProp.get(i);
 					if(prop.containsKey("selection")) {
 						String values = prop.get("selection").toString().trim();
-						if(values.toLowerCase().contains("mode")) {
+						if(values.toLowerCase().contains("mode") || values.toLowerCase().contains("netapp")) {
 							values = "NETAPP";
 						}						
 						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase)) {
