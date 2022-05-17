@@ -59,24 +59,16 @@ public class SmtpConfigService {
 
 	public ResponseEntity<?> updateSmtpData(SmtpConfigModel smtpConfigModel) {
 		try {
-			SmtpConfigModel existingSmtpData = smtpConfigRepository
-					.findByTenantId(smtpConfigModel.getTenantId() == null ? "" : smtpConfigModel.getTenantId())
-					.orElse(smtpConfigModel);
+			SmtpConfigModel existingSmtpData = smtpConfigRepository.findByTenantId(smtpConfigModel.getTenantId() == null ? "" : smtpConfigModel.getTenantId())
+					.orElse(null);
 
-			existingSmtpData
-					.setFromAddress(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
-			existingSmtpData
-			.setSenderUsername(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
-			existingSmtpData
-					.setSenderHost(smtpConfigModel.getSenderHost() == null ? "" : smtpConfigModel.getSenderHost());
-			existingSmtpData.setSenderPassword(
-					smtpConfigModel.getSenderPassword() == null ? "" : smtpConfigModel.getSenderPassword());
-			existingSmtpData
-					.setSenderPort(smtpConfigModel.getSenderPort() == null ? "" : smtpConfigModel.getSenderPort());
-			existingSmtpData.setSenderUsername(
-					smtpConfigModel.getSenderUsername() == null ? "" : smtpConfigModel.getSenderUsername());
-			existingSmtpData.setTransportProtocol(
-					smtpConfigModel.getTransportProtocol() == null ? "" : smtpConfigModel.getTransportProtocol());
+			existingSmtpData.setFromAddress(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
+			existingSmtpData.setSenderUsername(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
+			existingSmtpData.setSenderHost(smtpConfigModel.getSenderHost() == null ? "" : smtpConfigModel.getSenderHost());
+			existingSmtpData.setSenderPassword(smtpConfigModel.getSenderPassword() == null ? "" : smtpConfigModel.getSenderPassword());
+			existingSmtpData.setSenderPort(smtpConfigModel.getSenderPort() == null ? "" : smtpConfigModel.getSenderPort());
+			existingSmtpData.setSenderUsername(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
+			existingSmtpData.setTransportProtocol("smtp");
 			existingSmtpData.setTenantId((smtpConfigModel.getTenantId() == null ? "" : smtpConfigModel.getTenantId()));
 
 			smtpConfigRepository.save(existingSmtpData);
