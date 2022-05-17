@@ -192,7 +192,7 @@ public class FavouriteApiService_v2 {
 	}
 
 	private Map<String, Object> filterFavViewByProcessedLogs(Map<String, Object> row, List<String> processedLogs) {
-		System.out.println("------processedLogs-------------- "  +processedLogs);
+		
 		try {
 			if (row.get("filterProperty") != null && !row.get("filterProperty").equals("[]")) {
 				JSONArray filterProp =  (JSONArray) jSONParser.parse(row.get("filterProperty").toString().replace("\\[", "").replace("\\]", ""));
@@ -202,9 +202,7 @@ public class FavouriteApiService_v2 {
 						String values = prop.get("selection").toString().trim();
 						if(values.toLowerCase().contains("mode")) {
 							values = "NETAPP";
-						}
-						System.out.println("------values-------------- "  +values);
-						
+						}						
 						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase)) {
 							return common.getFavViewCheckNull(row);							
 						}
