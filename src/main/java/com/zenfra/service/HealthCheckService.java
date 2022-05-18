@@ -629,20 +629,22 @@ public class HealthCheckService {
 												
 //						JSONArray siteAccessList = new ObjectMapper().convertValue(jObj.get("siteAccessList"),
 //								JSONArray.class);
-						if (!siteAccessList.isEmpty()) {
+						if (!(siteAccessList == null) && !siteAccessList.isEmpty()) {
 							JSONArray siteList = new JSONArray();
 							for (int j = 0; j < siteAccessList.size(); j++) {
 								JSONObject siteObjList = new JSONObject();
-								String siteKey1 = (String) siteAccessList.get(j);
-								if (siteKey1.equalsIgnoreCase("all")) {
-									siteObjList.put("value", "allSites");
-									siteObjList.put("label", "All Sites");
-								} else if (siteMap.containsKey(siteKey1)) {
-									String siteName = siteMap.get(siteKey1);
-									siteObjList.put("value", siteKey1);
-									siteObjList.put("label", siteName);
+								if(siteAccessList.get(j) != null) {
+									String siteKey1 = (String) siteAccessList.get(j);
+									if (!(siteKey1 == null) && siteKey1.equalsIgnoreCase("all")) {
+										siteObjList.put("value", "allSites");
+										siteObjList.put("label", "All Sites");
+									} else if (siteMap.containsKey(siteKey1)) {
+										String siteName = siteMap.get(siteKey1);
+										siteObjList.put("value", siteKey1);
+										siteObjList.put("label", siteName);
+									}
+									siteList.add(siteObjList);
 								}
-								siteList.add(siteObjList);
 							}
 							jObj.put("siteList", siteList);
 						}
@@ -652,25 +654,27 @@ public class HealthCheckService {
 						userAccessList = (JSONArray) parser.parse((String) jObj.get("userAccessList"));
 //						JSONArray userAccessList = new ObjectMapper().convertValue(jObj.get("userAccessList"),
 //								JSONArray.class);
-						if (!userAccessList.isEmpty()) {
+						if (!(userAccessList == null) && !userAccessList.isEmpty()) {
 							JSONArray userList = new JSONArray();
 							for (int j = 0; j < userAccessList.size(); j++) {
 								JSONObject userListObj = new JSONObject();
-								String accessUserId = (String) userAccessList.get(j);
-								if (accessUserId.equalsIgnoreCase("all")) {
-									userListObj.put("value", "allUsers");
-									userListObj.put("label", "All Users");
-								} else if (userMap.containsKey(accessUserId)) {
-									JSONObject userObj = userMap.get(accessUserId);
-									if (userObj != null && userObj.containsKey("first_name")
-											&& userObj.containsKey("last_name")) {
-										userListObj.put("label",
-												userObj.get("first_name") + " " + userObj.get("last_name"));
-										userListObj.put("value", accessUserId);
+								if(userAccessList.get(j) != null) {
+									String accessUserId = (String) userAccessList.get(j);
+									if (!(accessUserId == null) && accessUserId.equalsIgnoreCase("all")) {
+										userListObj.put("value", "allUsers");
+										userListObj.put("label", "All Users");
+									} else if (userMap.containsKey(accessUserId)) {
+										JSONObject userObj = userMap.get(accessUserId);
+										if (userObj != null && userObj.containsKey("first_name")
+												&& userObj.containsKey("last_name")) {
+											userListObj.put("label",
+													userObj.get("first_name") + " " + userObj.get("last_name"));
+											userListObj.put("value", accessUserId);
+										}
 									}
+									userList.add(userListObj);
 								}
-								userList.add(userListObj);
-							}
+								}
 							jObj.put("userList", userList);
 						}
 					}

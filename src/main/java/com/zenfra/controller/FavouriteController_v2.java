@@ -84,7 +84,7 @@ public class FavouriteController_v2 {
 
 		ResponseModel_v2 responseModel = new ResponseModel_v2();
 		try {
-System.out.println("----------------1---------------------");
+			
 			responseModel.setResponseMessage("Success");
 			responseModel.setResponseCode(HttpStatus.OK);
 			responseModel.setResponseDescription("FavouriteView Successfully Retrieved");
@@ -294,13 +294,13 @@ System.out.println("----------------1---------------------");
 
 	@DeleteMapping("/delete-favourite-filter-view")
 	public ResponseEntity<?> deleteFavouriteViewData(@RequestParam(name = "authUserId", required = false) String userId,
-			@RequestParam(name = "favouriteID") String FavouriteId, @RequestParam("createdBy") String createdBy,
+			@RequestParam(name = "favouriteID") String FavouriteId,
 			@RequestParam(name = "siteKey") String siteKey) throws IOException, URISyntaxException {
 
 		ResponseModel responseModel = new ResponseModel();
 		try {
 
-			if (service.deleteFavouriteViewData(userId, FavouriteId, createdBy, siteKey) == 1) {
+			if (service.deleteFavouriteViewData(userId, FavouriteId, siteKey) == 1) {
 				responseModel.setResponseDescription("FavouriteView Successfully deleted");
 				responseModel.setResponseCode(HttpStatus.OK);
 			} else {
