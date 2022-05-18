@@ -90,6 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		} else {
 			logger.warn("couldn't find bearer string, will ignore the header");
 		}
+		System.out.println("!!!!! token username: " + username);
 		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
 			String userObject = redisUtil.getValue(authToken) != null ? redisUtil.getValue(authToken).toString() : null;
