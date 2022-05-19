@@ -169,11 +169,12 @@ public class ReportService {
             JSONArray devicesArray = (JSONArray) parser.parse(linkDevices);
             //System.out.println("!!!!! devicesArray: " + devicesArray);
             if (reportName.trim().equalsIgnoreCase("discovery")) {
-                String linkColumns = ZKModel.getProperty(ZKConstants.CRCOLUMNNAMES);               
-              
+                String linkColumns = ZKModel.getProperty(ZKConstants.CRCOLUMNNAMES);   
                 
+              
+                System.out.println("!!!!! devicesArray: " + devicesArray);
                 JSONArray columnsArray = (JSONArray) parser.parse(linkColumns);
-
+                System.out.println("!!!!! columnsArray: " + columnsArray);
                 for (int a = 0; a < devicesArray.size(); a++) {
                     JSONArray columnsNameArray = new JSONArray();
                     for (int i = 0; i < columnsArray.size(); i++) {
@@ -201,7 +202,7 @@ public class ReportService {
                 columnsNameArray.add("VM");
                 columnsNameArray.add("Host Name");
                 columnsNameArray.add("Host_Host Name");
-                columnsNameArray.add("Replication Device Count");
+               // columnsNameArray.add("Replication Device Count");
                 //columnsNameArray.add("vCenter");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
@@ -352,7 +353,8 @@ public class ReportService {
     								postDataColumnArray.add("Server Name");
     								//postDataColumnArray.add("vCenter");
     							}else if(deviceType.equalsIgnoreCase("vmax")) {
-    								postDataColumnArray.add("Replication Device Count");
+    								postDataColumnArray.add("Possible Server Name(VMAX)");
+    								postDataColumnArray.add("SID");
     							}	else {
     								postDataColumnArray.add(columnsNameArray.get(j));
     							}
