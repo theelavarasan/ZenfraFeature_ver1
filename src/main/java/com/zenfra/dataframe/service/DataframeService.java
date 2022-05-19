@@ -3890,35 +3890,42 @@ private void repalceEmptyFromJson(String filePath) {
 				+ "migrationReport" + File.separator + siteKey + File.separator + componentName + File.separator );
 		
 
+		
+		Dataset<Row> dataset = null;
+		
+		
+		if(!componentName.toLowerCase().contains("tanium")) {  
+			boolean isDiscoveryDataInView = false;	
+			try {
+				dataset = sparkSession.sql("select * from global_temp." + viewName);		
+				isDiscoveryDataInView = true;
+			} catch (Exception e) {
+				System.out.println("---------View Not exists--------");
+			}
+
+			if (!isDiscoveryDataInView) {			
+				
+				if (verifyDataframePath.exists()) {
+					
+					createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
+					dataset = sparkSession.sql("select * from global_temp." + viewName);
+				
+				} else {				
+						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);				
+					if (verifyDataframePath.exists()) {
+						createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
+						dataset = sparkSession.sql("select * from global_temp." + viewName); 
+					}
+					
+				} 
+			}
+
+		} else { //tanium logic
+			dataset = getTaniumReport(siteKey);		
+		}
 	
 		
-		boolean isDiscoveryDataInView = false;
-		Dataset<Row> dataset = null;
-	
-		try {
-			dataset = sparkSession.sql("select * from global_temp." + viewName);		
-			isDiscoveryDataInView = true;
-		} catch (Exception e) {
-			System.out.println("---------View Not exists--------");
-		}
-
-		if (!isDiscoveryDataInView) {			
-			
-			if (verifyDataframePath.exists()) {
-				
-				createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
-				dataset = sparkSession.sql("select * from global_temp." + viewName);
-			
-			} else {				
-					createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);				
-				if (verifyDataframePath.exists()) {
-					createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
-					dataset = sparkSession.sql("select * from global_temp." + viewName); 
-				}
-				
-			} 
-		}
-
+		
 	
 		
 		
@@ -3966,6 +3973,38 @@ private void repalceEmptyFromJson(String filePath) {
 	}
 
 	
+	private Dataset<Row> getTaniumReport(String siteKey) {
+		
+		Dataset<Row> taniumDataset = sparkSession.emptyDataFrame();
+		
+		try {
+			File taniumDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
+					+ "migrationReport" + File.separator + siteKey + File.separator + "Tanium"
+					+ File.separator + "log_data" + ".json");
+			
+			File customDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
+					+ "migrationReport" + File.separator + siteKey + File.separator + "Tanium"
+					+ File.separator + "custom_data" + ".json");
+			
+			String logDataViewName = siteKey  + "tanium_log"; 
+			logDataViewName = logDataViewName.replaceAll("-", "").replaceAll("\\s+", "").toLowerCase();
+			
+			String customDataViewName = siteKey  + "tanium_custom"; 
+			customDataViewName = customDataViewName.replaceAll("-", "").replaceAll("\\s+", "").toLowerCase();
+			
+			Dataset<Row> logDataset = sparkSession.read().option("multiline", true).json(taniumDataframFile.getAbsolutePath());
+			logDataset.createOrReplaceGlobalTempView(logDataViewName);
+			
+			Dataset<Row> customDataset = sparkSession.read().option("multiline", true).json(customDataframFile.getAbsolutePath());
+			customDataset.createOrReplaceGlobalTempView(customDataViewName);
+			taniumDataset = sparkSession.sqlContext().sql("select * from global_temp." + logDataViewName + " ld left join global_temp." + customDataViewName + " cd on ld.source_id=cd.source_id");
+		 } catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return taniumDataset;
+	}
+
 	private void createDataframeFromJsonFile(String viewName, String filePath) {
 		if (filePath.endsWith(".json")) {
 			try {
@@ -4122,7 +4161,7 @@ private void repalceEmptyFromJson(String filePath) {
 								+ request.getReportBy();
 						String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
 						
-						System.out.println("------viewName------- " + viewName);
+						 
 						
 						File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 								+ "migrationReport" + File.separator + siteKey + File.separator + deviceType
@@ -4134,15 +4173,6 @@ private void repalceEmptyFromJson(String filePath) {
 						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
 						
 				 }
-				
-				/*else if(request.getThirdPartyId() != null && !request.getThirdPartyId().isEmpty()) { //Project
-					componentName = request.getThirdPartyId();
-				} else if(request.getProviders() != null && !request.getProviders().isEmpty()) { //Providers
-					componentName = request.getProviders();
-				} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
-					componentName = request.getProject();
-				}*/
-				
 				
 			}
 		}
@@ -4411,6 +4441,87 @@ private void repalceEmptyFromJson(String filePath) {
 		}
 		
 		return resultArray;
+	}
+
+	public void recreateTaniumReportForDataframe(String siteKey, String sourceType, String userId) {
+
+		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ "migrationReport" + File.separator  + File.separator + "Tanium"
+				+ File.separator + siteKey + File.separator);
+		
+		String pvDataDfFilePath = dfFilePath+"log_data" + ".json";
+		
+		try {
+			
+			Map<String, String> options = new HashMap<String, String>();
+			options.put("url", dbUrl);
+			options.put("dbtable", "privillege_data");
+
+			@SuppressWarnings("deprecation")
+			Dataset<Row> privillegeData = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
+
+			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(privillegeData, "data", "");
+			String privilageTempView = (siteKey+"privillege_data").replaceAll("-", "");
+			formattedDataframe.createOrReplaceTempView(privilageTempView);
+			
+	       Dataset<Row> pvData = formattedDataframe.sqlContext().sql("select * from "+privilageTempView+" where site_key='"+siteKey+"'");
+	 
+	        pvData.write().option("escape", "").option("quotes", "")
+							.option("ignoreLeadingWhiteSpace", true)
+							.format("org.apache.spark.sql.json").mode(SaveMode.Overwrite).save(pvDataDfFilePath);
+			 
+	        File file = new File(pvDataDfFilePath);
+
+			if (file != null && file.exists()) {
+				DataframeUtil.jsonFormatHanlder(pvDataDfFilePath);
+			}
+
+		} catch (Exception exp) {
+			logger.error("Not able to create dataframe {}", exp.getMessage(), exp);
+		}
+		
+	}
+
+	public void recreateCustomExcelReportForDataframe(String siteKey, String userId) {
+		
+		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ "migrationReport" + File.separator  + File.separator + "Tanium"
+				+ File.separator + siteKey + File.separator);
+		String pvDataDfFilePath = dfFilePath + "custom_data" + ".json";
+		
+		try {
+			String query = "select primary_key_value, json_object_agg(source_name, data::json) as data from  " + 
+					" select source_id, source_name, primary_key_value, data - 'sourceId' - 'siteKey' - 'User Name' - 'Server Name' as data from (  "+ 
+					" select source_id, source_name, primary_key_value, data::jsonb || concat('{\"Last Updated Time\":\"', update_time, '\"}')::jsonb as data from ( " + 
+					" select sd.source_id, s.source_name, primary_key_value, " + 
+					" to_char(to_timestamp(update_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as update_time,  " + 
+					" replace(data, '.0\"', '\"') as data,  " + 
+					" row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num from source_data sd   " + 
+					" JOIN source s on s.source_id = sd.source_id and s.is_active = true and s.site_key = '" + siteKey + "'  " + 
+					" where sd.site_key = '" + siteKey + "' " + 
+					" ) b  " + 
+					" where row_num = 1 " + 
+					" )  " + 
+					" ) e " + 
+					" group by primary_key_value";
+			
+			List<Map<String, Object>> dataList = reportDao.getListOfMapByQuery(query);
+				 
+			JSONArray jsonArray = new JSONArray();
+			jsonArray.addAll(dataList);
+			
+			mapper.writeValue(new File(pvDataDfFilePath), jsonArray);			 
+	        File file = new File(pvDataDfFilePath);
+
+			if (file != null && file.exists()) {
+				DataframeUtil.jsonFormatHanlder(pvDataDfFilePath);
+			}
+
+		} catch (Exception exp) {
+			logger.error("Not able to create dataframe {}", exp.getMessage(), exp);
+		}
+		
+		
 	}
 	
 	

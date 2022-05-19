@@ -158,7 +158,12 @@ public class ReportDataController {
 		System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : "
 				+ siteKey + " : " + userId);
 		
-		 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
+		if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
+			 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);
+		} else {
+			 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
+		}
+		
 
 		try {
 			/*
@@ -203,6 +208,13 @@ public class ReportDataController {
 	}
 
 	
+
+	@PostMapping("createCustomExcelDf")
+	public void createCustomExcelDf(@RequestParam("siteKey") String siteKey, @RequestParam("userId") String userId) {
+		
+		 dataframeService.recreateCustomExcelReportForDataframe(siteKey, userId);
+		
+	}
 
 	@PostMapping("getReportHeader")
 	public ResponseEntity<?> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {
