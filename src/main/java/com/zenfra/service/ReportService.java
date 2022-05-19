@@ -270,14 +270,14 @@ public class ReportService {
                 }
                 //System.out.println("!!!!! propMap: " + propMap);
                 List<String> propKeys = new ArrayList<String>(propMap.keySet());
-                //System.out.println("!!!!! propKeys: " + propKeys);
+                System.out.println("!!!!! propKeys: " + propKeys);
 
                 //JSONArray jsonArray = new JSONArray();
                 ZenfraJSONObject resultObject = new ZenfraJSONObject();
 
                 JSONArray postDataColumnArray = new JSONArray();
                 List<String> columnsKey = new ArrayList<String>(columnsMap.keySet());
-                //System.out.println("!!!!! columnsKey: " + columnsKey);
+                System.out.println("!!!!! columnsKey: " + columnsKey);
                 //System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
 
                 for (int i = 0; i < columnsKey.size(); i++) {
@@ -347,13 +347,14 @@ public class ReportService {
                             tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
                             
                             if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
+                            	System.out.println("!!!!! deviceType: " + deviceType);
     							if(deviceType.equalsIgnoreCase("vmware")) {
     								postDataColumnArray.add("VM");
     								//postDataColumnArray.add("vCenter");
     							} else if(deviceType.equalsIgnoreCase("vmwarehost")) {
     								postDataColumnArray.add("Server Name");
     								//postDataColumnArray.add("vCenter");
-    							}else if(deviceType.equalsIgnoreCase("vmax")) {
+    							} else if(deviceType.equalsIgnoreCase("vmax")) {
     								//postDataColumnArray.add("Possible Server Name(VMAX)");
     								//postDataColumnArray.add("SID");
     								postDataColumnArray.add("Replication Device Count");
@@ -393,7 +394,7 @@ public class ReportService {
 
         
 
-        //System.out.println("!!!!! result: " + result);
+        System.out.println("!!!!! result: " + result);
         return result;
  
 }
