@@ -363,6 +363,9 @@ public class ReportService {
     								postDataColumnArray.add("SID");
     								postDataColumnArray.add("Replication Device Count");
     							}	else {
+    								if(!columnsNameArray.get(j).toString().equalsIgnoreCase("Replication Device Count")) {
+    									postDataColumnArray.add(columnsNameArray.get(j));
+    								}
     								postDataColumnArray.add(columnsNameArray.get(j));
     							}
     							System.out.println("!!!!! columnsKey: " + columnsKey.get(i));
