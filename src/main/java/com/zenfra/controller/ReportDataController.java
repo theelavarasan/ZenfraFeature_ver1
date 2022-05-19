@@ -164,11 +164,14 @@ public class ReportDataController {
 																											// +
 																											// File.separator;
 				File[] directories = new File(dataframePath).listFiles(File::isDirectory);
-				for (File dir : directories) {
-					if (dir.getName().equalsIgnoreCase(sourceType)) {
-						FileSystemUtils.deleteRecursively(dir);
+				if(directories != null)  {
+					for (File dir : directories) {
+						if (dir.getName().equalsIgnoreCase(sourceType)) {
+							FileSystemUtils.deleteRecursively(dir);
+						}
 					}
 				}
+				
 				
 				try { // delete end to end df file for all log folders
 					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
