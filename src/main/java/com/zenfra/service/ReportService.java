@@ -181,6 +181,7 @@ public class ReportService {
                         JSONObject jsonObject = (JSONObject) columnsArray.get(i);
                         if (jsonObject.containsKey(devicesArray.get(a).toString().toLowerCase())) {
                             columnsNameArray = (JSONArray) parser.parse(jsonObject.get(devicesArray.get(a).toString().toLowerCase()).toString());
+                            columnsNameArray.add("Replication Device Count");
                             System.out.println("-----------------columnsNameArray---------------------"+columnsNameArray);
                             columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                         }
@@ -353,8 +354,9 @@ public class ReportService {
     								postDataColumnArray.add("Server Name");
     								//postDataColumnArray.add("vCenter");
     							}else if(deviceType.equalsIgnoreCase("vmax")) {
-    								postDataColumnArray.add("Possible Server Name(VMAX)");
-    								postDataColumnArray.add("SID");
+    								//postDataColumnArray.add("Possible Server Name(VMAX)");
+    								//postDataColumnArray.add("SID");
+    								postDataColumnArray.add("Replication Device Count");
     							}	else {
     								postDataColumnArray.add(columnsNameArray.get(j));
     							}
