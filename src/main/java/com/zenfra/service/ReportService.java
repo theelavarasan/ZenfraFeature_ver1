@@ -282,6 +282,9 @@ public class ReportService {
 
                 for (int i = 0; i < columnsKey.size(); i++) {
                     JSONArray columnsNameArray = columnsMap.get(columnsKey.get(i));
+                    if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
+                    	columnsNameArray = (JSONArray) parser.parse("[\"Replication Device Count\"]");
+                    }
                     System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
                     JSONObject tabInfoObject = new JSONObject();
                     for (int j = 0; j < columnsNameArray.size(); j++) {
