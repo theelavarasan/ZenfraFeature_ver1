@@ -359,12 +359,13 @@ public class ReportService {
     								postDataColumnArray.add("Server Name");
     								//postDataColumnArray.add("vCenter");
     							} else if(deviceType.equalsIgnoreCase("vmax")) {
-    								//postDataColumnArray.add("Possible Server Name(VMAX)");
-    								//postDataColumnArray.add("SID");
+    								postDataColumnArray.add("Possible Server Name(VMAX)");
+    								postDataColumnArray.add("SID");
     								postDataColumnArray.add("Replication Device Count");
     							}	else {
     								postDataColumnArray.add(columnsNameArray.get(j));
     							}
+    							System.out.println("!!!!! columnsKey: " + columnsKey.get(i));
     							if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
     								postDataColumnArray.add("Possible Server Name(VMAX)");
     								postDataColumnArray.add("SID");
@@ -379,6 +380,7 @@ public class ReportService {
 
                 }               
                 
+                System.out.println("!!!!! postDataColumnArray: " + postDataColumnArray);
                 result.put("postDataColumns", postDataColumnArray);
                 result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));
                 JSONArray refferedDeviceType = new JSONArray();
@@ -402,7 +404,7 @@ public class ReportService {
 
         
 
-        System.out.println("!!!!! result: " + result);
+        //System.out.println("!!!!! result: " + result);
         return result;
  
 }
