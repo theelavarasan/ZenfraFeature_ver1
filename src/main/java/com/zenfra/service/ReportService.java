@@ -381,6 +381,8 @@ public class ReportService {
                 }               
                 
                 System.out.println("!!!!! postDataColumnArray: " + postDataColumnArray);
+                postDataColumnArray.add("Possible Server Name(VMAX)");
+                postDataColumnArray.add("SID");
                 result.put("postDataColumns", postDataColumnArray);
                 result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));
                 JSONArray refferedDeviceType = new JSONArray();
