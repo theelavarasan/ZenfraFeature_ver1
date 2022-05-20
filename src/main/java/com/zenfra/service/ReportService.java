@@ -344,6 +344,8 @@ public class ReportService {
                             if (reportName.equalsIgnoreCase("project")) {
                                 JSONArray skipValueArray = new JSONArray();
                                 skipValueArray.add("Not Discovered");
+                                skipValueArray.add("0");
+                                skipValueArray.add(0);
                                 tabInfoObject.put("skipValues", skipValueArray);
                             } else {
                                 tabInfoObject.put("skipValues", new JSONArray());
