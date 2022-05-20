@@ -3652,6 +3652,7 @@ public class DataframeService {
 			filePath = filePath.split(",")[0];
 		}
 		String result = "";
+		DataframeUtil.validateAndFormatJsonData(filePath);
 		/*
 		 * JSONParser parser = new JSONParser(); Object obj = parser.parse(new
 		 * FileReader(filePath)); JSONObject jsonObject = (JSONObject) obj;

@@ -319,14 +319,12 @@ public class DataframeUtil {
 	 */
 
 	
-	public static void validateAndFormatJsonData(String filePath) {
+	public static void validateAndFormatJsonData(String filePath) { //remove double quotes in json data and string to numeric
 		try {
 			 if (filePath.endsWith(".json")) {
 						Path path = Paths.get(filePath);
 						Stream<String> lines = Files.lines(path);
-						List<String> replaced = lines.map(line -> line.replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\\\\", "")
-								.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
-								.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "").replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")).collect(Collectors.toList());
+						List<String> replaced = lines.map(line -> line.replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")).collect(Collectors.toList());
 						Files.write(path, replaced);
 						lines.close();						
 					}
