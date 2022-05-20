@@ -3679,6 +3679,7 @@ public class DataframeService {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+			DataframeUtil.validateAndFormatJsonData(filePath);
 			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 					.option("mode", "PERMISSIVE").json(filePath);
 			File f = new File(filePath);
@@ -3687,11 +3688,7 @@ public class DataframeService {
 			dataset.show();
 			System.out.println("------------ODB View Name create------------" + viewName);
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			e.printStackTrace();			
 		}
 
 	}

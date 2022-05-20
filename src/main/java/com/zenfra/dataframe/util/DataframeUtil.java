@@ -318,4 +318,25 @@ public class DataframeUtil {
 	 * errors.toString(); ExceptionHandlerMail.errorTriggerMail(ex); } }
 	 */
 
+	
+	public static void validateAndFormatJsonData(String filePath) {
+		try {
+			 if (filePath.endsWith(".json")) {
+						Path path = Paths.get(filePath);
+						Stream<String> lines = Files.lines(path);
+						List<String> replaced = lines.map(line -> line.replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\\\\", "")
+								.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
+								.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "").replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")).collect(Collectors.toList());
+						Files.write(path, replaced);
+						lines.close();						
+					}
+
+				
+			 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+	
 }
