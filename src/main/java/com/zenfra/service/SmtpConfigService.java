@@ -38,9 +38,9 @@ public class SmtpConfigService {
 
 	}
 
-	public ResponseEntity<?> getSmtpData(String smtpConfigId) {
+	public ResponseEntity<?> getSmtpData(String tenantId) {
 		try {
-			Optional<SmtpConfigModel> smtpData = smtpConfigRepository.findById(smtpConfigId);
+			Optional<SmtpConfigModel> smtpData = smtpConfigRepository.findByTenantId(tenantId);
 
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
@@ -59,38 +59,44 @@ public class SmtpConfigService {
 
 	public ResponseEntity<?> updateSmtpData(SmtpConfigModel smtpConfigModel) {
 		try {
-			SmtpConfigModel existingSmtpData = smtpConfigRepository.findById(smtpConfigModel.getConfigId()== null ? "" : smtpConfigModel.getConfigId()).orElse(smtpConfigModel);
-			
-			existingSmtpData.setConfigId(smtpConfigModel.getConfigId() == null ? "" : smtpConfigModel.getConfigId());
+			SmtpConfigModel existingSmtpData = smtpConfigRepository.findByTenantId(smtpConfigModel.getTenantId() == null ? "" : smtpConfigModel.getTenantId())
+					.orElse(null);
+
 			existingSmtpData.setFromAddress(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
+			existingSmtpData.setSenderUsername(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
 			existingSmtpData.setSenderHost(smtpConfigModel.getSenderHost() == null ? "" : smtpConfigModel.getSenderHost());
 			existingSmtpData.setSenderPassword(smtpConfigModel.getSenderPassword() == null ? "" : smtpConfigModel.getSenderPassword());
 			existingSmtpData.setSenderPort(smtpConfigModel.getSenderPort() == null ? "" : smtpConfigModel.getSenderPort());
-			existingSmtpData.setSenderUsername(smtpConfigModel.getSenderUsername() == null ? "" : smtpConfigModel.getSenderUsername());
-			existingSmtpData.setTransportProtocol(smtpConfigModel.getTransportProtocol() == null ? "" : smtpConfigModel.getTransportProtocol());
-			
+			existingSmtpData.setSenderUsername(smtpConfigModel.getFromAddress() == null ? "" : smtpConfigModel.getFromAddress());
+			existingSmtpData.setTransportProtocol("smtp");
+			existingSmtpData.setTenantId((smtpConfigModel.getTenantId() == null ? "" : smtpConfigModel.getTenantId()));
+
 			smtpConfigRepository.save(existingSmtpData);
-			
+
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);
 			responseModel.setResponseCode(HttpStatus.OK);
 			responseModel.setjData(existingSmtpData);
 			return ResponseEntity.ok(responseModel);
-			
-		}catch (Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			responseModel.setStatusCode(500);
 			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			return new ResponseEntity<String>(HttpStatus.BAD_REQUEST);
 		}
-		
-		
-		
+
 	}
 
-	public ResponseEntity<?> deleteSmtpData(String smtpConfigId) {
+	public ResponseEntity<?> deleteSmtpData(String tenantId) {
 		try {
-			smtpConfigRepository.deleteById(smtpConfigId);
+
+			Optional<SmtpConfigModel> smtpData = smtpConfigRepository.findByTenantId(tenantId);
+
+			if (smtpData.isPresent()) {
+				SmtpConfigModel smtpDataObj = smtpData.get();
+				smtpConfigRepository.delete(smtpDataObj);
+			}
 
 			responseModel.setResponseMessage("Success");
 			responseModel.setStatusCode(200);

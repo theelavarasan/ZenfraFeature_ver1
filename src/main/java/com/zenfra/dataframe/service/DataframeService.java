@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -600,7 +601,7 @@ public class DataframeService {
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
 			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();			
-
+			
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
 				try {
@@ -1718,18 +1719,18 @@ public class DataframeService {
 			List<Map<String, Object>> resultMap = new ArrayList<>();
 			if (reportName != null && !reportName.isEmpty()) {
 				if (reportName.equalsIgnoreCase("capacity")) {
-					String query = "select column_name from report_capacity_columns where lower(device_type)= '"
+					String query = "select distinct(column_name) from report_capacity_columns where lower(device_type)= '"
 							+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
-					String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else {
-					String query = "select column_name from report_columns where lower(report_name) = '"
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = '"
 							+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
 							+ "' and is_size_metrics = '1'";
 
@@ -2015,15 +2016,16 @@ public class DataframeService {
 		}
 		
 		try {
+			
 			String sql = " SELECT cpu_ghz as \"CPU GHz\",\r\n" + 
 					"    db_service As \"DB Service\",\r\n" + 
 					"    hba_speed As \"HBA Speed\",\r\n" + 
 					"    host As \"Host\",\r\n" + 
-					"    cast(logical_processor_count as int) As \"Logical Processor Count\",\r\n" + 
+					"	cast((case when logical_processor_count = '' then null else logical_processor_count end) as int) As \"Logical Processor Count\",\r\n" + 
 					"    memory As \"Memory\",\r\n" + 
-					"    cast(number_of_cores as int) As \"Number of Cores\",\r\n" + 
-					"    cast(number_of_ports as int) As \"Number of Ports\",\r\n" + 
-					"    cast(number_of_processors as int) As \"Number of Processors\",\r\n" + 
+					"    cast((case when number_of_cores = '' then null else number_of_cores end) as int) As \"Number of Cores\",\r\n" + 
+					"   	cast((case when number_of_ports = '' then null else number_of_ports end) as int) As \"Number of Ports\",\r\n" + 
+					"	cast((case when number_of_processors = '' then null else number_of_processors end) as int) As \"Number of Processors\",\r\n" + 
 					"    os_name As \"OS Name\",\r\n" + 
 					"    os_version As \"OS Version\",\r\n" + 
 					"    processor_name As \"Processor Name\",\r\n" + 
@@ -3673,13 +3675,17 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+			File f = new File(filePath);
+			String parentFilePath = f.getParent();
+			File[] files = new File(parentFilePath).listFiles();
+			DataframeUtil.formatJsonFile(files);
+			
 			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 					.option("mode", "PERMISSIVE").json(filePath);
-			File f = new File(filePath);
+		
 			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
 			dataset.createOrReplaceGlobalTempView(viewName);
-			dataset.show();
-			System.out.println("------------ODB View Name create------------" + viewName);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
