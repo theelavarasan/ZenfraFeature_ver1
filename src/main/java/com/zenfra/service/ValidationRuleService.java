@@ -188,40 +188,43 @@ public class ValidationRuleService {
 				}
 			}
 
-			dataset.printSchema();
+			
 			String dataArray = dataset.toJSON().collectAsList().toString();
 
 			try {
-				JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);
+				if(dataArray != null && !dataArray.isEmpty()) {
+					JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);
 
-				for (int i = 0; i < dataObj.size(); i++) {
-					LinkedHashMap<String, Object> jsonObject = (LinkedHashMap) dataObj.get(i);
-					List<Object> dataAry = (List<Object>) jsonObject.get("data");
+					for (int i = 0; i < dataObj.size(); i++) {
+						LinkedHashMap<String, Object> jsonObject = (LinkedHashMap) dataObj.get(i);
+						List<Object> dataAry = (List<Object>) jsonObject.get("data");
 
-					for (int j = 0; j < dataAry.size(); j++) {
-						LinkedHashMap<String, Object> data = (LinkedHashMap<String, Object>) dataAry.get(j);
-						Set<String> keys = data.keySet();
-						for (String key : keys) {
+						for (int j = 0; j < dataAry.size(); j++) {
+							LinkedHashMap<String, Object> data = (LinkedHashMap<String, Object>) dataAry.get(j);
+							Set<String> keys = data.keySet();
+							for (String key : keys) {
 
-							if (resutData.containsKey(key.trim())) {
+								if (resutData.containsKey(key.trim())) {
 
-								List<Object> values = resutData.get(key.trim());
-								if (!values.contains(data.get(key))) {
+									List<Object> values = resutData.get(key.trim());
+									if (!values.contains(data.get(key))) {
+										values.add(data.get(key));
+										values.removeAll(Arrays.asList("", null));
+										resutData.put(key, values);
+									}
+								} else {
+
+									List<Object> values = new ArrayList<>();
 									values.add(data.get(key));
 									values.removeAll(Arrays.asList("", null));
 									resutData.put(key, values);
 								}
-							} else {
-
-								List<Object> values = new ArrayList<>();
-								values.add(data.get(key));
-								values.removeAll(Arrays.asList("", null));
-								resutData.put(key, values);
 							}
-						}
 
+						}
 					}
 				}
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 				StringWriter errors = new StringWriter();
