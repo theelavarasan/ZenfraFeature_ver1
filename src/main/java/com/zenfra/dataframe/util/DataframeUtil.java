@@ -145,10 +145,10 @@ public class DataframeUtil {
 	public static void jsonFormatHanlder(String filePath) {
 		try {
 			Path path = Paths.get(filePath);
-			Stream<String> lines = Files.lines(path);
-		List<String> replaced = lines.map(line -> line.replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\\\\", "")
+			Stream<String> lines = Files.lines(path);  //.replaceAll("\\\\\\\\\\\\\\\"","")  //.replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")
+		List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "")
 					.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
-					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "").replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")).collect(Collectors.toList());
+					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "")).collect(Collectors.toList());
 			
 			
 			Files.write(path, replaced);
