@@ -159,7 +159,7 @@ public class ReportDataController {
 				+ siteKey + " : " + userId);
 		
 		if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
-			 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);
+			 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
 		} else {
 			 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 		}
@@ -400,8 +400,7 @@ public class ReportDataController {
 
 	@GetMapping("test")
 	public void test(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {
-	
-		 
+		
 		dataframeService.recreateTaniumReportForDataframe(siteKey, "Tanium", "5f02cb34-ab38-4321-9749-0698e37de8cd");
 		dataframeService.recreateCustomExcelReportForDataframe(siteKey, "5f02cb34-ab38-4321-9749-0698e37de8cd");
 		 
