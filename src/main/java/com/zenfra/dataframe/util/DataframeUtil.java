@@ -324,9 +324,9 @@ public class DataframeUtil {
 		try {
 			Path path = Paths.get(filePath);
 			Stream<String> lines = Files.lines(path);
-		List<String> replaced = lines.map(line -> line.replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\\\\", "")
+		List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "")
 					.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
-					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "").replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")).collect(Collectors.toList());
+					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "").replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")).collect(Collectors.toList());
 			
 			
 			Files.write(path, replaced);

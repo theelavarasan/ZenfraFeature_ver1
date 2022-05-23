@@ -399,10 +399,12 @@ public class ReportDataController {
 	
 
 	@GetMapping("test")
-	public void test(@RequestParam("siteKey") String siteKey, @RequestParam("sourceType") String sourceType, HttpServletRequest request) {
+	public void test(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {
 	
-		String userId = "5f02cb34-ab38-4321-9749-0698e37de8cd";
-		 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
+		 
+		dataframeService.recreateTaniumReportForDataframe(siteKey, "Tanium", "5f02cb34-ab38-4321-9749-0698e37de8cd");
+		dataframeService.recreateCustomExcelReportForDataframe(siteKey, "5f02cb34-ab38-4321-9749-0698e37de8cd");
+		 
 	}
 	
 	

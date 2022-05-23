@@ -3979,12 +3979,11 @@ private void repalceEmptyFromJson(String filePath) {
 		
 		try {
 			File taniumDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
-					+ "migrationReport" + File.separator + siteKey + File.separator + "Tanium"
-					+ File.separator + "log_data" + ".json");
+					+ "migrationReport" + File.separator + "Tanium"  + siteKey + File.separator );
 			
 			File customDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
-					+ "migrationReport" + File.separator + siteKey + File.separator + "Tanium"
-					+ File.separator + "custom_data" + ".json");
+					+ "migrationReport" +  File.separator + "Tanium"
+					+ File.separator + siteKey+"_" + "custom_data" + ".json");
 			
 			String logDataViewName = siteKey  + "tanium_log"; 
 			logDataViewName = logDataViewName.replaceAll("-", "").replaceAll("\\s+", "").toLowerCase();
@@ -3992,12 +3991,12 @@ private void repalceEmptyFromJson(String filePath) {
 			String customDataViewName = siteKey  + "tanium_custom"; 
 			customDataViewName = customDataViewName.replaceAll("-", "").replaceAll("\\s+", "").toLowerCase();
 			
-			Dataset<Row> logDataset = sparkSession.read().option("multiline", true).json(taniumDataframFile.getAbsolutePath());
+			Dataset<Row> logDataset = sparkSession.read().option("multiline", true).json(taniumDataframFile.getAbsolutePath()+"*.json");
 			logDataset.createOrReplaceGlobalTempView(logDataViewName);
 			
 			Dataset<Row> customDataset = sparkSession.read().option("multiline", true).json(customDataframFile.getAbsolutePath());
 			customDataset.createOrReplaceGlobalTempView(customDataViewName);
-			taniumDataset = sparkSession.sqlContext().sql("select * from global_temp." + logDataViewName + " ld left join global_temp." + customDataViewName + " cd on ld.source_id=cd.source_id");
+			taniumDataset = sparkSession.sqlContext().sql("select * from global_temp." + logDataViewName + " ld left join global_temp." + customDataViewName + " cd on ld.server_name=cd.primary_key_value");
 		 } catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -4447,9 +4446,8 @@ private void repalceEmptyFromJson(String filePath) {
 
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ "migrationReport" + File.separator  + File.separator + "Tanium"
-				+ File.separator + siteKey + File.separator);
-		
-		String pvDataDfFilePath = dfFilePath+"log_data" + ".json";
+				+ File.separator + siteKey + File.separator);  
+	 
 		
 		try {
 			
@@ -4460,20 +4458,28 @@ private void repalceEmptyFromJson(String filePath) {
 			@SuppressWarnings("deprecation")
 			Dataset<Row> privillegeData = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
 
-			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(privillegeData, "data", "");
-			String privilageTempView = (siteKey+"privillege_data").replaceAll("-", "");
-			formattedDataframe.createOrReplaceTempView(privilageTempView);
+			//Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(privillegeData, "data", "");
 			
-	       Dataset<Row> pvData = formattedDataframe.sqlContext().sql("select * from "+privilageTempView+" where site_key='"+siteKey+"'");
+			privillegeData.schema();
+			privillegeData.show();
+			
+			String privilageTempView = (siteKey+"privillege_data").replaceAll("-", "");
+			privillegeData.createOrReplaceTempView(privilageTempView);
+			
+	       Dataset<Row> pvData = privillegeData.sqlContext().sql("select * from "+privilageTempView+" where site_key='"+siteKey+"'");
+	       
+	   
 	 
 	        pvData.write().option("escape", "").option("quotes", "")
 							.option("ignoreLeadingWhiteSpace", true)
-							.format("org.apache.spark.sql.json").mode(SaveMode.Overwrite).save(pvDataDfFilePath);
+							.format("org.apache.spark.sql.json").mode(SaveMode.Overwrite).save(dfFilePath.getAbsolutePath());
+	        
+	        pvData.show();
 			 
-	        File file = new File(pvDataDfFilePath);
+	    	File[] files = new File(dfFilePath.getAbsolutePath()).listFiles();
 
-			if (file != null && file.exists()) {
-				DataframeUtil.jsonFormatHanlder(pvDataDfFilePath);
+			if (files != null) {
+				DataframeUtil.formatJsonFile(files);
 			}
 
 		} catch (Exception exp) {
@@ -4487,10 +4493,10 @@ private void repalceEmptyFromJson(String filePath) {
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ "migrationReport" + File.separator  + File.separator + "Tanium"
 				+ File.separator + siteKey + File.separator);
-		String pvDataDfFilePath = dfFilePath + "custom_data" + ".json";
+		String pvDataDfFilePath = dfFilePath + "_custom_data" + ".json";
 		
 		try {
-			String query = "select primary_key_value, json_object_agg(source_name, data::json) as data from  " + 
+			String query = "select primary_key_value, json_object_agg(source_name, data::json) as data from ( " + 
 					" select source_id, source_name, primary_key_value, data - 'sourceId' - 'siteKey' - 'User Name' - 'Server Name' as data from (  "+ 
 					" select source_id, source_name, primary_key_value, data::jsonb || concat('{\"Last Updated Time\":\"', update_time, '\"}')::jsonb as data from ( " + 
 					" select sd.source_id, s.source_name, primary_key_value, " + 
@@ -4501,21 +4507,39 @@ private void repalceEmptyFromJson(String filePath) {
 					" where sd.site_key = '" + siteKey + "' " + 
 					" ) b  " + 
 					" where row_num = 1 " + 
-					" )  " + 
+					" ) c " + 
 					" ) e " + 
 					" group by primary_key_value";
 			
-			List<Map<String, Object>> dataList = reportDao.getListOfMapByQuery(query);
-				 
+		
 			JSONArray jsonArray = new JSONArray();
-			jsonArray.addAll(dataList);
+			List<Map<String, Object>> dataList = reportDao.getListOfMapByQuery(query);
 			
-			mapper.writeValue(new File(pvDataDfFilePath), jsonArray);			 
-	        File file = new File(pvDataDfFilePath);
-
-			if (file != null && file.exists()) {
-				DataframeUtil.jsonFormatHanlder(pvDataDfFilePath);
+			for(Map<String, Object> data : dataList) {
+				
+			
+				
+				if(data.containsKey("primary_key_value")) {
+					JSONObject customData = new JSONObject();
+					customData.put("primary_key_value", (String) data.get("primary_key_value"));
+					JSONObject dataObj = mapper.readValue(data.get("data").toString(), JSONObject.class);
+						Set<String> keySet = dataObj.keySet();
+						String srcName = keySet.iterator().next();
+						customData.put("sourceName", srcName);
+						customData.putAll((Map) dataObj.get(srcName));					
+					jsonArray.add(customData);
+				}
 			}
+				 
+		
+		
+			
+			mapper.writeValue(new File(pvDataDfFilePath), jsonArray);
+			
+			String privilageTempView = (siteKey+"_custom_data").replaceAll("-", "");
+			
+			createDataframeFromJsonFile(privilageTempView, pvDataDfFilePath);
+	        
 
 		} catch (Exception exp) {
 			logger.error("Not able to create dataframe {}", exp.getMessage(), exp);
@@ -4523,6 +4547,8 @@ private void repalceEmptyFromJson(String filePath) {
 		
 		
 	}
+
+	
 	
 	
 	
