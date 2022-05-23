@@ -694,13 +694,12 @@ public class DataframeService {
 			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
 			formattedDataframe.createOrReplaceTempView("local_discovery");
 
-			/*Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
+			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
 			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();		
-			*/
 			
-			List<String> siteKeys = new ArrayList<String>();
-			siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
+			
+		
 
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
