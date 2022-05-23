@@ -455,8 +455,7 @@ public class FavouriteApiService_v2 {
 				defaultFilterProperty = common.convertStringToJsonArray(defaultFilterProperty).toString();
 
 				String checkFavViewquery = "select count(*) from favourite_view where is_active=true and is_default=true and lower(report_name)='discovery' and lower(favourite_name)= '"
-						+ defaultFavName.toLowerCase() + "' and site_key='" + siteKey + "' and filter_property = '"
-						+ defaultFilterProperty + "'"; //
+						+ defaultFavName.toLowerCase() + "' and site_key='" + siteKey + "'"; // and filter_property = '"+ defaultFilterProperty + "'"; //
 
 				if (daoFav.getCount(checkFavViewquery) == 0) {
 					FavouriteModel favouriteModel = new FavouriteModel();
