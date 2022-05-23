@@ -16,6 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,6 +45,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -3645,14 +3647,16 @@ public class DataframeService {
 		return dataCount;
 	}
 
-	public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
+	public String getMigrationReport(String filePath) throws IOException, ParseException {
 		if (filePath.contains(",")) {
 			filePath = filePath.split(",")[0];
 		}
-		System.out.println("-----------filePath-get----" + filePath);
-		JSONParser parser = new JSONParser();
-		Object obj = parser.parse(new FileReader(filePath));
-		JSONObject jsonObject = (JSONObject) obj;
+		String result = "";
+		DataframeUtil.validateAndFormatJsonData(filePath);
+		/*
+		 * JSONParser parser = new JSONParser(); Object obj = parser.parse(new
+		 * FileReader(filePath)); JSONObject jsonObject = (JSONObject) obj;
+		 */
 
 		/*
 		 * JSONObject json = new JSONObject(); File f = new File(filePath);
@@ -3670,8 +3674,13 @@ public class DataframeService {
 		 * createDataframeForJsonData(filePath); json = getMigrationReport(filePath); }
 		 * }
 		 */
-
-		return jsonObject;
+		try {
+			 result = FileUtils.readFileToString(new File(filePath), StandardCharsets.UTF_8);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return result; 
+		
 	}
 
 	public void createDataframeForJsonData(String filePath) {
@@ -3679,6 +3688,7 @@ public class DataframeService {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+			DataframeUtil.validateAndFormatJsonData(filePath);
 			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 					.option("mode", "PERMISSIVE").json(filePath);
 			File f = new File(filePath);
@@ -3687,11 +3697,7 @@ public class DataframeService {
 			dataset.show();
 			System.out.println("------------ODB View Name create------------" + viewName);
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			e.printStackTrace();			
 		}
 
 	}
