@@ -351,7 +351,7 @@ public class ReportService {
                                 tabInfoObject.put("skipValues", new JSONArray());
                             }
                             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!deviceType!!!!!!!!!!!!!!!!!!!!!"+deviceType);
-                        	if(deviceType.equalsIgnoreCase("vmax")) {
+                        	if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
                         		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Possible Server Name(VMAX)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 								tabInfoObject.put("title", "Detailed Report for Server (Possible Server Name(VMAX))");
 							} else {
