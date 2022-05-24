@@ -2,6 +2,9 @@ package com.zenfra.service;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,10 +31,12 @@ import com.zenfra.model.SiteModel;
 import com.zenfra.model.Users;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
 public class HealthCheckService {
+	
 
 	final ObjectMapper map = new ObjectMapper();
 
@@ -99,6 +104,29 @@ public class HealthCheckService {
 				healthCheck.getHealthCheckId());
 		JSONObject healthCheckModel = convertEntityToModel(savedObj);
 		return healthCheckModel;
+	}
+	
+	public String activateHealthCheck(String healthCheckId, boolean isActive) {
+		Map<String, String> data = new HashMap<>();
+		data = DBUtils.getPostgres();
+		String updateQuery = "";
+		try (Connection con = DriverManager.getConnection(data.get("url"), data.get("userName"), data.get("password"));
+				Statement statement = con.createStatement();) {
+
+			updateQuery = "update health_check set is_active =" + isActive + " where health_check_id = '"
+					+ healthCheckId + "'";
+			System.out.println("!!!UpdateQuery: " + updateQuery);
+			int resultSet = statement.executeUpdate(updateQuery);
+			System.out.println("-----------Data Updated------------" + resultSet);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (!isActive)
+			return "HealthCheck De-Activated Successfully";
+		else
+			return "HealthCheck Activated Successfully";
+
 	}
 
 	public boolean deleteHealthCheck(HealthCheck healthCheck) {
