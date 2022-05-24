@@ -1044,11 +1044,21 @@ public class ValidationRuleService {
 					"select source_name, primary_key, data from source_data sd \r\n" + 
 					"LEFT JOIN source sc on sc.source_id = sd.source_id\r\n" + 
 					"where sd.source_id in (select json_array_elements_text((input_source::jsonb || third_party_list::jsonb)::json) from project where project_id = '" + reportBy + "') \r\n" + 
-					"and lower(primary_key_value) in (select lower(server_name) from tasklist where is_active = true and project_id = '" + reportBy+ "') \r\n" +
+					"and lower(primary_key_value) in (select lower(server_name) from tasklist where is_active = true and project_id = '" + reportBy + "') \r\n" +
 					") a ) b where keys not in (primary_key, 'siteKey', 'sourceId')\r\n" + 
 					") c\r\n" + 
 					") d order by data\r\n" + 
-					") e where keys = '" + columnName + "' group by keys";
+					") e where keys = '" + columnName + "' group by keys \r\n" +
+					"union all \r\n" + 
+					"select keys, json_agg(data) as data from ( \r\n" + 
+					"select distinct keys, data from (\r\n" + 
+					"select concat('server~',keys) as keys, json_array_elements(data::json) ->> keys as data from (\r\n" + 
+					"select data, json_object_keys(json_array_elements(data::json)) as keys from privillege_data where site_key = '" + siteKey + "' \r\n" + 
+					"and lower(server_name) in (select server_name from tasklist where project_id = '" + reportBy + "') and \r\n" + 
+					"lower(source_id) in (select task_id from tasklist where project_id = '" + reportBy + "') \r\n" + 
+					") a \r\n" + 
+					") b where data <> '' order by data\r\n" + 
+					") c where keys = '" + columnName + "' group by keys";
 					
 			
 			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
