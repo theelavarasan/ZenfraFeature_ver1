@@ -85,18 +85,19 @@ public class FavouriteApiService_v2 {
 			rows.forEach(row -> {
 				try {
 					
-					row = common.getFavViewCheckNull(row);					
+					row = common.getFavViewCheckNull(row);		
+					viewArr.add(row);
 					
 					// Map<String, Object> rowMap = row;
 					// rowMap = setDeviceType(rowMap);
-					if (!reportNameRef.equalsIgnoreCase("healthcheck") && !reportNameRef.equalsIgnoreCase("project-summary")) {
+					/*if (!reportNameRef.equalsIgnoreCase("healthcheck") && !reportNameRef.equalsIgnoreCase("project-summary")) {
 						Map<String, Object> filteredFavView = filterFavViewByProcessedLogs(row,processedLogs);	
 						if(filteredFavView != null && !filteredFavView.isEmpty()) {	
 							viewArr.add(row);
 						}
 					}else {
 						viewArr.add(row);
-						}
+						}*/
 					
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -202,8 +203,9 @@ public class FavouriteApiService_v2 {
 						String values = prop.get("selection").toString().trim();
 						if(values.toLowerCase().contains("mode") || values.toLowerCase().contains("netapp")) {
 							values = "NETAPP";
-						}						
-						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase)) {
+						}		
+						System.out.println("-----values---------"+ values);
+						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase) || (values == null || values.trim().isEmpty())) {
 							return common.getFavViewCheckNull(row);							
 						}
 					}

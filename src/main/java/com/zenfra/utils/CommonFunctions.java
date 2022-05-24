@@ -63,25 +63,25 @@ public class CommonFunctions {
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
 
-			if (row.get("filterProperty") != null && !row.get("filterProperty").equals("[]")) {
+			if (row.get("filterProperty") != null && !row.get("filterProperty").toString().trim().isEmpty() && !row.get("filterProperty").equals("[]")) {
 				row.put("filterProperty", (JSONArray) parser.parse(row.get("filterProperty").toString()));
 			} else {
 				row.put("filterProperty", new JSONArray());
 			}
 
-			if (row.get("categoryList") != null && !row.get("categoryList").equals("[]")) {
+			if (row.get("categoryList") != null && !row.get("categoryList").toString().trim().isEmpty() && !row.get("categoryList").equals("[]")) {
 				row.put("categoryList", (JSONArray) parser
 						.parse(row.get("categoryList").toString()));
 			} else {
 				row.put("categoryList", new JSONArray());
 			}
-			if (row.get("siteAccessList") != null && !row.get("siteAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
+			if (row.get("siteAccessList") != null && !row.get("siteAccessList").toString().trim().isEmpty() && !row.get("siteAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
 				row.put("siteAccessList", (JSONArray) parser
 						.parse(row.get("siteAccessList").toString()));
 			} else {
 				row.put("siteAccessList", new JSONArray());
 			}
-			if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]")) {
+			if (row.get("groupedColumns") != null && !row.get("groupedColumns").toString().trim().isEmpty()  && !row.get("groupedColumns").equals("[]")) {
 
 				row.put("groupedColumns", (JSONArray) parser.parse(row.get("groupedColumns").toString()));
 			} else {
@@ -89,7 +89,7 @@ public class CommonFunctions {
 			}
 			
 			
-			if (row.get("userAccessList") != null && !row.get("userAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
+			if (row.get("userAccessList") != null && !row.get("userAccessList").toString().trim().isEmpty()  && !row.get("userAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
 				row.put("userAccessList", (JSONArray) parser
 						.parse(row.get("userAccessList").toString()));
 			}
