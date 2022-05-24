@@ -10,7 +10,9 @@ import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -49,8 +51,13 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.AnalysisException;
@@ -682,7 +689,7 @@ public class DataframeService {
 
 		logger.info("create dataframe for local discovery table");
 		try {
-			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+			String path = commonPath + File.separator + "Dataframe" + File.separator + "DF" + File.separator;
 
 			Map<String, String> options = new HashMap<String, String>();
 			options.put("url", dbUrl);
@@ -694,11 +701,13 @@ public class DataframeService {
 			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
 			formattedDataframe.createOrReplaceTempView("local_discovery");
 
-			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
+			/*Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
 			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();		
+			*/
+			List<String> siteKeys = new ArrayList<String>();
 			
-			
+			siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
 		
 
 			// String DataframePath = dataframePath + File.separator;
@@ -775,7 +784,7 @@ public class DataframeService {
 		}
 
 		if (!isDiscoveryDataInView) {
-			File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator
+			File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 					+ siteKey + File.separator + "site_key=" + siteKey + File.separator + "source_type=" + source_type);
 
 			if (verifyDataframePath.exists()) {
@@ -825,10 +834,7 @@ public class DataframeService {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
-		
-		System.out.println("-------Count----ccff----------- " +countData.toJSON().collectAsList() );
+		}		
 	
 		return paginate(dataset, request, countData.toJSON().collectAsList());
 
@@ -868,7 +874,7 @@ public class DataframeService {
 			// isDiscoveryDataInView = false;
 			if (!isDiscoveryDataInView) {
 				File verifyDataframePath = new File(
-						commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey + File.separator
+						commonPath + File.separator + "Dataframe" + File.separator + siteKey + File.separator
 								+ "site_key=" + siteKey + File.separator + "source_type=" + source_type);
 				System.out.println(
 						"----->>>>>>>>>>>>>>>>----View Not exists--verifyDataframePath------" + verifyDataframePath);
@@ -877,7 +883,7 @@ public class DataframeService {
 					// createDataframeOnTheFly(siteKey, source_type);
 				}
 				System.out.println("---------false-----");
-				String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
+				String filePath = commonPath + File.separator + "Dataframe" + File.separator + siteKey
 						+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + source_type
 						+ File.separator + "*.json";
 				System.out.println("---------true-filePath----" + filePath);
@@ -1021,7 +1027,7 @@ public class DataframeService {
 	private void createDataframeOnTheFly(String siteKey, String source_type) {
 		try {
 			source_type = source_type.toLowerCase();
-			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+			String path = commonPath + File.separator + "Dataframe" + File.separator;
 
 			Map<String, String> options = new HashMap<String, String>();
 			options.put("url", dbUrl);
@@ -1120,7 +1126,7 @@ public class DataframeService {
 		String result = "";
 		try {
 			sourceType = sourceType.toLowerCase();
-			String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
+			String filePath = commonPath + File.separator + "Dataframe" + File.separator + siteKey
 					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType
 					+ File.separator;
 			File siteKeyAndSourceType = new File(filePath);
@@ -1146,7 +1152,7 @@ public class DataframeService {
 
 				if (filesExists != null && filesExists.size() > 0) { // append
 
-					String tmpFile = writeJosnFile(commonPath + File.separator + "LocalDiscoveryDF" + File.separator
+					String tmpFile = writeJosnFile(commonPath + File.separator + "Dataframe" + File.separator
 							+ siteKey + File.separator + "site_key=" + siteKey + File.separator + "tmp.json",
 							newJson.toJSONString());
 
@@ -1194,12 +1200,12 @@ public class DataframeService {
 				// create template
 
 				// check if source type exits
-				String sourceTypePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
+				String sourceTypePath = commonPath + File.separator + "Dataframe" + File.separator + siteKey
 						+ File.separator + "site_key=" + siteKey + File.separator + "source_type="
 						+ sourceType.toLowerCase();
 
 				File newSiteKey = new File(
-						commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey + File.separator);
+						commonPath + File.separator + "Dataframe" + File.separator + siteKey + File.separator);
 				boolean siteKeyPresent = true;
 				if (!newSiteKey.exists()) {
 					siteKeyPresent = false;
@@ -1219,7 +1225,7 @@ public class DataframeService {
 					Dataset<Row> newDataframe = sparkSession.read().json(tmpFile);
 					newDataframe = newDataframe.drop("site_key").drop("source_type");
 
-					// String newFolderName = commonPath + File.separator + "LocalDiscoveryDF" +
+					// String newFolderName = commonPath + File.separator + "Dataframe" +
 					// File.separator + siteKey + File.separator + "site_key="+siteKey +
 					// File.separator;
 
@@ -1288,7 +1294,7 @@ public class DataframeService {
 	}
 
 	public void createDataframeGlobalView() {
-		String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+		String path = commonPath + File.separator + "Dataframe" + File.separator + "DF" + File.separator;
 		File[] files = new File(path).listFiles();
 		if (files != null) {
 			createLocalDiscoveryView(files);
@@ -1297,7 +1303,7 @@ public class DataframeService {
 	}
 
 	private void createLocalDiscoveryView(File[] files) {
-		String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+		String path = commonPath + File.separator + "Dataframe" + File.separator + "DF" + File.separator;
 		for (File file : files) {
 			if (file.isDirectory()) {
 				createLocalDiscoveryView(file.listFiles());
@@ -1493,7 +1499,7 @@ public class DataframeService {
 	public String createDataframeForReportHeader(String tableName) {
 		logger.info("create dataframe for local discovery table");
 		try {
-			commonPath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+			commonPath = commonPath + File.separator + "Dataframe" + File.separator;
 			Map<String, String> options = new HashMap<String, String>();
 			options.put("url", dbUrl);
 			options.put("dbtable", tableName);
@@ -1514,7 +1520,7 @@ public class DataframeService {
 					Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
 							"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
 									+ siteKey + "'");
-					File f = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey);
+					File f = new File(commonPath + File.separator + "Dataframe" + File.separator + siteKey);
 					if (!f.exists()) {
 						f.mkdir();
 					}
@@ -1698,7 +1704,7 @@ public class DataframeService {
 		try {
 			dataset = sparkSession.sql("select * from global_temp." + viewName);
 		} catch (Exception e) {
-			String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
+			String filePath = commonPath + File.separator + "Dataframe" + File.separator + siteKey
 					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + deviceType
 					+ File.separator + "*.json";
 			dataset = sparkSession.read().json(filePath);
@@ -1777,7 +1783,7 @@ public class DataframeService {
 	}
 
 	private void reinitiateDiscoveryDataframe(String siteKey, String sourceType) {
-		String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+		String path = commonPath + File.separator + "Dataframe" + File.separator;
 		Dataset<Row> localDiscoveryDF = sparkSession.sql(
 				"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
 						+ siteKey + "' and LOWER(source_type)='" + sourceType + "'");
@@ -1789,7 +1795,7 @@ public class DataframeService {
 					"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
 							+ siteKey + "' and LOWER(source_type)='" + sourceType + "'");
 
-			String filePathSrc = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
+			String filePathSrc = commonPath + File.separator + "Dataframe" + File.separator + siteKey
 					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType
 					+ File.separator;
 			File f = new File(filePathSrc);
@@ -3880,13 +3886,13 @@ private void repalceEmptyFromJson(String filePath) {
 	
 		
 		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator + siteKey + File.separator + componentName
+				+ "OrientDB" + File.separator + siteKey + File.separator + componentName
 				+ File.separator + viewNameWithHypen + ".json");
 		
 		System.out.println("------verifyDataframePath-------" + verifyDataframePath);
 		
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator + siteKey + File.separator + componentName + File.separator );
+				+ "OrientDB" + File.separator + siteKey + File.separator + componentName + File.separator );
 		
 
 		
@@ -3978,10 +3984,10 @@ private void repalceEmptyFromJson(String filePath) {
 		
 		try {
 			File taniumDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
-					+ "migrationReport" + File.separator + "Tanium"  + siteKey + File.separator );
+					+ "OrientDB" + File.separator + "Tanium"  + siteKey + File.separator );
 			
 			File customDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
-					+ "migrationReport" +  File.separator + "Tanium"
+					+ "OrientDB" +  File.separator + "Tanium"
 					+ File.separator + siteKey+"_" + "custom_data" + ".json");
 			
 			String logDataViewName = siteKey  + "tanium_log"; 
@@ -4113,7 +4119,7 @@ private void repalceEmptyFromJson(String filePath) {
 	
 	private void setFileOwner(File filePath) {
 		try {
-			Path resultFilePath = Paths.get("/opt/ZENfra/Dataframe/migrationReport/");
+			Path resultFilePath = Paths.get("/opt/ZENfra/Dataframe/");
 			UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
 					.lookupPrincipalByName("zenuser");
 			Files.setOwner(resultFilePath, owner);
@@ -4162,11 +4168,11 @@ private void repalceEmptyFromJson(String filePath) {
 						 
 						
 						File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-								+ "migrationReport" + File.separator + siteKey + File.separator + deviceType
+								+ "OrientDB" + File.separator + siteKey + File.separator + deviceType
 								+ File.separator + viewNameWithHypen + ".json");
 						
 						File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
-								+ "migrationReport" + File.separator + siteKey + File.separator + deviceType + File.separator );
+								+ "OrientDB" + File.separator + siteKey + File.separator + deviceType + File.separator );
 						
 						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
 						
@@ -4297,15 +4303,15 @@ private void repalceEmptyFromJson(String filePath) {
 	
 		
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + "Tanium"
+				+ "OrientDB" + File.separator + request.getSiteKey() + File.separator + "Tanium"
 				+ File.separator + viewNameWithHypen + ".json");
 		
 		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + "Tanium"
+				+ "OrientDB" + File.separator + request.getSiteKey() + File.separator + "Tanium"
 				+ File.separator + viewNameWithHypen + ".json");
 		
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator + request.getSiteKey() + File.separator + "Tanium" + File.separator );
+				+ "OrientDB" + File.separator + request.getSiteKey() + File.separator + "Tanium" + File.separator );
 		
 		System.out.println("------Tanium verifyDataframeParentPath-------------- " + verifyDataframeParentPath);
 		
@@ -4444,7 +4450,7 @@ private void repalceEmptyFromJson(String filePath) {
 	public void recreateTaniumReportForDataframe(String siteKey, String sourceType, String userId) {
 
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator  + File.separator + "Tanium"
+				+ "OrientDB" + File.separator  + File.separator + "Tanium"
 				+ File.separator + siteKey + File.separator);  
 	 
 		
@@ -4490,7 +4496,7 @@ private void repalceEmptyFromJson(String filePath) {
 	public void recreateCustomExcelReportForDataframe(String siteKey, String userId) {
 		
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "migrationReport" + File.separator  + File.separator + "Tanium"
+				+ "OrientDB" + File.separator  + File.separator + "Tanium"
 				+ File.separator + siteKey + File.separator);
 		String pvDataDfFilePath = dfFilePath + "_custom_data" + ".json";
 		
@@ -4554,4 +4560,174 @@ private void repalceEmptyFromJson(String filePath) {
 
 	
 	//------------------------ Tanium Report------------------------------------------------//
+	
+	
+	
+	//------------------------Write dataframe to excel start-------------------------------------//
+	
+	public String writeDfToCsv(ServerSideGetRowsRequest request) {
+		String outputFilePath = "";
+		System.out.println("----request------" + request.getAnalyticstype());
+		
+		try {
+			String siteKey = request.getSiteKey();
+			
+			String componentName = "";
+			if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
+				componentName = request.getOstype();
+			} else if(request.getSwitchtype() != null && !request.getSwitchtype().isEmpty()) { //switch
+				componentName = request.getSwitchtype();
+			} else if(request.getStorage() != null && !request.getStorage().isEmpty()) { //Storage
+				componentName = request.getStorage();
+			} else if(request.getThirdPartyId() != null && !request.getThirdPartyId().isEmpty()) { //Project
+				componentName = request.getThirdPartyId();
+			} else if(request.getProviders() != null && !request.getProviders().isEmpty()) { //Providers
+				componentName = request.getProviders();
+			} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
+				componentName = request.getProject();
+			}
+			
+			
+			String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
+					+ request.getCategory() + "_" + componentName + "_" + request.getReportList() + "_"
+					+ request.getReportBy();
+			String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");		
+			
+			
+			if(request.getReportBy().equalsIgnoreCase("server")) {
+				viewName = (siteKey + "_linux").toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");
+			}
+			
+			
+			File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
+					+ "exportDF" + File.separator + siteKey + File.separator + componentName + File.separator );
+			
+			if(!verifyDataframeParentPath.exists()) {
+				verifyDataframeParentPath.mkdirs();
+			}
+			
+			System.out.println("-------write Path -------" + viewName + " :: " + verifyDataframeParentPath + " : "  );
+			
+			Dataset<Row> dataset = null;
+			
+			
+			if(!componentName.toLowerCase().contains("tanium")) {  
+				boolean isDiscoveryDataInView = false;	
+				try {
+					dataset = sparkSession.sql("select * from global_temp." + viewName);		
+					isDiscoveryDataInView = true;
+				} catch (Exception e) {
+					System.out.println("---------View Not exists--------");
+				}
+
+				System.out.println("------isDiscoveryDataInView-------" + isDiscoveryDataInView);	
+
+			} else { //tanium logic
+				dataset = getTaniumReport(siteKey);		
+			}
+			
+			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+			groupKeys = request.getGroupKeys();
+			valueColumns = request.getValueCols();
+			pivotColumns = request.getPivotCols();
+			filterModel = request.getFilterModel();
+			sortModel = request.getSortModel();
+			isPivotMode = request.isPivotMode();
+			isGrouping = rowGroups.size() > groupKeys.size();
+
+			rowGroups = formatInputColumnNames(rowGroups);
+			groupKeys = formatInputColumnNames(groupKeys);
+			sortModel = formatSortModel(sortModel);
+				
+			dataset = orderBy(groupBy(filter(dataset)));	
+			
+			String writePath = verifyDataframeParentPath + File.separator + viewName+ "_export";
+			dataset.coalesce(1).write().mode("overwrite").option("header",true).option("sep","|").option("lineSep","\n")	       
+	        .csv(writePath);
+			
+			System.out.println("--------writePath---------- " + writePath);
+			
+			String filePath = getCsvPath(writePath);
+			System.out.println("--------filePathfilePath---------- " + filePath);
+			csvToExcel(filePath, writePath, viewName);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return outputFilePath;
+	}
+	
+	
+	private String getCsvPath(String writePath) {
+		File folder = new File(writePath);
+		String csvPath = ""; 
+		try {
+			for (final File fileEntry : folder.listFiles()) {
+		            if(fileEntry.getName().endsWith(".csv")){
+		            	return fileEntry.getAbsolutePath();
+		            }  
+		       
+		    }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return csvPath;
+	}
+
+	private void csvToExcel(String csvPath, String csvParentPath, String viewName) {
+		try {
+			
+			System.out.println("--------csvPath---------- " + csvPath);
+			System.out.println("--------csvParentPath---------- " + csvParentPath);
+			System.out.println("--------viewName---------- " + viewName);
+			
+			//open input file
+			BufferedReader br = new BufferedReader(new FileReader(csvPath));
+			//create sheet
+			XSSFWorkbook wb = new XSSFWorkbook();
+			XSSFSheet sheet = wb.createSheet();
+			//read from file
+			String line = br.readLine();
+			for (int rows=0; line != null; rows++) {
+			    //create one row per line
+			    XSSFRow row = sheet.createRow(rows);
+			    //split by semicolon
+			    String[] items = line.split("\\|");
+			    //ignore first item
+			    
+			    for (int i=0, col=0; i<items.length; i++) {
+			       try {
+			    	   String item = items[i];
+				        Cell cell = row.createCell(col++);
+				        //set item
+				        cell.setCellValue(item.replaceAll("\"", ""));
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+			      
+			    }
+			    //read next line
+			    line = br.readLine();
+			}
+			//write to xlsx
+			File parentPath = new File(csvParentPath);
+			String xlsxPath = parentPath.getParentFile().getAbsolutePath()+File.separator+viewName+".xlsx";
+			System.out.println("-----------xlsxPath------------ " + xlsxPath);
+			FileOutputStream out = new FileOutputStream(xlsxPath);
+			wb.write(out);
+			//close resources
+			br.close();
+			out.close();
+			
+			FileUtils.deleteDirectory(new File(parentPath.getAbsolutePath()));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	//------------------------Write dataframe to excel end-------------------------------------//
+	
+	
 }

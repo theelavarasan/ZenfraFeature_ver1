@@ -173,7 +173,7 @@ public class ReportDataController {
 
 			try { // remove orient db dataframe
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
-						+ File.separator + "migrationReport" + File.separator + siteKey + File.separator; // +
+						+ File.separator + "OrientDB" + File.separator + siteKey + File.separator; // +
 																											// sourceType
 																											// +
 																											// File.separator;
@@ -552,5 +552,17 @@ public class ReportDataController {
 				System.out.println("--------------jsonArray----------------- " + jsonArray.size());
 				return jsonArray;
 		}
+	
+	
+	
+	
+	@PostMapping("export")
+	public String test(@RequestBody  ServerSideGetRowsRequest request) {
+		
+		return dataframeService.writeDfToCsv(request);
+		
+		 
+	}
+	
 
 }
