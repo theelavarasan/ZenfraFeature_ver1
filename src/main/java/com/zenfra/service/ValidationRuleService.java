@@ -1011,7 +1011,7 @@ public class ValidationRuleService {
 					") c order by keys \r\n" + 
 					") c1 order by data \r\n" +
 					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
-					") e where keys = '" + columnName + "' \r\n" +
+					") e where keys = substring('" + columnName + "', position('_' in '" + columnName + "') + 1, length('" + columnName + "')) \r\n" +
 					"union all \r\n" + 
 					"select keys, data from ( \r\n" + 
 					"select keys, json_agg(data) as data from ( \r\n" + 
@@ -1034,7 +1034,7 @@ public class ValidationRuleService {
 					") c order by keys \r\n" + 
 					") c1 order by data \r\n" +
 					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
-					") e where keys = '" + columnName + "' \r\n " +
+					") e where keys = substring('" + columnName + "', position('_' in '" + columnName + "') + 1, length('" + columnName + "')) \r\n " +
 					"union all \r\n " +
 					" select keys, json_agg(data) as data from (\r\n" + 
 					"select concat(source_name,'_',keys) as keys, data from (\r\n" + 
