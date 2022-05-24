@@ -301,7 +301,7 @@ public class ReportDataController {
 		try {
 			String filePath = request.getParameter("filePath");
 
-			JSONObject data = dataframeService.getMigrationReport(filePath);
+			String data = dataframeService.getMigrationReport(filePath);
 			if (data != null) {
 				return new ResponseEntity<>(data, HttpStatus.OK);
 			}
