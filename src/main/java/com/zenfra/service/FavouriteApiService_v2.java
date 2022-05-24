@@ -78,9 +78,7 @@ public class FavouriteApiService_v2 {
 
 			List<String> processedLogs = logFileDetailsRepo.getDistinctLogTypeBySiteKeyAndStatusIsActive(siteKey, "success",true);
 //			System.out.println("------processedLogs----------" + processedLogs);
-			JSONArray viewArr = new JSONArray();
-
-			 System.out.println(rows.size() + " :: " + rows);
+			JSONArray viewArr = new JSONArray();			
 
 			rows.forEach(row -> {
 				try {
