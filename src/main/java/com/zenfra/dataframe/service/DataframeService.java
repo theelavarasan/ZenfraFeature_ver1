@@ -74,6 +74,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.FileSystemUtils;
 
+import com.fasterxml.jackson.core.json.JsonReadFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.AwsInstanceCcrDataRepository;
@@ -3653,7 +3655,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		
 		  JSONParser parser = new JSONParser();
 		  Object obj = parser.parse(new FileReader(filePath)); 
-		  JSONObject jsonObject = (JSONObject) obj;
+		 
+		  JSONObject json = (JSONObject) parser.parse(obj.toString());
 		 
 
 
@@ -3690,7 +3693,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
-
+			DataframeUtil.validateAndFormatJsonData(filePath);
 			File f = new File(filePath);
 			/*String parentFilePath = f.getParent();
 			File[] files = new File(parentFilePath).listFiles();

@@ -324,7 +324,10 @@ public class ReportDataController {
 			String filePath = request.getParameter("filePath");
 
 			dataframeService.createDataframeForJsonData(filePath);
-			return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
+			JSONObject data = dataframeService.getMigrationReport(filePath);
+			if (data != null) {
+				return new ResponseEntity<>(data, HttpStatus.OK);
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

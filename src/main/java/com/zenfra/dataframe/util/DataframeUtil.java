@@ -329,7 +329,7 @@ public class DataframeUtil {
 			 if (filePath.endsWith(".json")) {
 						Path path = Paths.get(filePath);
 						Stream<String> lines = Files.lines(path);
-						List<String> replaced = lines.map(line -> line.replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")).collect(Collectors.toList());
+						List<String> replaced = lines.map(line -> line.replaceAll("\"(?!0)(-?\\d+(?:[\\.,]\\d+)?)\"", "$1").replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\"0\"", "0")).collect(Collectors.toList());   //replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")
 						Files.write(path, replaced);
 						lines.close();						
 					}
