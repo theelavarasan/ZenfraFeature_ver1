@@ -3643,13 +3643,19 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		return dataCount;
 	}
 
-	public String getMigrationReport(String filePath) throws IOException, ParseException {
+	public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
 		if (filePath.contains(",")) {
 			filePath = filePath.split(",")[0];
 		}
-		System.out.println("-----------filePath-get----" + filePath);
-		String result = "";
-		DataframeUtil.validateAndFormatJsonData(filePath);
+
+		//String result = "";
+		//DataframeUtil.validateAndFormatJsonData(filePath);
+		
+		  JSONParser parser = new JSONParser();
+		  Object obj = parser.parse(new FileReader(filePath)); 
+		  JSONObject jsonObject = (JSONObject) obj;
+		 
+
 
 		/*
 		 * JSONObject json = new JSONObject(); File f = new File(filePath);
@@ -3667,13 +3673,16 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		 * createDataframeForJsonData(filePath); json = getMigrationReport(filePath); }
 		 * }
 		 */
+ 
 
-		try {
+		/*try {
 			 result = FileUtils.readFileToString(new File(filePath), StandardCharsets.UTF_8);
 		} catch (Exception e) {
 			// TODO: handle exception
-		}
-		return result; 
+		}*/
+		return jsonObject; 
+   
+ 
 	}
 
 	public void createDataframeForJsonData(String filePath) {
@@ -3681,12 +3690,15 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+
 			File f = new File(filePath);
 			/*String parentFilePath = f.getParent();
 			File[] files = new File(parentFilePath).listFiles();
 			DataframeUtil.formatJsonFile(files);
-			*/
-			
+			*/			
+
+			//DataframeUtil.validateAndFormatJsonData(filePath);
+
 			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 					.option("mode", "PERMISSIVE").json(filePath);
 		
@@ -3694,11 +3706,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			dataset.createOrReplaceGlobalTempView(viewName);
 			
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			e.printStackTrace();			
 		}
 
 	}
