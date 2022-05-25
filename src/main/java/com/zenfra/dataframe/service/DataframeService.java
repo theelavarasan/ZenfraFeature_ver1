@@ -4649,13 +4649,13 @@ private void repalceEmptyFromJson(String filePath) {
 			
 			String filePath = getCsvPath(writePath);
 			System.out.println("--------filePathfilePath---------- " + filePath);
-			csvToExcel(filePath, writePath, viewName);
+			return csvToExcel(filePath, writePath, viewName);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		return outputFilePath;
+		return "";
 	}
 	
 	
@@ -4675,7 +4675,7 @@ private void repalceEmptyFromJson(String filePath) {
 		return csvPath;
 	}
 
-	private void csvToExcel(String csvPath, String csvParentPath, String viewName) {
+	private String  csvToExcel(String csvPath, String csvParentPath, String viewName) {
 		try {
 			
 			System.out.println("--------csvPath---------- " + csvPath);
@@ -4721,10 +4721,11 @@ private void repalceEmptyFromJson(String filePath) {
 			out.close();
 			
 			FileUtils.deleteDirectory(new File(parentPath.getAbsolutePath()));
-			
+			return xlsxPath;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return "";
 		
 	}
 	//------------------------Write dataframe to excel end-------------------------------------//

@@ -1,8 +1,13 @@
 package com.zenfra.controller;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -15,7 +20,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,6 +30,7 @@ import org.roaringbitmap.longlong.Roaring64NavigableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,9 +38,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
+import com.als.bo.Employer;
+import com.als.util.GetUserSession;
 import com.clickhouse.jdbc.ClickHouseDataSource;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
@@ -557,12 +569,79 @@ public class ReportDataController {
 	
 	
 	@PostMapping("export")
-	public String test(@RequestBody  ServerSideGetRowsRequest request) {
+	public void test(@RequestBody  ServerSideGetRowsRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 		
-		return dataframeService.writeDfToCsv(request);
+		String filePath =  dataframeService.writeDfToCsv(request);
+		
+		File file = new File(filePath);
+
+        String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+        if (mimeType == null) {
+            mimeType = "application/octet-stream";
+        }
+
+        httpServletResponse.setContentType(mimeType);
+        httpServletResponse.setHeader("Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+        httpServletResponse.setContentLength((int) file.length());
+
+        InputStream inputStream = null;
+        try {
+            inputStream = new BufferedInputStream(new FileInputStream(file));
+            FileCopyUtils.copy(inputStream, httpServletResponse.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+				inputStream.close();
+			} catch (IOException e) {				
+				e.printStackTrace();
+			}
+        }
+        
+        try {
+        	 FileUtils.deleteDirectory(new File(filePath));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+       
 		
 		 
 	}
+	
+	
+	 @RequestMapping(value = "/dwnload", method = RequestMethod.GET)
+	    public ModelAndView doDownload(@RequestParam("filePath") String filePath, HttpServletRequest request,
+	                                   HttpServletResponse response) throws IOException {
+	        if (GetUserSession.getUserSession() == null) {
+	            return new ModelAndView("redirect:/logoutInternal");
+	        }
+
+	        ModelAndView model = new ModelAndView();
+	        List<Employer> employer_list = userservice.showEmployerGrid();
+	        model.addObject("employer_list", employer_list);
+
+	        File file = new File(filePath);
+
+	        String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+	        if (mimeType == null) {
+	            mimeType = "application/octet-stream";
+	        }
+
+	        response.setContentType(mimeType);
+	        response.setHeader("Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+	        response.setContentLength((int) file.length());
+
+	        InputStream inputStream = null;
+	        try {
+	            inputStream = new BufferedInputStream(new FileInputStream(file));
+	            FileCopyUtils.copy(inputStream, response.getOutputStream());
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        } finally {
+	            inputStream.close();
+	        }
+	        return new ModelAndView("FileProcessing");
+	    }
 	
 
 }
