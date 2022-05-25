@@ -3656,7 +3656,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		  JSONParser parser = new JSONParser();
 		  Object obj = parser.parse(new FileReader(filePath)); 
 		 
-		  JSONObject json = (JSONObject) parser.parse(obj.toString());
+		  JSONObject jsonObject = (JSONObject) parser.parse(obj.toString());
 		 
 
 
