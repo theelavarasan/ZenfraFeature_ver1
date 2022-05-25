@@ -600,5 +600,19 @@ public class ReportDataController {
 		 
 	}
 	
+	@PostMapping("getChartDetails")
+	public ResponseEntity<?> prepareChart(
+			@RequestParam("siteKey") String siteKey,
+			@RequestParam("reportList") String reportList, 
+			@RequestParam("reportBy") String reportBy,
+			@RequestParam("component") String component,
+			@RequestParam("xaxis") String xaxis,
+			@RequestParam("yaxis") String yaxis,
+			@RequestParam("chartType") String chartType,
+			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+		
+		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, component, reportList, reportBy, xaxis, yaxis, chartType);
+		return null;
+	}
 
 }

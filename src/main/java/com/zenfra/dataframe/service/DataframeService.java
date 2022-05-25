@@ -4729,6 +4729,30 @@ private void repalceEmptyFromJson(String filePath) {
 		
 	}
 	//------------------------Write dataframe to excel end-------------------------------------//
+
+	public JSONObject prepareChart(String siteKey, String component, String reportList, String reportBy, String xaxis,
+			String yaxis, String chartType) {
+		JSONObject jsonObject = new JSONObject();
+		try {
+			File f = new File("C:\\opt\\ZENfra\\Dataframe\\DF\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e\\site_key=ddccdf5f-674f-40e6-9d05-52ab36b10d0e\\source_type=linux\\");
+			 Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json"); 
+			dataset.createOrReplaceGlobalTempView("kkk");
+			
+			/*Dataset<Row> dataset = sparkSession.emptyDataFrame();
+			String viewName = siteKey+"_"+component+"_"+reportList+"_"+reportBy;
+			viewName = viewName.toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");		
+			*/
+			dataset = sparkSession.sqlContext().sql("select `"+xaxis+"`, `"+yaxis+"` from global_temp.kkk");
+			dataset.printSchema();
+			System.out.println("chart :: " + dataset);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		
+		
+		return null;
+	}
 	
 	
 }

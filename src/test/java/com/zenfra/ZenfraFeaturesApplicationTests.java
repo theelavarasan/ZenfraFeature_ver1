@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
@@ -16,6 +18,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 //@SpringBootTest
@@ -25,6 +29,29 @@ class ZenfraFeaturesApplicationTests {
 
 		SparkSession sparkSession = SparkSession.builder().master("local").appName("simple").getOrCreate();
 		JavaSparkContext sc = new JavaSparkContext(sparkSession.sparkContext());
+		
+		try {
+			File f = new File("C:\\opt\\ZENfra\\Dataframe\\DF\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e\\site_key=ddccdf5f-674f-40e6-9d05-52ab36b10d0e\\source_type=linux\\part-00000-f818563d-1cb1-4f3a-b310-622e095e0bb1.c000.json");
+			 Dataset<Row> dataset = sparkSession.read().json(f.getAbsolutePath()); 
+			dataset.createOrReplaceGlobalTempView("kkk");
+			
+			/*Dataset<Row> dataset = sparkSession.emptyDataFrame();
+			String viewName = siteKey+"_"+component+"_"+reportList+"_"+reportBy;
+			viewName = viewName.toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");		
+			*/
+			dataset = sparkSession.sqlContext().sql("select `Memory`, `Number Of Volume Group` from global_temp.kkk");
+			
+			List<String>  rows = dataset.toJSON().collectAsList();
+			ObjectMapper mapper = new ObjectMapper();
+			for(String row : rows) {
+				Map<String, Object> map = mapper.convertValue(row, Map.class);
+				System.out.println(map.get("Memory") + " : " + map.get("Number Of Volume Group"));
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		
 		/*
 		 * Map<String, String> orientDBProps = new HashMap<String, String>();
 		 * orientDBProps.put("url","jdbc:orient:remote:uatdb.zenfra.co/uatvpsdb");
@@ -53,7 +80,7 @@ class ZenfraFeaturesApplicationTests {
 
 		// System.out.println("-----------conn-----------" + conn.isClosed());
 
-		createDataframeForJsonData("", sparkSession);
+		//createDataframeForJsonData("", sparkSession);
 		// getMigrationReport("", sparkSession);
 	}
 
