@@ -182,6 +182,7 @@ public class ReportService {
                         if (jsonObject.containsKey(devicesArray.get(a).toString().toLowerCase())) {
                             columnsNameArray = (JSONArray) parser.parse(jsonObject.get(devicesArray.get(a).toString().toLowerCase()).toString());
                             columnsNameArray.add("Replication Device Count");
+                            columnsNameArray.add("vmax_Replication Device Count");
                             System.out.println("-----------------columnsNameArray---------------------"+columnsNameArray);
                             columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                         }
@@ -193,6 +194,7 @@ public class ReportService {
                 columnsNameArray.add("Host Name");
                 columnsNameArray.add("Host_Host Name");
                 columnsNameArray.add("Replication Device Count");
+                columnsNameArray.add("vmax_Replication Device Count");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                 }
@@ -204,6 +206,7 @@ public class ReportService {
                 columnsNameArray.add("Host Name");
                 columnsNameArray.add("Host_Host Name");
                 columnsNameArray.add("Replication Device Count");
+                columnsNameArray.add("vmax_Replication Device Count");
                 //columnsNameArray.add("vCenter");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
@@ -375,6 +378,7 @@ public class ReportService {
     								postDataColumnArray.add("vmax_Possible Server Name(VMAX)");
     								postDataColumnArray.add("vmax_SID");
     								postDataColumnArray.add("Replication Device Count");
+    		                        columnsNameArray.add("vmax_Replication Device Count");
     							} else {
     								if(!columnsNameArray.get(j).toString().equalsIgnoreCase("Replication Device Count")) {
     									postDataColumnArray.add(columnsNameArray.get(j));
