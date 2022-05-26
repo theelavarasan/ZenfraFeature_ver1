@@ -60,6 +60,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.ForeachFunction;
 import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
@@ -69,6 +70,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
+import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
@@ -119,6 +121,8 @@ import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
+
+import scala.Function1;
 
 @Repository
 public class DataframeService {
@@ -4743,7 +4747,20 @@ private void repalceEmptyFromJson(String filePath) {
 			viewName = viewName.toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");		
 			*/
 			dataset = sparkSession.sqlContext().sql("select `"+xaxis+"`, `"+yaxis+"` from global_temp.kkk");
-			dataset.printSchema();
+			   StructType structure = dataset.schema();
+			   StructField[] sf =  structure.fields();
+			   DataType xaxisCol = sf[0].dataType();
+			   DataType yaxisCol = sf[1].dataType();
+			   
+			   jsonObject.put("xaxisField", sf[0].name());
+			   jsonObject.put("yaxisField", sf[1].name());
+			   
+			   if(xaxisCol.typeName().equalsIgnoreCase("string")) {
+				   
+			   }
+			   
+			   System.out.println("----------- " + xaxisCol + " : " + yaxisCol + " : "+ sf[0].name() +  " : "  +sf[1].name());
+		 
 			System.out.println("chart :: " + dataset);
 		} catch (Exception e) {
 			// TODO: handle exception

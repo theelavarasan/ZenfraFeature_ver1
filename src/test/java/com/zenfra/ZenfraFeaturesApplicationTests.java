@@ -12,7 +12,10 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -41,12 +44,19 @@ class ZenfraFeaturesApplicationTests {
 			*/
 			dataset = sparkSession.sqlContext().sql("select `Memory`, `Number Of Volume Group` from global_temp.kkk");
 			
-			List<String>  rows = dataset.toJSON().collectAsList();
+			/*List<String>  rows = dataset.toJSON().collectAsList();
 			ObjectMapper mapper = new ObjectMapper();
 			for(String row : rows) {
 				Map<String, Object> map = mapper.convertValue(row, Map.class);
 				System.out.println(map.get("Memory") + " : " + map.get("Number Of Volume Group"));
-			}
+			}*/
+			dataset.printSchema();
+			 StructType structure = dataset.schema();
+			   StructField[] sf =  structure.fields();
+			   DataType xaxisCol = sf[0].dataType();
+			   DataType yaxisCol = sf[1].dataType();
+			  
+			   System.out.println("----------- " + xaxisCol + " : " + yaxisCol + " : "+ xaxisCol.typeName() +  " : "  +sf[1].name());
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
