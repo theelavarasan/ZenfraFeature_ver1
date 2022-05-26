@@ -16,6 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,6 +46,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -72,6 +74,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.FileSystemUtils;
 
+import com.fasterxml.jackson.core.json.JsonReadFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.AwsInstanceCcrDataRepository;
@@ -3642,32 +3646,23 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	}
 
 	public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
-		if (filePath.contains(",")) {
-			filePath = filePath.split(",")[0];
+		
+		try {
+			if (filePath.contains(",")) {
+				filePath = filePath.split(",")[0];
+			}
+
+			 ObjectMapper mapper = new ObjectMapper();			 
+			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
+			 return jsonObject; 
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		System.out.println("-----------filePath-get----" + filePath);
-		JSONParser parser = new JSONParser();
-		Object obj = parser.parse(new FileReader(filePath));
-		JSONObject jsonObject = (JSONObject) obj;
-
-		/*
-		 * JSONObject json = new JSONObject(); File f = new File(filePath);
-		 * System.out.println("-----------filePath-----" + filePath); String viewName =
-		 * f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
-		 * System.out.println("------------ODB View Name get------------" + viewName);
-		 * try { String datas =
-		 * sparkSession.sql("select * from global_temp."+viewName).toJSON().
-		 * collectAsList().toString(); JSONParser parser = new JSONParser(); Object obj
-		 * = parser.parse(datas); JSONArray jsonArray = (JSONArray) obj; json =
-		 * (JSONObject) jsonArray.get(0); } catch (Exception e) { e.printStackTrace();
-		 * StringWriter errors = new StringWriter(); e.printStackTrace(new
-		 * PrintWriter(errors)); String ex = errors.toString();
-		 * ExceptionHandlerMail.errorTriggerMail(ex); if(f.exists()) {
-		 * createDataframeForJsonData(filePath); json = getMigrationReport(filePath); }
-		 * }
-		 */
-
-		return jsonObject;
+		
+		
+		return new JSONObject(); 
+   
+ 
 	}
 
 	public void createDataframeForJsonData(String filePath) {
@@ -3675,11 +3670,15 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+			DataframeUtil.validateAndFormatJsonData(filePath);
 			File f = new File(filePath);
-			String parentFilePath = f.getParent();
+			/*String parentFilePath = f.getParent();
 			File[] files = new File(parentFilePath).listFiles();
 			DataframeUtil.formatJsonFile(files);
-			
+			*/			
+
+			//DataframeUtil.validateAndFormatJsonData(filePath);
+
 			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 					.option("mode", "PERMISSIVE").json(filePath);
 		
@@ -3687,11 +3686,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			dataset.createOrReplaceGlobalTempView(viewName);
 			
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			e.printStackTrace();			
 		}
 
 	}

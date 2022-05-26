@@ -188,40 +188,43 @@ public class ValidationRuleService {
 				}
 			}
 
-			dataset.printSchema();
+			
 			String dataArray = dataset.toJSON().collectAsList().toString();
 
 			try {
-				JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);
+				if(dataArray != null && !dataArray.isEmpty()) {
+					JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);
 
-				for (int i = 0; i < dataObj.size(); i++) {
-					LinkedHashMap<String, Object> jsonObject = (LinkedHashMap) dataObj.get(i);
-					List<Object> dataAry = (List<Object>) jsonObject.get("data");
+					for (int i = 0; i < dataObj.size(); i++) {
+						LinkedHashMap<String, Object> jsonObject = (LinkedHashMap) dataObj.get(i);
+						List<Object> dataAry = (List<Object>) jsonObject.get("data");
 
-					for (int j = 0; j < dataAry.size(); j++) {
-						LinkedHashMap<String, Object> data = (LinkedHashMap<String, Object>) dataAry.get(j);
-						Set<String> keys = data.keySet();
-						for (String key : keys) {
+						for (int j = 0; j < dataAry.size(); j++) {
+							LinkedHashMap<String, Object> data = (LinkedHashMap<String, Object>) dataAry.get(j);
+							Set<String> keys = data.keySet();
+							for (String key : keys) {
 
-							if (resutData.containsKey(key.trim())) {
+								if (resutData.containsKey(key.trim())) {
 
-								List<Object> values = resutData.get(key.trim());
-								if (!values.contains(data.get(key))) {
+									List<Object> values = resutData.get(key.trim());
+									if (!values.contains(data.get(key))) {
+										values.add(data.get(key));
+										values.removeAll(Arrays.asList("", null));
+										resutData.put(key, values);
+									}
+								} else {
+
+									List<Object> values = new ArrayList<>();
 									values.add(data.get(key));
 									values.removeAll(Arrays.asList("", null));
 									resutData.put(key, values);
 								}
-							} else {
-
-								List<Object> values = new ArrayList<>();
-								values.add(data.get(key));
-								values.removeAll(Arrays.asList("", null));
-								resutData.put(key, values);
 							}
-						}
 
+						}
 					}
 				}
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 				StringWriter errors = new StringWriter();
@@ -1008,7 +1011,7 @@ public class ValidationRuleService {
 					") c order by keys \r\n" + 
 					") c1 order by data \r\n" +
 					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
-					") e where keys = '" + columnName + "' \r\n" +
+					") e where keys = substring('" + columnName + "', position('_' in '" + columnName + "') + 1, length('" + columnName + "')) \r\n" +
 					"union all \r\n" + 
 					"select keys, data from ( \r\n" + 
 					"select keys, json_agg(data) as data from ( \r\n" + 
@@ -1031,7 +1034,7 @@ public class ValidationRuleService {
 					") c order by keys \r\n" + 
 					") c1 order by data \r\n" +
 					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
-					") e where keys = '" + columnName + "' \r\n " +
+					") e where keys = substring('" + columnName + "', position('_' in '" + columnName + "') + 1, length('" + columnName + "')) \r\n " +
 					"union all \r\n " +
 					" select keys, json_agg(data) as data from (\r\n" + 
 					"select concat(source_name,'_',keys) as keys, data from (\r\n" + 
@@ -1041,11 +1044,21 @@ public class ValidationRuleService {
 					"select source_name, primary_key, data from source_data sd \r\n" + 
 					"LEFT JOIN source sc on sc.source_id = sd.source_id\r\n" + 
 					"where sd.source_id in (select json_array_elements_text((input_source::jsonb || third_party_list::jsonb)::json) from project where project_id = '" + reportBy + "') \r\n" + 
-					"and lower(primary_key_value) in (select lower(server_name) from tasklist where is_active = true and project_id = '" + reportBy+ "') \r\n" +
+					"and lower(primary_key_value) in (select lower(server_name) from tasklist where is_active = true and project_id = '" + reportBy + "') \r\n" +
 					") a ) b where keys not in (primary_key, 'siteKey', 'sourceId')\r\n" + 
 					") c\r\n" + 
 					") d order by data\r\n" + 
-					") e where keys = '" + columnName + "' group by keys";
+					") e where keys = '" + columnName + "' group by keys \r\n" +
+					"union all \r\n" + 
+					"select keys, json_agg(data) as data from ( \r\n" + 
+					"select distinct keys, data from (\r\n" + 
+					"select concat('server~',keys) as keys, json_array_elements(data::json) ->> keys as data from (\r\n" + 
+					"select data, json_object_keys(json_array_elements(data::json)) as keys from privillege_data where site_key = '" + siteKey + "' \r\n" + 
+					"and lower(server_name) in (select server_name from tasklist where project_id = '" + reportBy + "') and \r\n" + 
+					"lower(source_id) in (select task_id from tasklist where project_id = '" + reportBy + "') \r\n" + 
+					") a \r\n" + 
+					") b where data <> '' order by data\r\n" + 
+					") c where keys = '" + columnName + "' group by keys";
 					
 			
 			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
