@@ -370,6 +370,10 @@ public class ReportService {
     							} else if(deviceType.equalsIgnoreCase("vmax")) {
     								postDataColumnArray.add("Possible Server Name(VMAX)");
     								postDataColumnArray.add("SID");
+    								postDataColumnArray.add("Possible Server Name");
+    								postDataColumnArray.add("Serial Number");
+    								postDataColumnArray.add("vmax_Possible Server Name(VMAX)");
+    								postDataColumnArray.add("vmax_SID");
     								postDataColumnArray.add("Replication Device Count");
     							} else {
     								if(!columnsNameArray.get(j).toString().equalsIgnoreCase("Replication Device Count")) {
@@ -381,6 +385,10 @@ public class ReportService {
     							if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
     								postDataColumnArray.add("Possible Server Name(VMAX)");
     								postDataColumnArray.add("SID");
+    								postDataColumnArray.add("Possible Server Name");
+    								postDataColumnArray.add("Serial Number");
+    								postDataColumnArray.add("vmax_Possible Server Name(VMAX)");
+    								postDataColumnArray.add("vmax_SID");
     							}
     							
     						}                            
@@ -395,6 +403,10 @@ public class ReportService {
                 System.out.println("!!!!! postDataColumnArray: " + postDataColumnArray);
                 postDataColumnArray.add("Possible Server Name(VMAX)");
                 postDataColumnArray.add("SID");                
+				postDataColumnArray.add("Possible Server Name");
+				postDataColumnArray.add("Serial Number");
+				postDataColumnArray.add("vmax_Possible Server Name(VMAX)");
+				postDataColumnArray.add("vmax_SID");
                 result.put("postDataColumns", postDataColumnArray);
                 result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));
                 JSONArray refferedDeviceType = new JSONArray();
