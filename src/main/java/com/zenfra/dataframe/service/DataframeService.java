@@ -3646,44 +3646,21 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	}
 
 	public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
-		if (filePath.contains(",")) {
-			filePath = filePath.split(",")[0];
-		}
-
-		//String result = "";
-		//DataframeUtil.validateAndFormatJsonData(filePath);
 		
-		  JSONParser parser = new JSONParser();
-		  Object obj = parser.parse(new FileReader(filePath)); 
-		 
-		  JSONObject jsonObject = (JSONObject) parser.parse(obj.toString());
-		 
+		try {
+			if (filePath.contains(",")) {
+				filePath = filePath.split(",")[0];
+			}
 
-
-		/*
-		 * JSONObject json = new JSONObject(); File f = new File(filePath);
-		 * System.out.println("-----------filePath-----" + filePath); String viewName =
-		 * f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
-		 * System.out.println("------------ODB View Name get------------" + viewName);
-		 * try { String datas =
-		 * sparkSession.sql("select * from global_temp."+viewName).toJSON().
-		 * collectAsList().toString(); JSONParser parser = new JSONParser(); Object obj
-		 * = parser.parse(datas); JSONArray jsonArray = (JSONArray) obj; json =
-		 * (JSONObject) jsonArray.get(0); } catch (Exception e) { e.printStackTrace();
-		 * StringWriter errors = new StringWriter(); e.printStackTrace(new
-		 * PrintWriter(errors)); String ex = errors.toString();
-		 * ExceptionHandlerMail.errorTriggerMail(ex); if(f.exists()) {
-		 * createDataframeForJsonData(filePath); json = getMigrationReport(filePath); }
-		 * }
-		 */
- 
-
-		/*try {
-			 result = FileUtils.readFileToString(new File(filePath), StandardCharsets.UTF_8);
+			 ObjectMapper mapper = new ObjectMapper();			 
+			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
+			 return jsonObject; 
 		} catch (Exception e) {
-			// TODO: handle exception
-		}*/
-		return jsonObject; 
+			e.printStackTrace();
+		}
+		
+		
+		return new JSONObject(); 
    
  
 	}
