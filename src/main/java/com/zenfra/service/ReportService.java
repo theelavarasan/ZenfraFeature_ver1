@@ -364,12 +364,21 @@ public class ReportService {
                             }
                             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!deviceType!!!!!!!!!!!!!!!!!!!!!"+deviceType);
                             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!deviceType!!!!!!!!!!!!!!!!!!!!!"+columnsNameArray.get(j));
-                        	if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
-                        		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Possible Server Name(VMAX)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                        	if(columnsKey.get(i).equalsIgnoreCase("vmax") && columnsNameArray.toString().equalsIgnoreCase("Replication Device Count") || columnsNameArray.toString().equalsIgnoreCase("vmax_Replication Device Count")) {
+                                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Possible Server Name(VMAX)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 								tabInfoObject.put("title", "Detailed Report for Server (Possible Server Name(VMAX))");
-							} else {
-                            tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
-							}         
+							} else if(columnsNameArray.toString().equalsIgnoreCase("Server Name")) {
+                            tabInfoObject.put("title", "Detailed Report for Server (Server Name)");
+							} else if(columnsNameArray.toString().equalsIgnoreCase("VM")) {
+	                            tabInfoObject.put("title", "Detailed Report for Server (VM)");
+							} else if(columnsNameArray.toString().equalsIgnoreCase("Host Name")) {
+	                            tabInfoObject.put("title", "Detailed Report for Server (Host Name)");
+							} else if(columnsNameArray.toString().equalsIgnoreCase("Host_Host Name")) {
+	                            tabInfoObject.put("title", "Detailed Report for Server (Host_Host Name)");
+							}  else {
+	                            tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
+							}          
+                        		
                             if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
                             	System.out.println("!!!!! deviceType: " + deviceType);
     							if(deviceType.equalsIgnoreCase("vmware")) {
