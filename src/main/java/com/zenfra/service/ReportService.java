@@ -289,6 +289,9 @@ public class ReportService {
                     JSONArray columnsNameArray = columnsMap.get(columnsKey.get(i));
                     if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
                     	columnsNameArray = (JSONArray) parser.parse("[\"Replication Device Count\"]");
+                    }                    
+                    if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
+                    	columnsNameArray = (JSONArray) parser.parse("[\"vmax_Replication Device Count\"]");
                     }
                     System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
                     JSONObject tabInfoObject = new JSONObject();
@@ -378,9 +381,9 @@ public class ReportService {
     								postDataColumnArray.add("vmax_Possible Server Name(VMAX)");
     								postDataColumnArray.add("vmax_SID");
     								postDataColumnArray.add("Replication Device Count");
-    		                        columnsNameArray.add("vmax_Replication Device Count");
+    								postDataColumnArray.add("vmax_Replication Device Count");
     							} else {
-    								if(!columnsNameArray.get(j).toString().equalsIgnoreCase("Replication Device Count")) {
+    								if(!columnsNameArray.get(j).toString().equalsIgnoreCase("Replication Device Count") || !columnsNameArray.get(j).toString().equalsIgnoreCase("vmax_Replication Device Count") ) {
     									postDataColumnArray.add(columnsNameArray.get(j));
     								}
     								postDataColumnArray.add(columnsNameArray.get(j));
@@ -393,6 +396,8 @@ public class ReportService {
     								postDataColumnArray.add("Serial Number");
     								postDataColumnArray.add("vmax_Possible Server Name(VMAX)");
     								postDataColumnArray.add("vmax_SID");
+    								postDataColumnArray.add("Replication Device Count");
+    								postDataColumnArray.add("vmax_Replication Device Count");
     							}
     							
     						}                            
@@ -411,6 +416,8 @@ public class ReportService {
 				postDataColumnArray.add("Serial Number");
 				postDataColumnArray.add("vmax_Possible Server Name(VMAX)");
 				postDataColumnArray.add("vmax_SID");
+				postDataColumnArray.add("Replication Device Count");
+				postDataColumnArray.add("vmax_Replication Device Count");
                 result.put("postDataColumns", postDataColumnArray);
                 result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));
                 JSONArray refferedDeviceType = new JSONArray();
