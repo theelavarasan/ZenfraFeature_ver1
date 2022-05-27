@@ -363,20 +363,28 @@ public class ReportService {
                                 tabInfoObject.put("skipValues", new JSONArray());
                             }
                             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!deviceType!!!!!!!!!!!!!!!!!!!!!"+deviceType);
-                            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!deviceType!!!!!!!!!!!!!!!!!!!!!"+columnsNameArray.get(j));
-                        	if(columnsKey.get(i).equalsIgnoreCase("vmax") && columnsNameArray.toString().equalsIgnoreCase("Replication Device Count") || columnsNameArray.toString().equalsIgnoreCase("vmax_Replication Device Count")) {
-                                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Possible Server Name(VMAX)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!columnsNameArray!!!!!!!!!!!!!!!!!!!!!"+columnsNameArray.get(j));
+                        	if(columnsNameArray.toString().equalsIgnoreCase("Replication Device Count")) {
 								tabInfoObject.put("title", "Detailed Report for Server (Possible Server Name(VMAX))");
+								System.out.println("Replication Device Count-------------------------------"+tabInfoObject.toString());
+							} else if(columnsNameArray.toString().equalsIgnoreCase("vmax_Replication Device Count")) {
+	                            tabInfoObject.put("title", "Detailed Report for Server (vmax_Possible Server Name(VMAX))");
+								System.out.println("vmax_Replication Device Count-------------------------------"+tabInfoObject.toString());
 							} else if(columnsNameArray.toString().equalsIgnoreCase("Server Name")) {
                             tabInfoObject.put("title", "Detailed Report for Server (Server Name)");
+							System.out.println("Server Name-------------------------------"+tabInfoObject.toString());
 							} else if(columnsNameArray.toString().equalsIgnoreCase("VM")) {
 	                            tabInfoObject.put("title", "Detailed Report for Server (VM)");
+								System.out.println("VM-------------------------------"+tabInfoObject.toString());
 							} else if(columnsNameArray.toString().equalsIgnoreCase("Host Name")) {
 	                            tabInfoObject.put("title", "Detailed Report for Server (Host Name)");
+								System.out.println("Host Name-------------------------------"+tabInfoObject.toString());
 							} else if(columnsNameArray.toString().equalsIgnoreCase("Host_Host Name")) {
 	                            tabInfoObject.put("title", "Detailed Report for Server (Host_Host Name)");
+								System.out.println("Host_Host Name-------------------------------"+tabInfoObject.toString());
 							}  else {
 	                            tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
+								System.out.println("Default-------------------------------"+tabInfoObject.toString());
 							}          
                         		
                             if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
