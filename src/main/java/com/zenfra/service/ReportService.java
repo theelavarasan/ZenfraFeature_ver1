@@ -292,11 +292,10 @@ public class ReportService {
                     System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
                     System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
                     if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
-                    	columnsNameArray = (JSONArray) parser.parse("[\"Replication Device Count\"]");
-                    }                    
-                    if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
-                    	columnsNameArray = (JSONArray) parser.parse("[\"vmax_Replication Device Count\"]");
-                    }
+                    	columnsNameArray = (JSONArray) parser.parse("[\"Replication Device Count\", \"vmax_Replication Device Count\"]");
+                    }   else {
+                    	columnsNameArray = (JSONArray) parser.parse("[\"Server Name\", \"VM\", \"Host Name\", \"Host_Host Name\"]");
+					}  
                     System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
                     System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
                     JSONObject tabInfoObject = new JSONObject();
@@ -364,6 +363,7 @@ public class ReportService {
                                 tabInfoObject.put("skipValues", new JSONArray());
                             }
                             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!deviceType!!!!!!!!!!!!!!!!!!!!!"+deviceType);
+                            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!deviceType!!!!!!!!!!!!!!!!!!!!!"+columnsNameArray.get(j));
                         	if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
                         		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Possible Server Name(VMAX)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 								tabInfoObject.put("title", "Detailed Report for Server (Possible Server Name(VMAX))");
