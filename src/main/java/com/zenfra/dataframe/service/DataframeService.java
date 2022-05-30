@@ -3661,7 +3661,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 					  List<Map<String, Object>> vmaxDiskSanData =  (List<Map<String, Object>>) vmaxDiskSanObj.get("data");
 					  mapper.writeValue(new File(filePath.replace(".json", "_new.json")), vmaxDiskSanData);
 					  File f = new File(filePath.replace(".json", "_new.json"));
-						 Dataset<Row> dataset = sparkSession.read().json(f.getAbsolutePath()); 
+						 Dataset<Row> dataset = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath()); 
 						 dataset.createOrReplaceGlobalTempView("vmax_disk_san");
 						
 						 Dataset<Row> result = dataset.sqlContext().sql("select\r\n" + 
@@ -3705,9 +3705,9 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 						 		"b.`Local Possible Server Name` as `Remote Possible Server Name`,\r\n" + 
 						 		"b.`Local FA Port` as `Remote FA Port`,\r\n" + 
 						 		"b.`Local FA Port WWN` as `Remote FA Port WWN`\r\n" + 
-						 		"from global_temp.vmax_disk_san a\r\n" + 
+						 		"from global_temp.vmax_disk_san a " + 
 						 		"left join global_temp.vmax_disk_san b on a.`Local Device ID` = b.`Remote Device Name` and a.`Local Serial Number` = b.`Remote Target ID`");
-						 
+						 result =  result.toDF().na().fill("");
 						 
 						 jsonObject.put("data", result.toJSON().collectAsList().toString());
 				} catch (Exception e) {
