@@ -3653,17 +3653,16 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			}
 			
 			 ObjectMapper mapper = new ObjectMapper();			 
-			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
-			 
-			if(filePath.contains("VMAX_Local_Disk-SAN")) {				
+			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);			 
+
+			 if(filePath.contains("VMAX_Local_Disk-SAN")) {
 				 try {
 					 JSONObject vmaxDiskSanObj = mapper.readValue(new File(filePath), JSONObject.class);
 					  List<Map<String, Object>> vmaxDiskSanData =  (List<Map<String, Object>>) vmaxDiskSanObj.get("data");
 					  mapper.writeValue(new File(filePath.replace(".json", "_new.json")), vmaxDiskSanData);
 					  File f = new File(filePath.replace(".json", "_new.json"));
 						 Dataset<Row> dataset = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath()); 
-						 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";						
-						 dataset.createOrReplaceGlobalTempView(viewName);
+						 dataset.createOrReplaceGlobalTempView("vmax_disk_san");
 						
 						 Dataset<Row> result = dataset.sqlContext().sql("select\r\n" + 
 						 		"a.`Local Device ID` as `Local Device ID`,\r\n" + 
@@ -3706,20 +3705,16 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 						 		"b.`Local Possible Server Name` as `Remote Possible Server Name`,\r\n" + 
 						 		"b.`Local FA Port` as `Remote FA Port`,\r\n" + 
 						 		"b.`Local FA Port WWN` as `Remote FA Port WWN`\r\n" + 
-						 		"from global_temp."+viewName+" a " + 
-						 		"left join global_temp."+viewName+" b on a.`Local Device ID` = b.`Remote Device Name` and a.`Local Serial Number` = b.`Remote Target ID`");
+						 		"from global_temp.vmax_disk_san a " + 
+						 		"left join global_temp.vmax_disk_san b on a.`Local Device ID` = b.`Remote Device Name` and a.`Local Serial Number` = b.`Remote Target ID`");
 						 result =  result.toDF().na().fill("");
 						 
-						 jsonObject.put("data", result.toJSON().collectAsList().toString());
+						 jsonObject.put("data", mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class));
 				} catch (Exception e) {
 					e.printStackTrace();
-				}
-			  
-				  
-				  
+				}				  
 			 }
 
-			
 			 return jsonObject; 
 		} catch (Exception e) {
 			e.printStackTrace();
