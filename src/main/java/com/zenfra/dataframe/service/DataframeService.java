@@ -3709,7 +3709,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 						 		"left join global_temp.vmax_disk_san b on a.`Local Device ID` = b.`Remote Device Name` and a.`Local Serial Number` = b.`Remote Target ID`");
 						 result =  result.toDF().na().fill("");
 						 
-						 jsonObject.put("data", result.toJSON().collectAsList().toString());
+						 jsonObject.put("data", mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
