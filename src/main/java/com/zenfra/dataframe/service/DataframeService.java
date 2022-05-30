@@ -3763,7 +3763,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 						 
 							System.out.println("---------jsonarray------- " + jsonarray.size());
 						 jsonObject.put("data", jsonarray);
-						 mapper.writeValue(Paths.get(filePath).toFile(), jsonObject);
+						 mapper.writeValue(Paths.get(filePath).toFile(), jsonObject.toJSONString());
 						 
 							System.out.println("---------Completed------- " );
 				} catch (Exception e) {
