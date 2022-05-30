@@ -363,7 +363,7 @@ public class ReportService {
                             	System.out.println("!!!!! deviceType: " + deviceType);
     							if(deviceType.equalsIgnoreCase("vmware")) {
     								postDataColumnArray.add("VM");
-    								//postDataColumnArray.add("vCenter");
+    								postDataColumnArray.add("vCenter");
     							} else if(deviceType.equalsIgnoreCase("vmwarehost")) {
     								postDataColumnArray.add("Server Name");
     								//postDataColumnArray.add("vCenter");
@@ -394,7 +394,8 @@ public class ReportService {
                 
                 System.out.println("!!!!! postDataColumnArray: " + postDataColumnArray);
                 postDataColumnArray.add("Possible Server Name(VMAX)");
-                postDataColumnArray.add("SID");                
+                postDataColumnArray.add("SID");
+                postDataColumnArray.add("vCenter");
                 result.put("postDataColumns", postDataColumnArray);
                 result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));
                 JSONArray refferedDeviceType = new JSONArray();
