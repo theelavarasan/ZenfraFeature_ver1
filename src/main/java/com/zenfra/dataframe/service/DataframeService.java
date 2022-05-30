@@ -3655,16 +3655,56 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			 ObjectMapper mapper = new ObjectMapper();			 
 			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);			 
 
+
+			 return jsonObject; 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return new JSONObject(); 
+   
+ 
+	}
+
+	public void createDataframeForJsonData(String filePath) {
+		if (filePath.contains(",")) {
+			filePath = filePath.split(",")[0];
+		}
+		try {
+			DataframeUtil.validateAndFormatJsonData(filePath);			 
+
 			 if(filePath.contains("VMAX_Local_Disk-SAN")) {
+				 ObjectMapper mapper = new ObjectMapper();			 
+				 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);	
 				 try {
 					 JSONObject vmaxDiskSanObj = mapper.readValue(new File(filePath), JSONObject.class);
 					  List<Map<String, Object>> vmaxDiskSanData =  (List<Map<String, Object>>) vmaxDiskSanObj.get("data");
 					  mapper.writeValue(new File(filePath.replace(".json", "_new.json")), vmaxDiskSanData);
 					  File f = new File(filePath.replace(".json", "_new.json"));
-						 Dataset<Row> dataset = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath()); 
-						 dataset.createOrReplaceGlobalTempView("vmax_disk_san");
+						 Dataset<Row> datasetLocal = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath()); 
+						 String viewNameLocal = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san_local";
+						 datasetLocal = datasetLocal.withColumn("Local FA Port", datasetLocal.col("Local FA Port").cast("String"));
+						 
+						 datasetLocal.createOrReplaceGlobalTempView(viewNameLocal);
+						 
+						 
+						 Dataset<Row> datasetRemote = datasetLocal;
+						 for (String column : datasetRemote.columns()) {
+							 if(column.contains("Remote")) {
+								 datasetRemote = datasetRemote.withColumnRenamed(column, column.replace("Remote", "RemoteB"));
+							 } else {
+								 datasetRemote = datasetRemote.withColumnRenamed(column, column.replace("Local", "Remote"));
+							 }							
+							
+						    }
+						 
+						 datasetRemote = datasetRemote.withColumn("Remote FA Port", datasetRemote.col("Remote FA Port").cast("String"));
+						 String viewNameRemote = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san_remote";
+						 datasetRemote.createOrReplaceGlobalTempView(viewNameRemote);
+						 
 						
-						 Dataset<Row> result = dataset.sqlContext().sql("select\r\n" + 
+						/* Dataset<Row> result = datasetLocal.sqlContext().sql("select\r\n" + 
 						 		"a.`Local Device ID` as `Local Device ID`,\r\n" + 
 						 		"a.`Local Serial Number` as `Local Serial Number`,\r\n" + 
 						 		"a.`Local Device Configuration` as `Local Device Configuration`,\r\n" + 
@@ -3707,44 +3747,38 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 						 		"b.`Local FA Port WWN` as `Remote FA Port WWN`\r\n" + 
 						 		"from global_temp.vmax_disk_san a " + 
 						 		"left join global_temp.vmax_disk_san b on a.`Local Device ID` = b.`Remote Device Name` and a.`Local Serial Number` = b.`Remote Target ID`");
-						 result =  result.toDF().na().fill("");
+						 		*/
+						 Dataset<Row> result = sparkSession.sqlContext().sql("select " + 
+								 " a.`Local Device ID`, a.`Local Serial Number`,a.`Local Device Configuration`,a.`Local Device Capacity`, a.`Local Device WWN`,a.`Local Device Status`, a.`Local Host Access Mode`, a.`Local Clone Source Device (SRC)`,a.`Local Clone Target Device (TGT)`,a.`Local BCV Device Name`, a.`Local BCV Device Status`,a.`Local BCV State of Pair`,a.`Local Storage Group`, a.`Local Masking View`,a.`Local Initiator Group`,a.`Local Initiator Name`,a.`Local Possible Server Name`, a.`Local FA Port WWN`, "+
+							 		" b.`Remote Device ID`, b.`Remote Serial Number`,b.`Remote Device Configuration`,b.`Remote Device Capacity`, b.`Remote Device WWN`,b.`Remote Device Status`, b.`Remote Host Access Mode`, b.`Remote Clone Source Device (SRC)`, b.`Remote Clone Target Device (TGT)`,b.`Remote BCV Device Name`,b.`Remote BCV Device Status`,b.`Remote BCV State of Pair`,b.`Remote Storage Group`, b.`Remote Masking View`, b.`Remote Initiator Group`,b.`Remote Initiator Name`,b.`Remote Possible Server Name`,  b.`Remote FA Port WWN`  "+
+							 		"from global_temp."+viewNameLocal+" a  " + 
+							 		"left join global_temp."+viewNameRemote+" b on a.`Remote Device Name` = b.`Remote Device ID` and a.`Remote Target ID` = b.`Remote Serial Number`");
+							 
+							 
+							 
+							System.out.println("---------viewNameLocal------- "	+ viewNameLocal+ " : " +  viewNameRemote);
+							 
+							JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);
 						 
-						 jsonObject.put("data", mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class));
+						 
+							System.out.println("---------jsonarray------- " + jsonarray.size());
+						 jsonObject.put("data", jsonarray);
+						 mapper.writeValue(Paths.get(filePath).toFile(), jsonObject);
+						 
+							System.out.println("---------Completed------- " );
 				} catch (Exception e) {
 					e.printStackTrace();
 				}				  
 			 }
+			 
+			 //File f = new File(filePath);
 
-			 return jsonObject; 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		
-		return new JSONObject(); 
-   
- 
-	}
-
-	public void createDataframeForJsonData(String filePath) {
-		if (filePath.contains(",")) {
-			filePath = filePath.split(",")[0];
-		}
-		try {
-			DataframeUtil.validateAndFormatJsonData(filePath);
-			File f = new File(filePath);
-			/*String parentFilePath = f.getParent();
-			File[] files = new File(parentFilePath).listFiles();
-			DataframeUtil.formatJsonFile(files);
-			*/			
-
-			//DataframeUtil.validateAndFormatJsonData(filePath);
-
-			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+		/*	Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 					.option("mode", "PERMISSIVE").json(filePath);
 		
 			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
 			dataset.createOrReplaceGlobalTempView(viewName);
+			*/
 			
 		} catch (Exception e) {
 			e.printStackTrace();			
