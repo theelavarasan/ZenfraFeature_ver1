@@ -3673,7 +3673,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		}
 		try {
 
-			 if(filePath.contains("VMAX_Local_Disk-SAN")) {
+			 /*if(filePath.contains("VMAX_Local_Disk-SAN")) {
 				 ObjectMapper mapper = new ObjectMapper();			 
 				 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
 				 try {
@@ -3720,8 +3720,76 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}				  
-			 }
+			 }*/
 			
+			if(filePath.contains("VMAX_Local_Disk-SAN")) {
+				String dataPath = filePath.replace(".json", "_data.json");
+				 ObjectMapper mapper = new ObjectMapper();			 
+				  JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
+				  List<Map<String, Object>> dataArray =  (List<Map<String, Object>>) jsonObject.get("data");
+				  mapper.writeValue(new File(dataPath), dataArray);				
+				    File f = new File(dataPath);
+					 Dataset<Row> datasetA = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath()); 
+					 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
+					
+					 datasetA.createOrReplaceGlobalTempView(viewName);
+				Dataset<Row> result = sparkSession.sqlContext().sql("select " + 
+				 		"a.`Local Device ID`, " + 
+				 		"a.`Local Serial Number`, " + 
+				 		"a.`Local Device Configuration`, " + 
+				 		"a.`Local Device Capacity`, " + 
+				 		"a.`Local Device WWN`, " + 
+				 		"a.`Local Device Status`, " + 
+				 		"a.`Local Host Access Mode`, " + 
+				 		"a.`Local Clone Source Device (SRC)`, " + 
+				 		"a.`Local Clone Target Device (TGT)`, " + 
+				 		"a.`Local BCV Device Name`, " + 
+				 		"a.`Local BCV Device Status`, " + 
+				 		"a.`Local BCV State of Pair`, " + 
+				 		"a.`Local Storage Group`, " + 
+				 		"a.`Local Masking View`, " + 
+				 		"a.`Local Initiator Group`, " + 
+				 		"a.`Local Initiator Name`, " + 
+				 		"a.`Local Initiator WWN`, " + 
+				 		"a.`Local Possible Server Name`, " + 
+				 		"a.`Local FA Port`," + 
+				 		"a.`Local FA Port WWN`,  " + 
+				 		"b.`Local Device ID` as `Remote_Device_ID`," + 
+				 		"b.`Local Serial Number` as `Remote Serial Number`," + 
+				 		"b.`Local Device Configuration` as `Remote_Device_Configuration`," + 
+				 		"b.`Local Device Capacity` as `Remote Device Capacity`," + 
+				 		"b.`Local Device WWN` as `Remote Device WWN`," + 
+				 		"b.`Local Device Status` as `Remote Device Status`," + 
+				 		"b.`Local Host Access Mode` as `Remote Host Access Mode`," + 
+				 		"b.`Local Clone Source Device (SRC)` as `Remote Clone Source Device (SRC)`," + 
+				 		"b.`Local Clone Target Device (TGT)` as `Remote Clone Target Device (TGT)`," + 
+				 		"b.`Local BCV Device Name` as `Remote BCV Device Name`," + 
+				 		"b.`Local BCV Device Status` as `Remote BCV Device Status`," + 
+				 		"b.`Local BCV State of Pair` as `Remote BCV State of Pair`," + 
+				 		"b.`Local Storage Group` as `Remote Storage Group`," + 
+				 		"b.`Local Masking View` as `Remote Masking View`," + 
+				 		"b.`Local Initiator Group` as `Remote Initiator Group`," + 
+				 		"b.`Local Initiator Name` as `Remote Initiator Name`," + 
+				 		"b.`Local Initiator WWN` as `Remote Initiator WWN`," + 
+				 		"b.`Local Possible Server Name` as `Remote Possible Server Name`," + 
+				 		"b.`Local FA Port` as `Remote FA Port`," + 
+				 		"b.`Local FA Port WWN` as `Remote FA Port WWN` " + 
+				 	     "from global_temp."+viewName+" a  " + 
+				 		"left join global_temp."+viewName+" b on a.`Remote Device Name` = b.`Local Device ID` and a.`Remote Target ID` = b.`Local Serial Number`");
+				 
+				 JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);		 
+				
+				 jsonObject.put("data", jsonarray);			 
+				
+				  FileWriter fw = new FileWriter(filePath);
+				  BufferedWriter bw = new BufferedWriter(fw);
+				  bw.write(jsonObject.toString()); bw.close();
+				  bw.close();
+				 
+				  System.out.println("-----------VMAX Disk SAN report completed--------" + viewName);
+			}
+			 
+				  
 		} catch (Exception e) {
 			e.printStackTrace();			
 		}
