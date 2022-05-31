@@ -3729,7 +3729,16 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				 ObjectMapper mapper = new ObjectMapper();			 
 				  JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
 				  List<Map<String, Object>> dataArray =  (List<Map<String, Object>>) jsonObject.get("data");
-				  mapper.writeValue(new File(dataPath), dataArray);				
+				  mapper.writeValue(new File(dataPath), dataArray);		
+				  
+				  try {
+					  Path level = Paths.get(filePath).getParent().getParent();				        
+				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+				       	Files.setOwner(level, owner);
+				       	
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
 				    File f = new File(dataPath);
 					 Dataset<Row> datasetA = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath()); 
 					 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
@@ -3756,8 +3765,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				 		"a.`Local Possible Server Name`, " + 
 				 		"a.`Local FA Port`," + 
 				 		"a.`Local FA Port WWN`,  " + 
-				 		"b.`Local Device ID` as `Remote Device ID`," + 
-				 		"b.`Local Serial Number` as `Remote Serial Number`," + 
+				 		"b.`Local Device ID` as `Remote Device Name`," + 
+				 		"b.`Local Serial Number` as `Remote Target ID`," + 
 				 		"b.`Local Device Configuration` as `Remote Device Configuration`," + 
 				 		"b.`Local Device Capacity` as `Remote Device Capacity`," + 
 				 		"b.`Local Device WWN` as `Remote Device WWN`," + 
