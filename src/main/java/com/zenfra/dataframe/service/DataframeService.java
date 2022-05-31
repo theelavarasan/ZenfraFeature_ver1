@@ -3798,6 +3798,29 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				  BufferedWriter bw = new BufferedWriter(fw);
 				  bw.write(jsonObject.toString()); bw.close();
 				  bw.close();
+				  
+				  try {
+					  Path level = Paths.get(filePath);				        
+				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+				       	Files.setOwner(level, owner);
+				       	
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				  
+				  FileWriter fw1 = new FileWriter(filePath.replace(".json", "_test.json"));
+				  BufferedWriter bw1 = new BufferedWriter(fw1);
+				  bw1.write(jsonObject.toString()); bw1.close();
+				  bw1.close();
+				  
+				  try {
+					  Path level = Paths.get(filePath.replace(".json", "_test.json"));				        
+				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+				       	Files.setOwner(level, owner);
+				       	
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
 				 
 				  System.out.println("-----------VMAX Disk SAN report completed--------" + viewName + " : " + jsonarray.size());
 			}
