@@ -3735,17 +3735,24 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 								 " a.`Local Device ID`, a.`Local Serial Number`,a.`Local Device Configuration`,a.`Local Device Capacity`, a.`Local Device WWN`,a.`Local Device Status`, a.`Local Host Access Mode`, a.`Local Clone Source Device (SRC)`,a.`Local Clone Target Device (TGT)`,a.`Local BCV Device Name`, a.`Local BCV Device Status`,a.`Local BCV State of Pair`,a.`Local Storage Group`, a.`Local Masking View`,a.`Local Initiator Group`,a.`Local Initiator Name`,a.`Local Possible Server Name`, a.`Local FA Port WWN`, "+
 							 		" b.`Remote Device ID`, b.`Remote Serial Number`,b.`Remote Device Configuration`,b.`Remote Device Capacity`, b.`Remote Device WWN`,b.`Remote Device Status`, b.`Remote Host Access Mode`, b.`Remote Clone Source Device (SRC)`, b.`Remote Clone Target Device (TGT)`,b.`Remote BCV Device Name`,b.`Remote BCV Device Status`,b.`Remote BCV State of Pair`,b.`Remote Storage Group`, b.`Remote Masking View`, b.`Remote Initiator Group`,b.`Remote Initiator Name`,b.`Remote Possible Server Name`,  b.`Remote FA Port WWN`  "+
 							 		"from global_temp."+viewNameLocal+" a  " + 
-							 		"left join global_temp."+viewNameRemote+" b on a.`Remote Device Name` = b.`Remote Device ID` and a.`Remote Target ID` = b.`Remote Serial Number`");
+							 		"left join global_temp."+viewNameRemote+" b on a.`Remote Device Name` = b.`Remote Device ID` and a.`Remote Target ID` = b.`Remote Serial Number` where a.`Local Device ID`='016DB'");
 							 
 							 
 							 
 							System.out.println("---------viewNameLocal------- "	+ viewNameLocal+ " : " +  viewNameRemote);
 							 
-							JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);
+							//JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);
+							/*ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
+							request.setStartRow(0);
+							request.setEndRow(Integer.parseInt(String.valueOf(result.count())));
+							DataResult ds = paginate(result, request);
+						 */
 						 
+							System.out.println("---------jsonarray------- " + result.count());
+						
 						 
-							System.out.println("---------jsonarray------- " + jsonarray.size());
-						 jsonObject.put("data", jsonarray);
+						 DataResult formattedResult =  new DataResult(result.toJSON().collectAsList(), Long.valueOf(result.count()),null, Long.valueOf(result.count()));
+						 jsonObject.put("data", DataframeUtil.asJsonResponse(formattedResult));
 						// mapper.writeValue(Paths.get(filePath).toFile(), jsonObject.toJSONString());
 						 
 							System.out.println("---------Completed------- " );
@@ -3771,7 +3778,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
-			DataframeUtil.validateAndFormatJsonData(filePath);			 
+			//Following line code used for remove double quotes from numeric value. This function hide at 05-31-2022 due to vmax-disk-san report
+			//DataframeUtil.validateAndFormatJsonData(filePath);			 
 
 			
 			 
