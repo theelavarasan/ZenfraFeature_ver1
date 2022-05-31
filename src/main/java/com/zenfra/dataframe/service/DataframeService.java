@@ -3656,8 +3656,10 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);			 
 
 			 if(filePath.contains("VMAX_Local_Disk-SAN")) {
-				 ObjectMapper mapper = new ObjectMapper();			 
-				 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);	
+					/*
+					 * ObjectMapper mapper = new ObjectMapper(); JSONObject jsonObject =
+					 * mapper.readValue(new File(filePath), JSONObject.class);
+					 */
 				 try {
 					 JSONObject vmaxDiskSanObj = mapper.readValue(new File(filePath), JSONObject.class);
 					  List<Map<String, Object>> vmaxDiskSanData =  (List<Map<String, Object>>) vmaxDiskSanObj.get("data");
@@ -3744,7 +3746,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 						 
 							System.out.println("---------jsonarray------- " + jsonarray.size());
 						 jsonObject.put("data", jsonarray);
-						 mapper.writeValue(Paths.get(filePath).toFile(), jsonObject.toJSONString());
+						// mapper.writeValue(Paths.get(filePath).toFile(), jsonObject.toJSONString());
 						 
 							System.out.println("---------Completed------- " );
 				} catch (Exception e) {
