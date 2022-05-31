@@ -3749,13 +3749,16 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 						 */
 						 
 							System.out.println("---------jsonarray------- " + result.count());
-						
+							
+							JSONParser parser = new JSONParser();
+							JSONArray array = (JSONArray) parser.parse(result.toJSON().collectAsList().toString());
 						 
-						 DataResult formattedResult =  new DataResult(result.toJSON().collectAsList(), Long.valueOf(result.count()),null, Long.valueOf(result.count()));
-						 jsonObject.put("data", DataframeUtil.asJsonResponse(formattedResult));
-						// mapper.writeValue(Paths.get(filePath).toFile(), jsonObject.toJSONString());
+						 //DataResult formattedResult =  new DataResult(result.toJSON().collectAsList(), Long.valueOf(result.count()),null, Long.valueOf(result.count()));
+				         // String dataAry = result.toJSON().collectAsList().toString().replaceAll("/\\/g", "").replaceAll("\"\\{", "\\{").replaceAll("\\}\"", "\\}") ;
+						 jsonObject.put("data", array);
+						// mapper.writeValue(array.get(filePath).toFile(), jsonObject.toJSONString());
 						 
-							System.out.println("---------Completed------- " );
+							System.out.println("---------Completed------- "   );
 				} catch (Exception e) {
 					e.printStackTrace();
 				}				  
