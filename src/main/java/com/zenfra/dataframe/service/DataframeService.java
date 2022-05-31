@@ -76,6 +76,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.FileSystemUtils;
 
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -3792,47 +3794,21 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				
 				result.createOrReplaceGlobalTempView(viewName); 
 				
-				   File file = new File(filePath);
-					String dataWritePath = file.getParentFile().getAbsoluteFile()+File.separator+"Disk_san"+File.separator;
-					result.coalesce(1).write().option("ignoreNullFields", false)
-					.format("org.apache.spark.sql.json")				
-					.mode(SaveMode.Overwrite).save(dataWritePath);
+				  jsonObject.put("data", parser.parse(result.toJSON().collectAsList().toString()));	
+					System.out.println("------vmaxDiskSanObj---------- " );
+			        try (JsonGenerator jGenerator =
+			                     mapper.getFactory().createGenerator(
+			                             new File(filePath)
+			                             , JsonEncoding.UTF8)) {
+			            
+			        	jGenerator.writeObject(jsonObject);
+			                                       // }
+
+			        } catch (Exception e) {
+			            e.printStackTrace();
+			        } 
 					
-					//find json file from folder
-					String resultDataFilePath = findResultDataPath(dataWritePath);
-					System.out.println("------resultDataFilePath---------- " + resultDataFilePath);
-					if(resultDataFilePath != null) {
-						JSONArray vmaxDiskSanObj = new JSONArray();
-						 BufferedReader br = null;
-					        JSONParser parser = new JSONParser();
-					        try {
-					        	   String sCurrentLine;
-
-					               br = new BufferedReader(new FileReader(resultDataFilePath));
-
-					               while ((sCurrentLine = br.readLine()) != null) {
-					            	   try {
-					            		JSONObject row =    (JSONObject) parser.parse(sCurrentLine);
-					            		vmaxDiskSanObj.add(row);
-									} catch (Exception e) {
-										// TODO: handle exception
-									}
-					               }
-					               
-
-							} catch (Exception e) {
-								// TODO: handle exception
-							}
-					    	System.out.println("------vmaxDiskSanObj---------- " + vmaxDiskSanObj.size());
-						jsonObject.put("data", vmaxDiskSanObj);	
-					}
-							 
 					
-					  FileWriter fw = new FileWriter(filePath);
-					  BufferedWriter bw = new BufferedWriter(fw);
-					  bw.write(jsonObject.toString()); bw.close();
-					  bw.close();
-					  
 				  
 				  try {
 					  Path level = Paths.get(filePath);				        
