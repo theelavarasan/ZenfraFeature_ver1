@@ -994,7 +994,7 @@ public class ValidationRuleService {
 					"union all \r\n" +
 					"select keys, data from ( \r\n" + 
 					"select keys, json_agg(data) as data from (  \r\n" + 
-					"select keys, data from ( \r\n" +
+					"select concat('server~',keys) as keys, data from ( \r\n" +
 					"select distinct keys, json_array_elements(LocalDiscoveryData) ->> keys as data from ( \r\n" + 
 					"select LocalDiscoveryData, json_object_keys(data) as keys from ( \r\n" + 
 					"select LocalDiscoveryData, json_array_elements(LocalDiscoveryData) as data from (\r\n" + 
