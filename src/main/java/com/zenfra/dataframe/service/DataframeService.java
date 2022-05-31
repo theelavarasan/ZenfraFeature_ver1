@@ -3655,25 +3655,6 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			 ObjectMapper mapper = new ObjectMapper();			 
 			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);			 
 
-
-			 return jsonObject; 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		
-		return new JSONObject(); 
-   
- 
-	}
-
-	public void createDataframeForJsonData(String filePath) {
-		if (filePath.contains(",")) {
-			filePath = filePath.split(",")[0];
-		}
-		try {
-			DataframeUtil.validateAndFormatJsonData(filePath);			 
-
 			 if(filePath.contains("VMAX_Local_Disk-SAN")) {
 				 ObjectMapper mapper = new ObjectMapper();			 
 				 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);	
@@ -3770,6 +3751,27 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 					e.printStackTrace();
 				}				  
 			 }
+			 
+
+			 return jsonObject; 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return new JSONObject(); 
+   
+ 
+	}
+
+	public void createDataframeForJsonData(String filePath) {
+		if (filePath.contains(",")) {
+			filePath = filePath.split(",")[0];
+		}
+		try {
+			DataframeUtil.validateAndFormatJsonData(filePath);			 
+
+			
 			 
 			 //File f = new File(filePath);
 
