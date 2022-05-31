@@ -10,6 +10,7 @@ import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -3789,15 +3790,49 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				 		"left join global_temp."+viewName+" b on a.`Remote Device Name` = b.`Local Device ID` and a.`Remote Target ID` = b.`Local Serial Number`");
 				 
 				
-				 datasetA.createOrReplaceGlobalTempView(viewName); 
-				 JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);		 
+				result.createOrReplaceGlobalTempView(viewName); 
 				
-				 jsonObject.put("data", jsonarray);			 
-				
-				  FileWriter fw = new FileWriter(filePath);
-				  BufferedWriter bw = new BufferedWriter(fw);
-				  bw.write(jsonObject.toString()); bw.close();
-				  bw.close();
+				   File file = new File(filePath);
+					String dataWritePath = file.getParentFile().getAbsoluteFile()+File.separator+"Disk_san"+File.separator;
+					result.coalesce(1).write().option("ignoreNullFields", false)
+					.format("org.apache.spark.sql.json")				
+					.mode(SaveMode.Overwrite).save(dataWritePath);
+					
+					//find json file from folder
+					String resultDataFilePath = findResultDataPath(dataWritePath);
+					System.out.println("------resultDataFilePath---------- " + resultDataFilePath);
+					if(resultDataFilePath != null) {
+						JSONArray vmaxDiskSanObj = new JSONArray();
+						 BufferedReader br = null;
+					        JSONParser parser = new JSONParser();
+					        try {
+					        	   String sCurrentLine;
+
+					               br = new BufferedReader(new FileReader(resultDataFilePath));
+
+					               while ((sCurrentLine = br.readLine()) != null) {
+					            	   try {
+					            		JSONObject row =    (JSONObject) parser.parse(sCurrentLine);
+					            		vmaxDiskSanObj.add(row);
+									} catch (Exception e) {
+										// TODO: handle exception
+									}
+					               }
+					               
+
+							} catch (Exception e) {
+								// TODO: handle exception
+							}
+					    	System.out.println("------vmaxDiskSanObj---------- " + vmaxDiskSanObj.size());
+						jsonObject.put("data", vmaxDiskSanObj);	
+					}
+							 
+					
+					  FileWriter fw = new FileWriter(filePath);
+					  BufferedWriter bw = new BufferedWriter(fw);
+					  bw.write(jsonObject.toString()); bw.close();
+					  bw.close();
+					  
 				  
 				  try {
 					  Path level = Paths.get(filePath);				        
@@ -3808,21 +3843,9 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 					// TODO: handle exception
 				}
 				  
-				  FileWriter fw1 = new FileWriter(filePath.replace(".json", "_test.json"));
-				  BufferedWriter bw1 = new BufferedWriter(fw1);
-				  bw1.write(jsonObject.toString()); bw1.close();
-				  bw1.close();
-				  
-				  try {
-					  Path level = Paths.get(filePath.replace(".json", "_test.json"));				        
-				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
-				       	Files.setOwner(level, owner);
-				       	
-				} catch (Exception e) {
-					// TODO: handle exception
-				}
+				
 				 
-				  System.out.println("-----------VMAX Disk SAN report completed--------" + viewName + " : " + jsonarray.size());
+				  System.out.println("-----------VMAX Disk SAN report completed--------");
 			}
 			 
 				  
@@ -3830,6 +3853,17 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			e.printStackTrace();			
 		}
 
+	}
+
+	private String findResultDataPath(String dataWritePath) {
+		File dir = new File(dataWritePath);
+		File filesList[] = dir.listFiles();
+		for(File file : filesList) {
+	       if(file.getAbsolutePath().endsWith(".json")) {
+	    	   return file.getAbsolutePath();
+	       }
+	      }
+		return null;
 	}
 
 	public void createCloudCostDataframeFromJsonData(String filePath, String viewName) {
