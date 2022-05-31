@@ -37,9 +37,9 @@ import scala.collection.Seq;
 public class DataframeUtil {
 
 	public static String asJsonResponse(DataResult result) {
-		String secondaryColumns = result.getSecondaryColumns().isEmpty() ? ""
-				: "\"" + String.join("\", \"", result.getSecondaryColumns()) + "\"";
-
+		//String secondaryColumns = result.getSecondaryColumns().isEmpty() ? ""
+		//		: "\"" + String.join("\", \"", result.getSecondaryColumns()) + "\"";
+//
 		return "{" + "\"data\": [" + String.join(",", result.getData()) + "], " + "\"lastRow\":" + result.getLastRow()
 				+ ", " + "\"totalCount\": " + result.getTotalRecord() +
 				/* "\"unit_conv_details\": " + result.getUnit_conv_details() + "" + */
