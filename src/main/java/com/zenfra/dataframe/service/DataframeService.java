@@ -3722,12 +3722,23 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				}				  
 			 }*/
 			
+			 System.out.println("----------createDataframeForJsonData----" + filePath);
+			 
 			if(filePath.contains("VMAX_Local_Disk-SAN")) {
 				String dataPath = filePath.replace(".json", "_data.json");
 				 ObjectMapper mapper = new ObjectMapper();			 
 				  JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
 				  List<Map<String, Object>> dataArray =  (List<Map<String, Object>>) jsonObject.get("data");
-				  mapper.writeValue(new File(dataPath), dataArray);				
+				  mapper.writeValue(new File(dataPath), dataArray);		
+				  
+				  try {
+					  Path level = Paths.get(filePath).getParent().getParent();				        
+				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+				       	Files.setOwner(level, owner);
+				       	
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
 				    File f = new File(dataPath);
 					 Dataset<Row> datasetA = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath()); 
 					 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
@@ -3754,8 +3765,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				 		"a.`Local Possible Server Name`, " + 
 				 		"a.`Local FA Port`," + 
 				 		"a.`Local FA Port WWN`,  " + 
-				 		"b.`Local Device ID` as `Remote Device ID`," + 
-				 		"b.`Local Serial Number` as `Remote Serial Number`," + 
+				 		"b.`Local Device ID` as `Remote Device Name`," + 
+				 		"b.`Local Serial Number` as `Remote Target ID`," + 
 				 		"b.`Local Device Configuration` as `Remote Device Configuration`," + 
 				 		"b.`Local Device Capacity` as `Remote Device Capacity`," + 
 				 		"b.`Local Device WWN` as `Remote Device WWN`," + 
@@ -3777,6 +3788,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				 	     "from global_temp."+viewName+" a  " + 
 				 		"left join global_temp."+viewName+" b on a.`Remote Device Name` = b.`Local Device ID` and a.`Remote Target ID` = b.`Local Serial Number`");
 				 
+				
+				 datasetA.createOrReplaceGlobalTempView(viewName); 
 				 JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);		 
 				
 				 jsonObject.put("data", jsonarray);			 
@@ -3785,8 +3798,31 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				  BufferedWriter bw = new BufferedWriter(fw);
 				  bw.write(jsonObject.toString()); bw.close();
 				  bw.close();
+				  
+				  try {
+					  Path level = Paths.get(filePath);				        
+				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+				       	Files.setOwner(level, owner);
+				       	
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				  
+				  FileWriter fw1 = new FileWriter(filePath.replace(".json", "_test.json"));
+				  BufferedWriter bw1 = new BufferedWriter(fw1);
+				  bw1.write(jsonObject.toString()); bw1.close();
+				  bw1.close();
+				  
+				  try {
+					  Path level = Paths.get(filePath.replace(".json", "_test.json"));				        
+				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+				       	Files.setOwner(level, owner);
+				       	
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
 				 
-				  System.out.println("-----------VMAX Disk SAN report completed--------" + viewName);
+				  System.out.println("-----------VMAX Disk SAN report completed--------" + viewName + " : " + jsonarray.size());
 			}
 			 
 				  
@@ -3829,6 +3865,33 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 
+	}
+
+	public JSONArray getVmaxSubreport(String filePath, String serverName, String sid) {
+		JSONArray resultArray = new JSONArray();
+		ObjectMapper mapper = new ObjectMapper();
+		 File f = new File(filePath);	
+	
+		 Dataset<Row> subReportData  = sparkSession.emptyDataFrame();
+		try {			 
+			 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
+			  subReportData = sparkSession.sqlContext().sql("select * from global_temp."+viewName+" where lower(`Local Possible Server Name`) like '%"+serverName.toLowerCase()+"%' and `Local Serial Number`='"+sid+"'").toDF();
+			  System.out.println("-----------getVmaxSubreport----view exists-----" ); 
+		} catch (Exception e) { //view not present
+			  System.out.println("-----------getVmaxSubreport----view NOT exists-----" ); 
+			 createDataframeForJsonData(filePath);			
+			 
+			 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
+			  subReportData = sparkSession.sqlContext().sql("select * from global_temp."+viewName+" where lower(`Local Possible Server Name`) like '%"+serverName.toLowerCase()+"%' and `Local Serial Number`='"+sid+"'").toDF();
+		}
+		try {
+			 resultArray =  mapper.convertValue(subReportData.toJSON().collectAsList().toString(), JSONArray.class);	
+			  System.out.println("----------VmaxSubreport size----" + resultArray.size()); 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
 	}
 
 
