@@ -10,6 +10,7 @@ import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -3653,13 +3654,28 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			}
 			
 			 ObjectMapper mapper = new ObjectMapper();			 
-			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);			 
+			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
+
+			 return jsonObject; 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return new JSONObject(); 
+   
+ 
+	}
+
+	public void createDataframeForJsonData(String filePath) {
+		if (filePath.contains(",")) {
+			filePath = filePath.split(",")[0];
+		}
+		try {
 
 			 if(filePath.contains("VMAX_Local_Disk-SAN")) {
-					/*
-					 * ObjectMapper mapper = new ObjectMapper(); JSONObject jsonObject =
-					 * mapper.readValue(new File(filePath), JSONObject.class);
-					 */
+				 ObjectMapper mapper = new ObjectMapper();			 
+				 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
 				 try {
 					 JSONObject vmaxDiskSanObj = mapper.readValue(new File(filePath), JSONObject.class);
 					  List<Map<String, Object>> vmaxDiskSanData =  (List<Map<String, Object>>) vmaxDiskSanObj.get("data");
@@ -3686,113 +3702,25 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 						 String viewNameRemote = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san_remote";
 						 datasetRemote.createOrReplaceGlobalTempView(viewNameRemote);
 						 
-						
-						/* Dataset<Row> result = datasetLocal.sqlContext().sql("select\r\n" + 
-						 		"a.`Local Device ID` as `Local Device ID`,\r\n" + 
-						 		"a.`Local Serial Number` as `Local Serial Number`,\r\n" + 
-						 		"a.`Local Device Configuration` as `Local Device Configuration`,\r\n" + 
-						 		"a.`Local Device Capacity` as `Local Device Capacity`,\r\n" + 
-						 		"a.`Local Device WWN` as `Local Device WWN`,\r\n" + 
-						 		"a.`Local Device Status` as `Local Device Status`,\r\n" + 
-						 		"a.`Local Host Access Mode` as `Local Host Access Mode`,\r\n" + 
-						 		"a.`Local Clone Source Device (SRC)` as `Local Clone Source Device (SRC)`,\r\n" + 
-						 		"a.`Local Clone Target Device (TGT)` as `Local Clone Target Device (TGT)`,\r\n" + 
-						 		"a.`Local BCV Device Name` as `Local BCV Device Name`,\r\n" + 
-						 		"a.`Local BCV Device Status` as `Local BCV Device Status`,\r\n" + 
-						 		"a.`Local BCV State of Pair` as `Local BCV State of Pair`,\r\n" + 
-						 		"a.`Local Storage Group` as `Local Storage Group`,\r\n" + 
-						 		"a.`Local Masking View` as `Local Masking View`,\r\n" + 
-						 		"a.`Local Initiator Group` as `Local Initiator Group`,\r\n" + 
-						 		"a.`Local Initiator Name` as `Local Initiator Name`,\r\n" + 
-						 		"a.`Local Initiator WWN` as `Local Initiator WWN`,\r\n" + 
-						 		"a.`Local Possible Server Name` as `Local Possible Server Name`,\r\n" + 
-						 		"a.`Local FA Port` as `Local FA Port`,\r\n" + 
-						 		"a.`Local FA Port WWN` as `Local FA Port WWN`,\r\n" + 
-						 		"b.`Local Device ID` as `Remote Device ID`,\r\n" + 
-						 		"b.`Local Serial Number` as `Remote Serial Number`,\r\n" + 
-						 		"b.`Local Device Configuration` as `Remote Device Configuration`,\r\n" + 
-						 		"b.`Local Device Capacity` as `Remote Device Capacity`,\r\n" + 
-						 		"b.`Local Device WWN` as `Remote Device WWN`,\r\n" + 
-						 		"b.`Local Device Status` as `Remote Device Status`,\r\n" + 
-						 		"b.`Local Host Access Mode` as `Remote Host Access Mode`,\r\n" + 
-						 		"b.`Local Clone Source Device (SRC)` as `Remote Clone Source Device (SRC)`,\r\n" + 
-						 		"b.`Local Clone Target Device (TGT)` as `Remote Clone Target Device (TGT)`,\r\n" + 
-						 		"b.`Local BCV Device Name` as `Remote BCV Device Name`,\r\n" + 
-						 		"b.`Local BCV Device Status` as `Remote BCV Device Status`,\r\n" + 
-						 		"b.`Local BCV State of Pair` as `Remote BCV State of Pair`,\r\n" + 
-						 		"b.`Local Storage Group` as `Remote Storage Group`,\r\n" + 
-						 		"b.`Local Masking View` as `Remote Masking View`,\r\n" + 
-						 		"b.`Local Initiator Group` as `Remote Initiator Group`,\r\n" + 
-						 		"b.`Local Initiator Name` as `Remote Initiator Name`,\r\n" + 
-						 		"b.`Local Initiator WWN` as `Remote Initiator WWN`,\r\n" + 
-						 		"b.`Local Possible Server Name` as `Remote Possible Server Name`,\r\n" + 
-						 		"b.`Local FA Port` as `Remote FA Port`,\r\n" + 
-						 		"b.`Local FA Port WWN` as `Remote FA Port WWN`\r\n" + 
-						 		"from global_temp.vmax_disk_san a " + 
-						 		"left join global_temp.vmax_disk_san b on a.`Local Device ID` = b.`Remote Device Name` and a.`Local Serial Number` = b.`Remote Target ID`");
-						 		*/
 						 Dataset<Row> result = sparkSession.sqlContext().sql("select " + 
-								 " a.`Local Device ID`, a.`Local Serial Number`,a.`Local Device Configuration`,a.`Local Device Capacity`, a.`Local Device WWN`,a.`Local Device Status`, a.`Local Host Access Mode`, a.`Local Clone Source Device (SRC)`,a.`Local Clone Target Device (TGT)`,a.`Local BCV Device Name`, a.`Local BCV Device Status`,a.`Local BCV State of Pair`,a.`Local Storage Group`, a.`Local Masking View`,a.`Local Initiator Group`,a.`Local Initiator Name`,a.`Local Possible Server Name`, a.`Local FA Port WWN`, "+
-							 		" b.`Remote Device ID`, b.`Remote Serial Number`,b.`Remote Device Configuration`,b.`Remote Device Capacity`, b.`Remote Device WWN`,b.`Remote Device Status`, b.`Remote Host Access Mode`, b.`Remote Clone Source Device (SRC)`, b.`Remote Clone Target Device (TGT)`,b.`Remote BCV Device Name`,b.`Remote BCV Device Status`,b.`Remote BCV State of Pair`,b.`Remote Storage Group`, b.`Remote Masking View`, b.`Remote Initiator Group`,b.`Remote Initiator Name`,b.`Remote Possible Server Name`,  b.`Remote FA Port WWN`  "+
+								 " a.`Local Device ID`, a.`Local Serial Number`,a.`Local Device Configuration`,a.`Local Device Capacity`, a.`Local Device WWN`,a.`Local Device Status`, a.`Local Host Access Mode`, a.`Local Clone Source Device (SRC)`,a.`Local Clone Target Device (TGT)`,a.`Local BCV Device Name`, a.`Local BCV Device Status`,a.`Local BCV State of Pair`,a.`Local Storage Group`, a.`Local Masking View`,a.`Local Initiator Group`,a.`Local Initiator Name`,a.`Local Possible Server Name`, a.`Local FA Port WWN`, a.`Local FA Port`, "+
+							 		" b.`Remote Device ID`, b.`Remote Serial Number`,b.`Remote Device Configuration`,b.`Remote Device Capacity`, b.`Remote Device WWN`,b.`Remote Device Status`, b.`Remote Host Access Mode`, b.`Remote Clone Source Device (SRC)`, b.`Remote Clone Target Device (TGT)`,b.`Remote BCV Device Name`,b.`Remote BCV Device Status`,b.`Remote BCV State of Pair`,b.`Remote Storage Group`, b.`Remote Masking View`, b.`Remote Initiator Group`,b.`Remote Initiator Name`,b.`Remote Possible Server Name`,  b.`Remote FA Port WWN`, b.`Remote FA Port`  "+
 							 		"from global_temp."+viewNameLocal+" a  " + 
 							 		"left join global_temp."+viewNameRemote+" b on a.`Remote Device Name` = b.`Remote Device ID` and a.`Remote Target ID` = b.`Remote Serial Number`");
-							 
-							 
-							 
-							System.out.println("---------viewNameLocal------- "	+ viewNameLocal+ " : " +  viewNameRemote);
-							 
-							//JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);
-							/*ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
-							request.setStartRow(0);
-							request.setEndRow(Integer.parseInt(String.valueOf(result.count())));
-							DataResult ds = paginate(result, request);
-						 */
+						    
+						   JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);
+						   jsonObject.put("data", jsonarray);
+						   
+						      FileWriter fw = new FileWriter(filePath);
+							  BufferedWriter bw = new BufferedWriter(fw);
+							  bw.write(jsonObject.toString()); bw.close();
+							  bw.close();
 						 
-							System.out.println("---------jsonarray------- " + result.count());
-							
-							JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);
-						 
-						 //DataResult formattedResult =  new DataResult(result.toJSON().collectAsList(), Long.valueOf(result.count()),null, Long.valueOf(result.count()));
-				         // String dataAry = result.toJSON().collectAsList().toString().replaceAll("/\\/g", "").replaceAll("\"\\{", "\\{").replaceAll("\\}\"", "\\}") ;
-						 jsonObject.put("data", jsonarray);
-						// mapper.writeValue(array.get(filePath).toFile(), jsonObject.toJSONString());
-						 
-							System.out.println("---------Completed------- "   );
+							System.out.println("---------vmax disk san report completed------- "   );
 				} catch (Exception e) {
 					e.printStackTrace();
 				}				  
 			 }
-			 
-
-			 return jsonObject; 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		
-		return new JSONObject(); 
-   
- 
-	}
-
-	public void createDataframeForJsonData(String filePath) {
-		if (filePath.contains(",")) {
-			filePath = filePath.split(",")[0];
-		}
-		try {
-			//Following line code used for remove double quotes from numeric value. This function hide at 05-31-2022 due to vmax-disk-san report
-			//DataframeUtil.validateAndFormatJsonData(filePath);			 
-
-			
-			 
-			 //File f = new File(filePath);
-
-		/*	Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
-					.option("mode", "PERMISSIVE").json(filePath);
-		
-			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
-			dataset.createOrReplaceGlobalTempView(viewName);
-			*/
 			
 		} catch (Exception e) {
 			e.printStackTrace();			
