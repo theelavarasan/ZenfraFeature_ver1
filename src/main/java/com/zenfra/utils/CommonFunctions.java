@@ -323,7 +323,7 @@ public class CommonFunctions {
 					.toJSONString();
 			JSONArray category_list = map.convertValue(favouriteModel.getCategoryList(), JSONArray.class);
 
-			if (favouriteModel.getCategoryColumns() != null) {
+			if (favouriteModel.getCategoryList() != null) {
 				query = query + ", category_list='" + category_list.toJSONString() + "'";
 			}
 			if (favouriteModel.getUserAccessList() != null && !favouriteModel.getUserAccessList().isEmpty()) {
