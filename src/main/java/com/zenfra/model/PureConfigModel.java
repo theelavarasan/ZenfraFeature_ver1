@@ -14,7 +14,7 @@ public class PureConfigModel {
 	private String updatedBy;
 	private String createdTime;
 	private String updatedTime;
-	private String hostName;
+	private String dnsName;
 	private String apiToken;
 	private String userName;
 	private String password;
@@ -116,12 +116,12 @@ public class PureConfigModel {
 		this.updatedTime = updatedTime;
 	}
 
-	public String getHostName() {
-		return hostName;
+	public String getDnsName() {
+		return dnsName;
 	}
 
-	public void setHostName(String hostName) {
-		this.hostName = hostName;
+	public void setDnsName(String dnsName) {
+		this.dnsName = dnsName;
 	}
 
 	public String getApiToken() {

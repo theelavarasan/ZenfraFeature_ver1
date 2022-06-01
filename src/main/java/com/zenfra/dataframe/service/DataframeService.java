@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -599,8 +600,8 @@ public class DataframeService {
 
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
-			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();
-
+			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();			
+			
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
 				try {
@@ -1288,7 +1289,8 @@ public class DataframeService {
 				// log_date desc) as rank from tmpView ) ld where ld.rank=1
 
 				String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"
-						+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";
+							+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.`OS`) ";
+
 				try {
 					dataset = sparkSession.sql(sql);
 					dataset.createOrReplaceTempView("datawithoutFilter");
@@ -1632,8 +1634,9 @@ public class DataframeService {
 			options.put("url", dbUrl);
 			options.put("dbtable", "local_discovery");
 
+			
 			sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
-
+			
 			boolean isMultipleSourceType = false;
 			if (sourceType.contains("hyper") || sourceType.contains("vmware") || sourceType.contains("nutanix")) {
 				isMultipleSourceType = true;
@@ -1700,36 +1703,8 @@ public class DataframeService {
 			if (files != null) {
 				DataframeUtil.formatJsonFile(files);
 			}
-
-			for (File file : files) {
-
-				String filePath = file.getAbsolutePath();
-				if (filePath.endsWith(".json")) {
-					String dataframeFilePath = path + siteKey + File.separator + "site_key=" + siteKey + File.separator
-							+ "source_type=" + sourceType + File.separator + "*.json";
-					String viewName = siteKey + "_" + sourceType.toLowerCase();
-					viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
-
-					try {
-						Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath);
-						dataset.createOrReplaceTempView("tmpView");
-						sparkSession.sql(
-								"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-						dataset.createOrReplaceGlobalTempView(viewName);
-						dataset.cache();
-						System.out.println("---------View created-------- :: " + viewName);
-					} catch (Exception e) {
-						e.printStackTrace();
-						StringWriter errors = new StringWriter();
-						e.printStackTrace(new PrintWriter(errors));
-						String ex = errors.toString();
-						ExceptionHandlerMail.errorTriggerMail(ex);
-						System.out.println("---------Not able to create View-------- :: " + viewName);
-					}
-
-				}
-
-			}
+			createLocalDiscoveryView(files);
+			
 		} catch (Exception e) {
 			logger.error("Not able to create dataframe for local discovery table site key " + siteKey, e.getMessage(),
 					e);
@@ -1744,18 +1719,18 @@ public class DataframeService {
 			List<Map<String, Object>> resultMap = new ArrayList<>();
 			if (reportName != null && !reportName.isEmpty()) {
 				if (reportName.equalsIgnoreCase("capacity")) {
-					String query = "select column_name from report_capacity_columns where lower(device_type)= '"
+					String query = "select distinct(column_name) from report_capacity_columns where lower(device_type)= '"
 							+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
-					String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else {
-					String query = "select column_name from report_columns where lower(report_name) = '"
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = '"
 							+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
 							+ "' and is_size_metrics = '1'";
 
@@ -1861,7 +1836,10 @@ public class DataframeService {
 			dataset = sparkSession.sql("select * from global_temp." + viewName);
 			dataset.cache();
 		} catch (Exception e) {
-			String cloudCostDfPath = commonPath + "Dataframe" + File.separator + "CCR" + File.separator
+			dataset = getOptimizationReport(request);
+			dataset.cache();
+			
+			/*String cloudCostDfPath = commonPath + "Dataframe" + File.separator + "CCR" + File.separator
 					+ request.getSiteKey() + File.separator;
 			File filePath = new File(commonPath + "Dataframe" + File.separator + "CCR" + File.separator
 					+ request.getSiteKey() + File.separator);
@@ -1873,7 +1851,7 @@ public class DataframeService {
 			} else {
 				dataset = getOptimizationReport(request);
 				dataset.cache();
-			}
+			}*/
 
 		}
 
@@ -2000,11 +1978,11 @@ public class DataframeService {
 
 		if (deviceType.equalsIgnoreCase("All")) {
 			
-			discoveryFilterqry = " lower(source_type) in ('windows','linux', 'vmware')";
+			discoveryFilterqry = " lower(source_type) in ('windows','linux', 'vmware', 'ec2')";
 			//deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
 		} else {
 			discoveryFilterqry = " lower(source_type)='" + deviceType.toLowerCase() + "'";
-			//deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
+			//deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'"; 
 			
 		}
 		boolean isTaskListReport = false;
@@ -2013,7 +1991,7 @@ public class DataframeService {
 			String serverNames = String.join(",", taskListServers.stream().map(name -> ("'" + name.toLowerCase() + "'"))
 					.collect(Collectors.toList()));
 			//deviceType = " lcase(aws.`Server Name`) in (" + serverNames + ")";
-			discoveryFilterqry = " lower(`Server Name`) in (" + serverNames + ")";
+			discoveryFilterqry = " lower(server_name) in (" + serverNames + ")";
 			isTaskListReport = true;
 		}
 
@@ -2025,104 +2003,88 @@ public class DataframeService {
 			
 			  categoryList.add(request.getCategoryOpt());
 			  sourceList.add(request.getSource());
-		} 
-			
-		//putAwsInstanceDataToPostgres(columnHeaders, siteKey, deviceType);
+		} 		
 		
+		String categoryQuery = "";
+		String sourceQuery = "";
+		if(request.getCategoryOpt() != null && !request.getCategoryOpt().equalsIgnoreCase("All")) {
+			categoryQuery = " and report_by='"+request.getCategoryOpt()+"'"; 			
+		}
 
+		if(request.getSource() != null && !request.getSource().equalsIgnoreCase("All") && request.getCategoryOpt() != null && request.getCategoryOpt().equalsIgnoreCase("Custom Excel Data")) {
+			sourceQuery = " and source_id='"+request.getSource()+"'";
+		}
+		
 		try {
-			String sql = " SELECT cpu_chz as \"CPU GHz\",\r\n" + 
+			
+			String sql = " SELECT cpu_ghz as \"CPU GHz\",\r\n" + 
 					"    db_service As \"DB Service\",\r\n" + 
 					"    hba_speed As \"HBA Speed\",\r\n" + 
 					"    host As \"Host\",\r\n" + 
-					"    logical_processor_count As \"Logical Processor Count\",\r\n" + 
+					"	cast((case when logical_processor_count = '' then null else logical_processor_count end) as int) As \"Logical Processor Count\",\r\n" + 
 					"    memory As \"Memory\",\r\n" + 
-					"    number_of_cores As \"Number of Cores\",\r\n" + 
-					"    number_of_ports As \"Number of Ports\",\r\n" + 
-					"    number_of_processors As \"Number of Processors\",\r\n" + 
+					"    cast((case when number_of_cores = '' then null else number_of_cores end) as int) As \"Number of Cores\",\r\n" + 
+					"   	cast((case when number_of_ports = '' then null else number_of_ports end) as int) As \"Number of Ports\",\r\n" + 
+					"	cast((case when number_of_processors = '' then null else number_of_processors end) as int) As \"Number of Processors\",\r\n" + 
 					"    os_name As \"OS Name\",\r\n" + 
 					"    os_version As \"OS Version\",\r\n" + 
 					"    processor_name As \"Processor Name\",\r\n" + 
 					"    server_model As \"Server Model\",\r\n" + 
 					"    server_name As \"Server Name\",\r\n" + 
 					"    total_size As \"Total Size\",\r\n" + 
-					"        CASE\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN aws_on_demand_price IS NOT NULL THEN aws_on_demand_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"AWS On Demand Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"AWS On Demand Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN aws_1_year_price IS NOT NULL THEN aws_1_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"AWS 1 Year Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"AWS 1 Year Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN aws_3_year_price IS NOT NULL THEN aws_3_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"AWS 3 Year Price\",\r\n" + 
+					"        END as float) AS \"AWS 3 Year Price\",\r\n" + 
 					"    aws_instance As \"AWS Instance Type\",\r\n" + 
 					"    aws_region As \"AWS Region\",\r\n" + 
 					"    aws_specs As \"AWS Specs\",\r\n" + 
-					"        CASE\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN azure_on_demand_price IS NOT NULL THEN azure_on_demand_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Azure On Demand Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"Azure On Demand Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN azure_1_year_price IS NOT NULL THEN azure_1_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Azure 1 Year Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"Azure 1 Year Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN azure_3_year_price IS NOT NULL THEN azure_3_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Azure 3 Year Price\",\r\n" + 
+					"        END as float) AS \"Azure 3 Year Price\",\r\n" + 
 					"    azure_instance As \"Azure Instance Type\",\r\n" + 
 					"    azure_specs As \"Azure Specs\",\r\n" + 
 					"    google_instance As \"Google Instance Type\",\r\n" + 
-					"        CASE\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN google_on_demand_price IS NOT NULL THEN google_on_demand_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Google On Demand Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"Google On Demand Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN google_1_year_price IS NOT NULL THEN google_1_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Google 1 Year Price\",\r\n" + 
-					"        CASE\r\n" + 
+					"        END as float) AS \"Google 1 Year Price\",\r\n" + 
+					"        cast(CASE\r\n" + 
 					"            WHEN google_3_year_price IS NOT NULL THEN google_3_year_price\r\n" + 
 					"            ELSE 0::numeric\r\n" + 
-					"        END AS \"Google 3 Year Price\",\r\n" + 
+					"        END as float) AS \"Google 3 Year Price\",\r\n" + 
 					"     site_key,\r\n" + 
-					"     source_type,\r\n" + 
+					"     server_type as \"Server Type\",\r\n" + 
 					"    end_of_life_os As \"End Of Life - OS\",\r\n" + 
 					"    end_of_extended_support_os As \"End Of Extended Support - OS\",\r\n" + 
 					"    end_of_life_hw As \"End Of Life - HW\",\r\n" + 
 					"    end_of_extended_support_hw As \"End Of Extended Support - HW\",\r\n" + 
-					"    report_by  from cloud_cost_report_data where site_key='"+siteKey+"' and " + discoveryFilterqry;
+					"    report_by  from cloud_cost_report_data where site_key='"+siteKey+"' and " + discoveryFilterqry + categoryQuery + sourceQuery;
 			
 			System.out.println("----------------------sql--------------------------" + sql);
 
-			List<Map<String, Object>> localDiscDatas = jdbc.queryForList(sql);
-			
-			
-			/*if (!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {
-
-				System.out.println("-------------------sourceList--------------------" + sourceList);
-
-				try {
-					String thirdPartySql = "select * from mview_custom_excel_data where site_key='"+siteKey+"' and "+discoveryFilterqry;
-					if(sourceList.contains("All")) {
-						thirdPartySql = "select * from mview_custom_excel_data where site_key='"+siteKey+"'  and "+discoveryFilterqry;
-					} else {
-						thirdPartySql = "select * from mview_custom_excel_data where site_key='"+siteKey+"' and "+discoveryFilterqry + " and source_id='"+request.getSource()+"'";
-					}
-					
-					System.out.println("-------------------thirdPartySql--------------------" + thirdPartySql);
-					
-					List<Map<String, Object>> thirdPartyData = jdbc.queryForList(thirdPartySql);
-					localDiscDatas.addAll(thirdPartyData);
-					
-				} catch(Exception e) {
-					e.printStackTrace();
-				}  
-
-			}*/
+			List<Map<String, Object>> localDiscDatas = jdbc.queryForList(sql);			
 			
 			if (!isTaskListReport && !taskListServers.isEmpty()) {
 				String taskListQuery = "select * from cloud_cost_report_data where site_key='"+siteKey+"' and " + discoveryFilterqry;
@@ -2140,6 +2102,66 @@ public class DataframeService {
 		
 		return cloudCostData; // paginate(dataCheck, request);
 	}
+	
+	
+public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
+		
+		Connection conn = null;
+		Statement stmt = null;
+		if (deviceType.equalsIgnoreCase("All")) {
+			deviceType = " (lower(img.platformdetails) like '%linux%' or lower(img.platformdetails) like '%windows%' or lower(img.platformdetails) like '%vmware%')";
+		} else {
+			deviceType = " lower(img.platformdetails) like '%" + deviceType.toLowerCase() + "%'";
+		}
+		try {
+			String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"
+					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
+														// it.vcpuinfo, it.memoryinfo";
+		
+			
+			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+
+			List<AwsInstanceData> resultRows = resultSetToList(rs);
+			resultRows = resultRows.stream().distinct().collect(Collectors.toList());
+			 
+			for(AwsInstanceData aws : resultRows) {
+				try {
+					if(aws.getDescription() != null && aws.getMemoryinfo() != null && aws.getVcpuinfo() != null) {					
+						AwsInstanceCcrData awsInstanceCcrData = new AwsInstanceCcrData();
+						awsInstanceCcrData.setInstanceType(aws.getInstancetype());
+						awsInstanceCcrData.setMemory(aws.getMemoryinfo());
+						awsInstanceCcrData.setSourceType("EC2");
+						awsInstanceCcrData.setOsName(aws.getPlatformdetails());
+						awsInstanceCcrData.setNumberOfCores(aws.getVcpuinfo());
+						awsInstanceCcrData.setServerName(aws.getDescription());
+						awsInstanceCcrData.setRegion(aws.getRegion());
+						awsInstanceCcrData.setSiteKey(siteKey);					
+						awsInstanceCcrDataRepository.save(awsInstanceCcrData);
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		} finally {
+			try {
+				conn.close();
+				// AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
+			} catch (Exception e2) {
+				// TODO: handle exception
+			}
+		}
+		
+	}
+	
 
 	public Dataset<Row> getOptimizationReport(ServerSideGetRowsRequest request) {
 
@@ -2930,56 +2952,7 @@ public class DataframeService {
 	}
 	
 	
-	private Dataset<Row> putAwsInstanceDataToPostgres(List<String> columnHeaders, String siteKey, String deviceType) {
-		Dataset<Row> result = sparkSession.emptyDataFrame();
-		Connection conn = null;
-		Statement stmt = null;
-		if (deviceType.equalsIgnoreCase("All")) {
-			deviceType = " (lower(img.platformdetails) like '%linux%' or lower(img.platformdetails) like '%windows%' or lower(img.platformdetails) like '%vmware%')";
-		} else {
-			deviceType = " lower(img.platformdetails) like '%" + deviceType.toLowerCase() + "%'";
-		}
-		try {
-			String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"
-					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
-														// it.vcpuinfo, it.memoryinfo";
-
-			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(query);
-
-			List<AwsInstanceData> resultRows = resultSetToList(rs);
-			 
-			for(AwsInstanceData aws : resultRows) {
-				
-				AwsInstanceCcrData awsInstanceCcrData = new AwsInstanceCcrData();
-				awsInstanceCcrData.setInstanceType(aws.getInstancetype());
-				awsInstanceCcrData.setMemory(aws.getMemoryinfo());
-				awsInstanceCcrData.setSourceType(aws.getServerType());
-				awsInstanceCcrData.setOsName(aws.getPlatformdetails());
-				awsInstanceCcrData.setNumberOfCores(aws.getVcpuinfo());
-				awsInstanceCcrData.setServerName(aws.getDescription());
-				awsInstanceCcrData.setRegion(aws.getRegion());
-				awsInstanceCcrDataRepository.save(awsInstanceCcrData);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		} finally {
-			try {
-				conn.close();
-				// AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
-			} catch (Exception e2) {
-				// TODO: handle exception
-			}
-		}
-		return result;
-	}
-
+	
 	private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
 		Dataset<Row> result = sparkSession.emptyDataFrame();
 		Connection conn = null;
@@ -3326,6 +3299,8 @@ public class DataframeService {
 				  }
    	        	
    	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
+   	        	dataset.show();
+   	        	System.out.println("----------localDiscoveryTemp---------- " +dataset.count());
    		        // dataset.cache();	
    		         
    		      //dataset.printSchema();
@@ -3410,10 +3385,10 @@ public class DataframeService {
 		" lcase(awsPricing.`Operating System`) = lcase((case when localDiscoveryDF.OS like '%Red Hat%' then 'RHEL'" +
 		" when localDiscoveryDF.OS like '%SUSE%' then 'SUSE' when localDiscoveryDF.OS like '%Linux%' OR localDiscoveryDF.OS like '%CentOS%' then 'Linux'" +
 		" when localDiscoveryDF.OS like '%Windows%' then 'Windows' else localDiscoveryDF.`Server Type` end)) and" +
-		" cast(awsPricing.Memory as int) >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
-		" and cast(awsPricing.vCPU as int) >= (case when localDiscoveryDF.`Logical Processor Count` is null and localDiscoveryDF.`Number of Processors` is not null then " +
+		" (cast(awsPricing.Memory as int) >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
+		" or cast(awsPricing.vCPU as int) >= (case when localDiscoveryDF.`Logical Processor Count` is null and localDiscoveryDF.`Number of Processors` is not null then " +
 		" cast(localDiscoveryDF.`Number of Processors` as int) when localDiscoveryDF.`Logical Processor Count` is not null then " +
-		" cast(localDiscoveryDF.`Logical Processor Count` as int) else 0 end)" +
+		" cast(localDiscoveryDF.`Logical Processor Count` as int) else 0 end))" +
 		" left join global_temp.awsPricingDF awsPricing2 on awsPricing2.`Operating System` = awsPricing.`Operating System` and cast(awsPricing2.PricePerUnit as float) = cast(awsPricing.pricePerUnit as float) and cast(awsPricing.Memory as int) = " +
 		" cast(awsPricing2.Memory as int) and cast(awsPricing.vCPU as int) = cast(awsPricing2.vCPU as int) and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData" +
 		" where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
@@ -3700,13 +3675,17 @@ public class DataframeService {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+			File f = new File(filePath);
+			String parentFilePath = f.getParent();
+			File[] files = new File(parentFilePath).listFiles();
+			DataframeUtil.formatJsonFile(files);
+			
 			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 					.option("mode", "PERMISSIVE").json(filePath);
-			File f = new File(filePath);
+		
 			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
 			dataset.createOrReplaceGlobalTempView(viewName);
-			dataset.show();
-			System.out.println("------------ODB View Name create------------" + viewName);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();

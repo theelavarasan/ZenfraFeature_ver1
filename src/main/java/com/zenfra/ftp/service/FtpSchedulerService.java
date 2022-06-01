@@ -39,6 +39,7 @@ import com.zenfra.model.ftp.ProcessingStatus;
 import com.zenfra.service.ProcessService;
 import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.Constants;
 import com.zenfra.utils.Contants;
 import com.zenfra.utils.DBUtils;
@@ -316,7 +317,9 @@ public class FtpSchedulerService extends CommonEntityManager {
 			logFile.setFileName(fileName);
 			logFile.setFileSize(String.valueOf(convFile.length()));
 			logFile.setLogType(logType);
-			logFile.setExtractedPath(folderPath + "/" + fileName);
+			//logFile.setExtractedPath(folderPath + "/" + fileName);
+			System.out.println("----FTP PATH------   " + convFile.getAbsolutePath());
+			logFile.setExtractedPath(convFile.getAbsolutePath());
 			logFile.setSiteKey(siteKey);
 			logFile.setStatus(Contants.LOG_FILE_STATUS_QUEUE);
 			logFile.setUpdatedDateTime(functions.getCurrentDateWithTime());
@@ -363,10 +366,10 @@ public class FtpSchedulerService extends CommonEntityManager {
 
 			System.out.println("Params::" + body);
 			HttpEntity<Object> request = new HttpEntity<>(body, createHeaders("Bearer " + token));
-			ResponseEntity<String> response = restTemplate
-					// .exchange("http://localhost:8080/usermanagment/rest/ftpScheduler",
-					// HttpMethod.POST, request, String.class);
-					.exchange(parsingURL + "/parsing/upload", HttpMethod.POST, request, String.class);
+			String uri = parsingURL + "/parsing/upload";
+			uri =  CommonUtils.checkPortNumberForWildCardCertificate(uri);
+			
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
 
@@ -375,7 +378,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 				System.out.println("invalid response");
 			}
 			System.out.println("Upload response::" + response);
-			final String rid = root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
+			//final String rid = root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
 
 			/*
 			 * StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");

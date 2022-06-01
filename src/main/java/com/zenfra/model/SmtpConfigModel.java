@@ -41,6 +41,9 @@ public class SmtpConfigModel {
 	@Column(name = "transport_protocol")
 	private String transportProtocol;
 
+	@Column(name = "tenant_id")
+	private String tenantId;
+
 	@Column(name = "is_active")
 	private boolean isActive;
 
@@ -124,6 +127,14 @@ public class SmtpConfigModel {
 		this.transportProtocol = transportProtocol;
 	}
 
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+
 	public boolean isActive() {
 		return isActive;
 	}
@@ -138,7 +149,7 @@ public class SmtpConfigModel {
 
 	public SmtpConfigModel(String configId, boolean debug, String fromAddress, String senderHost, String senderPassword,
 			String senderPort, String senderUsername, boolean smtpAuth, boolean smtpStarttlsEnable,
-			String transportProtocol, boolean isActive) {
+			String transportProtocol, String tenantId, boolean isActive) {
 		super();
 		this.configId = configId;
 		this.debug = debug;
@@ -150,6 +161,7 @@ public class SmtpConfigModel {
 		this.smtpAuth = smtpAuth;
 		this.smtpStarttlsEnable = smtpStarttlsEnable;
 		this.transportProtocol = transportProtocol;
+		this.tenantId = tenantId;
 		this.isActive = isActive;
 	}
 

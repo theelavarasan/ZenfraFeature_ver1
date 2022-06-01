@@ -40,17 +40,17 @@ public class PureConfigDao implements PureConfigService {
 			model.setUpdatedTime(commonFunctions.getCurrentDateWithTime());
 			
 			System.out.println("!!!!! 1");
-			System.out.println("!!!!! hostName: " + model.getHostName());
+			System.out.println("!!!!! dnsName: " + model.getDnsName());
 			System.out.println("!!!!! siteKey: " + model.getSiteKey());
 			System.out.println("!!!!! tenantId: " + model.getTenantId());
-			String insertQuery = "insert into pure_key_config(pure_key_config_id, host_name, site_key, tenant_id, is_active, created_by, updated_by, "
-					+ "	created_time, updated_time, api_token, user_name, password, connection_type) VALUES ('" + model.getPureKeyConfigId()+ "', '"+ model.getHostName() + "', "
+			String insertQuery = "insert into pure_key_config(pure_key_config_id, dns_name, site_key, tenant_id, is_active, created_by, updated_by, "
+					+ "	created_time, updated_time, api_token, user_name, password, connection_type) VALUES ('" + model.getPureKeyConfigId()+ "', '"+ model.getDnsName() + "', "
 					+ "	'" + model.getSiteKey() + "', '"+model.getTenantId()+"', "+model.isActive()+", '"+model.getCreatedBy()+"', '"+model.getUpdatedBy()+"', '" + model.getCreatedTime()+ "',"
 					+ " 	'"+ model.getUpdatedTime() + "', '"+model.getApiToken()+"', '"+model.getUserName()+"', '"+model.getPassword()+"', '"+model.getConnectionType()+"')";
 			System.out.println("-----------------Insert Query Pure:" + insertQuery);
 			statement.executeUpdate(insertQuery);
 			jsonObject.put("pureKeyConfigId", model.getPureKeyConfigId());
-			jsonObject.put("hostName", model.getHostName());
+			jsonObject.put("dnsName", model.getDnsName());
 			jsonObject.put("siteKey", model.getSiteKey());
 			jsonObject.put("tenantId", model.getTenantId());
 			jsonObject.put("isActive", model.isActive());
@@ -89,14 +89,14 @@ public class PureConfigDao implements PureConfigService {
 		model.setUpdatedTime(commonFunctions.getCurrentDateWithTime());
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
-			String updateQuery = "update pure_key_config set host_name='" + model.getHostName() + "',"
+			String updateQuery = "update pure_key_config set dns_name='" + model.getDnsName() + "',"
 					+ "	is_active = "+model.isActive()+", tenant_id='" + model.getTenantId() + "', updated_by = '"+model.getUpdatedBy()+"', "
 					+ "	updated_time='" + model.getUpdatedTime()+ "', api_token='"+model.getApiToken()+"',"
 					+ "	user_name='"+model.getUserName()+"', password='"+model.getPassword()+"', connection_type='"+model.getConnectionType()+"'  where pure_key_config_id='" + pureKeyConfigId + "'";
 			System.out.println("---------------------Update Query Pure:" + updateQuery);
 			statement.executeUpdate(updateQuery);
 			jsonObject.put("pureKeyConfigId", model.getPureKeyConfigId());
-			jsonObject.put("hostName", model.getHostName());
+			jsonObject.put("dnsName", model.getDnsName());
 			jsonObject.put("siteKey", model.getSiteKey());
 			jsonObject.put("tenantId", model.getTenantId());
 			jsonObject.put("isActive", model.isActive());
@@ -225,7 +225,7 @@ public class PureConfigDao implements PureConfigService {
 		
 		JSONObject jsonObject1 = new JSONObject();
 		JSONArray resultArray = new JSONArray();
-		String listQuery = "select pure_key_config_id, host_name, trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as created_by, \r\n" + 
+		String listQuery = "select pure_key_config_id, dns_name, trim(concat(trim(ut1.first_name), ' ', trim(coalesce(ut1.last_name, '')))) as created_by, \r\n" + 
 				"trim(concat(trim(ut2.first_name), ' ', trim(coalesce(ut2.last_name, '')))) as updated_by, \r\n" + 
 				"to_char(to_timestamp(pc.created_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as created_time, \r\n" + 
 				"to_char(to_timestamp(pc.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time, pc.api_token, pc.user_name, pc.password, pc.connection_type from pure_key_config pc\r\n" + 
@@ -241,7 +241,7 @@ public class PureConfigDao implements PureConfigService {
 				JSONObject jsonObject = new JSONObject();
 //				jsonObject.put("arrayName", rs.getString("array_name"));
 				jsonObject.put("pureKeyConfigId", rs.getString("pure_key_config_id"));
-				jsonObject.put("hostName", rs.getString("host_name"));	
+				jsonObject.put("dnsName", rs.getString("dns_name"));	
 				jsonObject.put("createdBy", rs.getString("created_by"));
 				jsonObject.put("updatedBy", rs.getString("updated_by"));
 				jsonObject.put("createdTime", rs.getString("created_time"));
@@ -255,13 +255,13 @@ public class PureConfigDao implements PureConfigService {
 //				jsonObject.put("publicKey", rs.getString("public_key").length() > 10 ? rs.getString("public_key").substring(rs.getString("public_key").length() - 10, rs.getString("public_key").length()) : rs.getString("public_key"));
 //				jsonObject.put("privateKey", rs.getString("private_key").length() > 10 ? rs.getString("private_key").substring(rs.getString("private_key").length() - 10, rs.getString("private_key").length()) : rs.getString("private_key"));
 			}
-			String[] array = {"hostName", "connectionType", "apiToken", "userName", "password", "pureKeyConfigId", "createdBy", "updatedBy", "createdTime", "updatedTime"};
+			String[] array = {"dnsName", "connectionType", "apiToken", "userName", "password", "pureKeyConfigId", "createdBy", "updatedBy", "createdTime", "updatedTime"};
 			
 			JSONArray headerInfo = new JSONArray ();
 			JSONObject obj1 = new JSONObject ();
-			obj1.put("actualName", "hostName");
+			obj1.put("actualName", "dnsName");
 			obj1.put("dataType", "string");
-			obj1.put("displayName", "Host Name");
+			obj1.put("displayName", "DNS Name");
 			obj1.put("hide", false);
 			headerInfo.add(obj1);
 			JSONObject obj9 = new JSONObject ();
@@ -369,13 +369,13 @@ public class PureConfigDao implements PureConfigService {
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
 		JSONObject jsonObject = new JSONObject();
-		String query = "select pure_key_config_id, host_name from pure_key_config where is_active = true and site_key = '" + siteKey + "'";
+		String query = "select pure_key_config_id, dns_name from pure_key_config where is_active = true and site_key = '" + siteKey + "'";
 		System.out.println("!!!!! pure key list query: " + query);
 		try(Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query)) {
 			
 			while(rs.next()) {
-				jsonObject.put(rs.getString("pure_key_config_id"), rs.getString("host_name"));
+				jsonObject.put(rs.getString("pure_key_config_id"), rs.getString("dns_name"));
 			}
 			System.out.println("!!!!! jsonObject: " + jsonObject);
 			response.setResponseCode(200);

@@ -8,4 +8,5 @@ import com.zenfra.model.AwsInstanceCcrData;
 @Repository
 public interface AwsInstanceCcrDataRepository  extends JpaRepository<AwsInstanceCcrData, Long>{
 
+
 }

@@ -3,6 +3,9 @@ package com.zenfra.controller;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -13,6 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -97,20 +101,11 @@ public class ReportDataController {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 				}
 			} else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
-				/*
-				 * JSONArray data = reportService.getCloudCostData(request);
-				 * 
-				 * if(data != null) { JSONObject resultData = new JSONObject();
-				 * resultData.put("data", data); resultData.put("lastRow", data.size());
-				 * resultData.put("totalCount", data.size()); return new
-				 * ResponseEntity<>(resultData.toString(), HttpStatus.OK); }
-				 */
-
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
-				///System.out.println("------------last pointer for CCR----------------");
 				JSONObject result = new JSONObject();
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
+
 
 			}
 
@@ -129,7 +124,6 @@ public class ReportDataController {
 	@PostMapping("saveLocalDiscoveryDF")
 	public ResponseEntity<String> saveLocalDiscoveryDF(@RequestParam("siteKey") String siteKey,
 			@RequestParam("sourceType") String sourceType, @RequestBody JSONObject localDiscoveryData) {
-		System.out.println("---------------api entered to add dataframe-----------------------");
 
 		try {
 			if (localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty()
@@ -161,11 +155,7 @@ public class ReportDataController {
 		System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : "
 				+ siteKey + " : " + userId);
 
-		try {
-			/*
-			 * if(sourceType != null && !sourceType.trim().isEmpty() &&
-			 * sourceType.trim().equalsIgnoreCase("Tanium")) { sourceType="Linux"; }
-			 */
+		try {			 
 
 			try { // remove orient db dataframe
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
@@ -174,11 +164,30 @@ public class ReportDataController {
 																											// +
 																											// File.separator;
 				File[] directories = new File(dataframePath).listFiles(File::isDirectory);
-				for (File dir : directories) {
-					if (dir.getName().equalsIgnoreCase(sourceType)) {
-						FileSystemUtils.deleteRecursively(dir);
+				if(directories != null)  {
+					for (File dir : directories) {
+						if (dir.getName().equalsIgnoreCase(sourceType)) {
+							FileSystemUtils.deleteRecursively(dir);
+						}
 					}
 				}
+				
+				
+				try { // delete end to end df file for all log folders
+					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
+
+				    List<Path> fileWithName = Files.walk(configFilePath)
+				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());
+				          
+
+				    for (Path name : fileWithName) {
+				    	FileSystemUtils.deleteRecursively(name);
+				    }
+				
+				} catch (Exception e) {
+					// TODO: handle exception
+				} 
+				
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -186,13 +195,6 @@ public class ReportDataController {
 				e.printStackTrace(new PrintWriter(errors));
 				String ex = errors.toString();
 				ExceptionHandlerMail.errorTriggerMail(ex);
-			}
-
-			String sourceTypeRef = sourceType.toLowerCase();
-			if (sourceTypeRef.equalsIgnoreCase("windows") || sourceTypeRef.equalsIgnoreCase("linux")
-					|| sourceTypeRef.equalsIgnoreCase("vmware")) {
-				//dataframeService.destroryCloudCostDataframe(siteKey);
-				reportService.refreshCloudCostViews();
 			}
 
 			/*if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
@@ -210,19 +212,7 @@ public class ReportDataController {
 		return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
 	}
 
-	@GetMapping("test")
-	public ResponseEntity<String> test(@RequestParam("siteKey") String siteKey,
-			@RequestParam("sourceType") String sourceType) {
-		System.out.println("-------------test----------------" + sourceType + " : " + siteKey);
-
-		try {
-			chartService.getChartDatas(siteKey, sourceType);
-		} catch (Exception e) {
-			System.out.println("Not able to save local discovery in dataframe {}" + e);
-		}
-
-		return new ResponseEntity<>(ZKConstants.ERROR, HttpStatus.OK);
-	}
+	
 
 	@PostMapping("getReportHeader")
 	public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {
