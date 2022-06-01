@@ -363,6 +363,7 @@ public class ReportService {
                                 tabInfoObject.put("skipValues", new JSONArray());
                             }
                             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!deviceType!!!!!!!!!!!!!!!!!!!!!"+deviceType);
+
 //                            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!columnsNameArray!!!!!!!!!!!!!!!!!!!!!"+columnsNameArray.get(j));
 //                        	if(columnsNameArray.toString().equalsIgnoreCase("Replication Device Count")) {
 //								tabInfoObject.put("title", "Detailed Report for Server (Possible Server Name(VMAX))");
@@ -386,14 +387,15 @@ public class ReportService {
 //	                            tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
 //								System.out.println("Default-------------------------------"+tabInfoObject.toString());
 //							}          
+
                         	
                             tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
-                            
+
                             if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
                             	System.out.println("!!!!! deviceType: " + deviceType);
     							if(deviceType.equalsIgnoreCase("vmware")) {
     								postDataColumnArray.add("VM");
-    								//postDataColumnArray.add("vCenter");
+    								postDataColumnArray.add("vCenter");
     							} else if(deviceType.equalsIgnoreCase("vmwarehost")) {
     								postDataColumnArray.add("Server Name");
     								//postDataColumnArray.add("vCenter");
@@ -442,6 +444,7 @@ public class ReportService {
                 }               
                 
                 System.out.println("!!!!! postDataColumnArray: " + postDataColumnArray);
+
 //                postDataColumnArray.add("Possible Server Name(VMAX)");
 //                postDataColumnArray.add("SID");                
 //				postDataColumnArray.add("Possible Server Name");
@@ -453,6 +456,11 @@ public class ReportService {
 //	            System.out.println("!!!!! postDataColumnArray: " + postDataColumnArray);
 //	            System.out.println("!!!!! postDataColumnArray: " + postDataColumnArray);
 //	            System.out.println("!!!!! postDataColumnArray: " + postDataColumnArray);
+
+//                postDataColumnArray.add("Possible Server Name(VMAX)");
+//                postDataColumnArray.add("SID");
+//                postDataColumnArray.add("vCenter");
+
                 result.put("postDataColumns", postDataColumnArray);
                 result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));
                 JSONArray refferedDeviceType = new JSONArray();

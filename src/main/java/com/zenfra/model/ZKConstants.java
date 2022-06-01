@@ -127,4 +127,5 @@ public class ZKConstants {
 	public static String To_ERROR_MAIL_ADDRESS = "toErrorMailAddress";
 	public static String SEND_ERROR_MAIL_URL = "sendErrorMailUrl";
 	public static String WILD_CARD_CERTIFICATE = "wild_card_certificate";
+	public static String ZENFRA_USER_GROUP_NAME = "zenuser";
 }
