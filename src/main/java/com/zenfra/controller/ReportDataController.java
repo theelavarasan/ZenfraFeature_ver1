@@ -464,12 +464,6 @@ public class ReportDataController {
 	
 	
 
-	 
-	 
-	@GetMapping("deleteCloudCostDf")
-	public void deleteCloudCostDf(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {
-		dataframeService.destroryCloudCostDataframe(siteKey);
-	}
 	
 	
 	@PostMapping("getReportDataFromClickHouse")
