@@ -3827,9 +3827,6 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			
 			try {
 				File f = new File(filePath);
-				String parentFilePath = f.getParent();
-				File[] files = new File(parentFilePath).listFiles();
-				DataframeUtil.formatJsonFile(files);
 				
 				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 						.option("mode", "PERMISSIVE").json(filePath);
