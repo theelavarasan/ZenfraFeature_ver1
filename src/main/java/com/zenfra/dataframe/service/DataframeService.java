@@ -641,16 +641,24 @@ public class DataframeService {
 		dataset = orderBy(groupBy(filter(dataset)));	
 		Dataset<Row> countData = sparkSession.emptyDataFrame(); 
 		
+		countData = getDataframeNumericColAgg(request, source_type, dataset, viewName, countData);		
+	
+		return paginate(dataset, request, countData.toJSON().collectAsList());
+
+	}
+
+	private Dataset<Row> getDataframeNumericColAgg(ServerSideGetRowsRequest request, String source_type,
+			Dataset<Row> dataset, String viewName, Dataset<Row> countData) {
 		try {
 			List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
 			if(numericColumns != null) {
-				dataset.createOrReplaceTempView("tmpReport");
+				dataset.createOrReplaceTempView(viewName+"_tmpReport");
 				String numericCol = String.join(",", numericColumns
 			            .stream()
 			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
 			            .collect(Collectors.toList()));	
 				
-				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from "+viewName+"_tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
 				 
 				 
 			}
@@ -658,10 +666,8 @@ public class DataframeService {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
-	
-		return paginate(dataset, request, countData.toJSON().collectAsList());
-
+		}
+		return countData;
 	}
 
 	public List<String> getReportNumericalHeaders(String reportName, String source_type, String reportBy,
@@ -1479,26 +1485,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		dataset = orderBy(groupBy(filter(dataset)));	
 		
 		Dataset<Row> countData = sparkSession.emptyDataFrame();
-		try {
-			List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
-			if(numericColumns != null) {
-				dataset.createOrReplaceTempView("tmpReport");
-				String numericCol = String.join(",", numericColumns
-			            .stream()
-			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
-			            .collect(Collectors.toList()));	
-				
-			if(numericCol != null && !numericCol.isEmpty()) {
-				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
-			}
-				
-			}
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+		countData = getDataframeNumericColAgg(request, componentName, dataset, viewName, countData);	
 	
 		return paginate(dataset, request, countData.toJSON().collectAsList());
 
