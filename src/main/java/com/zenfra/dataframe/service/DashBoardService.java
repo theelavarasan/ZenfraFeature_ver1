@@ -504,7 +504,7 @@ public class DashBoardService {
 						&& s.get("chartId").toString().contains("~")) {
 					JSONObject chartObject = new JSONObject();
 					String[] chartIdArray = s.get("chartId").toString().split("~");
-					if (chartIdArray[2].equalsIgnoreCase("groupedBarChart")) {
+					if (chartIdArray[3].equalsIgnoreCase("groupedBarChart")) {
 						chartObject.put("label", "PROJECT-SUMMARY-" + s.get("favouriteName") + "-" + "PROJECT SUMMARY");
 					} else {
 						chartObject.put("label", "PROJECT-SUMMARY-" + s.get("favouriteName") + "-" + "OVERALL SUMMARY");

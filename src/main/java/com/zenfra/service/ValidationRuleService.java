@@ -984,7 +984,7 @@ public class ValidationRuleService {
 					+ "union all\r\n"
 					+ "select ref_id as id, group_name from project_group_fields where site_key = '" + siteKey + "' and project_id = '" + reportBy + "'\r\n"
 					+ ") a\r\n"
-					+ "JOIN destination_profile pr on pr.migration_group_id = a.id and pr.project_id = '" + reportBy + "'\r\n"
+					+ "JOIN destination_profile pr on pr.migration_group_id = a.id and pr.project_id = '" + reportBy + "' and pr.is_active::boolean = true \r\n"
 					+ ") b\r\n"
 					+ ") c\r\n"
 					+ ") d where row_num = 1\r\n"
