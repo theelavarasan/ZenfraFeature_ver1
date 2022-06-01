@@ -3824,6 +3824,26 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				  System.out.println("-----------VMAX Disk SAN report completed--------");
 			}
 			 
+			
+			try {
+				File f = new File(filePath);
+				String parentFilePath = f.getParent();
+				File[] files = new File(parentFilePath).listFiles();
+				DataframeUtil.formatJsonFile(files);
+				
+				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+						.option("mode", "PERMISSIVE").json(filePath);
+			
+				String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+				dataset.createOrReplaceGlobalTempView(viewName);
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String ex = errors.toString();
+				ExceptionHandlerMail.errorTriggerMail(ex);
+			}
 				  
 		} catch (Exception e) {
 			e.printStackTrace();			
