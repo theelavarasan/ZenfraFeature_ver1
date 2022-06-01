@@ -3880,6 +3880,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	public JSONArray getVmaxSubreport(String filePath, String serverName, String sid) {
 		JSONArray resultArray = new JSONArray();
 		ObjectMapper mapper = new ObjectMapper();
+		JSONParser parser = new JSONParser();
 		 File f = new File(filePath);	
 	
 		 Dataset<Row> subReportData  = sparkSession.emptyDataFrame();
@@ -3895,7 +3896,11 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			  subReportData = sparkSession.sqlContext().sql("select * from global_temp."+viewName+" where lower(`Local Possible Server Name`) like '%"+serverName.toLowerCase()+"%' and `Local Serial Number`='"+sid+"'").toDF();
 		}
 		try {
-			 resultArray =  mapper.convertValue(subReportData.toJSON().collectAsList().toString(), JSONArray.class);	
+			
+			  System.out.println("-------serverName--- :: " +serverName + " :: sid :: " + sid); 
+			  
+			  
+			  resultArray =  (JSONArray) parser.parse(subReportData.toJSON().collectAsList().toString());	
 			  System.out.println("----------VmaxSubreport size----" + resultArray.size()); 
 		} catch (Exception e) {
 			e.printStackTrace();
