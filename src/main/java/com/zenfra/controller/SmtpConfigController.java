@@ -29,14 +29,16 @@ public class SmtpConfigController {
 	public ResponseEntity<?> insertSmtpData(@RequestBody SmtpConfigModel smtpConfigModel) {
 		smtpConfigModel.setActive(true);
 		smtpConfigModel.setConfigId(UUID.randomUUID().toString());
+		smtpConfigModel.setSenderUsername(smtpConfigModel.getFromAddress());
+		smtpConfigModel.setTransportProtocol("smtp");
 
 		return ResponseEntity.ok(smtpConfigService.saveSmtpData(smtpConfigModel));
 	}
 
 	@GetMapping("/get")
-	public ResponseEntity<?> getSmtpData(@RequestParam String smtpConfigId) {
+	public ResponseEntity<?> getSmtpData(@RequestParam String tenantId) {
 
-		return ResponseEntity.ok(smtpConfigService.getSmtpData(smtpConfigId));
+		return ResponseEntity.ok(smtpConfigService.getSmtpData(tenantId));
 	}
 	
 	@PutMapping("/update")
@@ -46,9 +48,9 @@ public class SmtpConfigController {
 	}
 	
 	@PutMapping("/delete")
-	public ResponseEntity<?> deleteSmtpData(@RequestParam String smtpConfigId) {
+	public ResponseEntity<?> deleteSmtpData(@RequestParam String tenantId) {
 
-		return ResponseEntity.ok(smtpConfigService.deleteSmtpData(smtpConfigId));
+		return ResponseEntity.ok(smtpConfigService.deleteSmtpData(tenantId));
 	}
 	
 

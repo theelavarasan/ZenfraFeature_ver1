@@ -8,6 +8,9 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URLConnection;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -17,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -132,7 +136,6 @@ public class ReportDataController {
 	@PostMapping("saveLocalDiscoveryDF")
 	public ResponseEntity<String> saveLocalDiscoveryDF(@RequestParam("siteKey") String siteKey,
 			@RequestParam("sourceType") String sourceType, @RequestBody JSONObject localDiscoveryData) {
-		System.out.println("---------------api entered to add dataframe-----------------------");
 
 		try {
 			if (localDiscoveryData != null && !localDiscoveryData.isEmpty() && siteKey != null && !siteKey.isEmpty()
@@ -171,11 +174,7 @@ public class ReportDataController {
 		}
 		
 
-		try {
-			/*
-			 * if(sourceType != null && !sourceType.trim().isEmpty() &&
-			 * sourceType.trim().equalsIgnoreCase("Tanium")) { sourceType="Linux"; }
-			 */
+		try {			 
 
 			try { // remove orient db dataframe
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
@@ -184,11 +183,30 @@ public class ReportDataController {
 																											// +
 																											// File.separator;
 				File[] directories = new File(dataframePath).listFiles(File::isDirectory);
-				for (File dir : directories) {
-					if (dir.getName().equalsIgnoreCase(sourceType)) {
-						FileSystemUtils.deleteRecursively(dir);
+				if(directories != null)  {
+					for (File dir : directories) {
+						if (dir.getName().equalsIgnoreCase(sourceType)) {
+							FileSystemUtils.deleteRecursively(dir);
+						}
 					}
 				}
+				
+				
+				try { // delete end to end df file for all log folders
+					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
+
+				    List<Path> fileWithName = Files.walk(configFilePath)
+				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());
+				          
+
+				    for (Path name : fileWithName) {
+				    	FileSystemUtils.deleteRecursively(name);
+				    }
+				
+				} catch (Exception e) {
+					// TODO: handle exception
+				} 
+				
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -384,7 +402,10 @@ public class ReportDataController {
 			String filePath = request.getParameter("filePath");
 
 			dataframeService.createDataframeForJsonData(filePath);
-			return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
+			JSONObject data = dataframeService.getMigrationReport(filePath);
+			if (data != null) {
+				return new ResponseEntity<>(data, HttpStatus.OK);
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -396,6 +417,35 @@ public class ReportDataController {
 
 		return new ResponseEntity<>("Not able to create dataframe", HttpStatus.OK);
 	}
+	
+	@PostMapping("getVmaxSubreport")
+	public ResponseEntity<?> getVmaxSubreport(HttpServletRequest request) {
+
+		try {
+		
+			String filePath = request.getParameter("filePath");
+			String sid = request.getParameter("sid");
+			String serverName = request.getParameter("serverName");
+			System.out.println("-----------getVmaxSubreport---------" );
+			System.out.println("filePath :: " + filePath );
+			System.out.println("sid :: " + sid );
+			System.out.println("serverName :: " + serverName );
+			JSONArray data = dataframeService.getVmaxSubreport(filePath, serverName, sid);
+			if (data != null) {
+				return new ResponseEntity<>(data, HttpStatus.OK);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			 
+		}
+
+		return new ResponseEntity<>(new JSONArray(), HttpStatus.OK);
+	}
+	
+	
+	
+	
 
 	@GetMapping("createEolEodDf")
 	public void createEolEodDf(HttpServletRequest request) {

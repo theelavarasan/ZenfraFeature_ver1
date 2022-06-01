@@ -37,9 +37,9 @@ import scala.collection.Seq;
 public class DataframeUtil {
 
 	public static String asJsonResponse(DataResult result) {
-		String secondaryColumns = result.getSecondaryColumns().isEmpty() ? ""
-				: "\"" + String.join("\", \"", result.getSecondaryColumns()) + "\"";
-
+		//String secondaryColumns = result.getSecondaryColumns().isEmpty() ? ""
+		//		: "\"" + String.join("\", \"", result.getSecondaryColumns()) + "\"";
+//
 		return "{" + "\"data\": [" + String.join(",", result.getData()) + "], " + "\"lastRow\":" + result.getLastRow()
 				+ ", " + "\"totalCount\": " + result.getTotalRecord() +
 				/* "\"unit_conv_details\": " + result.getUnit_conv_details() + "" + */
@@ -132,30 +132,33 @@ public class DataframeUtil {
 					if (file.getPath().endsWith(".crc")) {
 						file.delete();
 					} else if (file.getPath().endsWith(".json")) {
-
-						Path path = Paths.get(file.getAbsolutePath());
-						Stream<String> lines = Files.lines(path);
-						// List <String> replaced = lines.map(line ->
-						// line.replaceAll("\\\\","").replaceAll("(\"\\{\")","\\{\"").replaceAll("(\"\\}\")","\"\\}").replaceAll("\"data_temp\":\"\\{\"","").replaceAll("\\},","")).collect(Collectors.toList());
-						// //.replaceAll("\"data_temp\":\"\\[\\{\"","\"data_temp\":\\[\\{\"").replaceAll("\\]\",\"log_date\"","\\],\"log_date\"")
-						List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "")
-								.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
-								.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "")).collect(Collectors.toList());
-						Files.write(path, replaced);
-						lines.close();
-						// System.out.println(file.getAbsolutePath());
+						jsonFormatHanlder(file.getPath());
 					}
 
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+			e.printStackTrace();			
 		}
 
+	}
+	
+	public static void jsonFormatHanlder(String filePath) {
+		try {
+			Path path = Paths.get(filePath);
+			Stream<String> lines = Files.lines(path);  //.replaceAll("\\\\\\\\\\\\\\\"","")  //.replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")
+		List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "")
+					.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
+					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "")).collect(Collectors.toList());
+			
+			
+			Files.write(path, replaced);
+			lines.close();
+			
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static Dataset<Row> renameDataFrameColumn(Dataset<Row> dataset, String columnName, String aliasName) {
@@ -280,6 +283,8 @@ public class DataframeUtil {
 		}
 		return false;
 	}
+	
+	
 
 	/*
 	 * private void flatJson(File[] files) { try { for (File file : files) { if
@@ -319,23 +324,24 @@ public class DataframeUtil {
 	 * errors.toString(); ExceptionHandlerMail.errorTriggerMail(ex); } }
 	 */
 	
+
 	
-	public static void jsonFormatHanlder(String filePath) {
+	public static void validateAndFormatJsonData(String filePath) { //remove double quotes in json data and string to numeric
 		try {
-			Path path = Paths.get(filePath);
-			Stream<String> lines = Files.lines(path);
-		List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "")
-					.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
-					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "").replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")).collect(Collectors.toList());
-			
-			
-			Files.write(path, replaced);
-			lines.close();
-			
-		
+			 if (filePath.endsWith(".json")) {
+						Path path = Paths.get(filePath);
+						Stream<String> lines = Files.lines(path);
+						List<String> replaced = lines.map(line -> line.replaceAll("\"(?!0)(-?\\d+(?:[\\.,]\\d+)?)\"", "$1").replaceAll("\\\\\\\\\\\\\\\"","").replaceAll("\"0\"", "0")).collect(Collectors.toList());   //replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")
+						Files.write(path, replaced);
+						lines.close();						
+					}
+
+				
+			 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
 
+	}
+	
 }

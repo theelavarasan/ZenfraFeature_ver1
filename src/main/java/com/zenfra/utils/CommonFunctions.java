@@ -63,25 +63,25 @@ public class CommonFunctions {
 			JSONArray viewArr = new JSONArray();
 			JSONParser parser = new JSONParser();
 
-			if (row.get("filterProperty") != null && !row.get("filterProperty").equals("[]")) {
+			if (row.get("filterProperty") != null && !row.get("filterProperty").toString().trim().isEmpty() && !row.get("filterProperty").equals("[]")) {
 				row.put("filterProperty", (JSONArray) parser.parse(row.get("filterProperty").toString()));
 			} else {
 				row.put("filterProperty", new JSONArray());
 			}
 
-			if (row.get("categoryList") != null && !row.get("categoryList").equals("[]")) {
+			if (row.get("categoryList") != null && !row.get("categoryList").toString().trim().isEmpty() && !row.get("categoryList").equals("[]")) {
 				row.put("categoryList", (JSONArray) parser
 						.parse(row.get("categoryList").toString()));
 			} else {
 				row.put("categoryList", new JSONArray());
 			}
-			if (row.get("siteAccessList") != null && !row.get("siteAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
+			if (row.get("siteAccessList") != null && !row.get("siteAccessList").toString().trim().isEmpty() && !row.get("siteAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
 				row.put("siteAccessList", (JSONArray) parser
 						.parse(row.get("siteAccessList").toString()));
 			} else {
 				row.put("siteAccessList", new JSONArray());
 			}
-			if (row.get("groupedColumns") != null && !row.get("groupedColumns").equals("[]")) {
+			if (row.get("groupedColumns") != null && !row.get("groupedColumns").toString().trim().isEmpty()  && !row.get("groupedColumns").equals("[]")) {
 
 				row.put("groupedColumns", (JSONArray) parser.parse(row.get("groupedColumns").toString()));
 			} else {
@@ -89,7 +89,7 @@ public class CommonFunctions {
 			}
 			
 			
-			if (row.get("userAccessList") != null && !row.get("userAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
+			if (row.get("userAccessList") != null && !row.get("userAccessList").toString().trim().isEmpty()  && !row.get("userAccessList").equals("[]") && !row.get("userAccessList").equals("{}")) {
 				row.put("userAccessList", (JSONArray) parser
 						.parse(row.get("userAccessList").toString()));
 			}
@@ -377,13 +377,13 @@ public class CommonFunctions {
 			body.add("password", password);
 
 			RestTemplate restTemplate = new RestTemplate();
-			HttpEntity<Object> request = new HttpEntity<>(body, createHeaders(null));
-			ResponseEntity<String> response = restTemplate
-					// .exchange("http://localhost:8080/usermanagment/auth/login", HttpMethod.POST,
-					// request, String.class);
-					.exchange(Constants.current_url + "/UserManagement/auth/login", HttpMethod.POST, request,
+			HttpEntity<Object> request = new HttpEntity<>(body); //, createHeaders(null)
+			String url = Constants.current_url + "/UserManagement/auth/login";
+			url = CommonUtils.checkPortNumberForWildCardCertificate(url);
+		
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request,
 							String.class);
-			System.out.println(Constants.current_url);
+		
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
 			token = root.get("jData").get("AccessToken");
@@ -459,6 +459,7 @@ public class CommonFunctions {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<JSONObject> requestEntity = new HttpEntity<JSONObject>(partObj, headers);
 			String resetLink = hostName + "/mailservice/mail/send";
+			resetLink = CommonUtils.checkPortNumberForWildCardCertificate(resetLink);
 			ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
 			if (uri != null && uri.getBody() != null) {
 				if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
@@ -487,7 +488,7 @@ public class CommonFunctions {
 			for (int i = 0; i < arr.size(); i++) {
 				list.add(arr.get(i));
 			}
-			list.add("aravind.krishnasamy@virtualtechgurus.com");
+			
 		} catch (Exception e) {
 			return list;
 		}
@@ -562,8 +563,9 @@ public class CommonFunctions {
 			RestTemplate restTemplate = new RestTemplate();
 			// token=token.replace("Bearer ","");
 			HttpEntity<Object> request = new HttpEntity<>(null, createHeaders(null));
-			ResponseEntity<String> response = restTemplate.exchange(
-					Constants.current_url + "UserManagement/auth/logout?token=" + token, HttpMethod.POST, request,
+			String url = Constants.current_url + "UserManagement/auth/logout?token="+ token;
+			url = CommonUtils.checkPortNumberForWildCardCertificate(url);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request,
 					String.class);
 
 			System.out.println(response.getBody());
@@ -619,11 +621,15 @@ public class CommonFunctions {
 		System.out.println(DBUtils.getParsingServerIP());
 		try {
 
-			URI uri = URI.create(DBUtils.getParsingServerIP() + "/parsing/rest/api/excute-aws-data-call" + builder);
+			String url = DBUtils.getParsingServerIP() + "/parsing/rest/api/excute-aws-data-call" + builder;
+			url = CommonUtils.checkPortNumberForWildCardCertificate(url);
+			
+			URI uri = URI.create(url);
 			System.out.println("URl::" + uri);
 			// String token="Bearer "+getZenfraToken(Constants.ftp_email,
 			// Constants.ftp_password);
 			HttpEntity<Object> request = new HttpEntity<>(createHeaders(token));
+			
 			response = restTemplate.exchange(uri, HttpMethod.GET, request, String.class);
 			// DBUtils.getParsingServerIP()+
 			return response.getBody();

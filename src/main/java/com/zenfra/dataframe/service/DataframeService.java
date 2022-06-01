@@ -11,6 +11,7 @@ import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -94,9 +95,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
@@ -705,14 +710,10 @@ public class DataframeService {
 			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
 			formattedDataframe.createOrReplaceTempView("local_discovery");
 
-			/*Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
+			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
+
 			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();		
-			*/
-			List<String> siteKeys = new ArrayList<String>();
-			
-			siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
-		
 
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
@@ -1836,18 +1837,18 @@ public class DataframeService {
 			List<Map<String, Object>> resultMap = new ArrayList<>();
 			if (reportName != null && !reportName.isEmpty()) {
 				if (reportName.equalsIgnoreCase("capacity")) {
-					String query = "select column_name from report_capacity_columns where lower(device_type)= '"
+					String query = "select distinct(column_name) from report_capacity_columns where lower(device_type)= '"
 							+ deviceType.toLowerCase() + "' and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else if (reportName.equalsIgnoreCase("optimization_All") || reportName.contains("optimization")) {
-					String query = "select column_name from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = 'optimization' and lower(device_type) = 'all'  and is_size_metrics = '1'";
 
 					resultMap = favouriteDao_v2.getJsonarray(query);
 
 				} else {
-					String query = "select column_name from report_columns where lower(report_name) = '"
+					String query = "select distinct(column_name) from report_columns where lower(report_name) = '"
 							+ reportName.toLowerCase() + "' and lower(device_type) = '" + deviceType.toLowerCase()
 							+ "' and is_size_metrics = '1'";
 
@@ -2133,15 +2134,16 @@ public class DataframeService {
 		}
 		
 		try {
+			
 			String sql = " SELECT cpu_ghz as \"CPU GHz\",\r\n" + 
 					"    db_service As \"DB Service\",\r\n" + 
 					"    hba_speed As \"HBA Speed\",\r\n" + 
 					"    host As \"Host\",\r\n" + 
-					"    cast(logical_processor_count as int) As \"Logical Processor Count\",\r\n" + 
+					"	cast((case when logical_processor_count = '' then null else logical_processor_count end) as int) As \"Logical Processor Count\",\r\n" + 
 					"    memory As \"Memory\",\r\n" + 
-					"    cast(number_of_cores as int) As \"Number of Cores\",\r\n" + 
-					"    cast(number_of_ports as int) As \"Number of Ports\",\r\n" + 
-					"    cast(number_of_processors as int) As \"Number of Processors\",\r\n" + 
+					"    cast((case when number_of_cores = '' then null else number_of_cores end) as int) As \"Number of Cores\",\r\n" + 
+					"   	cast((case when number_of_ports = '' then null else number_of_ports end) as int) As \"Number of Ports\",\r\n" + 
+					"	cast((case when number_of_processors = '' then null else number_of_processors end) as int) As \"Number of Processors\",\r\n" + 
 					"    os_name As \"OS Name\",\r\n" + 
 					"    os_version As \"OS Version\",\r\n" + 
 					"    processor_name As \"Processor Name\",\r\n" + 
@@ -3758,32 +3760,23 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	}
 
 	public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
-		if (filePath.contains(",")) {
-			filePath = filePath.split(",")[0];
+		
+		try {
+			if (filePath.contains(",")) {
+				filePath = filePath.split(",")[0];
+			}
+				 
+			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
+
+			 return jsonObject; 
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		System.out.println("-----------filePath-get----" + filePath);
-		JSONParser parser = new JSONParser();
-		Object obj = parser.parse(new FileReader(filePath));
-		JSONObject jsonObject = (JSONObject) obj;
-
-		/*
-		 * JSONObject json = new JSONObject(); File f = new File(filePath);
-		 * System.out.println("-----------filePath-----" + filePath); String viewName =
-		 * f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
-		 * System.out.println("------------ODB View Name get------------" + viewName);
-		 * try { String datas =
-		 * sparkSession.sql("select * from global_temp."+viewName).toJSON().
-		 * collectAsList().toString(); JSONParser parser = new JSONParser(); Object obj
-		 * = parser.parse(datas); JSONArray jsonArray = (JSONArray) obj; json =
-		 * (JSONObject) jsonArray.get(0); } catch (Exception e) { e.printStackTrace();
-		 * StringWriter errors = new StringWriter(); e.printStackTrace(new
-		 * PrintWriter(errors)); String ex = errors.toString();
-		 * ExceptionHandlerMail.errorTriggerMail(ex); if(f.exists()) {
-		 * createDataframeForJsonData(filePath); json = getMigrationReport(filePath); }
-		 * }
-		 */
-
-		return jsonObject;
+		
+		
+		return new JSONObject(); 
+   
+ 
 	}
 
 	public void createDataframeForJsonData(String filePath) {
@@ -3791,10 +3784,10 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
+			if(filePath.contains("VMAX_Local_Disk-SAN")) {
+				reprocessVmaxDiskSanData(filePath);
+			}		
 			
-			//repalceEmptyFromJson(filePath);
-			
-			ObjectMapper mapper = new ObjectMapper();
 			JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
 			JSONArray jData = (JSONArray) jsonObject.get("data");
 			
@@ -3807,14 +3800,96 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			
 			setFileOwner(new File(filePath));
 		       	
-			System.out.println("------------ODB View Name create------------" + viewName);
-			
+			System.out.println("------------ODB View Name create------------" + viewName);		 
+			 
+
 		} catch (Exception e) {
 			e.printStackTrace();			
 		}
 
 	}
 	
+private void reprocessVmaxDiskSanData(String filePath) {
+	try {
+
+		String dataPath = filePath.replace(".json", "_data.json");
+
+		JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
+		List<Map<String, Object>> dataArray = (List<Map<String, Object>>) jsonObject.get("data");
+		mapper.writeValue(new File(dataPath), dataArray);
+
+		try {
+			Path level = Paths.get(filePath).getParent().getParent();
+			UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService()
+					.lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+			Files.setOwner(level, owner);
+
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		File f = new File(dataPath);
+		Dataset<Row> datasetA = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath());
+		String viewName = f.getName().split("_")[0].replaceAll("-", "") + "vmax_disk_san";
+
+		datasetA.createOrReplaceGlobalTempView(viewName);
+		Dataset<Row> result = sparkSession.sqlContext().sql("select " + "a.`Local Device ID`, "
+				+ "a.`Local Serial Number`, " + "a.`Local Device Configuration`, " + "a.`Local Device Capacity`, "
+				+ "a.`Local Device WWN`, " + "a.`Local Device Status`, " + "a.`Local Host Access Mode`, "
+				+ "a.`Local Clone Source Device (SRC)`, " + "a.`Local Clone Target Device (TGT)`, "
+				+ "a.`Local BCV Device Name`, " + "a.`Local BCV Device Status`, " + "a.`Local BCV State of Pair`, "
+				+ "a.`Local Storage Group`, " + "a.`Local Masking View`, " + "a.`Local Initiator Group`, "
+				+ "a.`Local Initiator Name`, " + "a.`Local Initiator WWN`, " + "a.`Local Possible Server Name`, "
+				+ "a.`Local FA Port`," + "a.`Local FA Port WWN`,  " + "b.`Local Device ID` as `Remote Device Name`,"
+				+ "b.`Local Serial Number` as `Remote Target ID`,"
+				+ "b.`Local Device Configuration` as `Remote Device Configuration`,"
+				+ "b.`Local Device Capacity` as `Remote Device Capacity`,"
+				+ "b.`Local Device WWN` as `Remote Device WWN`," + "b.`Local Device Status` as `Remote Device Status`,"
+				+ "b.`Local Host Access Mode` as `Remote Host Access Mode`,"
+				+ "b.`Local Clone Source Device (SRC)` as `Remote Clone Source Device (SRC)`,"
+				+ "b.`Local Clone Target Device (TGT)` as `Remote Clone Target Device (TGT)`,"
+				+ "b.`Local BCV Device Name` as `Remote BCV Device Name`,"
+				+ "b.`Local BCV Device Status` as `Remote BCV Device Status`,"
+				+ "b.`Local BCV State of Pair` as `Remote BCV State of Pair`,"
+				+ "b.`Local Storage Group` as `Remote Storage Group`,"
+				+ "b.`Local Masking View` as `Remote Masking View`,"
+				+ "b.`Local Initiator Group` as `Remote Initiator Group`,"
+				+ "b.`Local Initiator Name` as `Remote Initiator Name`,"
+				+ "b.`Local Initiator WWN` as `Remote Initiator WWN`,"
+				+ "b.`Local Possible Server Name` as `Remote Possible Server Name`,"
+				+ "b.`Local FA Port` as `Remote FA Port`," + "b.`Local FA Port WWN` as `Remote FA Port WWN` "
+				+ "from global_temp." + viewName + " a  " + "left join global_temp." + viewName
+				+ " b on a.`Remote Device Name` = b.`Local Device ID` and a.`Remote Target ID` = b.`Local Serial Number`");
+
+		result.createOrReplaceGlobalTempView(viewName);
+
+		jsonObject.put("data", parser.parse(result.toJSON().collectAsList().toString()));
+
+		try (JsonGenerator jGenerator = mapper.getFactory().createGenerator(new File(filePath), JsonEncoding.UTF8)) {
+
+			jGenerator.writeObject(jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			Path level = Paths.get(filePath);
+			UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService()
+					.lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+			Files.setOwner(level, owner);
+
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+		System.out.println("-----------VMAX Disk SAN report completed--------");
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+	
+
+		
+	}
+
 private void repalceEmptyFromJson(String filePath) {
         
         Path path = Paths.get(filePath);       
@@ -3826,6 +3901,17 @@ private void repalceEmptyFromJson(String filePath) {
         }
     }
 
+
+	private String findResultDataPath(String dataWritePath) {
+		File dir = new File(dataWritePath);
+		File filesList[] = dir.listFiles();
+		for(File file : filesList) {
+	       if(file.getAbsolutePath().endsWith(".json")) {
+	    	   return file.getAbsolutePath();
+	       }
+	      }
+		return null;
+	}
 
 	public void createCloudCostDataframeFromJsonData(String filePath, String viewName) {
 
@@ -3861,6 +3947,7 @@ private void repalceEmptyFromJson(String filePath) {
 		}
 
 	}
+
 
 	public DataResult getReportDataFromOdbDf(ServerSideGetRowsRequest request) {
 
@@ -3932,11 +4019,6 @@ private void repalceEmptyFromJson(String filePath) {
 		} else { //tanium logic
 			dataset = getTaniumReport(siteKey);		
 		}
-	
-		
-		
-	
-		
 		
 		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
 		groupKeys = request.getGroupKeys();
@@ -3980,6 +4062,11 @@ private void repalceEmptyFromJson(String filePath) {
 	
 	 
 	}
+	
+	
+ 
+
+	 
 
 	
 	private Dataset<Row> getTaniumReport(String siteKey) {
@@ -4771,5 +4858,34 @@ private void repalceEmptyFromJson(String filePath) {
 		return null;
 	}
 	
+	
+	
+
+	public JSONArray getVmaxSubreport(String filePath, String serverName, String sid) {
+		JSONArray resultArray = new JSONArray();
+		ObjectMapper mapper = new ObjectMapper();
+		 File f = new File(filePath);	
+	
+		 Dataset<Row> subReportData  = sparkSession.emptyDataFrame();
+		try {			 
+			 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
+			  subReportData = sparkSession.sqlContext().sql("select * from global_temp."+viewName+" where lower(`Local Possible Server Name`) like '%"+serverName.toLowerCase()+"%' and `Local Serial Number`='"+sid+"'").toDF();
+			  System.out.println("-----------getVmaxSubreport----view exists-----" ); 
+		} catch (Exception e) { //view not present
+			  System.out.println("-----------getVmaxSubreport----view NOT exists-----" ); 
+			 createDataframeForJsonData(filePath);			
+			 
+			 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
+			  subReportData = sparkSession.sqlContext().sql("select * from global_temp."+viewName+" where lower(`Local Possible Server Name`) like '%"+serverName.toLowerCase()+"%' and `Local Serial Number`='"+sid+"'").toDF();
+		}
+		try {
+			 resultArray =  mapper.convertValue(subReportData.toJSON().collectAsList().toString(), JSONArray.class);	
+			  System.out.println("----------VmaxSubreport size----" + resultArray.size()); 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+	}
 	
 }

@@ -172,15 +172,18 @@ public class ReportService {
             if (reportName.trim().equalsIgnoreCase("discovery")) {
                 String linkColumns = ZKModel.getProperty(ZKConstants.CRCOLUMNNAMES);               
               
-                
+                System.out.println("!!!!! devicesArray: " + devicesArray);
                 JSONArray columnsArray = (JSONArray) parser.parse(linkColumns);
 
+                System.out.println("!!!!! columnsArray: " + columnsArray);
                 for (int a = 0; a < devicesArray.size(); a++) {
                     JSONArray columnsNameArray = new JSONArray();
                     for (int i = 0; i < columnsArray.size(); i++) {
                         JSONObject jsonObject = (JSONObject) columnsArray.get(i);
                         if (jsonObject.containsKey(devicesArray.get(a).toString().toLowerCase())) {
                             columnsNameArray = (JSONArray) parser.parse(jsonObject.get(devicesArray.get(a).toString().toLowerCase()).toString());
+                            columnsNameArray.add("Replication Device Count");
+                            System.out.println("-----------------columnsNameArray---------------------"+columnsNameArray);
                             columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                         }
                     }
@@ -190,6 +193,7 @@ public class ReportService {
                 JSONArray columnsNameArray = new JSONArray();
                 columnsNameArray.add("Host Name");
                 columnsNameArray.add("Host_Host Name");
+                columnsNameArray.add("Replication Device Count");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
                 }
@@ -200,6 +204,7 @@ public class ReportService {
                 columnsNameArray.add("VM");
                 columnsNameArray.add("Host Name");
                 columnsNameArray.add("Host_Host Name");
+                columnsNameArray.add("Replication Device Count");
                 //columnsNameArray.add("vCenter");
                 for (int a = 0; a < devicesArray.size(); a++) {
                     columnsMap.put(devicesArray.get(a).toString().toLowerCase(), columnsNameArray);
@@ -267,6 +272,7 @@ public class ReportService {
                 //System.out.println("!!!!! propMap: " + propMap);
                 List<String> propKeys = new ArrayList<String>(propMap.keySet());
                 //System.out.println("!!!!! propKeys: " + propKeys);
+                System.out.println("!!!!! propKeys: " + propKeys);
 
                 //JSONArray jsonArray = new JSONArray();
                 ZenfraJSONObject resultObject = new ZenfraJSONObject();
@@ -274,10 +280,15 @@ public class ReportService {
                 JSONArray postDataColumnArray = new JSONArray();
                 List<String> columnsKey = new ArrayList<String>(columnsMap.keySet());
                 //System.out.println("!!!!! columnsKey: " + columnsKey);
+                System.out.println("!!!!! columnsKey: " + columnsKey);
                 //System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
 
                 for (int i = 0; i < columnsKey.size(); i++) {
                     JSONArray columnsNameArray = columnsMap.get(columnsKey.get(i));
+                    if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
+                    	columnsNameArray = (JSONArray) parser.parse("[\"Replication Device Count\"]");
+                    }
+                    System.out.println("!!!!! columnsNameArray: " + columnsNameArray);
                     JSONObject tabInfoObject = new JSONObject();
                     for (int j = 0; j < columnsNameArray.size(); j++) {
                         ZenfraJSONObject tabArrayObject = new ZenfraJSONObject();
@@ -336,21 +347,38 @@ public class ReportService {
                             if (reportName.equalsIgnoreCase("project")) {
                                 JSONArray skipValueArray = new JSONArray();
                                 skipValueArray.add("Not Discovered");
+                                skipValueArray.add("0");
+                                skipValueArray.add(0);
                                 tabInfoObject.put("skipValues", skipValueArray);
                             } else {
                                 tabInfoObject.put("skipValues", new JSONArray());
                             }
+                            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!deviceType!!!!!!!!!!!!!!!!!!!!!"+deviceType);
+                        	
                             tabInfoObject.put("title", "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
-                            
+							
                             if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
+                            	System.out.println("!!!!! deviceType: " + deviceType);
     							if(deviceType.equalsIgnoreCase("vmware")) {
     								postDataColumnArray.add("VM");
-    								//postDataColumnArray.add("vCenter");
+    								postDataColumnArray.add("vCenter");
     							} else if(deviceType.equalsIgnoreCase("vmwarehost")) {
     								postDataColumnArray.add("Server Name");
     								//postDataColumnArray.add("vCenter");
+    							} else if(deviceType.equalsIgnoreCase("vmax")) {
+    								postDataColumnArray.add("Possible Server Name(VMAX)");
+    								postDataColumnArray.add("SID");
+    								postDataColumnArray.add("Replication Device Count");
     							} else {
+    								if(!columnsNameArray.get(j).toString().equalsIgnoreCase("Replication Device Count")) {
+    									postDataColumnArray.add(columnsNameArray.get(j));
+    								}
     								postDataColumnArray.add(columnsNameArray.get(j));
+    							}
+    							System.out.println("!!!!! columnsKey: " + columnsKey.get(i));
+    							if(columnsKey.get(i).equalsIgnoreCase("vmax")) {
+    								postDataColumnArray.add("Possible Server Name(VMAX)");
+    								postDataColumnArray.add("SID");
     							}
     							
     						}                            
@@ -362,6 +390,10 @@ public class ReportService {
 
                 }               
                 
+                System.out.println("!!!!! postDataColumnArray: " + postDataColumnArray);
+                postDataColumnArray.add("Possible Server Name(VMAX)");
+                postDataColumnArray.add("SID");
+                postDataColumnArray.add("vCenter");
                 result.put("postDataColumns", postDataColumnArray);
                 result.put("deviceType", deviceType.toLowerCase().trim().replace("-", ""));
                 JSONArray refferedDeviceType = new JSONArray();
