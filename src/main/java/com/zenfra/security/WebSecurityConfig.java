@@ -75,7 +75,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(HttpMethod.GET, "/rest/df/deleteCloudCostDf").permitAll() 
             .antMatchers(HttpMethod.POST, "/rest/df/getReportDataFromClickHouse").permitAll() 
             .antMatchers(HttpMethod.POST, "/rest/reports/health-check/get-field-values").permitAll() 
-            .antMatchers("/rest/**").permitAll() 
+            .antMatchers(HttpMethod.POST, "/rest/df/getVmaxSubreport").permitAll() 
 
             //.antMatchers(HttpMethod.DELETE, "/rest/api/log-file/**").permitAll()
             // Our private endpoints

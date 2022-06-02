@@ -241,8 +241,7 @@ public abstract class CommonEntityManager extends JdbcCommonOperations {
 	public boolean deleteByEntity(Object obj) {
 
 		try {
-			entityManager.remove(obj);
-			entityManager.flush();
+			this.entityManager.remove(obj);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
