@@ -115,6 +115,10 @@ import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
+import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
+import scala.collection.Seq;
+
 @Repository
 public class DataframeService {
 
@@ -623,6 +627,9 @@ public class DataframeService {
 		}
 
 	
+		//type cast numeric columns in dataframe
+		
+		
 		dataset.printSchema();
 		
 		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
@@ -641,17 +648,19 @@ public class DataframeService {
 		dataset = orderBy(groupBy(filter(dataset)));	
 		Dataset<Row> countData = sparkSession.emptyDataFrame(); 
 		
-		countData = getDataframeNumericColAgg(request, source_type, dataset, viewName, countData);		
+		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
+		
+		countData = getDataframeNumericColAgg(dataset, viewName, numericColumns);		
 	
 		return paginate(dataset, request, countData.toJSON().collectAsList());
 
 	}
 
-	private Dataset<Row> getDataframeNumericColAgg(ServerSideGetRowsRequest request, String source_type,
-			Dataset<Row> dataset, String viewName, Dataset<Row> countData) {
+	private Dataset<Row> getDataframeNumericColAgg(Dataset<Row> dataset, String viewName, List<String> numericColumns) {
+		Dataset<Row> countData = sparkSession.emptyDataFrame();
 		try {
-			List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
-			if(numericColumns != null) {
+		
+			if(numericColumns != null && !numericColumns.isEmpty()) {
 				dataset.createOrReplaceTempView(viewName+"_tmpReport");
 				String numericCol = String.join(",", numericColumns
 			            .stream()
@@ -1472,6 +1481,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			dataset = getTaniumReport(siteKey);		
 		}
 		
+		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
+		
+		//type cast to numeric columns
+		try {			
+			dataset = typeCastNumericColumns(dataset, numericColumns, viewName);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		dataset.printSchema();
+		
 		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
 		groupKeys = request.getGroupKeys();
 		valueColumns = request.getValueCols();
@@ -1488,7 +1507,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		dataset = orderBy(groupBy(filter(dataset)));	
 		
 		Dataset<Row> countData = sparkSession.emptyDataFrame();
-		countData = getDataframeNumericColAgg(request, componentName, dataset, viewName, countData);	
+		countData = getDataframeNumericColAgg(dataset, viewName, numericColumns);	
 	
 		return paginate(dataset, request, countData.toJSON().collectAsList());
 
@@ -1502,6 +1521,41 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	 
 
 	
+	private Dataset<Row> typeCastNumericColumns(Dataset<Row> dataset, List<String> numericColumns, String viewName) {
+		try {
+			
+			
+             // have to find way to type cast without iteration.... following code take some time and memory for type cast
+			for (String numericColumn : numericColumns) {				
+					dataset.withColumn(numericColumn, new Column(numericColumn).cast("double"));
+			}
+ 
+		
+		/*	
+		 * List<Column> numericCol = new ArrayList<>();
+			List<Column> colNames = new ArrayList<>();
+		 * 
+		 * dataset = dataset.select(JavaConversions.asScalaBuffer(colNames));
+		 */
+			
+			/*Seq<String> seqColumnNames = DataframeUtil.convertListToSeq(numericColumns);
+			Seq<Column> numericColumnsSeq = JavaConverters.collectionAsScalaIterableConverter(numericCol).asScala().toStream().map(f, bf)
+					.asScala().toSeq();			
+		 
+			
+		 
+			dataset.withColumns(seqColumnNames, numericColumnsSeq).
+			 
+         */
+			
+			//dataset = dataset.select(dataset.col)
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return dataset;
+	}
+
 	private Dataset<Row> getTaniumReport(String siteKey) {
 		
 		Dataset<Row> taniumDataset = sparkSession.emptyDataFrame();
@@ -1636,10 +1690,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	
 	private void setFileOwner(File filePath) {
 		try {
-			Path resultFilePath = Paths.get("/opt/ZENfra/Dataframe/");
+			Path resultFilePath = Paths.get(filePath.getAbsolutePath());
 			UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
 					.lookupPrincipalByName("zenuser");
-			Files.setOwner(resultFilePath, owner);
+			Files.setOwner(Paths.get(filePath.getAbsolutePath()), owner);
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
