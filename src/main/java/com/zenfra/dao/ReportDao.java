@@ -295,7 +295,7 @@ public class ReportDao {
 	}
 
 	public List<Map<String, Object>> getReportCombinationByLogType(String sourceType) {
-		List<Map<String, Object>> reportCombination = new ArrayList<>();
+		List<Map<String, Object>> reportCombination = new ArrayList<Map<String, Object>>();
 		try {
 			reportCombination = jdbc.queryForList("SELECT report_type as \"reportList\", report_by as \"reportBy\", category, device FROM public.device_discovery_report_config where lower(name)='"+sourceType.toLowerCase()+"' and enabled ='1'");
 	

@@ -884,7 +884,7 @@ public class DataframeService {
 				f.mkdir();
 			}
 
-			dataframeBySiteKey.show();
+		
 
 			dataframeBySiteKey = dataframeBySiteKey.drop("site_key").drop("source_type");
 
@@ -1711,7 +1711,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				String reportCategory = (String) reportInput.get("category");
 				String deviceType = (String) reportInput.get("device");
 				
-				 if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") || reportCategory.equalsIgnoreCase("Storage")) {
+				if(reportCategory.equalsIgnoreCase("server") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db
+					recreateLocalDiscovery(siteKey, sourceType);	
+					//write server_server dataframe into common path /opt/ZENfra/Dataframe/siteKey/{logType}/jsonFile
+					writeServerDataframeToCommonPath(siteKey, sourceType);
+					
+					
+				} else if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") || reportCategory.equalsIgnoreCase("Storage")) { //dataframe created from V2 repo /migrationReport API call... mostly report created from orient DB
 					 ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
 						if(reportCategory.equalsIgnoreCase("server")) { //server
 							request.setOstype(deviceType);
@@ -1757,6 +1763,24 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	
 	
 	
+
+	private void writeServerDataframeToCommonPath(String siteKey, String sourceType) {
+		String dirPath = commonPath + "LocalDiscoveryDF" + File.separator + siteKey + File.separator + "site_key="+siteKey +  File.separator + "source_type="+sourceType.toLowerCase() + File.separator ;
+		
+		try {
+			Optional<Path> path = Files.walk(Paths.get(dirPath))
+			        .filter(Files::isRegularFile)
+			        .filter(p -> p.toFile().getName().matches(".json"))
+			        .findFirst();
+			if(path.isPresent()) {
+				Path filePath = path.get();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	//------------------------ Tanium Report------------------------------------------------//
 	@SuppressWarnings("unchecked")
 	private JSONArray getPrivillegeAccessReportData(String siteKey, File filePath) {
@@ -2161,7 +2185,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 			
 			if(request.getReportBy().equalsIgnoreCase("server")) {
-				viewName = (siteKey + "_linux").toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");
+				viewName = (siteKey + "_" + componentName).toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");
 			}
 			
 			
@@ -2211,6 +2235,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			dataset.coalesce(1).write().mode("overwrite").option("header",true).option("sep","|").option("lineSep","\n")	       
 	        .csv(writePath);
 			
+			setFileOwner(new File(writePath));
 			System.out.println("--------writePath---------- " + writePath);
 			
 			String filePath = getCsvPath(writePath);
@@ -2285,6 +2310,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			//close resources
 			br.close();
 			out.close();
+			
+			setFileOwner(new File(xlsxPath));
 			
 			FileUtils.deleteDirectory(new File(parentPath.getAbsolutePath()));
 			return xlsxPath;

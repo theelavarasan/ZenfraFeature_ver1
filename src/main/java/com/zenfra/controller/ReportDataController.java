@@ -167,11 +167,6 @@ public class ReportDataController {
 		System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : "
 				+ siteKey + " : " + userId);
 		
-		if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
-			 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
-		} else {
-			 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
-		}
 		
 
 		try {			 
@@ -215,11 +210,16 @@ public class ReportDataController {
 				String ex = errors.toString();
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
-
-			/*if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
-				chartService.getChartDatas(siteKey, sourceType);
-			}*/
-			dataframeService.recreateLocalDiscovery(siteKey, sourceType);
+			
+			
+			//recreate Reports after completed parsing
+			
+			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
+				 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
+			} else {
+				 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
+			}
+			
 			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 
 			return new ResponseEntity<>("", HttpStatus.OK);
@@ -637,7 +637,7 @@ public class ReportDataController {
         }
         
         try {
-        	 FileUtils.deleteDirectory(new File(filePath));
+        	 //FileUtils.deleteDirectory(new File(filePath));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
