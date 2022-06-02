@@ -650,7 +650,8 @@ public class DataframeService {
 		
 		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
 		
-		countData = getDataframeNumericColAgg(dataset, viewName, numericColumns);		
+		countData = getDataframeNumericColAgg(dataset, viewName, numericColumns);	
+		countData.show();
 	
 		return paginate(dataset, request, countData.toJSON().collectAsList());
 
@@ -661,13 +662,15 @@ public class DataframeService {
 		try {
 		
 			if(numericColumns != null && !numericColumns.isEmpty()) {
-				dataset.createOrReplaceTempView(viewName+"_tmpReport");
+				dataset.createOrReplaceGlobalTempView(viewName+"_tmpReport");
 				String numericCol = String.join(",", numericColumns
 			            .stream()
 			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
 			            .collect(Collectors.toList()));	
 				
-				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from "+viewName+"_tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+				System.out.println("--------numericCol------" + numericCol);
+				
+				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from global_temp."+viewName+"_tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
 				 
 				 
 			}
@@ -1527,7 +1530,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
              // have to find way to type cast without iteration.... following code take some time and memory for type cast
 			for (String numericColumn : numericColumns) {				
-					dataset.withColumn(numericColumn, new Column(numericColumn).cast("double"));
+				dataset = dataset.withColumn(numericColumn, new Column(numericColumn).cast("double"));
 			}
  
 		
