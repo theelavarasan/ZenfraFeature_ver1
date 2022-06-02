@@ -3903,14 +3903,14 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		 Dataset<Row> subReportData  = sparkSession.emptyDataFrame();
 		try {			 
 			 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
-			  subReportData = sparkSession.sqlContext().sql("select * from global_temp."+viewName+" where lower(`Local Possible Server Name`) like '%"+serverName.toLowerCase()+"%' and `Local Serial Number`='"+sid+"' and lower(`Local Device Configuration`) like 'rdev%'").toDF();
+			  subReportData = sparkSession.sqlContext().sql("select * from global_temp."+viewName+" where lower(`Local Possible Server Name`) like '%"+serverName.toLowerCase()+"%' and `Local Serial Number`='"+sid+"' and lower(`Local Device Configuration`) like 'rdf%'").toDF();
 			  System.out.println("-----------getVmaxSubreport----view exists-----" ); 
 		} catch (Exception e) { //view not present
 			  System.out.println("-----------getVmaxSubreport----view NOT exists-----" ); 
 			 createDataframeForJsonData(filePath);			
 			 
 			 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
-			  subReportData = sparkSession.sqlContext().sql("select * from global_temp."+viewName+" where lower(`Local Possible Server Name`) like '%"+serverName.toLowerCase()+"%' and `Local Serial Number`='"+sid+"'  and lower(`Local Device Configuration`) like 'rdev%'").toDF();
+			  subReportData = sparkSession.sqlContext().sql("select * from global_temp."+viewName+" where lower(`Local Possible Server Name`) like '%"+serverName.toLowerCase()+"%' and `Local Serial Number`='"+sid+"'  and lower(`Local Device Configuration`) like 'rdf%'").toDF();
 		}
 		try {
 			
