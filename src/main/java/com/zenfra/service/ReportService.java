@@ -155,7 +155,9 @@ public class ReportService {
 	}
 
 	@SuppressWarnings("unchecked")
-    public JSONObject getSubReportList(String deviceType, String reportName) throws IOException, ParseException, org.json.simple.parser.ParseException {System.out.println("!!!!! deviceType: " + deviceType);
+    public JSONObject getSubReportList(String deviceType, String reportName) throws IOException, ParseException, org.json.simple.parser.ParseException {
+		
+	System.out.println("!!!!! deviceType: " + deviceType);
     
     JSONParser parser = new JSONParser();
    
