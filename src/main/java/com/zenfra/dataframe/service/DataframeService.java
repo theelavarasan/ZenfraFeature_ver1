@@ -1490,7 +1490,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		try {			
 			dataset = typeCastNumericColumns(dataset, numericColumns, viewName);
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 		dataset.printSchema();
 		
@@ -1509,8 +1509,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 		dataset = orderBy(groupBy(filter(dataset)));	
 		
-		Dataset<Row> countData = sparkSession.emptyDataFrame();
-		countData = getDataframeNumericColAgg(dataset, viewName, numericColumns);	
+		
+		Dataset<Row> countData = getDataframeNumericColAgg(dataset, viewName, numericColumns);	
 	
 		return paginate(dataset, request, countData.toJSON().collectAsList());
 
@@ -1527,7 +1527,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	private Dataset<Row> typeCastNumericColumns(Dataset<Row> dataset, List<String> numericColumns, String viewName) {
 		try {
 			
-			
+			System.out.println("-----numericColumns-------- " + numericColumns);
              // have to find way to type cast without iteration.... following code take some time and memory for type cast
 			for (String numericColumn : numericColumns) {				
 				dataset = dataset.withColumn(numericColumn, new Column(numericColumn).cast("double"));
