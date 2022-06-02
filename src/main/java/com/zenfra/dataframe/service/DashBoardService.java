@@ -219,6 +219,7 @@ public class DashBoardService {
 
 	public JSONObject getChatForFavMenu(String favoriteViewId, String userId, String siteKey) {
 		JSONObject obj = new JSONObject();
+		JSONParser parser = new JSONParser();
 		try {
 
 			String getChatForFavMenu = queries.dashboardQueries().getGetChatForFavMenu()
@@ -230,10 +231,10 @@ public class DashBoardService {
 			JSONArray chartObj = new JSONArray();
 			ObjectMapper mapper = new ObjectMapper();
 			for (Map<String, Object> list : chartDetails) {
-				JSONObject tempBreak = mapper.convertValue(list.get("filterProperty"), JSONObject.class);
-				JSONObject obtemp = mapper.convertValue(list, JSONObject.class);
+				JSONObject tempBreak = (JSONObject) parser.parse(list.get("filterProperty") == null ? "{}" : list.get("filterProperty").toString());
+				JSONObject obtemp = (JSONObject) parser.parse(list);
 				if (tempBreak != null && tempBreak.containsKey("value") && tempBreak.get("value") != null) {
-					JSONObject tempFilter = mapper.readValue(tempBreak.get("value").toString(), JSONObject.class);
+					JSONObject tempFilter = (JSONObject) parser.parse(tempBreak.get("value").toString());
 					obtemp.put("filterProperty", tempFilter);
 				}
 				chartObj.add(obtemp);
