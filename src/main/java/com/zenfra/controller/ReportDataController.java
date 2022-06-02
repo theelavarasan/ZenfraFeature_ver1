@@ -606,7 +606,7 @@ public class ReportDataController {
 	
 	
 	
-	@GetMapping("export")
+	@PostMapping("export")
 	public void test(@RequestBody  ServerSideGetRowsRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 		
 		String filePath =  dataframeService.writeDfToCsv(request);
