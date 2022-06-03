@@ -1134,4 +1134,50 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		return resultArray;
 		
 	}
+
+	public JSONArray getVR_VanguardGroupInfo(String siteKey, String columnName) {
+
+	JSONArray resultArray = new JSONArray();
+
+	try {
+
+		String query = "select keys, column_values from (\r\n" + 
+				"select keys, json_agg(column_values) as column_values from (\r\n" + 
+				"select distinct keys, data ->> keys as column_values from (\r\n" + 
+				"select json_build_object('Server Name', server_name, 'Group Name', \"group\", 'Owner', group_owner, 'Superior Group', superior_group, 'Creation Date', creation_date,\r\n" + 
+				"'TERMUACC', termuacc, 'Model Name', model_name, 'Users Connected to the Group', user_name, 'User Id', user_id) as data, keys from ( \r\n" + 
+				"select vsi.server_name, vgi.group, vgi.group_owner, vgi.superior_group, vgi.creation_date,\r\n" + 
+				"vgi.termuacc, vgi.model_name, vui.user_name, vui.user_id\r\n" + 
+				"from vanguard_server_info vsi\r\n" + 
+				"LEFT JOIN vanguard_group_info vgi on vgi.server_name = vsi.server_name\r\n" + 
+				"LEFT JOIN vanguard_user_info vui on vui.server_name = vsi.server_name and vgi.group = vui.group\r\n" + 
+				"where vsi.site_key = '" + siteKey + "' order by vsi.server_name \r\n" + 
+				") a \r\n" + 
+				"LEFT JOIN (\r\n" + 
+				"select column_name as keys from report_columns where device_type = 'Vanguard' and report_by = 'Group Info' \r\n" + 
+				") cl on 1 = 1 \r\n" + 
+				") b \r\n" + 
+				") c group by keys \r\n" + 
+				") d where keys = '" + columnName + "'";
+				
+
+		System.out.println("!!!!! query: " + query);
+		List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+		// JSONParser parser = new JSONParser();
+		System.out.println("!!!!! valueArray: " + valueArray);
+		for (Map<String, Object> list : valueArray) {
+			resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+		}
+
+	} catch (Exception e) {
+		e.printStackTrace();
+		StringWriter errors = new StringWriter();
+		e.printStackTrace(new PrintWriter(errors));
+		String ex = errors.toString();
+		ExceptionHandlerMail.errorTriggerMail(ex);
+	}
+
+	return resultArray;
+
+}
 }
