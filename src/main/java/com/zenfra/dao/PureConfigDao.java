@@ -79,6 +79,7 @@ public class PureConfigDao implements PureConfigService {
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@Override
 	public Response updatePureConfig(String userId, PureConfigModel model, String pureKeyConfigId) {
+		System.out.println("---------------------Update Query Pure:" + pureKeyConfigId);
 		Response response = new Response();
 		Map<String, String> data = new HashMap<>();
 		data = dbUtils.getPostgres();
