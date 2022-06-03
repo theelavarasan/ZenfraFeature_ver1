@@ -27,6 +27,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.zenfra.dao.FavouriteDao_v2;
@@ -49,6 +50,9 @@ public class ReportService {
 
 	@Autowired
 	ChartService chartService;
+	
+	@Autowired
+	JdbcTemplate jdbc;
 
 	private String commonPath;
 
@@ -156,7 +160,9 @@ public class ReportService {
 	}
 
 	@SuppressWarnings("unchecked")
-    public JSONObject getSubReportList(String deviceType, String reportName) throws IOException, ParseException, org.json.simple.parser.ParseException {System.out.println("!!!!! deviceType: " + deviceType);
+    public JSONObject getSubReportList(String deviceType, String reportName) throws IOException, ParseException, org.json.simple.parser.ParseException {
+		
+	System.out.println("!!!!! deviceType: " + deviceType);
     
     JSONParser parser = new JSONParser();
    
@@ -566,6 +572,23 @@ public class ReportService {
 		
 		
 		
+	}
+	
+	public JSONObject getDSRLinks() {
+		
+		JSONObject resultObject = new JSONObject();
+		JSONParser parser = new JSONParser();
+		String query = "select key_value from zen_config where key_name = 'dsr_link'";
+		try {
+			List<Map<String,Object>> valueArray = jdbc.queryForList(query);
+			for(Map<String, Object> list : valueArray) {
+				resultObject = (JSONObject) parser.parse(list.get("key_value").toString());
+			}	
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultObject;
 	}
 
 	 

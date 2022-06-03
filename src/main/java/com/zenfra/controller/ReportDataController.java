@@ -359,7 +359,7 @@ public class ReportDataController {
 	public ResponseEntity<?> getAllSublinkData() {
 		JSONObject resultObject = new JSONObject();
 		try {
-			resultObject.put("subLinkDetails", reportService.getSubReportList("all", "project"));
+			resultObject.put("subLinkDetails", reportService.getDSRLinks());
 
 		} catch (Exception e) {
 			e.printStackTrace();
