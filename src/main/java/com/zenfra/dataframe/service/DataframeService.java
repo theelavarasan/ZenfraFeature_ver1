@@ -45,6 +45,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -1444,12 +1445,14 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				+ "OrientDB" + File.separator + siteKey + File.separator + componentName
 				+ File.separator + viewNameWithHypen + ".json");
 		
+	
+		
 		System.out.println("------verifyDataframePath-------" + verifyDataframePath);
 		
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ "OrientDB" + File.separator + siteKey + File.separator + componentName + File.separator );
 		
-
+		
 		
 		Dataset<Row> dataset = null;
 		
@@ -1484,6 +1487,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			dataset = getTaniumReport(siteKey);		
 		}
 		
+		 setFileOwner(verifyDataframePath);
+		 setFileOwner(verifyDataframePath);
+		 
 		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
 		
 		//type cast to numeric columns
@@ -1676,12 +1682,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	 
 	  try {		
          if(!verifyDataframeParentPath.exists()) {
-        	 verifyDataframeParentPath.mkdirs();
-        	
+        	 verifyDataframeParentPath.mkdirs();        	
          }
-         setFileOwner(verifyDataframeParentPath);
+        
 		  mapper.writeValue(filePath, resultObj.get("data"));
-		 setFileOwner(filePath);
+		  
+		  
+		  
 		 System.out.println("-----------------Write DF PAth----------" + filePath.getAbsolutePath());
 	} catch (Exception e) {
 		// TODO Auto-generated catch block
@@ -1693,10 +1700,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	
 	private void setFileOwner(File filePath) {
 		try {
+			
 			Path resultFilePath = Paths.get(filePath.getAbsolutePath());
 			UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
 					.lookupPrincipalByName("zenuser");
 			Files.setOwner(Paths.get(filePath.getAbsolutePath()), owner);
+			
+			if(filePath.getParentFile() != null) {
+				setFileOwner(filePath.getParentFile());
+			}
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -1731,6 +1744,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						} 
 						
 					
+						request.setAnalyticstype("Discovery");
 						request.setReportCategory("migration");
 						request.setSiteKey(siteKey);
 						request.setCategory(reportCategory);						
@@ -2164,6 +2178,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		try {
 			String siteKey = request.getSiteKey();
+			String userId = request.getUserId();
 			
 			String componentName = "";
 			if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
@@ -2204,10 +2219,27 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			Dataset<Row> dataset = null;
 			
 			
+			
+			String reportName = request.getReportList() + "_" + componentName + "_by_" + request.getReportBy();
+			
+			JSONArray reportColumns = reportDao.getReportHeader(reportName, componentName, request.getReportBy());
+			
+			//get visibile column names for excel export
+			String columnsToExport = StringUtils.join(reportColumns.stream().map(json -> json.toString()).collect(Collectors.toList()), "`,`");
+			
+			JSONObject reportUserCustom =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
+			
+			if(reportUserCustom.containsKey("columnOrder")) {
+				JSONArray visibleColumns = (JSONArray) reportUserCustom.get("columnOrder");
+				if(visibleColumns != null && !visibleColumns.isEmpty()) {
+					columnsToExport = StringUtils.join(visibleColumns.stream().map(json -> json.toString()).collect(Collectors.toList()), "`,`");
+				}
+			}
+			
 			if(!componentName.toLowerCase().contains("tanium")) {  
 				boolean isDiscoveryDataInView = false;	
 				try {
-					dataset = sparkSession.sql("select * from global_temp." + viewName);		
+					dataset = sparkSession.sql("select "+columnsToExport+" from global_temp." + viewName);		
 					isDiscoveryDataInView = true;
 				} catch (Exception e) {
 					System.out.println("---------View Not exists--------");
