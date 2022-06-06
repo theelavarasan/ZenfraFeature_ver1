@@ -116,10 +116,11 @@ public class LogFileDetailsController {
 	@ApiResponse(code = 200, message = "Successfully retrieved")
 	public ResponseEntity<ResponseModel_v2> getALlLogFileDetails(
 			@NotBlank(message = "Sitekey must not be empty") @RequestParam String siteKey,
-			@NotBlank(message = "UserId must not be empty") @RequestParam String userId) {
+			@NotBlank(message = "UserId must not be empty") @RequestParam String userId, 
+			@RequestParam(name = "fromZenfraCollector", required = false) boolean fromZenfraCollector) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
-			response.setjData(service.getLogFileDetailsBySiteKey(siteKey));
+			response.setjData(service.getLogFileDetailsBySiteKey(siteKey, fromZenfraCollector));
 			response.setResponseCode(HttpStatus.OK);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setResponseDescription("Successfully retrieved");

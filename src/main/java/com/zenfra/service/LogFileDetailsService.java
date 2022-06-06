@@ -138,11 +138,11 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 		}
 	}
 
-	public Object getLogFileDetailsBySiteKey(String siteKey) {
+	public Object getLogFileDetailsBySiteKey(String siteKey, boolean fromZenfraCollector) {
 		try {
 
 			Map<String, String> userList = userCreateService.getUserNames();
-			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKey(siteKey);
+			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKey(siteKey, fromZenfraCollector);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 			for (LogFileDetails log : logFile) {
 				if (userList.containsKey(log.getUploadedBy())) {
