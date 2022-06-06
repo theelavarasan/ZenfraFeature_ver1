@@ -25,6 +25,10 @@ public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String
 	@Query(value="select * from log_file_details where is_active=:isActive and  site_key=:siteKey order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') desc",nativeQuery = true)
 	List<LogFileDetails> getBySiteKeyAndIsActive(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive);
 	
+	@Query(value="select * from log_file_details where is_active=:isActive and  site_key=:siteKey and from_zenfra_collector = true order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') desc",nativeQuery = true)
+	List<LogFileDetails> getByFromZenfraCollector(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive);
+	
+	
 	@Modifying
 	@Query("update LogFileDetails s set s.description=:description,s.logType=:logType  where s.logFileId in :logFileId")
 	void saveLogtypeAndDescription(@Param("logFileId") List<String> logFileId,@Param("description") String description,@Param("logType") String logType);

@@ -173,6 +173,9 @@ public class LogFileDetails implements Serializable {
 	@Transient
 	private String username;
 	
+	@Column
+	private String collectionDate;
+	
 	
 	
 	
@@ -450,6 +453,14 @@ public class LogFileDetails implements Serializable {
 	public void setTempData(Object tempData) {
 		this.tempData = tempData;
 	}
+	
+	public String getCollectionDate() {
+		return collectionDate;
+	}
+
+	public void setCollectionDate(String collectionDate) {
+		this.collectionDate = collectionDate;
+	}
 
 
 	public LogFileDetails() {
@@ -458,13 +469,16 @@ public class LogFileDetails implements Serializable {
 	}
 
 
-	public LogFileDetails(String logId, @NotBlank(message = "logType must not be empty") String logType,
-			String uploadedBy, @NotBlank(message = "Site Key must not be empty") String siteKey, String createdDateTime,
+	public LogFileDetails(String logFileId, String logId,
+			@NotBlank(message = "logType must not be empty") String logType, String uploadedBy,
+			@NotBlank(message = "Site Key must not be empty") String siteKey, String createdDateTime,
 			String updatedDateTime, String fileName, String fileSize, String status, String response, String tenantId,
-			String description, String extractedPath, String uploadedLogs, String masterLogs, boolean isActive,
-			String parsingStatus, String message, String parsingStartTime, String parsedDateTime,
-			String cmdStatusParsing, String cmdStatusInsertion, String tempStatus) {
+			String description, String extractedPath, String uploadedLogs, String masterLogs, String parsingStatus,
+			String message, String parsingStartTime, String parsedDateTime, String cmdStatusParsing,
+			String cmdStatusInsertion, String tempStatus, String filePaths, Object tempData, String username,
+			String collectionDate) {
 		super();
+		this.logFileId = logFileId;
 		this.logId = logId;
 		this.logType = logType;
 		this.uploadedBy = uploadedBy;
@@ -480,7 +494,6 @@ public class LogFileDetails implements Serializable {
 		this.extractedPath = extractedPath;
 		this.uploadedLogs = uploadedLogs;
 		this.masterLogs = masterLogs;
-		this.isActive = isActive;
 		this.parsingStatus = parsingStatus;
 		this.message = message;
 		this.parsingStartTime = parsingStartTime;
@@ -488,7 +501,14 @@ public class LogFileDetails implements Serializable {
 		CmdStatusParsing = cmdStatusParsing;
 		CmdStatusInsertion = cmdStatusInsertion;
 		this.tempStatus = tempStatus;
+		this.filePaths = filePaths;
+		this.tempData = tempData;
+		this.username = username;
+		this.collectionDate = collectionDate;
 	}
+
+
+	
 	
 	
 	

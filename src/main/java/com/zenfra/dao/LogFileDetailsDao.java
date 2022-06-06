@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -147,11 +148,66 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 		}
 	}
 
-	public List<LogFileDetails> getLogFileDetailsBySiteKey(String siteKey) {
+	public List<LogFileDetails> getLogFileDetailsBySiteKey(String siteKey, boolean fromZenfraCollector) {
 		List<LogFileDetails> log = new ArrayList<LogFileDetails>();
 		try {
 
-			log = logRepo.getBySiteKeyAndIsActive(siteKey, true);
+			@SuppressWarnings("unused")
+			JSONArray dataArray = new JSONArray();
+			if (fromZenfraCollector) {
+
+				log = logRepo.getByFromZenfraCollector(siteKey, true);
+
+//					Map<String, String> data = new HashMap<>();
+//					data = DBUtils.getPostgres();
+//					try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+//							data.get("password")); Statement statement = connection.createStatement();) {
+//						String selectQuery = "select * from log_file_details where is_active = true and from_zenfra_collector = true";
+				//
+//						System.out.println("!!! selectQuery: " + selectQuery);
+				//
+//						ResultSet rs = statement.executeQuery(selectQuery);
+				//
+//						while (rs.next()) {
+//							JSONObject dataObj = new JSONObject();
+				//
+//							dataObj.put("logFileId", rs.getString("log_file_id"));
+//							dataObj.put("CreatedTime", rs.getString("created_date_time"));
+//							dataObj.put("description", rs.getString("description"));
+//							dataObj.put("extractedPath", rs.getString("extracted_path"));
+//							dataObj.put("fileName", rs.getString("file_name"));
+//							dataObj.put("fileSize", rs.getString("file_size"));
+//							dataObj.put("isActive", rs.getBoolean("is_active"));
+//							dataObj.put("logType", rs.getString("log_type"));
+//							dataObj.put("masterLogs", rs.getString("master_logs"));
+//							dataObj.put("response", rs.getString("response"));
+//							dataObj.put("siteKey", rs.getString("site_key"));
+//							dataObj.put("status", rs.getString("status"));
+//							dataObj.put("tenantId", rs.getString("tenant_id"));
+//							dataObj.put("updatedTime", rs.getString("updated_date_time"));
+//							dataObj.put("uploadedBy", rs.getString("uploaded_by"));
+//							dataObj.put("uploadedLogs", rs.getString("uploaded_logs"));
+//							dataObj.put("cmdStatusInsertion", rs.getString("cmd_status_insertion"));
+//							dataObj.put("cmd_status_parsing", rs.getString("cmd_status_parsing"));
+//							dataObj.put("message", rs.getString("message"));
+//							dataObj.put("parsedDateTime", rs.getString("parsed_date_time"));
+//							dataObj.put("parsingStartTime", rs.getString("parsing_start_time"));
+//							dataObj.put("parsingStatus", rs.getString("parsing_status"));
+//							dataObj.put("parsingStatus", rs.getString("parsing_status"));
+//							dataObj.put("tempStatus", rs.getString("temp_status"));
+//							dataObj.put("logId", rs.getString("log_id"));
+//							dataObj.put("rid", rs.getString("rid"));
+//							dataObj.put("filePaths", rs.getString("file_paths"));
+//							dataObj.put("fromZenfraCollector", rs.getBoolean("from_zenfra_collector"));
+//							dataObj.put("collectionDate", rs.getString("collection_date"));
+//							
+
+//						}
+//					}
+				System.out.println("-------log-----" + log);
+			} else {
+				log = logRepo.getBySiteKeyAndIsActive(siteKey, true);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();

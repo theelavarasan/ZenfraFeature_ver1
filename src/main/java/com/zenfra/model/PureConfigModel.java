@@ -3,10 +3,10 @@ package com.zenfra.model;
 public class PureConfigModel {
 
 	private String pureKeyConfigId;
-	private String arrayName;
-	private String applicationId;
-	private String publicKey;
-	private String privateKey;
+//	private String arrayName;
+//	private String applicationId;
+//	private String publicKey;
+//	private String privateKey;
 	private String siteKey;
 	private String tenantId;
 	private boolean isActive;
@@ -14,6 +14,11 @@ public class PureConfigModel {
 	private String updatedBy;
 	private String createdTime;
 	private String updatedTime;
+	private String dnsName;
+	private String apiToken;
+	private String userName;
+	private String password;
+	private String connectionType;
 
 	public String getPureKeyConfigId() {
 		return pureKeyConfigId;
@@ -23,37 +28,37 @@ public class PureConfigModel {
 		this.pureKeyConfigId = pureKeyConfigId;
 	}
 
-	public String getArrayName() {
-		return arrayName;
-	}
+//	public String getArrayName() {
+//		return arrayName;
+//	}
+//
+//	public void setArrayName(String arrayName) {
+//		this.arrayName = arrayName;
+//	}
 
-	public void setArrayName(String arrayName) {
-		this.arrayName = arrayName;
-	}
-
-	public String getApplicationId() {
-		return applicationId;
-	}
-
-	public void setApplicationId(String applicationId) {
-		this.applicationId = applicationId;
-	}
-
-	public String getPublicKey() {
-		return publicKey;
-	}
-
-	public void setPublicKey(String publicKey) {
-		this.publicKey = publicKey;
-	}
-
-	public String getPrivateKey() {
-		return privateKey;
-	}
-
-	public void setPrivateKey(String privateKey) {
-		this.privateKey = privateKey;
-	}
+//	public String getApplicationId() {
+//		return applicationId;
+//	}
+//
+//	public void setApplicationId(String applicationId) {
+//		this.applicationId = applicationId;
+//	}
+//
+//	public String getPublicKey() {
+//		return publicKey;
+//	}
+//
+//	public void setPublicKey(String publicKey) {
+//		this.publicKey = publicKey;
+//	}
+//
+//	public String getPrivateKey() {
+//		return privateKey;
+//	}
+//
+//	public void setPrivateKey(String privateKey) {
+//		this.privateKey = privateKey;
+//	}
 
 	public String getSiteKey() {
 		return siteKey;
@@ -109,6 +114,46 @@ public class PureConfigModel {
 
 	public void setUpdatedTime(String updatedTime) {
 		this.updatedTime = updatedTime;
+	}
+
+	public String getDnsName() {
+		return dnsName;
+	}
+
+	public void setDnsName(String dnsName) {
+		this.dnsName = dnsName;
+	}
+
+	public String getApiToken() {
+		return apiToken;
+	}
+
+	public void setApiToken(String apiToken) {
+		this.apiToken = apiToken;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getConnectionType() {
+		return connectionType;
+	}
+
+	public void setConnectionType(String connectionType) {
+		this.connectionType = connectionType;
 	}
 
 }
