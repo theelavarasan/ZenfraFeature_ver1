@@ -673,8 +673,10 @@ public class DataframeService {
 			            .collect(Collectors.toList()));	
 				
 			
-				
-				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from global_temp."+viewName+"_tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+				if(numericCol != null && !numericCol.trim().isEmpty()) {
+					countData = sparkSession.sqlContext().sql("select "+numericCol+"  from global_temp."+viewName+"_tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+					
+				}
 				 
 				 
 			}
@@ -1495,6 +1497,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		 
 		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
 		List<String> dataframeColumns  = Arrays.asList(dataset.columns()); 
+		
 		//type cast to numeric columns
 		try {			
 			dataset = typeCastNumericColumns(dataset, numericColumns, viewName, dataframeColumns);
