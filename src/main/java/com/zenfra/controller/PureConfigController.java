@@ -33,7 +33,8 @@ public class PureConfigController {
 	}
 
 	@RequestMapping(value = "/pure/update", method = RequestMethod.PUT)
-	public ResponseEntity<Response> updatePureConfig(@RequestAttribute("authUserId") String userId, @RequestBody PureConfigModel model, @RequestAttribute("pureKeyConfigId") String pureKeyConfigId) {
+	public ResponseEntity<Response> updatePureConfig(@RequestAttribute("authUserId") String userId, @RequestBody PureConfigModel model, @RequestParam("pureKeyConfigId") String pureKeyConfigId) {
+		System.out.println("---------------------Update Query Pure:" + pureKeyConfigId);
 		return ResponseEntity.ok(dao.updatePureConfig(userId, model, pureKeyConfigId));
 	}
 
