@@ -608,9 +608,8 @@ public class DataframeService {
 
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
-			//List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();	
-			List<String> siteKeys = new ArrayList<String>();			
-			siteKeys.add("f0beccad-4a21-41bb-9dec-25d3e632a065");
+			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();	
+		
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
 				try {
