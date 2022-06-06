@@ -1534,9 +1534,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		try {
 			
 			System.out.println("-----numericColumns-------- " + numericColumns);
+			List<String> dfColumns = Arrays.asList(dataset.columns()); 
              // have to find way to type cast without iteration.... following code take some time and memory for type cast
-			for (String numericColumn : numericColumns) {				
-				dataset = dataset.withColumn(numericColumn, new Column(numericColumn).cast("double"));
+			
+			for (String numericColumn : numericColumns) {	
+				if(dfColumns.contains(numericColumn)) {
+					dataset = dataset.withColumn(numericColumn, new Column(numericColumn).cast("double"));
+				}
+					
+				
 			}
  
 		
@@ -2225,16 +2231,26 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			JSONArray reportColumns = reportDao.getReportHeader(reportName, componentName, request.getReportBy());
 			
 			//get visibile column names for excel export
-			String columnsToExport = StringUtils.join(reportColumns.stream().map(json -> json.toString()).collect(Collectors.toList()), "`,`");
+			String columnsToExport = String.join(",", ((List<String>) reportColumns.stream().map(json -> json.toString()).collect(Collectors.toList()))
+		            .stream()
+		            .map(col -> ("`" + col + "`"))
+		            .collect(Collectors.toList()));
+			
+			System.out.println("-------columnsToExport-------" + columnsToExport);;
 			
 			JSONObject reportUserCustom =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
 			
 			if(reportUserCustom.containsKey("columnOrder")) {
 				JSONArray visibleColumns = (JSONArray) reportUserCustom.get("columnOrder");
 				if(visibleColumns != null && !visibleColumns.isEmpty()) {
-					columnsToExport = StringUtils.join(visibleColumns.stream().map(json -> json.toString()).collect(Collectors.toList()), "`,`");
+					columnsToExport =  String.join(",", ((List<String>) visibleColumns.stream().map(json -> json.toString()).collect(Collectors.toList()))
+				            .stream()
+				            .map(col -> ("`" + col + "`"))
+				            .collect(Collectors.toList()));
 				}
 			}
+			
+			System.out.println("-------columnsToExport----final---" + columnsToExport);;
 			
 			if(!componentName.toLowerCase().contains("tanium")) {  
 				boolean isDiscoveryDataInView = false;	
