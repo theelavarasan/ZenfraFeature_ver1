@@ -749,7 +749,7 @@ public class DataframeService {
 	private List<SortModel> formatSortModel(List<SortModel> sortModels) {
 		List<SortModel> sortModel = new ArrayList<>();
 		for (SortModel sm : sortModels) {
-			sm.setColId(sm.getColId().replaceAll("\\s+", "_").toLowerCase());
+			sm.setColId(sm.getColId());  //.replaceAll("\\s+", "_").toLowerCase()
 			sortModel.add(sm);
 		}
 		return sortModel;
@@ -759,7 +759,7 @@ public class DataframeService {
 		List<String> tmpList = new ArrayList<>();
 		if (list != null && !list.isEmpty()) {
 			for (String l : list) {
-				tmpList.add(l.replaceAll("\\s+", "_").toLowerCase());
+				tmpList.add(l);  //.replaceAll("\\s+", "_").toLowerCase()
 			}
 		}
 		return tmpList;
@@ -1479,7 +1479,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				if (verifyDataframePath.exists()) {
 					
 					createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
-					dataset = sparkSession.sql("select * from global_temp." + viewName);
+					dataset = sparkSession.sql("select * from global_temp." + viewName);   //we need apply filter order pagination start and end 
 				
 				} else {				
 						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);				
