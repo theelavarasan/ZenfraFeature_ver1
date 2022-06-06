@@ -650,26 +650,29 @@ public class DataframeService {
 		Dataset<Row> countData = sparkSession.emptyDataFrame(); 
 		
 		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
-		
-		countData = getDataframeNumericColAgg(dataset, viewName, numericColumns);	
+		List<String> dataframeColumns  = Arrays.asList(dataset.columns()); 
+		countData = getDataframeNumericColAgg(dataset, viewName, numericColumns, dataframeColumns);	
 		countData.show();
 	
 		return paginate(dataset, request, countData.toJSON().collectAsList());
 
 	}
 
-	private Dataset<Row> getDataframeNumericColAgg(Dataset<Row> dataset, String viewName, List<String> numericColumns) {
+	private Dataset<Row> getDataframeNumericColAgg(Dataset<Row> dataset, String viewName, List<String> numericColumns, List<String> dataframeColumns) {
 		Dataset<Row> countData = sparkSession.emptyDataFrame();
 		try {
 		
 			if(numericColumns != null && !numericColumns.isEmpty()) {
 				dataset.createOrReplaceGlobalTempView(viewName+"_tmpReport");
+				numericColumns.retainAll(dataframeColumns);
+				System.out.println("-------numericColumns+++------" + numericColumns);
+				
 				String numericCol = String.join(",", numericColumns
 			            .stream()
 			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
 			            .collect(Collectors.toList()));	
 				
-				System.out.println("--------numericCol------" + numericCol);
+			
 				
 				countData = sparkSession.sqlContext().sql("select "+numericCol+"  from global_temp."+viewName+"_tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
 				 
@@ -1491,10 +1494,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		 setFileOwner(verifyDataframePath);
 		 
 		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
-		
+		List<String> dataframeColumns  = Arrays.asList(dataset.columns()); 
 		//type cast to numeric columns
 		try {			
-			dataset = typeCastNumericColumns(dataset, numericColumns, viewName);
+			dataset = typeCastNumericColumns(dataset, numericColumns, viewName, dataframeColumns);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1516,7 +1519,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		dataset = orderBy(groupBy(filter(dataset)));	
 		
 		
-		Dataset<Row> countData = getDataframeNumericColAgg(dataset, viewName, numericColumns);	
+		Dataset<Row> countData = getDataframeNumericColAgg(dataset, viewName, numericColumns, dataframeColumns);	
 	
 		return paginate(dataset, request, countData.toJSON().collectAsList());
 
@@ -1530,15 +1533,14 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	 
 
 	
-	private Dataset<Row> typeCastNumericColumns(Dataset<Row> dataset, List<String> numericColumns, String viewName) {
+	private Dataset<Row> typeCastNumericColumns(Dataset<Row> dataset, List<String> numericColumns, String viewName, List<String> dataframeColumns) {
 		try {
 			
-			System.out.println("-----numericColumns-------- " + numericColumns);
-			List<String> dfColumns = Arrays.asList(dataset.columns()); 
+			System.out.println("-----numericColumns-------- " + numericColumns);			
              // have to find way to type cast without iteration.... following code take some time and memory for type cast
 			
 			for (String numericColumn : numericColumns) {	
-				if(dfColumns.contains(numericColumn)) {
+				if(dataframeColumns.contains(numericColumn)) {
 					dataset = dataset.withColumn(numericColumn, new Column(numericColumn).cast("double"));
 				}
 					
