@@ -1465,8 +1465,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		if(!componentName.toLowerCase().contains("tanium")) {  
 			boolean isDiscoveryDataInView = false;	
 			try {
-				dataset = sparkSession.sql("select * from global_temp." + viewName);		
-				isDiscoveryDataInView = true;
+				if(verifyDataframePath.exists()) {
+					dataset = sparkSession.sql("select * from global_temp." + viewName);		
+					isDiscoveryDataInView = true;
+				}
+				
 			} catch (Exception e) {
 				System.out.println("---------View Not exists--------");
 			}
