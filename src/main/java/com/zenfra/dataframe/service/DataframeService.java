@@ -2491,7 +2491,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			dataset.createOrReplaceGlobalTempView(viewName);
 			
 			String[] dfColumnArray = dataset.columns();
-			for(int i=0; i<dfColumnArray)
+			for(int i=0; i<dfColumnArray.length; i++) {
+				JSONObject columnObj = new JSONObject();				
+				columnObj.put("actualName", dfColumnArray[i]);
+				columnObj.put("displayName", dfColumnArray[i]);
+				columnObj.put("dataType", dfColumnArray[i]);
+				columnObj.put("lockPinned", false);
+				columnObj.put("lockPosition", false);
+				columnObj.put("pinned", "");				
+				columnArray.add(columnObj);
+			}
 			
 			
 		} catch (Exception e) {
