@@ -65,7 +65,7 @@ public class ReportService {
 	private FavouriteDao_v2 favouriteDao_v2;
 
 	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey,
-			String reportList, String category, String actualDeviceType, String reportCategory) {
+			String reportList, String category, String actualDeviceType, String reportCategory, String analyticsType) {
 		JSONArray result = new JSONArray();
 		if (reportName.equalsIgnoreCase("migrationautomation")) { // get headers from dataframe
 
@@ -73,6 +73,11 @@ public class ReportService {
 
 		} else {
 			result = reportDao.getReportHeader(reportName, deviceType, reportBy);
+		}
+		
+		// for some reports we need to get column headers from report data
+		if(result.isEmpty()) {
+			result = dataframeService.getReportHeaderFromData(siteKey, category, reportList, deviceType, reportBy, analyticsType);
 		}
 
 		// String report_label = reportList + " " + deviceType + " by "+ reportBy;
@@ -93,6 +98,8 @@ public class ReportService {
 
 		return resultObject.toString();
 	}
+
+	
 
 	private String getReportLabelName(String category, String reportList, String deviceType, String reportBy) {
 		try {

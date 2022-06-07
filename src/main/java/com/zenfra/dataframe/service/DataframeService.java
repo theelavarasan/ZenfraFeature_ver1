@@ -2236,6 +2236,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 			String reportName = request.getReportList() + "_" + componentName + "_by_" + request.getReportBy();
 			
+            String exportType = request.getExportType();
+			
+			if(exportType != null && !exportType.trim().isEmpty()) {
+				if(exportType.equalsIgnoreCase("")) {
+					
+				}
+			}
+				
+			
 			JSONArray reportColumns = reportDao.getReportHeader(reportName, componentName, request.getReportBy());
 			
 			//get visibile column names for excel export
@@ -2244,19 +2253,21 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		            .map(col -> ("`" + col + "`"))
 		            .collect(Collectors.toList()));
 			
-			System.out.println("-------columnsToExport-------" + columnsToExport);;
-			
-			JSONObject reportUserCustom =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
-			
-			if(reportUserCustom.containsKey("columnOrder")) {
-				JSONArray visibleColumns = (JSONArray) reportUserCustom.get("columnOrder");
-				if(visibleColumns != null && !visibleColumns.isEmpty()) {
-					columnsToExport =  String.join(",", ((List<String>) visibleColumns.stream().map(json -> json.toString()).collect(Collectors.toList()))
-				            .stream()
-				            .map(col -> ("`" + col + "`"))
-				            .collect(Collectors.toList()));
+			System.out.println("-------columnsToExport-------" + exportType + " : " + columnsToExport);;
+			if(exportType.equalsIgnoreCase("ARVC") || exportType.equalsIgnoreCase("VRVC")) {
+				JSONObject reportUserCustom =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
+				
+				if(reportUserCustom.containsKey("columnOrder")) {
+					JSONArray visibleColumns = (JSONArray) reportUserCustom.get("columnOrder");
+					if(visibleColumns != null && !visibleColumns.isEmpty()) {
+						columnsToExport =  String.join(",", ((List<String>) visibleColumns.stream().map(json -> json.toString()).collect(Collectors.toList()))
+					            .stream()
+					            .map(col -> ("`" + col + "`"))
+					            .collect(Collectors.toList()));
+					}
 				}
 			}
+			
 			
 			System.out.println("-------columnsToExport----final---" + columnsToExport);;
 			
@@ -2288,17 +2299,25 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			groupKeys = formatInputColumnNames(groupKeys);
 			sortModel = formatSortModel(sortModel);
 				
-			dataset = orderBy(groupBy(filter(dataset)));	
+			dataset = orderBy(groupBy(filter(dataset)));				
+			
+			//filter rows for VRAC VRAC
+			if(exportType.equalsIgnoreCase("VRAC") || exportType.equalsIgnoreCase("VRAC")) {
+				int startRow = request.getStartRow();
+				int endRow = request.getEndRow();
+				StructType schema = dataset.schema();			
+				JavaPairRDD<Row, Long> zippedRows = dataset.toJavaRDD().zipWithIndex();
+				JavaRDD<Row> filteredRdd = zippedRows.filter(pair -> pair._2 >= startRow && pair._2 <= endRow)
+						.map(pair -> pair._1);
+				dataset = sparkSession.sqlContext().createDataFrame(filteredRdd, schema).toDF();
+			}
 			
 			String writePath = verifyDataframeParentPath + File.separator + viewName+ "_export";
 			dataset.coalesce(1).write().mode("overwrite").option("header",true).option("sep","|").option("lineSep","\n")	       
 	        .csv(writePath);
 			
 			setFileOwner(new File(writePath));
-			System.out.println("--------writePath---------- " + writePath);
-			
-			String filePath = getCsvPath(writePath);
-			System.out.println("--------filePathfilePath---------- " + filePath);
+			String filePath = getCsvPath(writePath);			
 			return csvToExcel(filePath, writePath, viewName);
 			
 		} catch (Exception e) {
@@ -2452,6 +2471,34 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		}
 		
 		return resultArray;
+	}
+
+	public JSONArray getReportHeaderFromData(String siteKey, String category, String reportList, String componentName,
+			String reportBy, String analyticsType) {
+		JSONArray columnArray = new JSONArray();
+		try {
+			
+			String dataframePath = commonPath + File.separator + "Dataframe" + File.separator
+					+ "OrientDB" + File.separator  + siteKey + "_" + analyticsType + "_"
+					+ category + "_" + componentName + "_" + reportList + "_" + reportBy + ".json";
+			
+			File f = new File(dataframePath);
+			
+			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+					.option("mode", "PERMISSIVE").json(dataframePath);
+		
+			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+			dataset.createOrReplaceGlobalTempView(viewName);
+			
+			String[] dfColumnArray = dataset.columns();
+			for(int i=0; i<dfColumnArray)
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return columnArray;
 	}
 	
 }

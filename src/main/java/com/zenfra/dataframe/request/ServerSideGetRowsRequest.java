@@ -67,6 +67,8 @@ public class ServerSideGetRowsRequest implements Serializable {
     private String providers;
     private String userId;
     
+    private String exportType;
+    
 
 
 	/*public ServerSideGetRowsRequest() {
@@ -78,7 +80,15 @@ public class ServerSideGetRowsRequest implements Serializable {
         this.sortModel = emptyList();
     }*/
 
-    public int getStartRow() {
+    public String getExportType() {
+		return exportType;
+	}
+
+	public void setExportType(String exportType) {
+		this.exportType = exportType;
+	}
+
+	public int getStartRow() {
         return startRow;
     }
 
