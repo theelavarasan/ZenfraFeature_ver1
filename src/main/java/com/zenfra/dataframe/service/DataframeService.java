@@ -879,7 +879,7 @@ public class DataframeService {
 	}
 
 	private void reinitiateDiscoveryDataframe(String siteKey, String sourceType) {
-		String path = commonPath + File.separator + "Dataframe" + File.separator;
+		
 		Dataset<Row> localDiscoveryDF = sparkSession.sql(
 				"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
 						+ siteKey + "' and LOWER(source_type)='" + sourceType + "'");
@@ -891,7 +891,7 @@ public class DataframeService {
 					"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
 							+ siteKey + "' and LOWER(source_type)='" + sourceType + "'");
 
-			String filePathSrc = commonPath + File.separator + "Dataframe" + File.separator + siteKey
+			String filePathSrc = commonPath + File.separator + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
 					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType
 					+ File.separator;
 			File f = new File(filePathSrc);
@@ -1501,8 +1501,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			dataset = getTaniumReport(siteKey);		
 		}
 		
-		 setFileOwner(verifyDataframePath);
-		 setFileOwner(verifyDataframePath);
+		 setFileOwner(verifyDataframePath);		
 		 
 		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
 		List<String> dataframeColumns  = Arrays.asList(dataset.columns()); 
@@ -1705,10 +1704,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
         	 verifyDataframeParentPath.mkdirs();        	
          }
         
-		  mapper.writeValue(filePath, resultObj.get("data"));
-		  
-		  
-		  
+         if(resultObj.get("data") != null && !resultObj.get("data").toString().equalsIgnoreCase("null")) {
+        	  mapper.writeValue(filePath, resultObj.get("data")); 
+        	  setFileOwner(filePath);
+         }		  
 		 System.out.println("-----------------Write DF PAth----------" + filePath.getAbsolutePath());
 	} catch (Exception e) {
 		// TODO Auto-generated catch block
@@ -1802,18 +1801,29 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	
 
 	private void writeServerDataframeToCommonPath(String siteKey, String sourceType) {
-		String dirPath = commonPath + "LocalDiscoveryDF" + File.separator + siteKey + File.separator + "site_key="+siteKey +  File.separator + "source_type="+sourceType.toLowerCase() + File.separator ;
+		String srcDirPath =  commonPath + File.separator + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+		+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType
+		+ File.separator;
 		
+		String analyticBy = "discovery";
+		String category = "Server";
+		String reportList = "Local";
+		String reportBy = "Server";
+		
+		String destDirPath = commonPath + File.separator + "Dataframe" +  File.separator + "OrientDB" +  File.separator + siteKey + File.separator + sourceType + File.separator + siteKey + "_" + analyticBy + "_" + category + "_" + sourceType + "_" + reportList + "_" + reportBy + ".json";
+		System.out.println("srcDirPath :: " + srcDirPath);
+		System.out.println("destDirPath :: " + destDirPath);
 		try {
-			Optional<Path> path = Files.walk(Paths.get(dirPath))
+			Optional<Path> path = Files.walk(Paths.get(srcDirPath))
 			        .filter(Files::isRegularFile)
 			        .filter(p -> p.toFile().getName().matches(".json"))
 			        .findFirst();
 			if(path.isPresent()) {
 				Path filePath = path.get();
+				
+				FileUtils.copyFile(filePath.toFile(), new File(destDirPath));
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (IOException e) {			
 			e.printStackTrace();
 		}
 	}
