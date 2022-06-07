@@ -40,13 +40,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.TimeZone;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.PostConstruct;
 
@@ -75,6 +79,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.mortbay.util.ajax.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -448,8 +453,9 @@ public class DataframeService {
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
 
-			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();		
-
+			//List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();	
+			List<String> siteKeys = new ArrayList<String>();
+			siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
 				try {
@@ -2238,17 +2244,18 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
             String exportType = request.getExportType();
 			
-			if(exportType != null && !exportType.trim().isEmpty()) {
-				if(exportType.equalsIgnoreCase("")) {
-					
-				}
+						
+			JSONArray reportColumns = reportDao.getReportHeader(request.getReportType(), componentName, request.getReportBy());
+			List<String> reportCols = new ArrayList<String>();
+			for(int i=0; i<reportColumns.size(); i++) {
+				JSONObject colObj = (JSONObject) reportColumns.get(i);
+				String colName = (String) colObj.get("displayName");
+				reportCols.add(colName);
 			}
-				
+			         
+			 
 			
-			JSONArray reportColumns = reportDao.getReportHeader(reportName, componentName, request.getReportBy());
-			
-			//get visibile column names for excel export
-			String columnsToExport = String.join(",", ((List<String>) reportColumns.stream().map(json -> json.toString()).collect(Collectors.toList()))
+			String columnsToExport = String.join(",", reportCols
 		            .stream()
 		            .map(col -> ("`" + col + "`"))
 		            .collect(Collectors.toList()));
@@ -2269,23 +2276,19 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			}
 			
 			
-			System.out.println("-------columnsToExport----final---" + columnsToExport);;
+			System.out.println("-------columnsToExport----final---" + componentName + " : " + viewName + " : "+ columnsToExport);;
 			
-			if(!componentName.toLowerCase().contains("tanium")) {  
-				boolean isDiscoveryDataInView = false;	
+			if(!componentName.toLowerCase().contains("tanium")) { 
 				try {
 					dataset = sparkSession.sql("select "+columnsToExport+" from global_temp." + viewName);		
-					isDiscoveryDataInView = true;
+				
 				} catch (Exception e) {
 					System.out.println("---------View Not exists--------");
 				}
-
-				System.out.println("------isDiscoveryDataInView-------" + isDiscoveryDataInView);	
-
 			} else { //tanium logic
 				dataset = getTaniumReport(siteKey);		
 			}
-			
+		
 			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
 			groupKeys = request.getGroupKeys();
 			valueColumns = request.getValueCols();
