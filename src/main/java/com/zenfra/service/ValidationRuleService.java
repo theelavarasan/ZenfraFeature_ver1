@@ -1180,4 +1180,55 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 	return resultArray;
 
 }
+	
+	public JSONArray getVR_TaniumGroup(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+
+			String query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
+					"select distinct keys, coalesce(column_values, '') as column_values from (\r\n" + 
+					"select keys, data ->> keys as column_values from ( \r\n" + 
+					"select data, json_object_keys(data) as keys from (\r\n" + 
+					"select serverName, groupName,json_build_object('Server Name', serverName, 'Group Name', groupName, 'Member Of Group', memberOfGroup,\r\n" + 
+					"'Sudoers Access', sudoPrivileges, 'Is Sudoers', isSudoers, 'Group Id', groupId, 'Os Version', osVersion) as data from\r\n" + 
+					"(select\r\n" + 
+					"ugi.server_name serverName\r\n" + 
+					",ugi.group_name groupName\r\n" + 
+					",ugi.gid groupId\r\n" + 
+					",ugi.member_of_group memberOfGroup\r\n" + 
+					",case when usi.user_name is null then 'No' else 'Yes' end as isSudoers\r\n" + 
+					",usi.sudo_privileges as sudoPrivileges\r\n" + 
+					",hd.operating_system as osVersion\r\n" + 
+					"from linux_users_group_info ugi\r\n" + 
+					"left join linux_user_sudo_info usi on ugi.server_name = usi.server_name and ugi.site_key = usi.site_key\r\n" + 
+					"and ugi.group_name = usi.user_name and usi.is_group_user = 'true'\r\n" + 
+					"join linux_host_details hd on hd.server_name = ugi.server_name and ugi.site_key = hd.site_key\r\n" + 
+					"where ugi.site_key = '" + siteKey + "') as d \r\n" + 
+					") a \r\n" + 
+					") b \r\n" + 
+					") c\r\n" + 
+					") d where keys = '" + columnName + "' group by keys";
+					
+
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
+	}
 }

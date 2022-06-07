@@ -49,6 +49,8 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getOnpremisesCostFieldType(model.getSiteKey(), model.getColumnName(), model.getOsType());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Group Info")) {
 			resultArray = validationRuleService.getVR_VanguardGroupInfo(model.getSiteKey(), model.getColumnName());
+		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Group") && model.getDeviceType().equalsIgnoreCase("Tanium")) {
+			resultArray = validationRuleService.getVR_TaniumGroup(model.getSiteKey(), model.getColumnName());
 		}
 			
 
@@ -57,7 +59,8 @@ public class ValidationRuleController {
 			colName = colName.split("_")[1];
 		}	
 		
-		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") && !model.getReportBy().equalsIgnoreCase("Group Info")) {
+		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") 
+				&& !model.getReportBy().equalsIgnoreCase("Group Info") && (!model.getReportBy().equalsIgnoreCase("Group Info") && model.getDeviceType().equalsIgnoreCase("Tanium"))) {
 			if(resultData.containsKey(colName)) {	
 				List<Object> datas = resultData.get(colName);
 				return ResponseEntity.ok(datas.stream().sorted());
@@ -71,7 +74,8 @@ public class ValidationRuleController {
 		if(model.getAnalyticsType().equalsIgnoreCase("Compatibility") || model.getAnalyticsType().equalsIgnoreCase("Migration Method") 
 				|| model.getAnalyticsType().equalsIgnoreCase("cloud-cost") || model.getAnalyticsType().equalsIgnoreCase("onpremises-cost")) {
 			return ResponseEntity.ok(resultArray);
-		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && (model.getReportBy().equalsIgnoreCase("Privileged Access") || model.getReportBy().equalsIgnoreCase("Group Info"))) {
+		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && (model.getReportBy().equalsIgnoreCase("Privileged Access") || model.getReportBy().equalsIgnoreCase("Group Info")
+				|| (model.getReportBy().equalsIgnoreCase("Group") && model.getDeviceType().equalsIgnoreCase("Tanium")))) {
 			System.out.println("!!!!! Privileged Access access result: " + resultArray);
 			return ResponseEntity.ok(resultArray);
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Project")) {
