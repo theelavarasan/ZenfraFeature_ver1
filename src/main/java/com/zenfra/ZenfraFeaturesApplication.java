@@ -86,9 +86,9 @@ public class ZenfraFeaturesApplication extends SpringBootServletInitializer {
 		eolService.getEOLEOSHW();
 		eolService.getEOLEOSData();
 		dataframeService.createDataframeForLocalDiscovery("local_discovery");
-		//eolService.getGooglePricing();
-		//eolService.getAzurePricing();
-		//eolService.getAWSPricing();
+//		eolService.getGooglePricing();
+//		eolService.getAzurePricing();
+//		eolService.getAWSPricing();
 
 
 	}

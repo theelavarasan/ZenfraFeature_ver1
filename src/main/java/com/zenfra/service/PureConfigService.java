@@ -11,7 +11,7 @@ public interface PureConfigService {
 
 	public Response updatePureConfig(String userId, PureConfigModel model, String pureKeyConfigId);
 
-	public Response getPureConfig(String pureKeyConfigId);
+//	public Response getPureConfig(String pureKeyConfigId);
 
 	public Response listPureConfig(String siteKey);
 

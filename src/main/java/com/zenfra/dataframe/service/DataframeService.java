@@ -608,13 +608,13 @@ public class DataframeService {
 
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
-			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();			
-			
+			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();	
+		
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
 				try {
 					Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
-							"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
+							"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, LOWER(source_type) as source_type_ref, actual_os_type  from local_discovery where site_key='"
 									+ siteKey + "'");
 
 					File f = new File(path + siteKey);
@@ -1222,7 +1222,7 @@ public class DataframeService {
 			// log_date desc) as rank from tmpView ) ld where ld.rank=1
 
 			String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"
-					+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) ";
+					+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and (lcase(eol.os_type)=lcase(ldView.source_type_ref) or lcase(eol.os_name) like lcase('%ldView.source_type_ref%'))";
 			try {
 				dataset = sparkSession.sql(sql);
 				dataset.createOrReplaceTempView("datawithoutFilter");
@@ -1288,16 +1288,16 @@ public class DataframeService {
 				dataset.createOrReplaceTempView("tmpView");
 				Dataset<Row> filteredData = sparkSession.emptyDataFrame();
 
-				dataset.printSchema();
-				dataset.show();
-				System.out.println("----viewName-----" + viewName + " : " + dataframeFilePath);
+				//dataset.printSchema();
+				//dataset.show();
+				//System.out.println("----viewName-----" + viewName + " : " + dataframeFilePath);
 
-				System.out.println("----dataset-----" + dataset.count());
+				//System.out.println("----dataset-----" + dataset.count());
 				// select * from (select *, row_number() over (partition by source_id order by
 				// log_date desc) as rank from tmpView ) ld where ld.rank=1
 
 				String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"
-							+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.`OS`) ";
+							+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and (lcase(eol.os_type)=lcase(ldView.source_type_ref) or lcase(eol.os_name) like lcase('%ldView.source_type_ref%'))";
 
 				try {
 					dataset = sparkSession.sql(sql);
@@ -1338,8 +1338,8 @@ public class DataframeService {
 				}
 
 				filteredData.createOrReplaceGlobalTempView(viewName);
-
-				System.out.println("---------View created-------- :: " + viewName);
+				
+				System.out.println("---------View created------ :: " + viewName);
 			} catch (Exception e) {
 				//e.printStackTrace();
 			/*	StringWriter errors = new StringWriter();
@@ -2887,7 +2887,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			// eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) =
 			// lcase(REPLACE(l.`Server Model`, ' ', ''))
 			Dataset<Row> data = sparkSession.sql(
-					"select l.rank as `my_rank`, l.`Server Name`, l.OS as `OS Name`, l.`Server Type`, l.`Server Model`, l.Memory, l.`Total Size`, l.`Number of Processors`, l.`Logical Processor Count`, l.`CPU GHz`, l.`Processor Name`, l.`Number of Cores`, l.`DB Service`, l.`HBA Speed`, l.`Number of Ports`, l.`Host`, 'AWS On Demand Price', 'AWS 3 Year Price', 'AWS 1 Year Price', 'AWS Instance Type', 'AWS Region', 'AWS Specs', 'Azure On Demand Price', 'Azure 3 Year Price', 'Azure 1 Year Price', 'Azure Instance Type', 'Azure Specs', 'Google Instance Type', 'Google On Demand Price', 'Google 1 Year Price', 'Google 3 Year Price', l.`OS Version`, eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life - OS`, eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp.localDiscoveryTemp l  left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(l.`OS Version`) and lcase(eol.os_type)=lcase(l.`Server Type`)  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(l.`Server Model`, ' ', '')) where lower(l.`Server Name`) in ("
+					"select l.rank as `my_rank`, l.`Server Name`, l.OS as `OS Name`, l.`Server Type`, l.`Server Model`, l.Memory, l.`Total Size`, l.`Number of Processors`, l.`Logical Processor Count`, l.`CPU GHz`, l.`Processor Name`, l.`Number of Cores`, l.`DB Service`, l.`HBA Speed`, l.`Number of Ports`, l.`Host`, 'AWS On Demand Price', 'AWS 3 Year Price', 'AWS 1 Year Price', 'AWS Instance Type', 'AWS Region', 'AWS Specs', 'Azure On Demand Price', 'Azure 3 Year Price', 'Azure 1 Year Price', 'Azure Instance Type', 'Azure Specs', 'Google Instance Type', 'Google On Demand Price', 'Google 1 Year Price', 'Google 3 Year Price', l.`OS Version`, eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life - OS`, eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp.localDiscoveryTemp l  left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(l.`OS Version`) and (lcase(eol.os_type)=lcase(ldView.source_type_ref) or lcase(eol.os_name) like lcase('%ldView.source_type_ref%'))  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(l.`Server Model`, ' ', '')) where lower(l.`Server Name`) in ("
 							+ serverList + ")");
 
 			data = data.withColumn("AWS On Demand Price", lit("N/A"));
