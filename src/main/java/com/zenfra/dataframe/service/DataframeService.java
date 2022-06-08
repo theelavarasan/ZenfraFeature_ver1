@@ -1740,24 +1740,20 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		List<Map<String, Object>> reportCombination = reportDao.getReportCombinationByLogType(sourceType);
 		
 		if(!reportCombination.isEmpty()) {
-			int reportCount = 1;
+			
 			for(Map<String, Object> reportInput : reportCombination) {
 				String reportList = (String) reportInput.get("reportList");
 				String reportBy = (String) reportInput.get("reportBy");
 				String reportCategory = (String) reportInput.get("category");
-				String deviceType = (String) reportInput.get("device");
+				String deviceType = (String) reportInput.get("device");			
 				
-				System.out.println("-------reportCount--------- " + reportCount + " ====  " + reportCategory + " : " + reportBy + " : " );
-				
-				if(reportCategory.equalsIgnoreCase("server") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db
-					System.out.println("-------pg report--------- " + reportCount + " ====  " + reportCategory + " : " + reportBy + " : " );
+				if(reportCategory.equalsIgnoreCase("server") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db				
 					recreateLocalDiscovery(siteKey, sourceType);	
 					//write server_server dataframe into common path /opt/ZENfra/Dataframe/siteKey/{logType}/jsonFile
 					writeServerDataframeToCommonPath(siteKey, sourceType);
 					
-					
-				} else if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") || reportCategory.equalsIgnoreCase("Storage")) { //dataframe created from V2 repo /migrationReport API call... mostly report created from orient DB
-					System.out.println("-------odb report--------- " + reportCount + " ====  " + reportCategory + " : " + reportBy + " : " );
+				} else if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") 
+						|| reportCategory.equalsIgnoreCase("Storage")) { //dataframe created from V2 repo /migrationReport API call... mostly report created from orient DB
 					ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
 						if(reportCategory.equalsIgnoreCase("server")) { //server
 							request.setOstype(deviceType);
@@ -1765,9 +1761,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							request.setSwitchtype(deviceType);
 						} else if(reportCategory.equalsIgnoreCase("Storage")) { //Storage
 							request.setStorage(deviceType);
-						} 
-						
-					
+						} 					
 						request.setAnalyticstype("Discovery");
 						request.setReportCategory("migration");
 						request.setSiteKey(siteKey);
@@ -1775,15 +1769,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						request.setAnalyticstype("Discovery");
 						request.setReportList(reportList);
 						request.setReportBy(reportBy);
-						request.setReportType("discovery");
-						
+						request.setReportType("discovery");						
 						
 						String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
 								+ request.getCategory() + "_" + deviceType + "_" + request.getReportList() + "_"
-								+ request.getReportBy();
-						String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
-						
-						 
+								+ request.getReportBy();						 
 						
 						File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 								+ siteKey + File.separator + deviceType
@@ -1795,7 +1785,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
 						
 				 }
-				reportCount++;
+			
 			}
 		}
 		

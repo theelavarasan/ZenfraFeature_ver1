@@ -100,8 +100,7 @@ public class ReportDataController {
 	@PostMapping("getReportData")
 	public ResponseEntity<?> getReportData(@RequestBody ServerSideGetRowsRequest request) {
 
-		try {
-			//request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && 
+		try {			
 			if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
 				DataResult data = dataframeService.getReportData(request);
 				if (data != null) {
@@ -212,8 +211,7 @@ public class ReportDataController {
 			}
 			
 			
-			//recreate Reports after completed parsing
-			
+			//recreate Reports after completed parsing			
 			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
 				 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
 			} else {
