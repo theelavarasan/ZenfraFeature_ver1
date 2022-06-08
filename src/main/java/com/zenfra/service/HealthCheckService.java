@@ -605,8 +605,7 @@ public class HealthCheckService {
 			for (int i = 0; i < healthCheckList.size(); i++) {
 				JSONObject jObj = (JSONObject) healthCheckList.get(i);
 				
-				System.out.println("-----ISACTIVE-----"+healthCheck.isActive());
-				jObj.put("isActive", healthCheck.isActive());
+				
 				/*
 				 * JSONArray storageList = (JSONArray)
 				 * parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST)); JSONArray
@@ -650,6 +649,9 @@ public class HealthCheckService {
 				
 				
 				if (jObj.size() > 0) {
+					
+					System.out.println("-----ISACTIVE-----"+healthCheck.isActive());
+					jObj.put("isActive", healthCheck.isActive());
 					// Share Access updated.
 					if (isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId)) {
 						isWriteAccess = true;
