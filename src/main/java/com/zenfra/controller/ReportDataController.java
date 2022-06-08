@@ -281,7 +281,7 @@ public class ReportDataController {
 	public ResponseEntity<?> getAllSublinkData() {
 		JSONObject resultObject = new JSONObject();
 		try {
-			resultObject.put("subLinkDetails", reportService.getSubReportList("all", "project"));
+			resultObject.put("subLinkDetails", reportService.getDSRLinks());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -301,7 +301,7 @@ public class ReportDataController {
 		try {
 			String filePath = request.getParameter("filePath");
 
-			String data = dataframeService.getMigrationReport(filePath);
+			JSONObject data = dataframeService.getMigrationReport(filePath);
 			if (data != null) {
 				return new ResponseEntity<>(data, HttpStatus.OK);
 			}
@@ -324,7 +324,10 @@ public class ReportDataController {
 			String filePath = request.getParameter("filePath");
 
 			dataframeService.createDataframeForJsonData(filePath);
-			return new ResponseEntity<>("Dataframe Created Successfullty", HttpStatus.OK);
+			JSONObject data = dataframeService.getMigrationReport(filePath);
+			if (data != null) {
+				return new ResponseEntity<>(data, HttpStatus.OK);
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -336,6 +339,35 @@ public class ReportDataController {
 
 		return new ResponseEntity<>("Not able to create dataframe", HttpStatus.OK);
 	}
+	
+	@PostMapping("getVmaxSubreport")
+	public ResponseEntity<?> getVmaxSubreport(HttpServletRequest request) {
+
+		try {
+		
+			String filePath = request.getParameter("filePath");
+			String sid = request.getParameter("sid");
+			String serverName = request.getParameter("serverName");
+			System.out.println("-----------getVmaxSubreport---------" );
+			System.out.println("filePath :: " + filePath );
+			System.out.println("sid :: " + sid );
+			System.out.println("serverName :: " + serverName );
+			JSONArray data = dataframeService.getVmaxSubreport(filePath, serverName, sid);
+			if (data != null) {
+				return new ResponseEntity<>(data, HttpStatus.OK);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			 
+		}
+
+		return new ResponseEntity<>(new JSONArray(), HttpStatus.OK);
+	}
+	
+	
+	
+	
 
 	@GetMapping("createEolEodDf")
 	public void createEolEodDf(HttpServletRequest request) {

@@ -150,8 +150,11 @@ public class CategoryViewService {
 			String query = queries.categoryMappingQueries().getUpdate().replace(":new_category_list", newCategoryId)
 					.replace(":old_category_list", oldCategoryId);
 			System.out.println(query);
+			String query1 = "delete from category_view where category_id = '" + oldCategoryId + "'";
+			System.out.println(query1);
 			dao.updateQuery(query);
-
+			dao.updateQuery(query1);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
