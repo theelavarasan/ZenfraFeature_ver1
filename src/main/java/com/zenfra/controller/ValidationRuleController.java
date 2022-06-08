@@ -64,7 +64,7 @@ public class ValidationRuleController {
 		}	
 		
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") 
-				&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group")) {
+				&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group")&& !model.getReportBy().equalsIgnoreCase("User")) {
 					
 			if(resultData.containsKey(colName)) {	
 				List<Object> datas = resultData.get(colName);
@@ -80,7 +80,7 @@ public class ValidationRuleController {
 				|| model.getAnalyticsType().equalsIgnoreCase("cloud-cost") || model.getAnalyticsType().equalsIgnoreCase("onpremises-cost")) {
 			return ResponseEntity.ok(resultArray);
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && (model.getReportBy().equalsIgnoreCase("Privileged Access") || model.getReportBy().equalsIgnoreCase("Group Info")
-				|| model.getReportBy().equalsIgnoreCase("Group"))) {
+				|| model.getReportBy().equalsIgnoreCase("Group") || model.getReportBy().equalsIgnoreCase("User"))) {
 			System.out.println("!!!!! Privileged Access access result: " + resultArray);
 			return ResponseEntity.ok(resultArray);
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Project")) {
