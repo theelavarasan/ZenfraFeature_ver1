@@ -431,6 +431,7 @@ public class HealthCheckService {
 						
 						if(mapObject.containsKey("is_active")) {
 							healthCheckModel.put("isActive", mapObject.get("is_active"));
+							System.out.println("---------Is Active-------"+healthCheckModel.get("isActive"));
 						} else {
 							healthCheckModel.put("isActive", true);
 						}
@@ -658,8 +659,6 @@ public class HealthCheckService {
 				
 				if (jObj.size() > 0) {
 					
-					System.out.println("-----ISACTIVE-----"+healthCheck.isActive());
-					jObj.put("isActive", healthCheck.isActive());
 					// Share Access updated.
 					if (isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId)) {
 						isWriteAccess = true;
