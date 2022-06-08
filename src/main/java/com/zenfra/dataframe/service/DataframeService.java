@@ -3768,8 +3768,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				 		"a.`Local Possible Server Name`, " + 
 				 		"a.`Local FA Port`," + 
 				 		"a.`Local FA Port WWN`,  " + 
-				 		"b.`Local Device ID` as `Remote Device Name`," + 
-				 		"b.`Local Serial Number` as `Remote Target ID`," + 
+				 		"a.`Local Device ID` as `Remote Device Name`," + 
+				 		"a.`Local Serial Number` as `Remote Target ID`," + 
 				 		"b.`Local Device Configuration` as `Remote Device Configuration`," + 
 				 		"b.`Local Device Capacity` as `Remote Device Capacity`," + 
 				 		"b.`Local Device WWN` as `Remote Device WWN`," + 
