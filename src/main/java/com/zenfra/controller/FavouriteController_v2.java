@@ -537,6 +537,13 @@ public class FavouriteController_v2 {
 		}
 
 	}
+	
+	
+	@PostMapping("/activateHealthCheck")
+	public String activateHealthCheck(@RequestParam("healthCheckId") String healthCheckId, @RequestParam("isActive")boolean isActive,
+			HttpServletRequest request, HttpServletResponse respone) {
+		return healthCheckService.activateHealthCheck(healthCheckId, isActive);
+	}
 
 	@PostMapping("/getHealthCheckList")
 	public ResponseEntity<?> getHealthCheckList(@RequestParam("siteKey") String siteKey,
