@@ -149,8 +149,7 @@ public class ValidationRuleService {
 		} else {
 			String actualDfFolderPath = null;
 			String actualDfFilePath = null;
-			String dataframePath = commonPath + "Dataframe" + File.separator + "OrientDB" + File.separator
-					+ siteKey + File.separator;
+			String dataframePath = commonPath + "Dataframe" + File.separator + siteKey + File.separator;
 
 			File dir = new File(dataframePath);
 

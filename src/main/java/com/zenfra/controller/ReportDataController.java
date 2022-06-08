@@ -173,7 +173,7 @@ public class ReportDataController {
 
 			try { // remove orient db dataframe
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
-						+ File.separator + "OrientDB" + File.separator + siteKey + File.separator; // +
+						+ File.separator + siteKey + File.separator; // +
 																											// sourceType
 																											// +
 																											// File.separator;

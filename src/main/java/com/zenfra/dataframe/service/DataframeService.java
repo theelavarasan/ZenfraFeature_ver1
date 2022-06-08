@@ -155,7 +155,7 @@ public class DataframeService {
 
 	@PostConstruct
 	public void init() {
-		commonPath = ZKModel.getProperty(ZKConstants.DATAFRAME_PATH);
+		commonPath = ZKModel.getProperty(ZKConstants.DATAFRAME_PATH);		
 	}
 
 	// @Value("${zenfra.path}")
@@ -1452,8 +1452,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 	
 		
-		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "OrientDB" + File.separator + siteKey + File.separator + componentName
+		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator  + siteKey + File.separator + componentName
 				+ File.separator + viewNameWithHypen + ".json");
 		
 	
@@ -1461,7 +1460,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		System.out.println("------verifyDataframePath-------" + verifyDataframePath);
 		
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "OrientDB" + File.separator + siteKey + File.separator + componentName + File.separator );
+				+ siteKey + File.separator + componentName + File.separator );
 		
 		
 		
@@ -1590,10 +1589,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		try {
 			File taniumDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
-					+ "OrientDB" + File.separator + "Tanium"  + siteKey + File.separator );
+					+ "Tanium"  + siteKey + File.separator );
 			
 			File customDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
-					+ "OrientDB" +  File.separator + "Tanium"
+					+ "Tanium"
 					+ File.separator + siteKey+"_" + "custom_data" + ".json");
 			
 			String logDataViewName = siteKey  + "tanium_log"; 
@@ -1639,8 +1638,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
     	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
     	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
-      // String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
-    	String uri = "https://uat.zenfra.co/ZenfraV2/rest/reports/getReportData/migrationreport";
+       String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
+    	//String uri = "https://uat.zenfra.co/ZenfraV2/rest/reports/getReportData/migrationreport";
     	uri = uri+"?authUserId="+request.getStartRow()
     	+"&reportCategory="+request.getReportCategory()
     	+"&reportType="+request.getReportType()
@@ -1704,6 +1703,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
         	 verifyDataframeParentPath.mkdirs();        	
          }
         
+        
          if(resultObj.get("data") != null && !resultObj.get("data").toString().equalsIgnoreCase("null")) {
         	  mapper.writeValue(filePath, resultObj.get("data")); 
         	  setFileOwner(filePath);
@@ -1740,20 +1740,25 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		List<Map<String, Object>> reportCombination = reportDao.getReportCombinationByLogType(sourceType);
 		
 		if(!reportCombination.isEmpty()) {
+			int reportCount = 1;
 			for(Map<String, Object> reportInput : reportCombination) {
 				String reportList = (String) reportInput.get("reportList");
 				String reportBy = (String) reportInput.get("reportBy");
 				String reportCategory = (String) reportInput.get("category");
 				String deviceType = (String) reportInput.get("device");
 				
+				System.out.println("-------reportCount--------- " + reportCount + " ====  " + reportCategory + " : " + reportBy + " : " );
+				
 				if(reportCategory.equalsIgnoreCase("server") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db
+					System.out.println("-------pg report--------- " + reportCount + " ====  " + reportCategory + " : " + reportBy + " : " );
 					recreateLocalDiscovery(siteKey, sourceType);	
 					//write server_server dataframe into common path /opt/ZENfra/Dataframe/siteKey/{logType}/jsonFile
 					writeServerDataframeToCommonPath(siteKey, sourceType);
 					
 					
 				} else if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") || reportCategory.equalsIgnoreCase("Storage")) { //dataframe created from V2 repo /migrationReport API call... mostly report created from orient DB
-					 ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
+					System.out.println("-------odb report--------- " + reportCount + " ====  " + reportCategory + " : " + reportBy + " : " );
+					ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
 						if(reportCategory.equalsIgnoreCase("server")) { //server
 							request.setOstype(deviceType);
 						} else if(reportCategory.equalsIgnoreCase("switch")) { //switch
@@ -1781,16 +1786,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						 
 						
 						File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-								+ "OrientDB" + File.separator + siteKey + File.separator + deviceType
+								+ siteKey + File.separator + deviceType
 								+ File.separator + viewNameWithHypen + ".json");
 						
 						File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
-								+ "OrientDB" + File.separator + siteKey + File.separator + deviceType + File.separator );
+								+ siteKey + File.separator + deviceType + File.separator );
 						
 						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
 						
 				 }
-				
+				reportCount++;
 			}
 		}
 		
@@ -1801,8 +1806,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	
 
 	private void writeServerDataframeToCommonPath(String siteKey, String sourceType) {
-		String srcDirPath =  commonPath + File.separator + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
-		+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType
+		String srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+		+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType.toLowerCase()
 		+ File.separator;
 		
 		String analyticBy = "discovery";
@@ -1810,18 +1815,23 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String reportList = "Local";
 		String reportBy = "Server";
 		
-		String destDirPath = commonPath + File.separator + "Dataframe" +  File.separator + "OrientDB" +  File.separator + siteKey + File.separator + sourceType + File.separator + siteKey + "_" + analyticBy + "_" + category + "_" + sourceType + "_" + reportList + "_" + reportBy + ".json";
+		String destDirPath = commonPath + File.separator + "Dataframe" +  File.separator + siteKey + File.separator + sourceType + File.separator + siteKey + "_" + analyticBy + "_" + category + "_" + sourceType + "_" + reportList + "_" + reportBy + ".json";
 		System.out.println("srcDirPath :: " + srcDirPath);
 		System.out.println("destDirPath :: " + destDirPath);
 		try {
 			Optional<Path> path = Files.walk(Paths.get(srcDirPath))
 			        .filter(Files::isRegularFile)
-			        .filter(p -> p.toFile().getName().matches(".json"))
+			        .filter(p -> p.toFile().getName().contains(".json"))
 			        .findFirst();
 			if(path.isPresent()) {
 				Path filePath = path.get();
 				
+				System.out.println("-------filePath tttt--------- " + filePath );
+				
 				FileUtils.copyFile(filePath.toFile(), new File(destDirPath));
+				
+				setFileOwner(new File(destDirPath));
+				
 			}
 		} catch (IOException e) {			
 			e.printStackTrace();
@@ -1945,15 +1955,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	
 		
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "OrientDB" + File.separator + request.getSiteKey() + File.separator + "Tanium"
+				 + request.getSiteKey() + File.separator + "Tanium"
 				+ File.separator + viewNameWithHypen + ".json");
 		
 		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "OrientDB" + File.separator + request.getSiteKey() + File.separator + "Tanium"
+				 + request.getSiteKey() + File.separator + "Tanium"
 				+ File.separator + viewNameWithHypen + ".json");
 		
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "OrientDB" + File.separator + request.getSiteKey() + File.separator + "Tanium" + File.separator );
+				+ request.getSiteKey() + File.separator + "Tanium" + File.separator );
 		
 		System.out.println("------Tanium verifyDataframeParentPath-------------- " + verifyDataframeParentPath);
 		
@@ -2092,7 +2102,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	public void recreateTaniumReportForDataframe(String siteKey, String sourceType, String userId) {
 
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "OrientDB" + File.separator  + File.separator + "Tanium"
+				+ "Tanium"
 				+ File.separator + siteKey + File.separator);  
 	 
 		
@@ -2138,7 +2148,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	public void recreateCustomExcelReportForDataframe(String siteKey, String userId) {
 		
 		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ "OrientDB" + File.separator  + File.separator + "Tanium"
+				+ "Tanium"
 				+ File.separator + siteKey + File.separator);
 		String pvDataDfFilePath = dfFilePath + "_custom_data" + ".json";
 		
@@ -2492,7 +2502,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		try {
 			
 			String dataframePath = commonPath + File.separator + "Dataframe" + File.separator
-					+ "OrientDB" + File.separator  + siteKey + "_" + analyticsType + "_"
+					+ siteKey + "_" + analyticsType + "_"
 					+ category + "_" + componentName + "_" + reportList + "_" + reportBy + ".json";
 			
 			File f = new File(dataframePath);
