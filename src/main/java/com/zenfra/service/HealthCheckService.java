@@ -543,6 +543,7 @@ public class HealthCheckService {
 	public com.zenfra.model.GridDataFormat getHealthCheckData(String siteKey, String userId, String projectId) {
 		JSONArray toRet = new JSONArray();
 		com.zenfra.model.GridDataFormat gridDataFormat = new com.zenfra.model.GridDataFormat();
+		HealthCheck healthCheck = new HealthCheck();
 		gridDataFormat.setColumnOrder(new ArrayList<>());
 
 		JSONObject headerLabelJson = new JSONObject();
@@ -643,7 +644,8 @@ public class HealthCheckService {
 								generateGridHeader(key, jObj.get(key), null, siteKey, "user", headerLabelJson));
 					}
 				}
-
+				jObj.put("isActive", healthCheck.isActive());
+				
 				if (jObj.size() > 0) {
 					// Share Access updated.
 					if (isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId)) {
@@ -677,6 +679,8 @@ public class HealthCheckService {
 							jObj.put("siteList", siteList);
 						}
 					}
+					
+					
 					if (jObj.containsKey("userAccessList")) {
 						JSONArray userAccessList = new JSONArray();
 						userAccessList = (JSONArray) parser.parse((String) jObj.get("userAccessList"));
@@ -707,6 +711,7 @@ public class HealthCheckService {
 						}
 					}
 
+					
 					gridData.add(jObj);
 				}
 			}
@@ -731,6 +736,7 @@ public class HealthCheckService {
 
 			}
 			gridHeaderList.addAll(headerKeys.values());
+			
 			gridDataFormat.setData(gridData);
 		} catch (Exception e) {
 			e.printStackTrace();
