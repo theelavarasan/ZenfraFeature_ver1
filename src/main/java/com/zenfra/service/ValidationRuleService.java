@@ -1243,12 +1243,21 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					+ "select keys, json_agg(column_values) as column_values from (\r\n"
 					+ "select distinct keys, data ->> keys as column_values from (\r\n"
 					+ "select json_build_object('userId',user_id,'First Name', first_name,'Last Name', last_name, \r\n"
-					+ "'Department', department,'Email', email, 'Role', role, 'Status', status, 'Last Login Time', \r\n"
-					+ "last_login_time, 'Last_Client_Version', last_client_version,\r\n"
-					+ "'Time Zone',timezone, 'Verified', verified, 'Group Names', group_names, \r\n"
-					+ "'Is Group Admin',is_group_admin) as data, keys from ("
-					
-					+ "select zrm.identity as user_id,zrm.first_name,zrm.last_name,zrm.department,zrm.email,zr.name as Role,zu.status,zu.last_login_time,zu.last_client_version,zu.timezone,zu.verified\r\n"
+					+ "'Department', department,'Email', email, 'Role', role, 'Status','License Type', license_type, status, 'Last Login Time', \r\n"
+					+ "last_login_time, 'Last Client Version', last_client_version,\r\n"
+					+ "'Time Zone',timezone, 'Is Verified', is_verified, 'Group Names', group_names, \r\n"
+					+ "'Is Group Admin',is_group_admin) as data, keys from (\r\n"
+					+ "	\r\n"
+					+ "select zrm.identity as user_id,zrm.first_name,zrm.last_name,zrm.department,zrm.email,zr.name as Role\r\n"
+					+ ",case when zu.status is not null then zu.status else 'Inactive' end as status\r\n"
+					+ ",case when zrm.type = '1' then 'Basic'\r\n"
+					+ "when zrm.type = '2' then 'Licensed'\r\n"
+					+ "when zrm.type = '3' then 'On-prem'\r\n"
+					+ "when zrm.type = '99' then 'None'\r\n"
+					+ "when zrm.type is null then 'None'\r\n"
+					+ "end as License_type\r\n"
+					+ ",zu.last_login_time,zu.last_client_version,zu.timezone\r\n"
+					+ ",case when zu.verified = '1' then 'Yes' else 'No' end as Is_Verified\r\n"
 					+ ",zgm.group_names as group_names\r\n"
 					+ ",case when zgm.is_group_admin is null then 'No' else 'Yes' end as is_group_admin\r\n"
 					+ "from zoom_roles_members zrm\r\n"
@@ -1260,15 +1269,15 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					+ "join zoom_groups zg on zg.identity = zgm.group_id and zg.site_key = zgm.site_key\r\n"
 					+ "left join zoom_group_admins zga on zga.group_id = zg.identity and zga.identity = zgm.identity\r\n"
 					+ "group by zgm.site_key,zgm.identity,zga.identity\r\n"
-					+ ") zgm on zgm.identity = zrm.identity and zgm.site_key = zrm.site_key"
-					
-					+") a \r\n" + 
-					"LEFT JOIN (\r\n" + 
-					"select column_name as keys from report_columns where device_type = 'Zoom' and report_by = '' \r\n" + 
-					") cl on 1 = 1 \r\n" + 
-					") b \r\n" + 
-					") c group by keys \r\n" + 
-					") d where keys = '" + columnName + "'";
+					+ ") zgm on zgm.identity = zrm.identity and zgm.site_key = zrm.site_key) \r\n"
+					+ "	\r\n"
+					+ "a	\r\n"
+					+ "LEFT JOIN (\r\n"
+					+ "select column_name as keys from report_columns where device_type = 'Zoom' and report_by = 'User'\r\n"
+					+ ") cl on 1 = 1\r\n"
+					+ ") b\r\n"
+					+ ") c group by keys\r\n"
+					+ ") d where keys = '"+ columnName +"'\r\n";
 					
 					
 
