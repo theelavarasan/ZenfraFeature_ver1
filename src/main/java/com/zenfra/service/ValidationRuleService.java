@@ -1242,11 +1242,11 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			String query = "select keys, column_values from (\r\n"
 					+ "select keys, json_agg(column_values) as column_values from (\r\n"
 					+ "select distinct keys, data ->> keys as column_values from (\r\n"
-					+ "select json_build_object('userId',user_id,'First Name', first_name,'Last Name', last_name, \r\n"
-					+ "'Department', department,'Email', email, 'Role', role, 'Status','License Type', license_type, status, 'Last Login Time', \r\n"
-					+ "last_login_time, 'Last Client Version', last_client_version,\r\n"
-					+ "'Time Zone',timezone, 'Is Verified', is_verified, 'Group Names', group_names, \r\n"
-					+ "'Is Group Admin',is_group_admin) as data, keys from (\r\n"
+					+ "select json_build_object('userId',user_id,'firstName', first_name,'lastName', last_name, \r\n"
+					+ "'department', department,'email', email, 'role', role, 'status',status,'licenseType', license_type, \r\n"
+					+ "'lastLoginTime', last_login_time, 'lastClientVersion', last_client_version,\r\n"
+					+ "'timezone',timezone, 'isVerified', is_verified, 'groupNames', group_names, \r\n"
+					+ "'isGroupAdmin',is_group_admin) as data, keys from (\r\n"
 					+ "	\r\n"
 					+ "select zrm.identity as user_id,zrm.first_name,zrm.last_name,zrm.department,zrm.email,zr.name as Role\r\n"
 					+ ",case when zu.status is not null then zu.status else 'Inactive' end as status\r\n"
@@ -1277,10 +1277,8 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					+ ") cl on 1 = 1\r\n"
 					+ ") b\r\n"
 					+ ") c group by keys\r\n"
-					+ ") d where keys = '"+ columnName +"'\r\n";
+					+ ") d where keys = '"+columnName+"'\r\n";
 					
-					
-
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
