@@ -604,6 +604,9 @@ public class HealthCheckService {
 			JSONParser parser = new JSONParser();
 			for (int i = 0; i < healthCheckList.size(); i++) {
 				JSONObject jObj = (JSONObject) healthCheckList.get(i);
+				
+				System.out.println("-----ISACTIVE-----"+healthCheck.isActive());
+				jObj.put("isActive", healthCheck.isActive());
 				/*
 				 * JSONArray storageList = (JSONArray)
 				 * parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST)); JSONArray
@@ -644,7 +647,7 @@ public class HealthCheckService {
 								generateGridHeader(key, jObj.get(key), null, siteKey, "user", headerLabelJson));
 					}
 				}
-				jObj.put("isActive", healthCheck.isActive());
+				
 				
 				if (jObj.size() > 0) {
 					// Share Access updated.
