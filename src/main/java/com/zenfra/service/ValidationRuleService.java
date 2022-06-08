@@ -1181,6 +1181,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 
 }
 	
+	
 	public JSONArray getVR_TaniumGroup(String siteKey, String columnName) {
 
 		JSONArray resultArray = new JSONArray();
@@ -1210,6 +1211,65 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					") b \r\n" + 
 					") c\r\n" + 
 					") d where keys = '" + columnName + "' group by keys";
+					
+
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
+	}
+	
+	public JSONArray getVR_ZoomUsers(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+
+			String query = "select keys, column_values from (\r\n"
+					+ "select keys, json_agg(column_values) as column_values from (\r\n"
+					+ "select distinct keys, data ->> keys as column_values from (\r\n"
+					+ "select json_build_object('userId',user_id,'First Name', first_name,'Last Name', last_name, \r\n"
+					+ "'Department', department,'Email', email, 'Role', role, 'Status', status, 'Last Login Time', \r\n"
+					+ "last_login_time, 'Last_Client_Version', last_client_version,\r\n"
+					+ "'Time Zone',timezone, 'Verified', verified, 'Group Names', group_names, \r\n"
+					+ "'Is Group Admin',is_group_admin) as data, keys from ("
+					
+					+ "select zrm.identity as user_id,zrm.first_name,zrm.last_name,zrm.department,zrm.email,zr.name as Role,zu.status,zu.last_login_time,zu.last_client_version,zu.timezone,zu.verified\r\n"
+					+ ",zgm.group_names as group_names\r\n"
+					+ ",case when zgm.is_group_admin is null then 'No' else 'Yes' end as is_group_admin\r\n"
+					+ "from zoom_roles_members zrm\r\n"
+					+ "left join zoom_users zu on zrm.identity = zu.identity and zrm.site_key = zu.site_key\r\n"
+					+ "left join zoom_roles zr on zr.identity = zrm.role_id and zrm.site_key = zr.site_key\r\n"
+					+ "left join (select zgm.site_key,zgm.identity,string_agg(zg.name, ',') as group_names\r\n"
+					+ ",zga.identity as is_group_admin\r\n"
+					+ "from zoom_group_members zgm\r\n"
+					+ "join zoom_groups zg on zg.identity = zgm.group_id and zg.site_key = zgm.site_key\r\n"
+					+ "left join zoom_group_admins zga on zga.group_id = zg.identity and zga.identity = zgm.identity\r\n"
+					+ "group by zgm.site_key,zgm.identity,zga.identity\r\n"
+					+ ") zgm on zgm.identity = zrm.identity and zgm.site_key = zrm.site_key"
+					
+					+") a \r\n" + 
+					"LEFT JOIN (\r\n" + 
+					"select column_name as keys from report_columns where device_type = 'Zoom' and report_by = '' \r\n" + 
+					") cl on 1 = 1 \r\n" + 
+					") b \r\n" + 
+					") c group by keys \r\n" + 
+					") d where keys = '" + columnName + "'";
+					
 					
 
 			System.out.println("!!!!! query: " + query);
