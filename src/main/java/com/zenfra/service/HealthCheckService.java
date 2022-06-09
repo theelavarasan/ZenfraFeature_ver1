@@ -363,7 +363,16 @@ public class HealthCheckService {
 		String query = null;
 		try {
 			if (projectId != null && !projectId.isEmpty()) {
-				query = "";
+				query = "SELECT health_check_id as healthCheckId, component_type as componentType,is_active as isActive,health_check_name as healthCheckName, "
+						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList, "
+						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
+						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
+						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
+						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList, "
+						+ "create_by as createdById, update_by as updatedById FROM health_check h "
+						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
+						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
+						+ "where is_active = true and site_key='" + siteKey + "' and report_by not in (select project_id from project) order by health_check_name ASC";
 				// is_active = true and 
 
 			} else {
@@ -420,6 +429,12 @@ public class HealthCheckService {
 						healthCheckModel.put("updatedById", mapObject.get("updatedbyid"));
 						healthCheckModel.put("createdBy", mapObject.get("createby"));
 						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
+						
+						if(mapObject.containsKey("isActive")) {
+							healthCheckModel.put("isActive", mapObject.get("isActive"));
+						} else {
+							healthCheckModel.put("isActive", true);
+						}
 						healthCheckModel.put("overallStatusRuleList", jsonParser.parse(mapObject.get("overallstatusrulelist") != null ? mapObject.get("overallstatusrulelist").toString() : "[]"));
 							
 //						JSONObject response = convertEntityToModel((HealthCheck) obj);
