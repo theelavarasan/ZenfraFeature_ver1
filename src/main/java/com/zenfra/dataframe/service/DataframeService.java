@@ -574,7 +574,16 @@ public class DataframeService {
 			if (source_type.equalsIgnoreCase("vmware-host")) {
 				filteredData = filteredData.withColumn("Server Type", lit("vmware-host"));
 			}
+			
+			filteredData = addNonExistColumn(filteredData, "End Of Life - OS");
+			filteredData = addNonExistColumn(filteredData, "End Of Extended Support - OS");
+			filteredData = addNonExistColumn(filteredData, "End Of Life - HW");
+			filteredData = addNonExistColumn(filteredData, "End Of Extended Support - HW");
 
+			if(!Arrays.stream(filteredData.columns()).anyMatch(""::equals)) {
+				
+			}
+			
 			filteredData.createOrReplaceGlobalTempView(viewName);
 
 			System.out.println("---------View created-------- :: " + viewName);
@@ -585,6 +594,17 @@ public class DataframeService {
 
 	//--------------------- Server report data frame creation end------------------------//
 	
+	private Dataset<Row> addNonExistColumn(Dataset<Row> filteredData, String colName) {
+		try {
+			if(!Arrays.stream(filteredData.columns()).anyMatch(colName::equals)) {
+				filteredData = filteredData.withColumn(colName, lit(""));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return filteredData;
+	}
+
 	//------------------------getReportData API Start------------------------------------//
 	public DataResult getReportData(ServerSideGetRowsRequest request) {
 
