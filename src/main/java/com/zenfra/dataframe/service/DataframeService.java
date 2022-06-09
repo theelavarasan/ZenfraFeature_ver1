@@ -604,15 +604,16 @@ public class DataframeService {
 			source_type = source_type + "-" + "guest";
 		}
 
-		System.out.println("---------source_type------" + source_type);
+	
 
 		boolean isDiscoveryDataInView = false;
 		Dataset<Row> dataset = null;
 		String viewName = siteKey + "_" + source_type.toLowerCase();
 		viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
+		System.out.println("---------viewName------" + viewName);
+		
 		try {
-			dataset = sparkSession.sql("select * from global_temp." + viewName);
-			dataset.cache();
+			dataset = sparkSession.sql("select * from global_temp." + viewName);			
 			isDiscoveryDataInView = true;
 		} catch (Exception e) {
 			System.out.println("---------View Not exists--------");
@@ -624,12 +625,10 @@ public class DataframeService {
 
 			if (verifyDataframePath.exists()) {
 				createSingleDataframe(siteKey, source_type, verifyDataframePath.getAbsolutePath());
-				dataset = sparkSession.sql("select * from global_temp." + viewName);
-				dataset.cache();
+				dataset = sparkSession.sql("select * from global_temp." + viewName);				
 			} else {
 				createDataframeOnTheFly(siteKey, source_type);
-				dataset = sparkSession.sql("select * from global_temp." + viewName);
-				dataset.cache();
+				dataset = sparkSession.sql("select * from global_temp." + viewName);				
 			}
 		}
 
@@ -671,7 +670,7 @@ public class DataframeService {
 			if(numericColumns != null && !numericColumns.isEmpty()) {
 				dataset.createOrReplaceGlobalTempView(viewName+"_tmpReport");
 				numericColumns.retainAll(dataframeColumns);
-				System.out.println("-------numericColumns+++------" + numericColumns);
+			
 				
 				String numericCol = String.join(",", numericColumns
 			            .stream()
