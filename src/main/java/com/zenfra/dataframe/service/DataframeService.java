@@ -1767,7 +1767,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				String reportBy = (String) reportInput.get("reportBy");
 				String reportCategory = (String) reportInput.get("category");
 				String deviceType = (String) reportInput.get("device");			
-				deviceType = deviceType.toLowerCase();
+				
 				
 				if(reportCategory.equalsIgnoreCase("server") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db				
 					recreateLocalDiscovery(siteKey, sourceType);	
@@ -1792,6 +1792,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						request.setReportList(reportList);
 						request.setReportBy(reportBy);
 						request.setReportType("discovery");						
+						
+						deviceType = deviceType.toLowerCase();
 						
 						String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
 								+ request.getCategory() + "_" + deviceType + "_" + request.getReportList() + "_"
