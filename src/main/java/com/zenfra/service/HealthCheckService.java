@@ -75,7 +75,7 @@ public class HealthCheckService {
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn(
-				"select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",
+				"select * from health_check where health_check_id='" + healthCheckId + "'",
 				HealthCheck.class);
 		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
@@ -234,6 +234,8 @@ public class HealthCheckService {
 		response.put("reportName", healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
 		response.put("analyticsType", healthCheck.getAnalyticsType());
+		response.put("isActive", healthCheck.isActive());
+		
 		try {
 			String s = healthCheck.getReportCondition();
 			ObjectMapper mapper = new ObjectMapper();
@@ -361,17 +363,7 @@ public class HealthCheckService {
 		String query = null;
 		try {
 			if (projectId != null && !projectId.isEmpty()) {
-				query = "SELECT health_check_id as healthCheckId, component_type as componentType,is_active, health_check_name as healthCheckName, "
-						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList, "
-						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
-						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
-						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
-						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList, "
-						+ "create_by as createdById, update_by as updatedById FROM health_check h "
-						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
-						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
-						+ "where site_key='" + siteKey + "' and report_by ='" + projectId
-						+ "' order by health_check_name ASC";
+				query = "";
 				// is_active = true and 
 
 			} else {
@@ -428,14 +420,6 @@ public class HealthCheckService {
 						healthCheckModel.put("updatedById", mapObject.get("updatedbyid"));
 						healthCheckModel.put("createdBy", mapObject.get("createby"));
 						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
-						
-						if(mapObject.containsKey("is_active")) {
-							healthCheckModel.put("isActive", mapObject.get("is_active"));
-							System.out.println("---------Is Active-------"+healthCheckModel.get("isActive"));
-						} else {
-							healthCheckModel.put("isActive", true);
-						}
-						
 						healthCheckModel.put("overallStatusRuleList", jsonParser.parse(mapObject.get("overallstatusrulelist") != null ? mapObject.get("overallstatusrulelist").toString() : "[]"));
 							
 //						JSONObject response = convertEntityToModel((HealthCheck) obj);
