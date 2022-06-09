@@ -75,7 +75,7 @@ public class HealthCheckService {
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn(
-				"select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",
+				"select * from health_check where health_check_id='" + healthCheckId + "'",
 				HealthCheck.class);
 		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
@@ -234,6 +234,8 @@ public class HealthCheckService {
 		response.put("reportName", healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
 		response.put("analyticsType", healthCheck.getAnalyticsType());
+		response.put("isActive", healthCheck.isActive());
+		
 		try {
 			String s = healthCheck.getReportCondition();
 			ObjectMapper mapper = new ObjectMapper();
