@@ -2570,17 +2570,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
 		 ResponseEntity<String> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
 		    		httpRequest, String.class);
+		String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + sourceType + File.separator;
+		
+		 File filesList[] = new File(dsrPath).listFiles();
+	      System.out.println("List of files and directories in the specified directory:");
+	      for(File file : filesList) {
+	    	  setFileOwner(file.getAbsoluteFile());
+	      }
 		   
 		///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
 		
-		 JSONObject resultObj = new JSONObject();
-		try {
-			resultObj = (JSONObject) parser.parse(restResult.getBody());
-		} catch (ParseException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		 
 		  
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
