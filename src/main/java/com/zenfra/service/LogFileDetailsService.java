@@ -111,18 +111,29 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			List<LogFileDetails> logFile = logDao.getLogFileDetailsByLogids(logFileIds);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 
-			for (LogFileDetails log : logFile) {						
-				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+			for (LogFileDetails log : logFile) {
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+						log.setStatus("retrieving");
+					}
+				}
+				
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
 
-					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("import_success");
 					}
 				}
 				JSONObject json = new JSONObject();
 				json.put("status", log.getStatus());
 				json.put("logFileId", log.getLogFileId());
-				if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
-					json.put("parsedDateTime", log.getParsedDateTime() != null? common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()) : "");
+				if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+					json.put("parsedDateTime",
+							log.getParsedDateTime() != null
+									? common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime())
+									: "");
 				}
 				resultArray.add(json);
 			}

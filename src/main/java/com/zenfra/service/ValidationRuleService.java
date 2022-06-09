@@ -1245,7 +1245,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					+ "select json_build_object('userId',user_id,'firstName', first_name,'lastName', last_name, \r\n"
 					+ "'department', department,'email', email, 'role', role, 'status',status,'licenseType', license_type, \r\n"
 					+ "'lastLoginTime', last_login_time, 'lastClientVersion', last_client_version,\r\n"
-					+ "'timezone',timezone, 'isVerified', is_verified, 'groupNames', group_names, \r\n"
+					+ "'timezone',timeZone, 'isVerified', is_verified, 'groupNames', group_names, \r\n"
 					+ "'isGroupAdmin',is_group_admin) as data, keys from (\r\n"
 					+ "	\r\n"
 					+ "select zrm.identity as user_id,zrm.first_name,zrm.last_name,zrm.department,zrm.email,zr.name as Role\r\n"
