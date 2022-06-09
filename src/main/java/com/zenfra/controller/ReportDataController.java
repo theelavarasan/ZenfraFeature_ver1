@@ -166,7 +166,7 @@ public class ReportDataController {
 		System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : "
 				+ siteKey + " : " + userId);
 		
-		
+		sourceType = sourceType.toLowerCase();
 
 		try {			 
 

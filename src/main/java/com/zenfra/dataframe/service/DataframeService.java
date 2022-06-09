@@ -1465,7 +1465,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			componentName = request.getProject();
 		}
 		
-		
+		componentName = componentName.toLowerCase();
 		String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
 				+ request.getCategory() + "_" + componentName + "_" + request.getReportList() + "_"
 				+ request.getReportBy();
