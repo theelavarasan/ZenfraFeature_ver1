@@ -218,6 +218,8 @@ public class ReportDataController {
 				 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 			}
 			
+			dataframeService.prepareDsrReport(siteKey, sourceType);
+			
 			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 
 			return new ResponseEntity<>("", HttpStatus.OK);

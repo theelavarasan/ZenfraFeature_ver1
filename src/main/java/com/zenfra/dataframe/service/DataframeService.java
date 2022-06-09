@@ -12,6 +12,7 @@ import static org.apache.spark.sql.functions.sum;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -2541,6 +2543,52 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		}
 		
 		return columnArray;
+	}
+
+	public void prepareDsrReport(String siteKey, String sourceType) {
+		try {
+			
+			String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+	    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+	    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+	        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/prepareSubreportData?siteKey="+siteKey+"&logType="+sourceType;
+	    	
+	        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+	      
+	        Map<String, String> map =  new HashMap<String, String>();
+	        map.put("siteKey", siteKey);
+	        map.put("logType", sourceType);
+	       	  Map<String, Object> body= new LinkedHashMap<>();
+		    body.putAll(map); 
+		   
+		    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
+		    		builder.build(map);
+		    System.out.println(builder.buildAndExpand(map).toUri());
+			  
+		 RestTemplate restTemplate = new RestTemplate();
+		
+		 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
+		 ResponseEntity<String> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
+		    		httpRequest, String.class);
+		   
+		///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
+		
+		 JSONObject resultObj = new JSONObject();
+		try {
+			resultObj = (JSONObject) parser.parse(restResult.getBody());
+		} catch (ParseException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		 
+		  
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+			
+		  
+		
 	}
 	
 }
