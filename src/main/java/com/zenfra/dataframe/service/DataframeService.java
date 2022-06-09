@@ -2603,5 +2603,17 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		  
 		
 	}
+
+	public JSONArray getDsrData(String dsrReportName, String siteKey, String serverName) {
+		JSONArray resultArray = new JSONArray();
+		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
+		try {
+			Dataset<Row> dsrData = sparkSession.sql("select * from global.temp"+dsrReportName+" where lower(`Server Name`)="+serverName.toLowerCase());
+			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString());	
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resultArray;
+	}
 	
 }

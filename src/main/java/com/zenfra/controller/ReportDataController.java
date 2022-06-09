@@ -17,6 +17,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -29,6 +30,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,12 +41,14 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.clickhouse.jdbc.ClickHouseDataSource;
+import com.parse.model.ReportResultModel;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -658,6 +663,101 @@ public class ReportDataController {
 		
 		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, component, reportList, reportBy, xaxis, yaxis, chartType);
 		return null;
+	}
+	
+	
+	
+	@PostMapping("subreport")
+	public JSONObject subreport(@RequestAttribute(name = "authUserId", required = false) String userId,
+			@RequestParam(name = "reportName") String reportName, @RequestParam(name = "columnName") String columnName,
+			@RequestParam(name = "selectedData") String resultObject, @RequestParam(name = "siteKey") String siteKey,
+			@RequestParam(name = "logDate") String logDate,
+			@RequestParam(name = "reportCategory") String reportCategory, @RequestParam(name = "userId") String userId1,
+			@RequestParam(name = "deviceType") String deviceType,
+			@RequestParam(name = "subReportId", required = false) String subReportId,
+			@RequestParam(name = "subReportName", required = false) String subReportName,
+			@RequestParam(name = "subReportList", required = false) String subReportList1, HttpServletRequest httpServletRequest)
+			throws IOException, SQLException, ParseException, java.text.ParseException {
+	
+		deviceType = deviceType.toLowerCase().trim().replace("-", "");
+		System.out.println("!!!! deviceType: " + deviceType);
+		System.out.println("!!!! reportCategory: " + reportCategory);
+		System.out.println("!!!! authUserId: " + userId);
+		 
+		JSONObject resultJSONObject = new JSONObject();
+		
+		try {
+			JSONParser parser = new JSONParser();
+			JSONObject resultJSON = (JSONObject) parser.parse(resultObject);
+			JSONArray subReportList = (JSONArray) parser.parse(subReportList1);
+			if (deviceType.equalsIgnoreCase("HP-UX")) {
+				deviceType = "hpux";
+			} else if (deviceType.equalsIgnoreCase("vmwarehost")) {
+				deviceType = "vmware-host";
+			}
+			
+			if (reportCategory.trim().equalsIgnoreCase("discovery")
+					|| reportCategory.trim().equalsIgnoreCase("compatability")
+					|| reportCategory.trim().equalsIgnoreCase("project")
+					|| reportCategory.trim().equalsIgnoreCase("Compatibility")) {
+
+				String serverName = "";
+				String vCenter = "";
+				String vmname = "";
+				String sid = "";
+
+				if (resultJSON.containsKey(columnName) || resultJSON.containsKey("vmax_Replication Device Count")) {
+					if(resultJSON.containsKey("Possible Server Name(VMAX)")) {
+						serverName = resultJSON.get("Possible Server Name(VMAX)").toString();
+						sid = resultJSON.get("SID").toString();
+					} else if(resultJSON.containsKey("Possible Server Name")) {
+						serverName = resultJSON.get("Possible Server Name").toString();
+						sid = resultJSON.get("Serial Number").toString();
+					} else if(resultJSON.containsKey("vmax_Possible Server Name(VMAX)")) { 
+						serverName = resultJSON.get("vmax_Possible Server Name(VMAX)").toString();
+						sid = resultJSON.get("vmax_SID").toString();
+					} else {
+						serverName = resultJSON.get(columnName).toString();
+					}			
+					System.out.println("!!!!! deviceType: " + deviceType);
+					System.out.println("!!!!! resultJSON: " + resultJSON);
+					if(resultJSON.containsKey("Possible Server Name(VMAX)")) {
+						serverName = resultJSON.get("Possible Server Name(VMAX)").toString();
+						sid = resultJSON.get("SID").toString();
+					} else if(resultJSON.containsKey("Possible Server Name")) {
+						serverName = resultJSON.get("Possible Server Name").toString();
+						sid = resultJSON.get("Serial Number").toString();
+					} else if(resultJSON.containsKey("vmax_Possible Server Name(VMAX)")) {
+						serverName = resultJSON.get("vmax_Possible Server Name(VMAX)").toString();
+						sid = resultJSON.get("vmax_SID").toString();
+					} else {
+						serverName = resultJSON.get("Server Name").toString();
+					}					
+				}
+				
+				if (resultJSON.containsKey("VM")) {
+					vmname = resultJSON.get("VM") == null ? "" : resultJSON.get("VM").toString();
+				}
+				if (resultJSON.containsKey("vCenter")) {
+					vCenter = resultJSON.get("vCenter") == null ? "" : resultJSON.get("vCenter").toString();
+				}
+				System.out.println("!!!!! serverName: " + serverName);
+				System.out.println("!!!!! VM: " + vmname);
+				System.out.println("!!!!! vCenter: " + vCenter);
+
+				JSONArray dsrData = dataframeService.getDsrData(subReportList.get(0).toString(), siteKey, serverName);
+				resultJSONObject.put(subReportList.get(0).toString(), dsrData);
+				resultJSONObject.put("title", "Detailed Report for Server (" + serverName + ")");
+
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		
+
+		return resultJSONObject;
 	}
 
 }
