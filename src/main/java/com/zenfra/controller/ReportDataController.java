@@ -635,7 +635,7 @@ public class ReportDataController {
         }
         
         try {
-        	 //FileUtils.deleteDirectory(new File(filePath));
+        	 FileUtils.deleteDirectory(new File(filePath));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
