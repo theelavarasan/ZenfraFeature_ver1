@@ -210,6 +210,7 @@ public class ReportDataController {
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
 			
+			sourceType = sourceType.toLowerCase();
 			
 			//recreate Reports after completed parsing			
 			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
