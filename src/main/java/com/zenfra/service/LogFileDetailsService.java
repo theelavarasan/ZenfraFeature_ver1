@@ -115,7 +115,6 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				
 				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
 						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
-					System.out.println("---Zoom-----");
 					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
 						log.setStatus("retrieving");
 					}
