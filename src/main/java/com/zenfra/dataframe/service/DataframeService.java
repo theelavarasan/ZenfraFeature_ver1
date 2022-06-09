@@ -3735,7 +3735,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				  mapper.writeValue(new File(dataPath), dataArray);		
 				  
 				  try {
-					  Path level = Paths.get(filePath).getParent().getParent();				        
+					  Path level = Paths.get(dataPath);				        
 				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
 				       	Files.setOwner(level, owner);
 				       	
@@ -3768,8 +3768,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				 		"a.`Local Possible Server Name`, " + 
 				 		"a.`Local FA Port`," + 
 				 		"a.`Local FA Port WWN`,  " + 
-				 		"a.`Remote Device ID` as `Remote Device Name`, "+
-						"a.`Remote Serial Number` as `Remote Target ID`, "+
+				 		"a.`Remote Device Name`, "+
+						"a.`Remote Target ID`, "+
 				 		"b.`Local Device Configuration` as `Remote Device Configuration`," + 
 				 		"b.`Local Device Capacity` as `Remote Device Capacity`," + 
 				 		"b.`Local Device WWN` as `Remote Device WWN`," + 
