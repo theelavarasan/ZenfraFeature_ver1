@@ -2614,12 +2614,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			dsrData.printSchema();
 		} catch (Exception e) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
-			System.out.println("----------------dsrPath---------- " + dsrPath);
+			
 			File file = new File(dsrPath);
+			System.out.println("----------------dsrPath----12------ " + file.getAbsolutePath());
 			  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
-				 dsrData.printSchema();
+				 dataset.printSchema();
 				 dsrData = sparkSession.sql("select * from global.temp"+viewName+" where lower(`Server Name`)='"+serverName.toLowerCase()+"'");
 				 
 		}
