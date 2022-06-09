@@ -2578,7 +2578,18 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		 File filesList[] = new File(dsrPath).listFiles();
 	      System.out.println("List of files and directories in the specified directory:");
 	      for(File file : filesList) {
-	    	  setFileOwner(file.getAbsoluteFile());
+	    	  if(file.getAbsolutePath().contains("_dsr_")) {
+	    		  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+							.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
+				
+					String viewName = file.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+					System.out.println("--------DSR View -------- " + viewName);
+					dataset.createOrReplaceGlobalTempView(viewName);
+					dataset.printSchema();
+					dataset.show();
+		    	  setFileOwner(file.getAbsoluteFile());
+	    	  }
+	    	
 	      }
 		   
 		///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
