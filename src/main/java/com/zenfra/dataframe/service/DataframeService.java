@@ -2606,10 +2606,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 	public JSONArray getDsrData(String dsrReportName, String siteKey, String serverName, String deviceType) {
 		JSONArray resultArray = new JSONArray();
-		dsrReportName = (siteKey+"_dsr_"+dsrReportName).replaceAll("~", "").replaceAll("\\$", "").replaceAll("-", "").replaceAll("\\s+", "");
+		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
+		String viewName = dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
 		Dataset<Row> dsrData = sparkSession.emptyDataFrame();
 		try {
-			dsrData = sparkSession.sql("select * from global.temp"+dsrReportName+" where lower(`Server Name`)="+serverName.toLowerCase());
+			dsrData = sparkSession.sql("select * from global.temp"+viewName+" where lower(`Server Name`)="+serverName.toLowerCase());
 		
 		} catch (Exception e) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
@@ -2617,8 +2618,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			File file = new File(dsrPath);
 			  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
-				 dataset.createOrReplaceGlobalTempView(dsrReportName);
-				 dsrData = sparkSession.sql("select * from global.temp"+dsrReportName+" where lower(`Server Name`)="+serverName.toLowerCase());
+				 dataset.createOrReplaceGlobalTempView(viewName);
+				 dsrData = sparkSession.sql("select * from global.temp"+viewName+" where lower(`Server Name`)="+serverName.toLowerCase());
 				 
 		}
 		
