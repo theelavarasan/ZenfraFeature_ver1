@@ -2292,6 +2292,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					dataset = sparkSession.sql("select "+columnsToExport+" from global_temp." + viewName);		
 				
 				} catch (Exception e) {
+					e.printStackTrace();
 					System.out.println("---------View Not exists--------");
 				}
 			} else { //tanium logic
