@@ -2610,7 +2610,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String viewName = dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
 		Dataset<Row> dsrData = sparkSession.emptyDataFrame();
 		try {
-			dsrData = sparkSession.sql("select * from global.temp"+viewName+" where lower(`Server Name`)='"+serverName.toLowerCase()+"'");
+			dsrData = sparkSession.sql("select * from global_temp."+viewName+" where lower(`Server Name`)='"+serverName.toLowerCase()+"'");
 			dsrData.printSchema();
 		} catch (Exception e) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
@@ -2621,7 +2621,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
-				 dsrData = sparkSession.sql("select * from global.temp"+viewName+" where lower(`Server Name`)='"+serverName.toLowerCase()+"'");
+				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where lower(`Server Name`)='"+serverName.toLowerCase()+"'");
 				 
 		}
 		
