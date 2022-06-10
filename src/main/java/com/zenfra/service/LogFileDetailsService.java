@@ -176,6 +176,17 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 						log.setStatus("import_success");
 					}
 				}
+				
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
+					log.setCreatedDateTime(log.getCreatedDateTime());
+					log.setUpdatedDateTime(log.getCreatedDateTime());
+					log.setParsedDateTime(log.getCreatedDateTime());
+					log.setParsingStartTime(log.getCreatedDateTime());
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+						log.setStatus("retrieved");
+					}
+				}
 				logFileUpdate.add(log);
 			}
 
