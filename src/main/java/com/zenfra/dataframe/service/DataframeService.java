@@ -925,6 +925,11 @@ public class DataframeService {
 	public List<String> getReportNumericalHeaders(String reportName, String source_type, String reportBy,
 			String siteKey) {
 		// TODO Auto-generated method stub
+		System.out.println("reportName :: " + reportName);
+		System.out.println("source_type :: " + source_type);
+		System.out.println("reportBy :: " + reportBy);
+		System.out.println("siteKey :: " + siteKey);
+		
 		return reportDao.getReportNumericalHeaders(reportName, source_type, reportBy, siteKey);
 	}
 
@@ -3815,6 +3820,9 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	try {
 		File file = new File(filePath);
 		if(file.exists()) {
+			
+			System.out.println("----------file.getName()--------- " + file.getName());
+			
 			String[] fileNameAray = file.getName().split("_");
 			String siteKey = fileNameAray[0];
 			String reportType = fileNameAray[1];
