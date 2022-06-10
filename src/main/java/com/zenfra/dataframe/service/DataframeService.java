@@ -18,6 +18,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +30,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
@@ -70,6 +73,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sparkproject.guava.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -100,6 +104,8 @@ import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
+
+import scala.collection.JavaConverters;
 
 @Repository
 public class DataframeService {
@@ -153,6 +159,9 @@ public class DataframeService {
 	
 	@Autowired
 	AwsInstanceCcrDataRepository awsInstanceCcrDataRepository;
+	
+	 ObjectMapper mapper = new ObjectMapper();			 
+
 
 	private String dbUrl = DBUtils.getPostgres().get("dbUrl");
 
@@ -3675,55 +3684,6 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
-
-			 /*if(filePath.contains("VMAX_Local_Disk-SAN")) {
-				 ObjectMapper mapper = new ObjectMapper();			 
-				 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
-				 try {
-					 JSONObject vmaxDiskSanObj = mapper.readValue(new File(filePath), JSONObject.class);
-					  List<Map<String, Object>> vmaxDiskSanData =  (List<Map<String, Object>>) vmaxDiskSanObj.get("data");
-					  mapper.writeValue(new File(filePath.replace(".json", "_new.json")), vmaxDiskSanData);
-					  File f = new File(filePath.replace(".json", "_new.json"));
-						 Dataset<Row> datasetLocal = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath()); 
-						 String viewNameLocal = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san_local";
-						 datasetLocal = datasetLocal.withColumn("Local FA Port", datasetLocal.col("Local FA Port").cast("String"));
-						 
-						 datasetLocal.createOrReplaceGlobalTempView(viewNameLocal);
-						 
-						 
-						 Dataset<Row> datasetRemote = datasetLocal;
-						 for (String column : datasetRemote.columns()) {
-							 if(column.contains("Remote")) {
-								 datasetRemote = datasetRemote.withColumnRenamed(column, column.replace("Remote", "RemoteB"));
-							 } else {
-								 datasetRemote = datasetRemote.withColumnRenamed(column, column.replace("Local", "Remote"));
-							 }							
-							
-						    }
-						 
-						 datasetRemote = datasetRemote.withColumn("Remote FA Port", datasetRemote.col("Remote FA Port").cast("String"));
-						 String viewNameRemote = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san_remote";
-						 datasetRemote.createOrReplaceGlobalTempView(viewNameRemote);
-						 
-						 Dataset<Row> result = sparkSession.sqlContext().sql("select " + 
-								 " a.`Local Device ID`, a.`Local Serial Number`,a.`Local Device Configuration`,a.`Local Device Capacity`, a.`Local Device WWN`,a.`Local Device Status`, a.`Local Host Access Mode`, a.`Local Clone Source Device (SRC)`,a.`Local Clone Target Device (TGT)`,a.`Local BCV Device Name`, a.`Local BCV Device Status`,a.`Local BCV State of Pair`,a.`Local Storage Group`, a.`Local Masking View`,a.`Local Initiator Group`,a.`Local Initiator Name`,a.`Local Possible Server Name`, a.`Local FA Port WWN`, a.`Local FA Port`, "+
-							 		" b.`Remote Device ID`, b.`Remote Serial Number`,b.`Remote Device Configuration`,b.`Remote Device Capacity`, b.`Remote Device WWN`,b.`Remote Device Status`, b.`Remote Host Access Mode`, b.`Remote Clone Source Device (SRC)`, b.`Remote Clone Target Device (TGT)`,b.`Remote BCV Device Name`,b.`Remote BCV Device Status`,b.`Remote BCV State of Pair`,b.`Remote Storage Group`, b.`Remote Masking View`, b.`Remote Initiator Group`,b.`Remote Initiator Name`,b.`Remote Possible Server Name`,  b.`Remote FA Port WWN`, b.`Remote FA Port`  "+
-							 		"from global_temp."+viewNameLocal+" a  " + 
-							 		"left join global_temp."+viewNameRemote+" b on a.`Remote Device Name` = b.`Remote Device ID` and a.`Remote Target ID` = b.`Remote Serial Number`");
-						    
-						   JSONArray jsonarray =  mapper.convertValue(result.toJSON().collectAsList().toString(), JSONArray.class);
-						   jsonObject.put("data", jsonarray);
-						   
-						      FileWriter fw = new FileWriter(filePath);
-							  BufferedWriter bw = new BufferedWriter(fw);
-							  bw.write(jsonObject.toString()); bw.close();
-							  bw.close();
-						 
-							System.out.println("---------vmax disk san report completed------- "   );
-				} catch (Exception e) {
-					e.printStackTrace();
-				}				  
-			 }*/
 			
 			 System.out.println("----------createDataframeForJsonData----" + filePath);
 			 
@@ -3826,6 +3786,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			 
 			
 			try {
+				validateNumericColumnData(filePath);
+				
 				File f = new File(filePath);
 				
 				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
@@ -3846,6 +3808,81 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			e.printStackTrace();			
 		}
 
+	}
+
+	private void validateNumericColumnData(String filePath) {
+		JSONObject resultJSONObject = new JSONObject();
+	try {
+		File file = new File(filePath);
+		if(file.exists()) {
+			String[] fileNameAray = file.getName().split("_");
+			String siteKey = fileNameAray[0];
+			String reportType = fileNameAray[1];
+			String sourceType = fileNameAray[3];
+			String reportBy = fileNameAray[5];
+			JSONArray formattedArray = new JSONArray();
+			
+			//d8e9c215-b4c9-45b6-b5e2-a180cec4b422_discovery_Server_windows_Local_HBA.json
+			List<String> numericColumns = getReportNumericalHeaders(reportType, sourceType, reportBy,siteKey);			
+			if(numericColumns != null && !numericColumns.isEmpty()) {
+				String content = new String (Files.readAllBytes(Paths.get(filePath)),Charset.forName("UTF-8")); 
+				if(!content.startsWith("\\[")) {
+					content = "["+content+"]";					
+					JSONArray dataArray = (JSONArray) parser.parse(content);				 
+						if(dataArray != null && !dataArray.isEmpty()) {
+							for (int i = 0; i < dataArray.size(); i++) {
+								JSONObject  jsonObject = (JSONObject) dataArray.get(i);
+								if(jsonObject.containsKey("data")) {
+									JSONArray dataAry = (JSONArray) parser.parse(jsonObject.get("data").toString());
+									for (int j = 0; j < dataAry.size(); j++) {
+										JSONObject data = (JSONObject) dataAry.get(j);		
+										Set<String> keys = data.keySet();
+										for(String key : keys) {
+											if(numericColumns.contains(key)) {
+												Number number = NumberFormat.getInstance().parse((String) data.get(key));
+												data.put(key, number);
+											}												
+										}
+										formattedArray.add(data);
+									}
+								}
+								
+							}
+						}
+				}	
+				
+				String contentDest = new String (Files.readAllBytes(Paths.get(filePath)),Charset.forName("UTF-8")); 
+				if(!contentDest.startsWith("\\[")) {
+					contentDest = "["+contentDest+"]";					
+					JSONArray dataArray = (JSONArray) parser.parse(contentDest);				 
+						if(dataArray != null && !dataArray.isEmpty()) {
+							for (int i = 0; i < dataArray.size(); i++) {
+								JSONObject  jsonObject = (JSONObject) dataArray.get(i);
+								jsonObject.put("data", formattedArray);
+								resultJSONObject.putAll(jsonObject);
+								
+			}
+						}
+				}
+				mapper.writeValue(new File(filePath), resultJSONObject);
+				  try {
+					  Path level = Paths.get(filePath);				        
+				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+				       	Files.setOwner(level, owner);
+				       	
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+			}		
+		}
+		
+	
+		
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+	
+	
 	}
 
 	private String findResultDataPath(String dataWritePath) {
@@ -3924,6 +3961,32 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		}
 		
 		return resultArray;
+	}
+
+	public String deleteDataframe(String siteKey) {
+		try {
+			String path = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator;
+			File dir = new File(path);
+			dir.deleteOnExit();
+			return "Successfully Deleted";
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "Error";
+	}
+
+	public String deleteAllDataframe() {
+		try {
+			String path = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator;
+			File dir = new File(path);
+			dir.deleteOnExit();
+			return "Successfully Deleted";
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "Error";
 	}
 
 
