@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -2606,6 +2607,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 	public JSONArray getDsrData(String dsrReportName, String siteKey, String serverName, String deviceType) {
 		JSONArray resultArray = new JSONArray();
+		JSONArray reportResult = new JSONArray();
 		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
 		String viewName = dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
 		Dataset<Row> dsrData = sparkSession.emptyDataFrame();
@@ -2627,10 +2629,24 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		try {
 			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString());	
+			for (int i = 0; i < resultArray.size(); i++) {
+				ZenfraJSONObject jsonObject = (ZenfraJSONObject) resultArray.get(i);
+				List<String> keySet = new LinkedList<String>(
+						jsonObject == null ? new HashSet<String>() : jsonObject.keySet());
+				for (int j = 0; j < keySet.size(); j++) {
+					if (jsonObject.get(keySet.get(j)) != null
+							&& jsonObject.get(keySet.get(j)).toString().trim().startsWith("[")) {
+						jsonObject.replace(keySet.get(j),
+								jsonObject.get(keySet.get(j)).toString().trim().replace("[", "").replace("]", ""));
+					}
+				}
+				reportResult.add(jsonObject);
+
+			}
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
-		return resultArray;
+		return reportResult;
 	}
 	
 }
