@@ -2630,7 +2630,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		try {
 			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString());	
 			for (int i = 0; i < resultArray.size(); i++) {
-				ZenfraJSONObject jsonObject = (ZenfraJSONObject) resultArray.get(i);
+				LinkedHashMap<String, Object> jsonObject = (LinkedHashMap<String, Object>) resultArray.get(i);
 				List<String> keySet = new LinkedList<String>(
 						jsonObject == null ? new HashSet<String>() : jsonObject.keySet());
 				for (int j = 0; j < keySet.size(); j++) {
@@ -2644,7 +2644,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 		return reportResult;
 	}
