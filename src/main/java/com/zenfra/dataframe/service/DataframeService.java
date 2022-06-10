@@ -3839,8 +3839,13 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 										Set<String> keys = data.keySet();
 										for(String key : keys) {
 											if(numericColumns.contains(key)) {
-												Number number = NumberFormat.getInstance().parse((String) data.get(key));
-												data.put(key, number);
+												try {
+													Number number = NumberFormat.getInstance().parse((String) data.get(key));
+													data.put(key, number);
+												} catch (Exception e) {
+													// TODO: handle exception
+												}
+												
 											}												
 										}
 										formattedArray.add(data);
