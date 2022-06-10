@@ -679,6 +679,15 @@ public class DataframeService {
 		
 		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
 		List<String> dataframeColumns  = Arrays.asList(dataset.columns()); 
+		//type cast to numeric columns
+		try {		
+			if(numericColumns != null && numericColumns.isEmpty()) {
+				dataset = typeCastNumericColumns(dataset, numericColumns, viewName, dataframeColumns);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		countData = getDataframeNumericColAgg(dataset, viewName, numericColumns, dataframeColumns);	
 		countData.show();
 	
