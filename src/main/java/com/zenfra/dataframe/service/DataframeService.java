@@ -3828,7 +3828,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			String reportType = fileNameAray[1];
 			String sourceType = fileNameAray[3];
 			String reportBy = fileNameAray[5];
-			reportBy = reportBy.replace(".json", "");
+			reportBy = reportBy.split("\\.")[0];
 			JSONArray formattedArray = new JSONArray();
 			
 			//d8e9c215-b4c9-45b6-b5e2-a180cec4b422_discovery_Server_windows_Local_HBA.json
