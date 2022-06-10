@@ -123,6 +123,16 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 					}
 				}
 				
+//				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+//						&& (log.getLogType().equalsIgnoreCase("pure"))) {
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+//						log.setStatus("retrieving");
+//					}
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+//						log.setStatus("retrieved");
+//					}
+//				}
+				
 				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
 						&& (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
 					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
@@ -177,19 +187,20 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 					}
 				}
 				
-				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
-						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
-					log.setCreatedDateTime(log.getCreatedDateTime());
-					log.setUpdatedDateTime(log.getCreatedDateTime());
-					log.setParsedDateTime(log.getCreatedDateTime());
-					log.setParsingStartTime(log.getCreatedDateTime());
-					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
-						log.setStatus("retrieving");
-					}
-					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
-						log.setStatus("retrieved");
-					}
-				}
+
+//				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+//						&& (log.getLogType().equalsIgnoreCase("pure"))) {
+//					log.setCreatedDateTime(log.getCreatedDateTime());
+//					log.setUpdatedDateTime(log.getCreatedDateTime());
+//					log.setParsedDateTime(log.getCreatedDateTime());
+//					log.setParsingStartTime(log.getCreatedDateTime());
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+//						log.setStatus("retrieving");
+//					}
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+//						log.setStatus("retrieved");
+//					}
+//				}
 				logFileUpdate.add(log);
 			}
 
