@@ -1528,8 +1528,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		List<String> dataframeColumns  = Arrays.asList(dataset.columns()); 
 		
 		//type cast to numeric columns
-		try {			
-			dataset = typeCastNumericColumns(dataset, numericColumns, viewName, dataframeColumns);
+		try {		
+			if(numericColumns != null && numericColumns.isEmpty()) {
+				dataset = typeCastNumericColumns(dataset, numericColumns, viewName, dataframeColumns);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
