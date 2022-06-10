@@ -77,7 +77,7 @@ public class ToolApiConfigService {
 					ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
 			checkZoomConfigUrl = CommonUtils.checkPortNumberForWildCardCertificate(checkZoomConfigUrl);
 			System.out.println("----------Check Zoom Config Url---" + checkZoomConfigUrl);
-			ResponseEntity<JSONObject> uri = restTemplate.exchange(checkZoomConfigUrl, HttpMethod.POST, requestEntity1,
+			ResponseEntity<JSONObject> uri = restTemplate.exchange(checkZoomConfigUrl, HttpMethod.GET, requestEntity1,
 					JSONObject.class);
 
 			if (uri != null && uri.getBody() != null) {
