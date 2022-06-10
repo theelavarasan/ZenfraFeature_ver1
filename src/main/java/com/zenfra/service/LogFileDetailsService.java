@@ -118,6 +118,9 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
 						log.setStatus("retrieving");
 					}
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+						log.setStatus("retrieved");
+					}
 				}
 				
 				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
