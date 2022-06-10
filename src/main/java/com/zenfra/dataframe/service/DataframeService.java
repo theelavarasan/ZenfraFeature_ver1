@@ -3821,7 +3821,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		File file = new File(filePath);
 		if(file.exists()) {
 			
-			System.out.println("----------file.getName()--------- " + file.getName());
+			
 			
 			String[] fileNameAray = file.getName().split("_");
 			String siteKey = fileNameAray[0];
@@ -3833,7 +3833,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			
 			//d8e9c215-b4c9-45b6-b5e2-a180cec4b422_discovery_Server_windows_Local_HBA.json
 			List<String> numericColumns = getReportNumericalHeaders(reportType, sourceType, reportBy,siteKey);		
-			System.out.println("----------numericColumns--------- " + numericColumns);
+			
 			if(numericColumns != null && !numericColumns.isEmpty()) {
 				String content = new String (Files.readAllBytes(Paths.get(filePath)),Charset.forName("UTF-8")); 
 				if(!content.startsWith("\\[")) {
@@ -3849,8 +3849,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 										Set<String> keys = data.keySet();
 										for(String key : keys) {
 											if(numericColumns.contains(key)) {
-												try {
-													System.out.println("----------key--------- " + key);
+												try {													
 													Number number = NumberFormat.getInstance().parse((String) data.get(key));
 													data.put(key, number);
 												} catch (Exception e) {
