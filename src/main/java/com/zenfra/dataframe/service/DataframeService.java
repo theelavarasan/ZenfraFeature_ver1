@@ -3823,7 +3823,8 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			JSONArray formattedArray = new JSONArray();
 			
 			//d8e9c215-b4c9-45b6-b5e2-a180cec4b422_discovery_Server_windows_Local_HBA.json
-			List<String> numericColumns = getReportNumericalHeaders(reportType, sourceType, reportBy,siteKey);			
+			List<String> numericColumns = getReportNumericalHeaders(reportType, sourceType, reportBy,siteKey);		
+			System.out.println("----------numericColumns--------- " + numericColumns);
 			if(numericColumns != null && !numericColumns.isEmpty()) {
 				String content = new String (Files.readAllBytes(Paths.get(filePath)),Charset.forName("UTF-8")); 
 				if(!content.startsWith("\\[")) {
@@ -3840,10 +3841,11 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 										for(String key : keys) {
 											if(numericColumns.contains(key)) {
 												try {
+													System.out.println("----------key--------- " + key);
 													Number number = NumberFormat.getInstance().parse((String) data.get(key));
 													data.put(key, number);
 												} catch (Exception e) {
-													// TODO: handle exception
+													e.printStackTrace();
 												}
 												
 											}												
@@ -3876,7 +3878,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				       	Files.setOwner(level, owner);
 				       	
 				} catch (Exception e) {
-					// TODO: handle exception
+					e.printStackTrace();
 				}
 			}		
 		}
