@@ -183,6 +183,9 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 					log.setUpdatedDateTime(log.getCreatedDateTime());
 					log.setParsedDateTime(log.getCreatedDateTime());
 					log.setParsingStartTime(log.getCreatedDateTime());
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+						log.setStatus("retrieving");
+					}
 					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("retrieved");
 					}
