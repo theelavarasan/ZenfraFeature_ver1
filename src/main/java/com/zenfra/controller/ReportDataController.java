@@ -380,6 +380,16 @@ public class ReportDataController {
 	}
 	
 	
+	@GetMapping("deleteDataframe")
+	public String deleteDataframe(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {		
+			return dataframeService.deleteDataframe(siteKey);
+	}
+	
+	@GetMapping("deleteAllDataframe")
+	public String deleteAllDataframe(HttpServletRequest request) {
+		return dataframeService.deleteAllDataframe();
+	}
+	
 	@PostMapping("getReportDataFromClickHouse")
 	public ResponseEntity<?> getReportDataFromClickHouse(@RequestParam("siteKey") String siteKey) {
 			
