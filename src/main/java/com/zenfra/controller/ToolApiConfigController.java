@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.zenfra.model.ToolApiConfigModel;
 import com.zenfra.service.ToolApiConfigService;
 
@@ -23,7 +25,7 @@ public class ToolApiConfigController {
 	ToolApiConfigService toolApiConfigService;
 
 	@PostMapping("/create")
-	public ResponseEntity<?> createApiConfig(@RequestBody ToolApiConfigModel apiConfigId) {
+	public ResponseEntity<?> createApiConfig(@RequestBody ToolApiConfigModel apiConfigId) throws JsonMappingException, JsonProcessingException {
 		return ResponseEntity.ok(toolApiConfigService.createApiConfig(apiConfigId));
 	}
 
