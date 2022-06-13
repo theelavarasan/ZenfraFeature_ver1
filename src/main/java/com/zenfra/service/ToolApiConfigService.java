@@ -25,8 +25,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.HeaderInfoModalRepository;
 import com.zenfra.dao.ToolApiConfigRepository;
 import com.zenfra.model.HeaderInfoModel;
@@ -61,57 +67,38 @@ public class ToolApiConfigService {
 
 	@SuppressWarnings("unchecked")
 
-	public JSONObject zoomAPICheck(String apiKey, String apiSecretKey) {
-		JSONObject response = new JSONObject();
-		try {
+	public JSONObject zoomAPICheck(String apiKey, String apiSecretKey) throws JsonMappingException, JsonProcessingException {
 
+			String parsingURL = DBUtils.getParsingServerIP();
 			RestTemplate restTemplate = new RestTemplate();
+			System.out.println("Enter Parsing.....");
+			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+			body.add("apiKey", apiKey);
+			body.add("apiSecretKey", apiSecretKey);
 
-			JSONObject errorObj = new JSONObject();
-
-			HttpHeaders headers1 = new HttpHeaders();
-			headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-			headers1.setContentType(MediaType.APPLICATION_JSON);
-			HttpEntity<JSONObject> requestEntity1 = new HttpEntity<JSONObject>(errorObj, headers1);
-			String checkZoomConfigUrl = ZKModel.getProperty(ZKConstants.CHECK_ZOOM_CONFIG).replaceAll("<HOSTNAME>",
-					ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
-			checkZoomConfigUrl = CommonUtils.checkPortNumberForWildCardCertificate(checkZoomConfigUrl);
-			System.out.println("----------Check Zoom Config Url---" + checkZoomConfigUrl);
-			ResponseEntity<JSONObject> uri = restTemplate.exchange(checkZoomConfigUrl, HttpMethod.GET, requestEntity1,
-					JSONObject.class);
-
-			if (uri != null && uri.getBody() != null) {
-				if (uri.getBody().containsKey("message") && uri.getBody().containsKey("code")) {
-
-					response.put("body", uri.getBody());
-					System.out.println("----data---" + uri.getBody());
-					response.put("responseCode", 200);
-					response.put("responseMessage", "Success!!!");
-				} else {
-					response.put("body", uri.getBody());
-					response.put("responseCode", 500);
-					response.put("responseMessage", "Failed!!!");
-				}
-			}
-			return response;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return response;
-		}
-
+			System.out.println("Params::" + body);
+			String uri = parsingURL + "/parsing/upload";
+			uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+			HttpEntity<Object> request = new HttpEntity<>(body);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
+			ObjectMapper mapper = new ObjectMapper();
+			JSONObject res = new JSONObject();
+			JsonNode root = mapper.readTree(response.getBody());	
+			System.out.println("---root--"+root);
+			res.put("response", root);
+			return res;	
 	}
 
 	@SuppressWarnings("unchecked")
-	public Response createApiConfig(ToolApiConfigModel toolApiConfigModel) {
+	public Response createApiConfig(ToolApiConfigModel toolApiConfigModel) throws JsonMappingException, JsonProcessingException {
 		JSONArray dataArray = new JSONArray();
 
 		JSONObject response = zoomAPICheck(toolApiConfigModel.getApiKey(), toolApiConfigModel.getApiSecretKey());
 
 		String code = (String) response.get("code");
 		String message = (String) response.get("message");
-		System.out.println("---code--"+code);
-		System.out.println("---message--"+message);
+		System.out.println("---code--" + code);
+		System.out.println("---message--" + message);
 		if (code.equalsIgnoreCase("200") && message.equalsIgnoreCase("Valid access token")) {
 			try {
 //			Map<String, Object> userNameData = jdbc.queryForMap("SELECT first_name, last_name FROM USER_TEMP WHERE user_id= '"+ toolApiConfigModel.getUserId() +"'");
