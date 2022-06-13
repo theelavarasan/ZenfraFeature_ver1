@@ -78,6 +78,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(HttpMethod.POST, "/rest/df/getVmaxSubreport").permitAll() 
             .antMatchers(HttpMethod.GET, "/rest/df/deleteDataframe").permitAll() 
             .antMatchers(HttpMethod.GET, "/rest/df/deleteAllDataframe").permitAll()
+            
+            .antMatchers(HttpMethod.GET, " /rest/tool-api-config/create").permitAll()
+           
              
             //.antMatchers(HttpMethod.DELETE, "/rest/api/log-file/**").permitAll()
             // Our private endpoints
