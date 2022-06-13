@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -67,10 +69,10 @@ public class ToolApiConfigService {
 
 	@SuppressWarnings("unchecked")
 
-	public JSONObject zoomAPICheck(String apiKey, String apiSecretKey) {
+	public ResponseEntity<JSONObject> zoomAPICheck(String apiKey, String apiSecretKey) {
 
 		RestTemplate restTemplate = new RestTemplate();
-			String parsingURL = DBUtils.getParsingServerIP();
+		String parsingURL = DBUtils.getParsingServerIP();
 //			RestTemplate restTemplate = new RestTemplate();
 //			System.out.println("Enter Parsing.....");
 //			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -86,24 +88,24 @@ public class ToolApiConfigService {
 //			ResponseEntity<JSONObject> response = restTemplate.exchange(uri, HttpMethod.GET, request, JSONObject.class);
 //
 //			System.out.println("----response----"+response);
-		JSONObject request = new JSONObject();
-		
-		request.put("apiKey", apiKey);
-		request.put("apiSecretKey", apiSecretKey);
-		
-		HttpHeaders headers1 = new HttpHeaders();
-		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-		headers1.setContentType(MediaType.APPLICATION_JSON);
-		HttpEntity<JSONObject> requestEntity1 = new HttpEntity<JSONObject>(request, headers1);
+//		JSONObject request = new JSONObject();
+//		
+//		request.put("apiKey", apiKey);
+//		request.put("apiSecretKey", apiSecretKey);
+//		
+//		HttpHeaders headers1 = new HttpHeaders();
+//		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+//		headers1.setContentType(MediaType.APPLICATION_JSON);
+//		HttpEntity<JSONObject> requestEntity1 = new HttpEntity<JSONObject>(request, headers1);
 //		String sendMailUrl = ZKModel.getProperty(ZKConstants.CHECK_ZOOM_CONFIG).replaceAll("<HOSTNAME>",
 //				ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
-		String uri = parsingURL + "/parsing/zoom-check";
-		uri =  CommonUtils.checkPortNumberForWildCardCertificate(uri);
-		System.out.println("----------Send Zoom Check Url---" + uri);
-		ResponseEntity<JSONObject> response = restTemplate.exchange(uri, HttpMethod.GET, requestEntity1, JSONObject.class);
+//		String uri = parsingURL + "/parsing/zoom-check";
+//		uri =  CommonUtils.checkPortNumberForWildCardCertificate(uri);
+//		System.out.println("----------Send Zoom Check Url---" + uri);
+//		ResponseEntity<JSONObject> response = restTemplate.exchange(uri, HttpMethod.GET, requestEntity1, JSONObject.class);
 
-		JSONObject response1 = response.getBody();
-		
+//		JSONObject response1 = response.getBody();
+
 //		if (uri != null && uri.getBody() != null) {
 //			if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
 //
@@ -120,7 +122,26 @@ public class ToolApiConfigService {
 //			responseModel.setResponseCode(200);
 //			responseModel.setResponseMsg("Success!!!");
 //		}
-		return response1;
+
+		String uri = parsingURL + "/parsing/zoom-check";
+		uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+
+		System.out.println("--uri--"+uri);
+		Map<String, Object> map = new HashMap<>(); 
+		map.put("apiKey", apiKey);
+		map.put("apiSecretKey", apiSecretKey);
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.putAll(map);
+
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
+		builder.build(map);
+		System.out.println("---"+builder.buildAndExpand(map).toUri());
+
+		HttpEntity<Object> httpRequest = new HttpEntity<>(body);
+		ResponseEntity<JSONObject> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri(),
+				HttpMethod.GET, httpRequest, JSONObject.class);
+		System.out.println("--Result--"+restResult);
+		return restResult;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -128,10 +149,11 @@ public class ToolApiConfigService {
 			throws JsonMappingException, JsonProcessingException {
 		JSONArray dataArray = new JSONArray();
 
-		JSONObject response = zoomAPICheck(toolApiConfigModel.getApiKey(),
-				toolApiConfigModel.getApiSecretKey());
-
+		ResponseEntity<JSONObject> response1 = zoomAPICheck(toolApiConfigModel.getApiKey(), toolApiConfigModel.getApiSecretKey());
+		
+		JSONObject response =  response1.getBody();
 		System.out.println("--response1--" + response);
+		
 		String code = (String) response.get("code");
 		String message = (String) response.get("message");
 		System.out.println("---code--" + code);
