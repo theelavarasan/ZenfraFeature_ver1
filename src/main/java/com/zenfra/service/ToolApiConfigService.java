@@ -98,7 +98,7 @@ public class ToolApiConfigService {
 				ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
 		sendMailUrl = CommonUtils.checkPortNumberForWildCardCertificate(sendMailUrl);
 		System.out.println("----------Send Zoom Check Url---" + sendMailUrl);
-		ResponseEntity<JSONObject> uri = restTemplate.exchange(sendMailUrl, HttpMethod.POST, requestEntity1, JSONObject.class);
+		ResponseEntity<JSONObject> uri = restTemplate.exchange(sendMailUrl, HttpMethod.GET, requestEntity1, JSONObject.class);
 
 		JSONObject response = uri.getBody();
 		
