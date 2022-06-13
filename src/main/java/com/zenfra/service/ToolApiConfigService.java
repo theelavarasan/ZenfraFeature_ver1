@@ -70,7 +70,7 @@ public class ToolApiConfigService {
 	public JSONObject zoomAPICheck(String apiKey, String apiSecretKey) {
 
 		RestTemplate restTemplate = new RestTemplate();
-//			String parsingURL = DBUtils.getParsingServerIP();
+			String parsingURL = DBUtils.getParsingServerIP();
 //			RestTemplate restTemplate = new RestTemplate();
 //			System.out.println("Enter Parsing.....");
 //			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -90,17 +90,19 @@ public class ToolApiConfigService {
 		
 		request.put("apiKey", apiKey);
 		request.put("apiSecretKey", apiSecretKey);
+		
 		HttpHeaders headers1 = new HttpHeaders();
 		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		headers1.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<JSONObject> requestEntity1 = new HttpEntity<JSONObject>(request, headers1);
-		String sendMailUrl = ZKModel.getProperty(ZKConstants.CHECK_ZOOM_CONFIG).replaceAll("<HOSTNAME>",
-				ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
-		sendMailUrl = CommonUtils.checkPortNumberForWildCardCertificate(sendMailUrl);
-		System.out.println("----------Send Zoom Check Url---" + sendMailUrl);
-		ResponseEntity<JSONObject> uri = restTemplate.exchange(sendMailUrl, HttpMethod.GET, requestEntity1, JSONObject.class);
+//		String sendMailUrl = ZKModel.getProperty(ZKConstants.CHECK_ZOOM_CONFIG).replaceAll("<HOSTNAME>",
+//				ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
+		String uri = parsingURL + "/parsing/zoom-check";
+		uri =  CommonUtils.checkPortNumberForWildCardCertificate(uri);
+		System.out.println("----------Send Zoom Check Url---" + uri);
+		ResponseEntity<JSONObject> response = restTemplate.exchange(uri, HttpMethod.GET, requestEntity1, JSONObject.class);
 
-		JSONObject response = uri.getBody();
+		JSONObject response1 = response.getBody();
 		
 //		if (uri != null && uri.getBody() != null) {
 //			if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
@@ -118,7 +120,7 @@ public class ToolApiConfigService {
 //			responseModel.setResponseCode(200);
 //			responseModel.setResponseMsg("Success!!!");
 //		}
-		return response;
+		return response1;
 	}
 
 	@SuppressWarnings("unchecked")
