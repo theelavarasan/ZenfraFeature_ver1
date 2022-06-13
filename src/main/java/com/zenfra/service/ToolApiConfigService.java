@@ -77,12 +77,12 @@ public class ToolApiConfigService {
 			body.add("apiSecretKey", apiSecretKey);
 
 			System.out.println("Params::" + body);
-			String uri = parsingURL + "/parsing/upload";
+			String uri = parsingURL + "/parsing/zoom-check";
 			uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
 			System.out.println("--uri---"+uri);
 			HttpEntity<Object> request = new HttpEntity<>(body);
 			System.out.println("--request---"+request);
-			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, request, String.class);
 			System.out.println("--response---"+response);
 			ObjectMapper mapper = new ObjectMapper();
 			JSONObject res = new JSONObject();
