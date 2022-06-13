@@ -139,7 +139,7 @@ public class ToolApiConfigService {
 
 		HttpEntity<Object> httpRequest = new HttpEntity<>(body);
 		ResponseEntity<JSONObject> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri(),
-				HttpMethod.GET, httpRequest, JSONObject.class);
+				HttpMethod.POST, httpRequest, JSONObject.class);
 		System.out.println("--Result--"+restResult);
 		return restResult;
 	}
