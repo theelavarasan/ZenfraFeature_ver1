@@ -94,7 +94,7 @@ public class ToolApiConfigService {
 		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		headers1.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<JSONObject> requestEntity1 = new HttpEntity<JSONObject>(request, headers1);
-		String sendMailUrl = ZKModel.getProperty(ZKConstants.SEND_ERROR_MAIL_URL).replaceAll("<HOSTNAME>",
+		String sendMailUrl = ZKModel.getProperty(ZKConstants.CHECK_ZOOM_CONFIG).replaceAll("<HOSTNAME>",
 				ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
 		sendMailUrl = CommonUtils.checkPortNumberForWildCardCertificate(sendMailUrl);
 		System.out.println("----------Send Zoom Check Url---" + sendMailUrl);
