@@ -67,7 +67,7 @@ public class ToolApiConfigService {
 
 	@SuppressWarnings("unchecked")
 
-	public JSONObject zoomAPICheck(String apiKey, String apiSecretKey) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<JSONObject> zoomAPICheck(String apiKey, String apiSecretKey) throws JsonMappingException, JsonProcessingException {
 
 			String parsingURL = DBUtils.getParsingServerIP();
 			RestTemplate restTemplate = new RestTemplate();
@@ -82,24 +82,22 @@ public class ToolApiConfigService {
 			System.out.println("--uri---"+uri);
 			HttpEntity<Object> request = new HttpEntity<>(body);
 			System.out.println("--request---"+request);
-			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, request, String.class);
-			System.out.println("--response---"+response);
-			ObjectMapper mapper = new ObjectMapper();
-			JSONObject res = new JSONObject();
-			JsonNode root = mapper.readTree(response.getBody());	
-			System.out.println("---root--"+root);
-			res.put("response", root);
-			return res;	
+			ResponseEntity<JSONObject> response = restTemplate.exchange(uri, HttpMethod.GET, request, JSONObject.class);
+
+			System.out.println("----response----"+response);
+			return response;	
 	}
 
 	@SuppressWarnings("unchecked")
 	public Response createApiConfig(ToolApiConfigModel toolApiConfigModel) throws JsonMappingException, JsonProcessingException {
 		JSONArray dataArray = new JSONArray();
 
-		JSONObject response = zoomAPICheck(toolApiConfigModel.getApiKey(), toolApiConfigModel.getApiSecretKey());
+		ResponseEntity<JSONObject> response = zoomAPICheck(toolApiConfigModel.getApiKey(), toolApiConfigModel.getApiSecretKey());
 
-		String code = (String) response.get("code");
-		String message = (String) response.get("message");
+		JSONObject response1 = response.getBody();
+		System.out.println("--response1--"+response1);
+		String code = (String) response1.get("code");
+		String message = (String) response1.get("message");
 		System.out.println("---code--" + code);
 		System.out.println("---message--" + message);
 		if (code.equalsIgnoreCase("200") && message.equalsIgnoreCase("Valid access token")) {
