@@ -166,8 +166,8 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 
 				System.out.println("-------log-----" + log);
 			} else {
-				//getFileDetails(siteKey, true);
-				log = logRepo.getBySiteKeyAndIsActive(siteKey, true);
+				getFileDetails(siteKey, true);
+				//log = logRepo.getBySiteKeyAndIsActive(siteKey, true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
