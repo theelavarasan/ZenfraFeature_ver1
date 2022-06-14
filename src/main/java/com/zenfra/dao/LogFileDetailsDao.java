@@ -194,9 +194,6 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 					+ "else file_name end) as file_name2 from log_file_details \r\n"
 					+ "where is_active= true and  site_key= '" + siteKey + "' and log_type ilike 'zoom'\r\n"
 					+ "order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') \r\n" + "desc";
-
-			System.out.println("!!! selectQuery: " + selectQuery);
-
 			ResultSet rs = statement.executeQuery(selectQuery);
 
 			while (rs.next()) {
