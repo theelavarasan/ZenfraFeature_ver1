@@ -2,6 +2,9 @@ package com.zenfra.service;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,10 +31,12 @@ import com.zenfra.model.SiteModel;
 import com.zenfra.model.Users;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
 public class HealthCheckService {
+	
 
 	final ObjectMapper map = new ObjectMapper();
 
@@ -70,7 +75,7 @@ public class HealthCheckService {
 		healthCheck.setHealthCheckId(healthCheckId);
 		JSONObject healthCheckModel = new JSONObject();
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.getEntityByColumn(
-				"select * from health_check where health_check_id='" + healthCheckId + "' and is_active='true'",
+				"select * from health_check where health_check_id='" + healthCheckId + "'",
 				HealthCheck.class);
 		savedObj.setAuthUserId(authUserId);
 		if (savedObj != null) {
@@ -99,6 +104,29 @@ public class HealthCheckService {
 				healthCheck.getHealthCheckId());
 		JSONObject healthCheckModel = convertEntityToModel(savedObj);
 		return healthCheckModel;
+	}
+	
+	public String activateHealthCheck(String healthCheckId, boolean isActive) {
+		Map<String, String> data = new HashMap<>();
+		data = DBUtils.getPostgres();
+		String updateQuery = "";
+		try (Connection con = DriverManager.getConnection(data.get("url"), data.get("userName"), data.get("password"));
+				Statement statement = con.createStatement();) {
+
+			updateQuery = "update health_check set is_active =" + isActive + " where health_check_id = '"
+					+ healthCheckId + "'";
+			System.out.println("!!!UpdateQuery: " + updateQuery);
+			int resultSet = statement.executeUpdate(updateQuery);
+			System.out.println("-----------Data Updated------------" + resultSet);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (!isActive)
+			return "HealthCheck De-Activated Successfully";
+		else
+			return "HealthCheck Activated Successfully";
+
 	}
 
 	public boolean deleteHealthCheck(HealthCheck healthCheck) {
@@ -206,6 +234,8 @@ public class HealthCheckService {
 		response.put("reportName", healthCheck.getReportName());
 		response.put("reportBy", healthCheck.getReportBy());
 		response.put("analyticsType", healthCheck.getAnalyticsType());
+		response.put("isActive", healthCheck.isActive());
+		
 		try {
 			String s = healthCheck.getReportCondition();
 			ObjectMapper mapper = new ObjectMapper();
@@ -333,7 +363,7 @@ public class HealthCheckService {
 		String query = null;
 		try {
 			if (projectId != null && !projectId.isEmpty()) {
-				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName, "
+				query = "SELECT health_check_id as healthCheckId, component_type as componentType, is_active as isActive, health_check_name as healthCheckName, "
 						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList, "
 						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
 						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
@@ -342,8 +372,7 @@ public class HealthCheckService {
 						+ "create_by as createdById, update_by as updatedById FROM health_check h "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
 						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
-						+ "where is_active = true and site_key='" + siteKey + "' and report_by ='" + projectId
-						+ "' order by health_check_name ASC";
+						+ "where site_key='" + siteKey + "' and report_by = '" + projectId + "' order by health_check_name ASC";
 
 			} else {
 				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName, "
@@ -399,6 +428,12 @@ public class HealthCheckService {
 						healthCheckModel.put("updatedById", mapObject.get("updatedbyid"));
 						healthCheckModel.put("createdBy", mapObject.get("createby"));
 						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
+						
+						if(mapObject.containsKey("isActive")) {
+							healthCheckModel.put("isActive", mapObject.get("isActive"));
+						} else {
+							healthCheckModel.put("isActive", true);
+						}
 						healthCheckModel.put("overallStatusRuleList", jsonParser.parse(mapObject.get("overallstatusrulelist") != null ? mapObject.get("overallstatusrulelist").toString() : "[]"));
 							
 //						JSONObject response = convertEntityToModel((HealthCheck) obj);
@@ -515,6 +550,7 @@ public class HealthCheckService {
 	public com.zenfra.model.GridDataFormat getHealthCheckData(String siteKey, String userId, String projectId) {
 		JSONArray toRet = new JSONArray();
 		com.zenfra.model.GridDataFormat gridDataFormat = new com.zenfra.model.GridDataFormat();
+		HealthCheck healthCheck = new HealthCheck();
 		gridDataFormat.setColumnOrder(new ArrayList<>());
 
 		JSONObject headerLabelJson = new JSONObject();
@@ -575,6 +611,8 @@ public class HealthCheckService {
 			JSONParser parser = new JSONParser();
 			for (int i = 0; i < healthCheckList.size(); i++) {
 				JSONObject jObj = (JSONObject) healthCheckList.get(i);
+				
+				
 				/*
 				 * JSONArray storageList = (JSONArray)
 				 * parser.parse(ZKModel.getProperty(ZKConstants.STORAGE_LIST)); JSONArray
@@ -615,8 +653,10 @@ public class HealthCheckService {
 								generateGridHeader(key, jObj.get(key), null, siteKey, "user", headerLabelJson));
 					}
 				}
-
+				
+				
 				if (jObj.size() > 0) {
+					
 					// Share Access updated.
 					if (isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId)) {
 						isWriteAccess = true;
@@ -649,6 +689,8 @@ public class HealthCheckService {
 							jObj.put("siteList", siteList);
 						}
 					}
+					
+					
 					if (jObj.containsKey("userAccessList")) {
 						JSONArray userAccessList = new JSONArray();
 						userAccessList = (JSONArray) parser.parse((String) jObj.get("userAccessList"));
@@ -679,6 +721,7 @@ public class HealthCheckService {
 						}
 					}
 
+					
 					gridData.add(jObj);
 				}
 			}
@@ -703,6 +746,7 @@ public class HealthCheckService {
 
 			}
 			gridHeaderList.addAll(headerKeys.values());
+			
 			gridDataFormat.setData(gridData);
 		} catch (Exception e) {
 			e.printStackTrace();

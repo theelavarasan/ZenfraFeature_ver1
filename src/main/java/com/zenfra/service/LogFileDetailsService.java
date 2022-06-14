@@ -10,9 +10,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.clickhouse.client.internal.google.gson.JsonObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.Interface.IService;
 import com.zenfra.configuration.RedisUtil;
@@ -111,18 +115,42 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			List<LogFileDetails> logFile = logDao.getLogFileDetailsByLogids(logFileIds);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 
-			for (LogFileDetails log : logFile) {						
-				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+			for (LogFileDetails log : logFile) {
 
-					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+						log.setStatus("retrieving");
+					}
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+						log.setStatus("retrieved");
+					}
+				}
+
+//				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+//						&& (log.getLogType().equalsIgnoreCase("pure"))) {
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+//						log.setStatus("retrieving");
+//					}
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+//						log.setStatus("retrieved");
+//					}
+//				}
+
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("import_success");
 					}
 				}
 				JSONObject json = new JSONObject();
 				json.put("status", log.getStatus());
 				json.put("logFileId", log.getLogFileId());
-				if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
-					json.put("parsedDateTime", log.getParsedDateTime() != null? common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()) : "");
+				if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+					json.put("parsedDateTime",
+							log.getParsedDateTime() != null
+									? common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime())
+									: "");
 				}
 				resultArray.add(json);
 			}
@@ -162,6 +190,38 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 						log.setStatus("import_success");
 					}
 				}
+
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
+					List<String> fileNames = logDao.zoomFileName(siteKey);
+					for (String fileName : fileNames) {
+						log.setFileName(fileName);
+					}
+					log.setCreatedDateTime(log.getCreatedDateTime());
+					log.setUpdatedDateTime(log.getUpdatedDateTime());
+					log.setParsedDateTime(log.getParsedDateTime());
+					log.setParsingStartTime(log.getParsingStartTime());
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+						log.setStatus("retrieving");
+					}
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+						log.setStatus("retrieved");
+					}
+				}
+
+//				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+//						&& (log.getLogType().equalsIgnoreCase("pure"))) {
+//					log.setCreatedDateTime(log.getCreatedDateTime());
+//					log.setUpdatedDateTime(log.getCreatedDateTime());
+//					log.setParsedDateTime(log.getCreatedDateTime());
+//					log.setParsingStartTime(log.getCreatedDateTime());
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+//						log.setStatus("retrieving");
+//					}
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+//						log.setStatus("retrieved");
+//					}
+//				}
 				logFileUpdate.add(log);
 			}
 
