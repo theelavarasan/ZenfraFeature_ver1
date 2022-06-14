@@ -18,6 +18,7 @@ import java.util.UUID;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -100,9 +101,9 @@ public class ToolApiConfigService {
 				toolApiConfigModel.getApiSecretKey(), toolApiConfigModel.getSiteKey());
 
 		JSONObject response = response1.getBody();
-		int code = (int) response.get("code");
+		String code = response.get("code").toString();
 		String message = response.get("message").toString();
-		if (code == 200 && message.equalsIgnoreCase("Valid access token")) {
+		if (code.equalsIgnoreCase("200") && message.equalsIgnoreCase("Valid access token")) {
 			try {
 				toolApiConfigModel.setActive(true);
 				toolApiConfigModel.setApiConfigId(UUID.randomUUID().toString());
@@ -123,7 +124,7 @@ public class ToolApiConfigService {
 			}
 		} else {
 			responseModel.setResponseMsg("Invalid Access Token");
-			responseModel.setResponseCode(124);
+			responseModel.setResponseCode(400);
 			responseModel.setjData("Configuration Keys Are Not Valid");
 		}
 		return responseModel;

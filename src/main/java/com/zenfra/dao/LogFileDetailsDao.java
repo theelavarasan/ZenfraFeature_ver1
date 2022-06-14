@@ -2,11 +2,17 @@ package com.zenfra.dao;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +21,7 @@ import com.zenfra.Interface.IGenericDao;
 import com.zenfra.dao.common.JdbcCommonOperations;
 import com.zenfra.ftp.repo.LogFileDetailsRepo;
 import com.zenfra.model.LogFileDetails;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Component
@@ -148,62 +155,15 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<LogFileDetails> getLogFileDetailsBySiteKey(String siteKey, boolean fromZenfraCollector) {
 		List<LogFileDetails> log = new ArrayList<LogFileDetails>();
 		try {
-
-			@SuppressWarnings("unused")
 			JSONArray dataArray = new JSONArray();
 			if (fromZenfraCollector) {
 
 				log = logRepo.getByFromZenfraCollector(siteKey, true);
 
-//					Map<String, String> data = new HashMap<>();
-//					data = DBUtils.getPostgres();
-//					try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-//							data.get("password")); Statement statement = connection.createStatement();) {
-//						String selectQuery = "select * from log_file_details where is_active = true and from_zenfra_collector = true";
-				//
-//						System.out.println("!!! selectQuery: " + selectQuery);
-				//
-//						ResultSet rs = statement.executeQuery(selectQuery);
-				//
-//						while (rs.next()) {
-//							JSONObject dataObj = new JSONObject();
-				//
-//							dataObj.put("logFileId", rs.getString("log_file_id"));
-//							dataObj.put("CreatedTime", rs.getString("created_date_time"));
-//							dataObj.put("description", rs.getString("description"));
-//							dataObj.put("extractedPath", rs.getString("extracted_path"));
-//							dataObj.put("fileName", rs.getString("file_name"));
-//							dataObj.put("fileSize", rs.getString("file_size"));
-//							dataObj.put("isActive", rs.getBoolean("is_active"));
-//							dataObj.put("logType", rs.getString("log_type"));
-//							dataObj.put("masterLogs", rs.getString("master_logs"));
-//							dataObj.put("response", rs.getString("response"));
-//							dataObj.put("siteKey", rs.getString("site_key"));
-//							dataObj.put("status", rs.getString("status"));
-//							dataObj.put("tenantId", rs.getString("tenant_id"));
-//							dataObj.put("updatedTime", rs.getString("updated_date_time"));
-//							dataObj.put("uploadedBy", rs.getString("uploaded_by"));
-//							dataObj.put("uploadedLogs", rs.getString("uploaded_logs"));
-//							dataObj.put("cmdStatusInsertion", rs.getString("cmd_status_insertion"));
-//							dataObj.put("cmd_status_parsing", rs.getString("cmd_status_parsing"));
-//							dataObj.put("message", rs.getString("message"));
-//							dataObj.put("parsedDateTime", rs.getString("parsed_date_time"));
-//							dataObj.put("parsingStartTime", rs.getString("parsing_start_time"));
-//							dataObj.put("parsingStatus", rs.getString("parsing_status"));
-//							dataObj.put("parsingStatus", rs.getString("parsing_status"));
-//							dataObj.put("tempStatus", rs.getString("temp_status"));
-//							dataObj.put("logId", rs.getString("log_id"));
-//							dataObj.put("rid", rs.getString("rid"));
-//							dataObj.put("filePaths", rs.getString("file_paths"));
-//							dataObj.put("fromZenfraCollector", rs.getBoolean("from_zenfra_collector"));
-//							dataObj.put("collectionDate", rs.getString("collection_date"));
-//							
-
-//						}
-//					}
 				System.out.println("-------log-----" + log);
 			} else {
 				log = logRepo.getBySiteKeyAndIsActive(siteKey, true);
@@ -217,6 +177,64 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 		}
 
 		return log;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<String> zoomFileName(String siteKey) {
+
+		List<String> fileName = new ArrayList<String>();
+		JSONArray response = new JSONArray();
+		Map<String, String> data = new HashMap<>();
+		data = DBUtils.getPostgres();
+		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+				data.get("password")); Statement statement = connection.createStatement();) {
+
+			String selectQuery = "select *, \r\n" + "(case when log_type ilike 'zoom' then concat(file_name, '-', \r\n"
+					+ "to_char(to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss')::timestamp, 'mm-dd-yyyy hh24:mi:ss')) \r\n"
+					+ "else file_name end) as file_name2 from log_file_details \r\n"
+					+ "where is_active= true and  site_key= '" + siteKey + "' and log_type ilike 'zoom'\r\n"
+					+ "order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') \r\n" + "desc";
+
+			System.out.println("!!! selectQuery: " + selectQuery);
+
+			ResultSet rs = statement.executeQuery(selectQuery);
+
+			while (rs.next()) {
+				JSONObject dataObj = new JSONObject();
+
+//				dataObj.put("createdDateTime", rs.getString("created_date_time"));
+//				dataObj.put("description", rs.getString("description"));
+//				dataObj.put("extractedPath", rs.getString("extracted_path"));
+//				dataObj.put("fileName", rs.getString("file_name"));
+//				dataObj.put("fileSize", rs.getString("file_size"));
+//				dataObj.put("isActive", rs.getBoolean("is_active"));
+//				dataObj.put("logType", rs.getString("log_type"));
+//				dataObj.put("masterLogs", rs.getString("master_logs"));
+//				dataObj.put("response", rs.getString("response"));
+//				dataObj.put("siteKey", rs.getString("site_key"));
+//				dataObj.put("status", rs.getString("status"));
+//				dataObj.put("tenantId", rs.getString("tenant_id"));
+//				dataObj.put("updatedDateTime", rs.getString("updated_date_time"));
+//				dataObj.put("uploadedBy", rs.getString("uploaded_by"));
+//				dataObj.put("uploadedLogs", rs.getString("uploaded_logs"));
+//				dataObj.put("CmdStatusInsertion", rs.getString("Cmd_status_insertion"));
+//				dataObj.put("CmdStatusParsing", rs.getString("Cmd_status_parsing"));
+//				dataObj.put("message", rs.getString("message"));
+//				dataObj.put("parsedDateTime", rs.getString("parsed_date_time"));
+//				dataObj.put("parsingStartTime", rs.getString("parsing_start_time"));
+//				dataObj.put("parsing_status", rs.getString("parsing_status"));
+//				dataObj.put("tempStatus", rs.getString("temp_status"));
+//				dataObj.put("logId", rs.getString("log_id"));
+//				dataObj.put("filePaths", rs.getString("file_paths"));
+				dataObj.put("fileName2", rs.getString("file_name2"));
+				fileName.add(rs.getString("file_name2"));
+				response.add(dataObj);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return fileName;
+
 	}
 
 	public boolean saveLogtypeAndDescription(List<String> logFileIds, String description, String logtype) {
