@@ -126,8 +126,8 @@ public class ToolApiConfigService {
 		String uri = parsingURL + "/parsing/zoom-check";
 		uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
 
-		System.out.println("--uri--"+uri);
-		Map<String, Object> map = new HashMap<>(); 
+		System.out.println("--uri--" + uri);
+		Map<String, Object> map = new HashMap<>();
 		map.put("apiKey", apiKey);
 		map.put("apiSecretKey", apiSecretKey);
 		map.put("siteKey", siteKey);
@@ -136,16 +136,16 @@ public class ToolApiConfigService {
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
 		builder.build(map);
-		System.out.println("---"+builder.buildAndExpand(map).toUri());
+		System.out.println("---" + builder.buildAndExpand(map).toUri());
 
 		HttpEntity<Object> httpRequest = new HttpEntity<>(body);
 		ResponseEntity<JSONObject> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri(),
 				HttpMethod.POST, httpRequest, JSONObject.class);
-		JSONObject response =  restResult.getBody();
-		
-		System.out.println("--Result--"+response.get("code"));
-		System.out.println("--Result--"+response.get("message"));
-		System.out.println("--Result--"+restResult.getBody());
+		JSONObject response = restResult.getBody();
+
+		System.out.println("--Result--" + response.get("code"));
+		System.out.println("--Result--" + response.get("message"));
+		System.out.println("--Result--" + restResult.getBody());
 		return restResult;
 	}
 
@@ -154,28 +154,22 @@ public class ToolApiConfigService {
 			throws JsonMappingException, JsonProcessingException {
 		JSONArray dataArray = new JSONArray();
 
-		ResponseEntity<JSONObject> response1 = zoomAPICheck(toolApiConfigModel.getApiKey(), toolApiConfigModel.getApiSecretKey(), toolApiConfigModel.getSiteKey());
-		
-		JSONObject response =  response1.getBody();
+		ResponseEntity<JSONObject> response1 = zoomAPICheck(toolApiConfigModel.getApiKey(),
+				toolApiConfigModel.getApiSecretKey(), toolApiConfigModel.getSiteKey());
+
+		JSONObject response = response1.getBody();
 		System.out.println("--response1--" + response);
-		
-		String code = (String) response.get("code");
-		String message = (String) response.get("message");
-		System.out.println("---code--" + code);
-		System.out.println("---message--" + message);
-		if (code.equalsIgnoreCase("200") && message.equalsIgnoreCase("Valid access token")) {
+
+		int code = (int) response.get("code");
+		String message = response.get("message").toString();
+		if (code == 200 && message.equalsIgnoreCase("Valid access token")) {
 			try {
-//			Map<String, Object> userNameData = jdbc.queryForMap("SELECT first_name, last_name FROM USER_TEMP WHERE user_id= '"+ toolApiConfigModel.getUserId() +"'");
 				toolApiConfigModel.setActive(true);
 				toolApiConfigModel.setApiConfigId(UUID.randomUUID().toString());
 				toolApiConfigModel.setCreatedTime(commonFunctions.getCurrentDateWithTime());
 				toolApiConfigModel.setUpdatedTime(commonFunctions.getCurrentDateWithTime());
 				toolApiConfigModel.setCreatedBy(toolApiConfigModel.getUserId());
 				toolApiConfigModel.setUpdatedBy(toolApiConfigModel.getUserId());
-//			Optional<ToolApiConfigModel> userName = toolApiConfigRepository
-//					.findById(toolApiConfigModel.getUserId());			
-//			String userNmae = userNameData.get("first_name").toString()+" "+userNameData.get("last_name").toString();		
-
 				toolApiConfigRepository.save(toolApiConfigModel);
 				dataArray.add(toolApiConfigModel);
 
@@ -188,6 +182,10 @@ public class ToolApiConfigService {
 				responseModel.setResponseCode(500);
 
 			}
+		} else {
+			responseModel.setResponseMsg("Invalid Access Token");
+			responseModel.setResponseCode(124);
+			responseModel.setjData("Configuration Keys Are Not Valid");
 		}
 		return responseModel;
 
