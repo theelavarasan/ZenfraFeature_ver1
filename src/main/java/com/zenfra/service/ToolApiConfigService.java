@@ -7,7 +7,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,18 +18,34 @@ import java.util.UUID;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.dao.HeaderInfoModalRepository;
 import com.zenfra.dao.ToolApiConfigRepository;
 import com.zenfra.model.HeaderInfoModel;
 import com.zenfra.model.Response;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ToolApiConfigModel;
+import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
@@ -50,38 +68,66 @@ public class ToolApiConfigService {
 	@Autowired
 	HeaderInfoModalRepository headerInfoModalRepository;
 
-	@SuppressWarnings("unchecked")
-	public Response createApiConfig(ToolApiConfigModel toolApiConfigModel) {
+	public ResponseEntity<JSONObject> zoomAPICheck(String apiKey, String apiSecretKey, String siteKey) {
 
+		RestTemplate restTemplate = new RestTemplate();
+		String parsingURL = DBUtils.getParsingServerIP();
+
+		String uri = parsingURL + "/parsing/zoom-check";
+		uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("apiKey", apiKey);
+		map.put("apiSecretKey", apiSecretKey);
+		map.put("siteKey", siteKey);
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.putAll(map);
+
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
+		builder.build(map);
+
+		HttpEntity<Object> httpRequest = new HttpEntity<>(body);
+		ResponseEntity<JSONObject> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri(),
+				HttpMethod.POST, httpRequest, JSONObject.class);
+		return restResult;
+	}
+
+	@SuppressWarnings("unchecked")
+	public Response createApiConfig(ToolApiConfigModel toolApiConfigModel)
+			throws JsonMappingException, JsonProcessingException {
 		JSONArray dataArray = new JSONArray();
 
-		try {
+		ResponseEntity<JSONObject> response1 = zoomAPICheck(toolApiConfigModel.getApiKey(),
+				toolApiConfigModel.getApiSecretKey(), toolApiConfigModel.getSiteKey());
 
-//			Map<String, Object> userNameData = jdbc.queryForMap("SELECT first_name, last_name FROM USER_TEMP WHERE user_id= '"+ toolApiConfigModel.getUserId() +"'");
-			toolApiConfigModel.setActive(true);
-			toolApiConfigModel.setApiConfigId(UUID.randomUUID().toString());
-			toolApiConfigModel.setCreatedTime(commonFunctions.getCurrentDateWithTime());
-			toolApiConfigModel.setUpdatedTime(commonFunctions.getCurrentDateWithTime());
-			toolApiConfigModel.setCreatedBy(toolApiConfigModel.getUserId());
-			toolApiConfigModel.setUpdatedBy(toolApiConfigModel.getUserId());
-//			Optional<ToolApiConfigModel> userName = toolApiConfigRepository
-//					.findById(toolApiConfigModel.getUserId());			
-//			String userNmae = userNameData.get("first_name").toString()+" "+userNameData.get("last_name").toString();		
+		JSONObject response = response1.getBody();
+		String code = response.get("code").toString();
+		String message = response.get("message").toString();
+		if (code.equalsIgnoreCase("200") && message.equalsIgnoreCase("Valid access token")) {
+			try {
+				toolApiConfigModel.setActive(true);
+				toolApiConfigModel.setApiConfigId(UUID.randomUUID().toString());
+				toolApiConfigModel.setCreatedTime(commonFunctions.getCurrentDateWithTime());
+				toolApiConfigModel.setUpdatedTime(commonFunctions.getCurrentDateWithTime());
+				toolApiConfigModel.setCreatedBy(toolApiConfigModel.getUserId());
+				toolApiConfigModel.setUpdatedBy(toolApiConfigModel.getUserId());
+				toolApiConfigRepository.save(toolApiConfigModel);
+				dataArray.add(toolApiConfigModel);
 
-			toolApiConfigRepository.save(toolApiConfigModel);
-			dataArray.add(toolApiConfigModel);
+				responseModel.setResponseMsg("Success");
+				responseModel.setResponseCode(200);
+				responseModel.setjData(dataArray);
 
-			responseModel.setResponseMsg("Success");
-			responseModel.setResponseCode(200);
-			responseModel.setjData(dataArray);
-			return responseModel;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			responseModel.setResponseCode(500);
-			return responseModel;
+			} catch (Exception e) {
+				e.printStackTrace();
+				responseModel.setResponseCode(500);
+			}
+		} else {
+			responseModel.setResponseMsg("Invalid Access Token");
+			responseModel.setResponseCode(400);
+			responseModel.setjData("Configuration Keys Are Not Valid");
 		}
-
+		return responseModel;
 	}
 
 	public Response getToolApiData(String toolApiConfigId) {
@@ -178,7 +224,8 @@ public class ToolApiConfigService {
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 
-			String selectQuery = "select * from tool_api_config where site_key = '" + siteKey + "' and is_active = true";
+			String selectQuery = "select * from tool_api_config where site_key = '" + siteKey
+					+ "' and is_active = true";
 
 			System.out.println("!!! selectQuery: " + selectQuery);
 
