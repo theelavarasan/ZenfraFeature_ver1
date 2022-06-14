@@ -226,6 +226,7 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 				logData.setParsingStatus(rs.getString("parsing_status"));
 				logData.setTempStatus(rs.getString("temp_status"));
 				logData.setLogId(rs.getString("log_id"));
+				logData.setLogFileId(rs.getString("log_file_id"));
 				logData.setFilePaths(rs.getString("file_paths"));
 				logData.setFileName(rs.getString("file_name2"));
 				
