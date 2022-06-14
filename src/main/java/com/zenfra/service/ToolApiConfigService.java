@@ -69,7 +69,7 @@ public class ToolApiConfigService {
 
 	@SuppressWarnings("unchecked")
 
-	public ResponseEntity<JSONObject> zoomAPICheck(String apiKey, String apiSecretKey) {
+	public ResponseEntity<JSONObject> zoomAPICheck(String apiKey, String apiSecretKey, String siteKey) {
 
 		RestTemplate restTemplate = new RestTemplate();
 		String parsingURL = DBUtils.getParsingServerIP();
@@ -130,6 +130,7 @@ public class ToolApiConfigService {
 		Map<String, Object> map = new HashMap<>(); 
 		map.put("apiKey", apiKey);
 		map.put("apiSecretKey", apiSecretKey);
+		map.put("siteKey", siteKey);
 		Map<String, Object> body = new LinkedHashMap<>();
 		body.putAll(map);
 
@@ -149,7 +150,7 @@ public class ToolApiConfigService {
 			throws JsonMappingException, JsonProcessingException {
 		JSONArray dataArray = new JSONArray();
 
-		ResponseEntity<JSONObject> response1 = zoomAPICheck(toolApiConfigModel.getApiKey(), toolApiConfigModel.getApiSecretKey());
+		ResponseEntity<JSONObject> response1 = zoomAPICheck(toolApiConfigModel.getApiKey(), toolApiConfigModel.getApiSecretKey(), toolApiConfigModel.getSiteKey());
 		
 		JSONObject response =  response1.getBody();
 		System.out.println("--response1--" + response);
