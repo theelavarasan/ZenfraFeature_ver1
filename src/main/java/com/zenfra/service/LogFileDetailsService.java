@@ -171,6 +171,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 			Map<String, String> userList = userCreateService.getUserNames();
 			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKey(siteKey, fromZenfraCollector);
+			System.out.println("--log-"+logFile);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 			for (LogFileDetails log : logFile) {
 				if (userList.containsKey(log.getUploadedBy())) {
@@ -193,10 +194,8 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
 						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
-					List<String> fileNames = logDao.zoomFileName(siteKey);
-					for (String fileName : fileNames) {
-						log.setFileName(fileName);
-					}
+
+					log.setFileName(log.getFileName());
 					log.setCreatedDateTime(log.getCreatedDateTime());
 					log.setUpdatedDateTime(log.getUpdatedDateTime());
 					log.setParsedDateTime(log.getParsedDateTime());
