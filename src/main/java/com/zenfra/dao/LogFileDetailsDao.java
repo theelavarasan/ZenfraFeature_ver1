@@ -183,10 +183,9 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 	@SuppressWarnings("unchecked")
 	public List<LogFileDetails> getFileDetails(String siteKey, boolean isActive) {
 		
-		LogFileDetails logData = new LogFileDetails();
+		
 		List<LogFileDetails> log = new ArrayList<LogFileDetails>();
 		
-		JSONArray response = new JSONArray();
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
@@ -202,7 +201,8 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 			ResultSet rs = statement.executeQuery(selectQuery);
 
 			while (rs.next()) {
-				JSONObject dataObj = new JSONObject();
+				
+				LogFileDetails logData = new LogFileDetails();
 
 				logData.setCreatedDateTime(rs.getString("created_date_time"));
 				logData.setDescription(rs.getString("description"));
