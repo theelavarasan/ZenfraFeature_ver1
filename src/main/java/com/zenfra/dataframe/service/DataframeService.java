@@ -246,17 +246,20 @@ public class DataframeService {
 			ColumnFilter filter = entry.getValue();
 			columnName = "`" + columnName + "`";
 
-			if (filter instanceof SetColumnFilter) {
-				return setFilter().apply(columnName, (SetColumnFilter) filter);
-			}
+			if(filter != null) {
+				if (filter instanceof SetColumnFilter) {
+					return setFilter().apply(columnName, (SetColumnFilter) filter);
+				}
 
-			if (filter instanceof NumberColumnFilter) {
-				return numberFilter().apply(columnName, (NumberColumnFilter) filter);
-			}
+				if (filter instanceof NumberColumnFilter) {
+					return numberFilter().apply(columnName, (NumberColumnFilter) filter);
+				}
 
-			if (filter instanceof TextColumnFilter) {
-				return textFilter().apply(columnName, (TextColumnFilter) filter);
+				if (filter instanceof TextColumnFilter) {
+					return textFilter().apply(columnName, (TextColumnFilter) filter);
+				}
 			}
+			
 
 			return "";
 		};
@@ -1809,7 +1812,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						
 						String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
 								+ request.getCategory() + "_" + deviceType + "_" + request.getReportList() + "_"
-								+ request.getReportBy();						 
+								+ request.getReportBy();
+						 
 						
 						File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 								+ siteKey + File.separator + deviceType
@@ -2640,10 +2644,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		try {
 			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString());	
+			System.out.println("---------------resultArray---DSR-- " +resultArray);
+			
 			for (int i = 0; i < resultArray.size(); i++) {
-				LinkedHashMap<String, Object> jsonObject = (LinkedHashMap<String, Object>) resultArray.get(i);
-				List<String> keySet = new LinkedList<String>(
-						jsonObject == null ? new HashSet<String>() : jsonObject.keySet());
+				JSONObject jsonObject = (JSONObject) resultArray.get(i);
+				System.out.println("---------------resultArray---jsonObject-- " +jsonObject);
+				List<String> keySet = new LinkedList<String>(jsonObject == null ? new HashSet<String>() : jsonObject.keySet());
 				for (int j = 0; j < keySet.size(); j++) {
 					if (jsonObject.get(keySet.get(j)) != null
 							&& jsonObject.get(keySet.get(j)).toString().trim().startsWith("[")) {
