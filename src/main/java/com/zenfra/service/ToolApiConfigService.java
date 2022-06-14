@@ -67,66 +67,14 @@ public class ToolApiConfigService {
 	@Autowired
 	HeaderInfoModalRepository headerInfoModalRepository;
 
-	@SuppressWarnings("unchecked")
-
 	public ResponseEntity<JSONObject> zoomAPICheck(String apiKey, String apiSecretKey, String siteKey) {
 
 		RestTemplate restTemplate = new RestTemplate();
 		String parsingURL = DBUtils.getParsingServerIP();
-//			RestTemplate restTemplate = new RestTemplate();
-//			System.out.println("Enter Parsing.....");
-//			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-//			body.add("apiKey", apiKey);
-//			body.add("apiSecretKey", apiSecretKey);
-//
-//			System.out.println("Params::" + body);
-//			String uri = parsingURL + "/parsing/zoom-check";
-//			uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
-//			System.out.println("--uri---"+uri);
-//			HttpEntity<Object> request = new HttpEntity<>(body);
-//			System.out.println("--request---"+request);
-//			ResponseEntity<JSONObject> response = restTemplate.exchange(uri, HttpMethod.GET, request, JSONObject.class);
-//
-//			System.out.println("----response----"+response);
-//		JSONObject request = new JSONObject();
-//		
-//		request.put("apiKey", apiKey);
-//		request.put("apiSecretKey", apiSecretKey);
-//		
-//		HttpHeaders headers1 = new HttpHeaders();
-//		headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-//		headers1.setContentType(MediaType.APPLICATION_JSON);
-//		HttpEntity<JSONObject> requestEntity1 = new HttpEntity<JSONObject>(request, headers1);
-//		String sendMailUrl = ZKModel.getProperty(ZKConstants.CHECK_ZOOM_CONFIG).replaceAll("<HOSTNAME>",
-//				ZKModel.getProperty(ZKConstants.APP_SERVER_IP));
-//		String uri = parsingURL + "/parsing/zoom-check";
-//		uri =  CommonUtils.checkPortNumberForWildCardCertificate(uri);
-//		System.out.println("----------Send Zoom Check Url---" + uri);
-//		ResponseEntity<JSONObject> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity1, JSONObject.class);
-//
-//		JSONObject response1 = response.getBody();
-
-//		if (uri != null && uri.getBody() != null) {
-//			if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
-//
-//				responseModel.setData(uri.getBody());
-//				responseModel.setResponseCode(200);
-//				responseModel.setResponseMsg("Success!!!");
-//			} else {
-//				responseModel.setData(uri.getBody());
-//				responseModel.setResponseCode(500);
-//				responseModel.setResponseMsg("Failed!!!");
-//			}
-//		} else {
-//			responseModel.setData("Mail send successfully");
-//			responseModel.setResponseCode(200);
-//			responseModel.setResponseMsg("Success!!!");
-//		}
 
 		String uri = parsingURL + "/parsing/zoom-check";
 		uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
 
-		System.out.println("--uri--" + uri);
 		Map<String, Object> map = new HashMap<>();
 		map.put("apiKey", apiKey);
 		map.put("apiSecretKey", apiSecretKey);
@@ -136,16 +84,10 @@ public class ToolApiConfigService {
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
 		builder.build(map);
-		System.out.println("---" + builder.buildAndExpand(map).toUri());
 
 		HttpEntity<Object> httpRequest = new HttpEntity<>(body);
 		ResponseEntity<JSONObject> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri(),
 				HttpMethod.POST, httpRequest, JSONObject.class);
-		JSONObject response = restResult.getBody();
-
-		System.out.println("--Result--" + response.get("code"));
-		System.out.println("--Result--" + response.get("message"));
-		System.out.println("--Result--" + restResult.getBody());
 		return restResult;
 	}
 
@@ -158,8 +100,6 @@ public class ToolApiConfigService {
 				toolApiConfigModel.getApiSecretKey(), toolApiConfigModel.getSiteKey());
 
 		JSONObject response = response1.getBody();
-		System.out.println("--response1--" + response);
-
 		int code = (int) response.get("code");
 		String message = response.get("message").toString();
 		if (code == 200 && message.equalsIgnoreCase("Valid access token")) {
@@ -180,7 +120,6 @@ public class ToolApiConfigService {
 			} catch (Exception e) {
 				e.printStackTrace();
 				responseModel.setResponseCode(500);
-
 			}
 		} else {
 			responseModel.setResponseMsg("Invalid Access Token");
@@ -188,7 +127,6 @@ public class ToolApiConfigService {
 			responseModel.setjData("Configuration Keys Are Not Valid");
 		}
 		return responseModel;
-
 	}
 
 	public Response getToolApiData(String toolApiConfigId) {
