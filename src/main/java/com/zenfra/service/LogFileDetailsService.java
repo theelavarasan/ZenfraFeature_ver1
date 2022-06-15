@@ -195,7 +195,6 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
 
 					log.setFileName(log.getFileName());
-					System.out.println("--fileName11--"+log.getFileName());
 					log.setCreatedDateTime(log.getCreatedDateTime());
 					log.setUpdatedDateTime(log.getUpdatedDateTime());
 					log.setParsedDateTime(log.getParsedDateTime());
