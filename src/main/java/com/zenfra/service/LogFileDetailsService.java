@@ -123,6 +123,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 						log.setStatus("retrieving");
 					}
 					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+						
 						log.setStatus("retrieved");
 					}
 				}
@@ -146,7 +147,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				JSONObject json = new JSONObject();
 				json.put("status", log.getStatus());
 				json.put("logFileId", log.getLogFileId());
-				if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+				if (log.getStatus() != null && (log.getStatus().equalsIgnoreCase("success") || log.getStatus().equalsIgnoreCase("retrieved"))) {
 					json.put("parsedDateTime",
 							log.getParsedDateTime() != null
 									? common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime())
