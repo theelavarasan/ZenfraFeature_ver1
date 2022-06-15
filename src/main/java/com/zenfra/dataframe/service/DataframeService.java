@@ -684,7 +684,7 @@ public class DataframeService {
 		List<String> dataframeColumns  = Arrays.asList(dataset.columns()); 
 		//type cast to numeric columns
 		try {		
-			if(numericColumns != null && numericColumns.isEmpty()) {
+			if(numericColumns != null && !numericColumns.isEmpty()) {
 				dataset = typeCastNumericColumns(dataset, numericColumns, viewName, dataframeColumns);
 			}
 		} catch (Exception e) {
@@ -1541,7 +1541,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		//type cast to numeric columns
 		try {		
-			if(numericColumns != null && numericColumns.isEmpty()) {
+			if(numericColumns != null && !numericColumns.isEmpty()) {
 				dataset = typeCastNumericColumns(dataset, numericColumns, viewName, dataframeColumns);
 			}
 		} catch (Exception e) {
