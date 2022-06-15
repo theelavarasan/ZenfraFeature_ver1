@@ -193,10 +193,9 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
 						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
-					List<String> fileNames = logDao.zoomFileName(siteKey);
-					for (String fileName : fileNames) {
-						log.setFileName(fileName);
-					}
+
+					log.setFileName(log.getFileName());
+					System.out.println("--fileName11--"+log.getFileName());
 					log.setCreatedDateTime(log.getCreatedDateTime());
 					log.setUpdatedDateTime(log.getUpdatedDateTime());
 					log.setParsedDateTime(log.getParsedDateTime());

@@ -166,7 +166,8 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 
 				System.out.println("-------log-----" + log);
 			} else {
-				log = logRepo.getBySiteKeyAndIsActive(siteKey, true);
+				log = getFileDetails(siteKey, true);
+				//log = logRepo.getBySiteKeyAndIsActive(siteKey, true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -180,10 +181,11 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<String> zoomFileName(String siteKey) {
-
-		List<String> fileName = new ArrayList<String>();
-		JSONArray response = new JSONArray();
+	public List<LogFileDetails> getFileDetails(String siteKey, boolean isActive) {
+		
+		
+		List<LogFileDetails> log = new ArrayList<LogFileDetails>();
+		
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
@@ -191,14 +193,45 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 
 			String selectQuery = "select *, \r\n" + "(case when log_type ilike 'zoom' then concat(file_name, '-', \r\n"
 					+ "to_char(to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss')::timestamp, 'mm-dd-yyyy hh24:mi:ss')) \r\n"
-					+ "else file_name end) as file_name2 from log_file_details \r\n"
-					+ "where is_active= true and  site_key= '" + siteKey + "' and log_type ilike 'zoom'\r\n"
+					+ "else file_name end) as file_name2 from log_file_details \r\n" + "where is_active= " + isActive
+					+ " and  site_key= '" + siteKey + "'\r\n"
 					+ "order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') \r\n" + "desc";
+
+			System.out.println("!!!SelectQuery: " + selectQuery);
 			ResultSet rs = statement.executeQuery(selectQuery);
 
 			while (rs.next()) {
-				JSONObject dataObj = new JSONObject();
+				
+				LogFileDetails logData = new LogFileDetails();
 
+				logData.setCreatedDateTime(rs.getString("created_date_time"));
+				logData.setDescription(rs.getString("description"));
+				logData.setExtractedPath(rs.getString("extracted_path"));
+				logData.setFileName(rs.getString("file_name"));
+				logData.setFileSize(rs.getString("file_size"));
+				logData.setLogType(rs.getString("log_type"));
+				logData.setMasterLogs(rs.getString("master_logs"));
+				logData.setResponse(rs.getString("response"));
+				logData.setSiteKey(rs.getString("site_key"));
+				logData.setStatus(rs.getString("status"));
+				logData.setTenantId(rs.getString("tenant_id"));
+				logData.setUpdatedDateTime(rs.getString("updated_date_time"));
+				logData.setUploadedBy(rs.getString("uploaded_by"));
+				logData.setUploadedLogs(rs.getString("uploaded_logs"));
+				logData.setCmdStatusInsertion(rs.getString("Cmd_status_insertion"));
+				logData.setCmdStatusParsing(rs.getString("Cmd_status_parsing"));
+				logData.setMessage(rs.getString("message"));
+				logData.setParsedDateTime(rs.getString("parsed_date_time"));
+				logData.setParsingStartTime(rs.getString("parsing_start_time"));
+				logData.setParsingStatus(rs.getString("parsing_status"));
+				logData.setTempStatus(rs.getString("temp_status"));
+				logData.setLogId(rs.getString("log_id"));
+				logData.setLogFileId(rs.getString("log_file_id"));
+				logData.setFilePaths(rs.getString("file_paths"));
+				logData.setFileName(rs.getString("file_name2"));
+				
+				
+				System.out.println("--fileName--"+logData.getFileName());
 //				dataObj.put("createdDateTime", rs.getString("created_date_time"));
 //				dataObj.put("description", rs.getString("description"));
 //				dataObj.put("extractedPath", rs.getString("extracted_path"));
@@ -223,15 +256,16 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 //				dataObj.put("tempStatus", rs.getString("temp_status"));
 //				dataObj.put("logId", rs.getString("log_id"));
 //				dataObj.put("filePaths", rs.getString("file_paths"));
-				dataObj.put("fileName2", rs.getString("file_name2"));
-				fileName.add(rs.getString("file_name2"));
-				response.add(dataObj);
+//				dataObj.put("fileName2", rs.getString("file_name2"));
+//				response.add(rs.getString("file_name2"));
+//				System.out.println("---res---"+response);
+				
+				log.add(logData);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return fileName;
-
+		return log;
 	}
 
 	public boolean saveLogtypeAndDescription(List<String> logFileIds, String description, String logtype) {

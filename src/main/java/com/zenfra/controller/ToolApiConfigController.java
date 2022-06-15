@@ -25,7 +25,7 @@ public class ToolApiConfigController {
 	ToolApiConfigService toolApiConfigService;
 
 	@PostMapping("/create")
-	public ResponseEntity<?> createApiConfig(@RequestBody ToolApiConfigModel apiConfigId) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> createApiConfig(@RequestBody ToolApiConfigModel apiConfigId) throws JsonMappingException, JsonProcessingException  {
 		return ResponseEntity.ok(toolApiConfigService.createApiConfig(apiConfigId));
 	}
 
