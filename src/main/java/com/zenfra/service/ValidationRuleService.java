@@ -166,8 +166,8 @@ public class ValidationRuleService {
 				File d = new File(actualDfFolderPath);
 				for (File file : d.listFiles()) {
 					if (file.isFile() && file.getName().toLowerCase().contains(category.toLowerCase())
-							&& file.getName().toLowerCase().contains(reportBy.toLowerCase() + ".json")
-							&& file.getName().toLowerCase().contains(reportList.toLowerCase())) { // &&
+							&& (file.getName().toLowerCase().contains(reportBy.toLowerCase() + ".json") || file.getName().toLowerCase().contains(reportBy.toLowerCase().replaceAll("\\s+", "") + ".json"))
+							&& (file.getName().toLowerCase().contains(reportList.toLowerCase()) || file.getName().toLowerCase().contains(reportList.toLowerCase().replaceAll("\\s+", "")))) { // &&
 																									// file.getName().toLowerCase().contains(category.toLowerCase())
 						actualDfFilePath = file.getAbsolutePath();
 						break;
