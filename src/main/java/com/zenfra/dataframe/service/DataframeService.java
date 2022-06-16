@@ -638,21 +638,18 @@ public class DataframeService {
 		viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
 		System.out.println("---------viewName------" + viewName);
 		
-		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-				+ siteKey + File.separator + "site_key=" + siteKey + File.separator + "source_type=" + source_type);
 		
-		try {
-			if (verifyDataframePath.exists()) {
+		
+		try { 
 				dataset = sparkSession.sql("select * from global_temp." + viewName);			
-				isDiscoveryDataInView = true;
-			}
-			
+				isDiscoveryDataInView = true; 
 		} catch (Exception e) {
 			System.out.println("---------View Not exists--------");
 		}
 
 		if (!isDiscoveryDataInView) {
-			
+			File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+					+ siteKey + File.separator + source_type);
 
 			if (verifyDataframePath.exists()) {
 				createSingleDataframe(siteKey, source_type, verifyDataframePath.getAbsolutePath());
