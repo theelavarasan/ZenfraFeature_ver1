@@ -638,22 +638,29 @@ public class DataframeService {
 		viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
 		System.out.println("---------viewName------" + viewName);
 		
+		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ siteKey + File.separator + "site_key=" + siteKey + File.separator + "source_type=" + source_type);
+		
 		try {
-			dataset = sparkSession.sql("select * from global_temp." + viewName);			
-			isDiscoveryDataInView = true;
+			if (verifyDataframePath.exists()) {
+				dataset = sparkSession.sql("select * from global_temp." + viewName);			
+				isDiscoveryDataInView = true;
+			}
+			
 		} catch (Exception e) {
 			System.out.println("---------View Not exists--------");
 		}
 
 		if (!isDiscoveryDataInView) {
-			File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
-					+ siteKey + File.separator + "site_key=" + siteKey + File.separator + "source_type=" + source_type);
+			
 
 			if (verifyDataframePath.exists()) {
 				createSingleDataframe(siteKey, source_type, verifyDataframePath.getAbsolutePath());
 				dataset = sparkSession.sql("select * from global_temp." + viewName);				
 			} else {
-				createDataframeOnTheFly(siteKey, source_type);
+				//createDataframeOnTheFly(siteKey, source_type);
+				recreateLocalDiscovery(siteKey, source_type);
+				writeServerDataframeToCommonPath(siteKey, source_type);
 				dataset = sparkSession.sql("select * from global_temp." + viewName);				
 			}
 		}
@@ -931,6 +938,7 @@ public class DataframeService {
 			File f = new File(filePathSrc);
 			if (!f.exists()) {
 				f.mkdir();
+				setFileOwner(f);
 			}
 
 		
@@ -1861,6 +1869,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				FileUtils.copyFile(filePath.toFile(), new File(destDirPath));
 				
 				setFileOwner(new File(destDirPath));
+				
+				//Delete src path file
+				FileUtils.deleteDirectory(new File(srcDirPath));
 				
 			}
 		} catch (IOException e) {			
