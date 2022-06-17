@@ -672,6 +672,7 @@ public class DataframeService {
 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
 		} else if (source_type != null && !source_type.trim().isEmpty()
 				&& (source_type.contains("nutanix") && request.getReportBy().toLowerCase().contains("host"))) {
+			System.out.println("---------report data--nutanix-----");
 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
 		} else if (source_type != null && !source_type.trim().isEmpty()
 				&& (source_type.contains("nutanix") && request.getReportBy().toLowerCase().equalsIgnoreCase("vm"))) {
@@ -695,7 +696,8 @@ public class DataframeService {
 		if (!isDiscoveryDataInView) {
 			File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator
 					+ siteKey + File.separator + "site_key=" + siteKey + File.separator + "source_type=" + source_type);
-
+			System.out.println("---verifyDataframePath---"+verifyDataframePath);
+			
 			if (verifyDataframePath.exists()) {
 				createSingleDataframe(siteKey, source_type, verifyDataframePath.getAbsolutePath());
 				dataset = sparkSession.sql("select * from global_temp." + viewName);

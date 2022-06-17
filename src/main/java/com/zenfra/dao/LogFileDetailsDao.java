@@ -229,7 +229,6 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 				logData.setFilePaths(rs.getString("file_paths"));
 				logData.setFileName(rs.getString("file_name"));
 
-				System.out.println("--fileName--" + logData.getFileName());
 //				dataObj.put("createdDateTime", rs.getString("created_date_time"));
 //				dataObj.put("description", rs.getString("description"));
 //				dataObj.put("extractedPath", rs.getString("extracted_path"));
