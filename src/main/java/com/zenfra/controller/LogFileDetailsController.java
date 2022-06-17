@@ -9,8 +9,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.ServerException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -54,6 +59,7 @@ import com.zenfra.service.ReportService;
 import com.zenfra.service.UserCreateService;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
@@ -116,7 +122,7 @@ public class LogFileDetailsController {
 	@ApiResponse(code = 200, message = "Successfully retrieved")
 	public ResponseEntity<ResponseModel_v2> getALlLogFileDetails(
 			@NotBlank(message = "Sitekey must not be empty") @RequestParam String siteKey,
-			@NotBlank(message = "UserId must not be empty") @RequestParam String userId, 
+			@NotBlank(message = "UserId must not be empty") @RequestParam String userId,
 			@RequestParam(name = "fromZenfraCollector", required = false) boolean fromZenfraCollector) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
@@ -215,10 +221,13 @@ public class LogFileDetailsController {
 	@ApiOperation(value = "Delete Log File Details by log id")
 	@ApiResponse(code = 201, message = "Successfully deleted")
 	public ResponseEntity<ResponseModel_v2> deleteLogFileDetailsByLogId(
-			@NotEmpty(message = "logId must be not empty") @PathVariable String logId) {
+			@NotEmpty(message = "logId must be not empty") @PathVariable String logId,
+			@RequestParam(name = "userId", required = false) String userId) {
 		ResponseModel_v2 response = new ResponseModel_v2();
-		try {
 
+		try {
+			
+			service.saveUpdatedBy(userId);
 			LogFileDetails logFileDetailsExist = service.findOne(logId);
 
 			if (logFileDetailsExist == null) {
