@@ -459,10 +459,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 	}
 
-	public boolean deleteLogfileProcessAction(List<String> logFileIds) {
+	public boolean deleteLogfileProcessAction(List<String> logFileIds, String userId) {
 		try {
 
-			return logDao.deleteLogfileProcessAction(logFileIds);
+			return logDao.deleteLogfileProcessAction(logFileIds, userId);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -582,7 +582,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 		return jsonArray;
 	}
 
-	public void saveUpdatedBy(String userId) {
-		logDao.saveUpdatedBy(userId);
+	public void saveUpdatedBy(String userId, String logFileId) {
+		logDao.saveUpdatedBy(userId, logFileId);
 	}
 }

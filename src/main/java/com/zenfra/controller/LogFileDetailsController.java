@@ -226,8 +226,8 @@ public class LogFileDetailsController {
 		ResponseModel_v2 response = new ResponseModel_v2();
 
 		try {
-			
-			service.saveUpdatedBy(userId);
+
+			service.saveUpdatedBy(logId, userId);
 			LogFileDetails logFileDetailsExist = service.findOne(logId);
 
 			if (logFileDetailsExist == null) {
@@ -492,12 +492,12 @@ public class LogFileDetailsController {
 
 	@DeleteMapping("/delete-selected-log-file")
 	public ResponseEntity<ResponseModel_v2> deleteLogfileProcessAction(
-			@Valid @RequestBody LogFileDetailsPayload logFileDetailsPayload) throws IOException, ParseException {
+			@Valid @RequestBody LogFileDetailsPayload logFileDetailsPayload,
+			@RequestParam(name = "userId", required = false) String userId) throws IOException, ParseException {
 
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
-
-			if (!service.deleteLogfileProcessAction(logFileDetailsPayload.getLogFileIds())) {
+			if (!service.deleteLogfileProcessAction(logFileDetailsPayload.getLogFileIds(), userId)) {
 				response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 				response.setStatusCode(HttpStatus.EXPECTATION_FAILED.value());
 				response.setResponseDescription("Something went wrong");

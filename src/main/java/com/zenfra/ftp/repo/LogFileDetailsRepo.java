@@ -16,33 +16,36 @@ import com.zenfra.model.LogFileDetails;
 
 @Repository
 @Transactional
-public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String>{
-	
+public interface LogFileDetailsRepo extends JpaRepository<LogFileDetails, String> {
+
 	List<LogFileDetails> findByLogFileIdIn(@Param("logId") List<String> logid);
 
 	List<LogFileDetails> findBySiteKey(String siteKey);
-	
-	@Query(value="select * from log_file_details where is_active=:isActive and  site_key=:siteKey order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') desc",nativeQuery = true)
-	List<LogFileDetails> getBySiteKeyAndIsActive(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive);
-	
-	@Query(value="select * from log_file_details where is_active=:isActive and  site_key=:siteKey and from_zenfra_collector = true order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') desc",nativeQuery = true)
-	List<LogFileDetails> getByFromZenfraCollector(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive);
-	
-	
-	@Modifying
-	@Query("update LogFileDetails s set s.description=:description,s.logType=:logType  where s.logFileId in :logFileId")
-	void saveLogtypeAndDescription(@Param("logFileId") List<String> logFileId,@Param("description") String description,@Param("logType") String logType);
+
+	@Query(value = "select * from log_file_details where is_active=:isActive and  site_key=:siteKey order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') desc", nativeQuery = true)
+	List<LogFileDetails> getBySiteKeyAndIsActive(@Param("siteKey") String siteKey, @Param("isActive") boolean isActive);
+
+	@Query(value = "select * from log_file_details where is_active=:isActive and  site_key=:siteKey and from_zenfra_collector = true order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') desc", nativeQuery = true)
+	List<LogFileDetails> getByFromZenfraCollector(@Param("siteKey") String siteKey,
+			@Param("isActive") boolean isActive);
 
 	@Modifying
-	@Query("update LogFileDetails s set s.isActive=false  where s.logFileId in :logFileIds")
-	void updateLogFileIdsActive(List<String> logFileIds);
+	@Query("update LogFileDetails s set s.description=:description,s.logType=:logType  where s.logFileId in :logFileId")
+	void saveLogtypeAndDescription(@Param("logFileId") List<String> logFileId, @Param("description") String description,
+			@Param("logType") String logType);
+
+	@Modifying
+	@Query("update LogFileDetails s set s.isActive=false,s.updated_by=:userId  where s.logFileId in :logFileIds")
+	void updateLogFileIdsActive(List<String> logFileIds, String userId);
 
 	long countBySiteKey(String siteKey);
 
-	@Query(value="select log_type from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status and lower(log_type) not in ('custom excel data','aws','vmax','tanium')  group by log_type order by log_type" ,nativeQuery = true)
-	List<String> getBySiteKeyAndStatusIsActive(@Param("siteKey") String siteKey,@Param("isActive") boolean isActive, @Param("status") String status);
+	@Query(value = "select log_type from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status and lower(log_type) not in ('custom excel data','aws','vmax','tanium')  group by log_type order by log_type", nativeQuery = true)
+	List<String> getBySiteKeyAndStatusIsActive(@Param("siteKey") String siteKey, @Param("isActive") boolean isActive,
+			@Param("status") String status);
 
-	@Query(value="select distinct((case when lower(log_type) ilike '%mode%' then 'netapp' when lower(log_type) ilike '%netapp%' then 'netapp' else log_type end)) from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status group by log_type order by log_type" ,nativeQuery = true)
-	List<String> getDistinctLogTypeBySiteKeyAndStatusIsActive(@Param("siteKey") String siteKey, @Param("status") String status, @Param("isActive") boolean isActive);
+	@Query(value = "select distinct((case when lower(log_type) ilike '%mode%' then 'netapp' when lower(log_type) ilike '%netapp%' then 'netapp' else log_type end)) from log_file_details where is_active=:isActive and  site_key=:siteKey and status=:status group by log_type order by log_type", nativeQuery = true)
+	List<String> getDistinctLogTypeBySiteKeyAndStatusIsActive(@Param("siteKey") String siteKey,
+			@Param("status") String status, @Param("isActive") boolean isActive);
 
 }
