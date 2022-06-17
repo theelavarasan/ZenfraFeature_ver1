@@ -394,7 +394,7 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 		return log;
 	}
 
-	public void saveUpdatedBy(String userId, String logFileId) {
+	public void saveUpdatedBy(String logFileId, String userId) {
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),

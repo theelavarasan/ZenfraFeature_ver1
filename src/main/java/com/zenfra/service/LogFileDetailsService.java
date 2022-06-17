@@ -582,7 +582,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 		return jsonArray;
 	}
 
-	public void saveUpdatedBy(String userId, String logFileId) {
-		logDao.saveUpdatedBy(userId, logFileId);
+	public void saveUpdatedBy(String logFileId, String userId) {
+		logDao.saveUpdatedBy(logFileId, userId);
 	}
 }
