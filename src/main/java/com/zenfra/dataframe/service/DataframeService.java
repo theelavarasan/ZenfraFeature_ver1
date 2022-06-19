@@ -617,7 +617,7 @@ public class DataframeService {
 		String siteKey = request.getSiteKey();
 		String source_type = request.getSourceType().toLowerCase();
 
-		if (source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
+	/*	if (source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
 		} else if (source_type != null && !source_type.trim().isEmpty()
 				&& (source_type.contains("vmware") && request.getReportBy().toLowerCase().contains("host"))) {
@@ -629,13 +629,18 @@ public class DataframeService {
 				&& (source_type.contains("nutanix") && request.getReportBy().toLowerCase().equalsIgnoreCase("vm"))) {
 			source_type = source_type + "-" + "guest";
 		}
-
+*/
+		
+	 
 	
 
 		boolean isDiscoveryDataInView = false;
 		Dataset<Row> dataset = null;
-		String viewName = siteKey + "_" + source_type.toLowerCase();
-		viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
+		String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
+				+ request.getCategory() + "_" + "Server" + "_" + request.getReportList() + "_"
+				+ request.getReportBy();
+		String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
+	
 		System.out.println("---------viewName------" + viewName);
 		
 		
