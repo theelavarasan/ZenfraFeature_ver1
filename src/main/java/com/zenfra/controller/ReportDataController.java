@@ -116,7 +116,7 @@ public class ReportDataController {
 				return new ResponseEntity<>(result, HttpStatus.OK);
 			} else  {  // orient db reports
 				
-				DataResult data = dataframeService.getReportDataFromOdbDf(request);
+				DataResult data = dataframeService.getReportDataFromDF(request);
 				if (data != null) {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 				}

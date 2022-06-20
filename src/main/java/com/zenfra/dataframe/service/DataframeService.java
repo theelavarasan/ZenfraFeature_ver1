@@ -1467,7 +1467,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	}
 	
 
-	public DataResult getReportDataFromOdbDf(ServerSideGetRowsRequest request) {
+	public DataResult getReportDataFromDF(ServerSideGetRowsRequest request) {
 
 		String siteKey = request.getSiteKey();
 		
@@ -1528,8 +1528,23 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
 					dataset = sparkSession.sql("select * from global_temp." + viewName);   //we need apply filter order pagination start and end 
 				
-				} else {				
-						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);				
+				} else {
+					     if (componentName != null && (componentName.trim().toLowerCase().contains("hyper") || 
+					    		 componentName.trim().toLowerCase().contains("vmware") || 
+					    		 componentName.trim().toLowerCase().contains("nutanix") ||
+					    		 componentName.trim().toLowerCase().contains("hyper")) && 
+					    		 (request.getReportBy().trim().toLowerCase().equalsIgnoreCase("VM") || 
+					    		 request.getReportBy().trim().toLowerCase().equalsIgnoreCase("Host")
+					    		 )) { //Server server vm host dataframe creation
+					    	
+					    		createSingleDataframe(siteKey, componentName, verifyDataframePath.getAbsolutePath());
+					    		recreateLocalDiscovery(siteKey, componentName);
+					    		writeServerDataframeToCommonPath(siteKey, componentName);
+					    						
+					    } else {
+					    	createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);	
+					    }
+									
 					if (verifyDataframePath.exists()) {
 						createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
 						dataset = sparkSession.sql("select * from global_temp." + viewName); 
