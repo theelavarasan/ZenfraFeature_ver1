@@ -222,6 +222,7 @@ public class ReportDataController {
 				 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 			}
 			
+			//dataframeService.prepareDsrReport(siteKey, sourceType);
 			dataframeService.prepareDsrReport(siteKey, sourceType);
 			
 			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
@@ -657,9 +658,10 @@ public class ReportDataController {
 			@RequestParam("xaxis") String xaxis,
 			@RequestParam("yaxis") String yaxis,
 			@RequestParam("chartType") String chartType,
+			@RequestParam("dataType") String dataType,
 			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 		
-		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, component, reportList, reportBy, xaxis, yaxis, chartType);
+		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, component, reportList, reportBy, xaxis, yaxis, chartType, dataType);
 		return null;
 	}
 	

@@ -510,7 +510,7 @@ public class DataframeService {
 	}
 
 	private void createLocalDiscoveryView(File[] files) {
-		String path = commonPath + File.separator + "Dataframe" + File.separator + "DF" + File.separator;
+		String path = commonPath + File.separator + "Dataframe" + File.separator + "tmp" + File.separator;
 		for (File file : files) {
 			if (file.isDirectory()) {
 				createLocalDiscoveryView(file.listFiles());
@@ -1530,14 +1530,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					dataset = sparkSession.sql("select * from global_temp." + viewName);   //we need apply filter order pagination start and end 
 				
 				} else {
-					     if (componentName != null && (componentName.trim().toLowerCase().contains("hyper") || 
-					    		 componentName.trim().toLowerCase().contains("vmware") || 
-					    		 componentName.trim().toLowerCase().contains("nutanix") ||
-					    		 componentName.trim().toLowerCase().contains("hyper")) && 
-					    		 (request.getReportBy().trim().toLowerCase().equalsIgnoreCase("VM") || 
-					    		 request.getReportBy().trim().toLowerCase().equalsIgnoreCase("Host")
-					    		 )) { //Server server vm host dataframe creation
-					    	
+					if(request.getCategory().equalsIgnoreCase("Server") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().trim().toLowerCase().equalsIgnoreCase("VM") || 
+				    		 request.getReportBy().trim().toLowerCase().equalsIgnoreCase("Host")
+				    		 )){  //Server server vm host dataframe creation					    	
 					    		//createSingleDataframe(siteKey, componentName, verifyDataframePath.getAbsolutePath());
 					    	    recreateLocalDiscovery(siteKey, componentName);							 
 					    		writeServerDataframeToCommonPath(siteKey, componentName);
@@ -2483,7 +2478,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	//------------------------Write dataframe to excel end-------------------------------------//
 
 	public JSONObject prepareChart(String siteKey, String component, String reportList, String reportBy, String xaxis,
-			String yaxis, String chartType) {
+			String yaxis, String chartType, String dataType) {
 		JSONObject jsonObject = new JSONObject();
 		try {
 			File f = new File("C:\\opt\\ZENfra\\Dataframe\\DF\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e\\site_key=ddccdf5f-674f-40e6-9d05-52ab36b10d0e\\source_type=linux\\");
