@@ -104,12 +104,12 @@ public class ReportDataController {
 	public ResponseEntity<?> getReportData(@RequestBody ServerSideGetRowsRequest request) {
 
 		try {			
-			if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
+			/*if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
 				DataResult data = dataframeService.getReportData(request);
 				if (data != null) {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 				}
-			} else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
+			} else */ if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
 				JSONObject result = new JSONObject();
 				result.put("data", data);
