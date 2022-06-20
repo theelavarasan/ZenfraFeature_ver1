@@ -818,6 +818,7 @@ public class DataframeService {
 			String dataframeFilePath = filePath + File.separator + "*.json";
 			String viewName = siteKey + "_" + source_type.toLowerCase();
 			viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
+			
 			prepareDataframe(source_type, siteKey, dataframeFilePath, viewName);
 
 			System.out.println("--------single-View created-------- :: " + viewName);
@@ -1506,7 +1507,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		
 		
-		Dataset<Row> dataset = null;
+		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		
 		
 		if(!componentName.toLowerCase().contains("tanium")) {  
@@ -1537,8 +1538,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					    		 request.getReportBy().trim().toLowerCase().equalsIgnoreCase("Host")
 					    		 )) { //Server server vm host dataframe creation
 					    	
-					    		createSingleDataframe(siteKey, componentName, verifyDataframePath.getAbsolutePath());
-					    		recreateLocalDiscovery(siteKey, componentName);
+					    		//createSingleDataframe(siteKey, componentName, verifyDataframePath.getAbsolutePath());
+					    	    recreateLocalDiscovery(siteKey, componentName);							 
 					    		writeServerDataframeToCommonPath(siteKey, componentName);
 					    						
 					    } else {
