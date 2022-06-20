@@ -1338,15 +1338,15 @@ public class DataframeService {
 							"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
 
 				}
-				//List<String> numericalHeaders = new ArrayList<String>();
-				/*if (!serverDiscoveryNumbericalColumns.containsKey("Discovery" + source_type.toLowerCase())) {
+				List<String> numericalHeaders = new ArrayList<String>();
+				if (!serverDiscoveryNumbericalColumns.containsKey("Discovery" + source_type.toLowerCase())) {
 					numericalHeaders = getReportNumericalHeaders("Discovery", source_type.toLowerCase(), "Discovery",
 							siteKey);
 					serverDiscoveryNumbericalColumns.put("Discovery" + source_type.toLowerCase(), numericalHeaders);
 				} else {
 					numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
-				}*/
-				List<String> numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
+				}
+				//List<String> numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
 
 				List<String> columns = Arrays.asList(filteredData.columns());
 
