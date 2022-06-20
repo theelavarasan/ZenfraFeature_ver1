@@ -930,6 +930,14 @@ public class DataframeService {
 		System.out.println("reportBy :: " + reportBy);
 		System.out.println("siteKey :: " + siteKey);
 		
+		if(source_type.toLowerCase().contains("nutanix")){
+			source_type = "nutanix";
+		} 
+		if(source_type.toLowerCase().contains("hyper-v")){
+			source_type = "hyper-v";
+		} 
+		
+		
 		return reportDao.getReportNumericalHeaders(reportName, source_type, reportBy, siteKey);
 	}
 
