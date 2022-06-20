@@ -1330,28 +1330,35 @@ public class DataframeService {
 							"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
 
 				}
-				List<String> numericalHeaders = new ArrayList<String>();
-				if (!serverDiscoveryNumbericalColumns.containsKey("Discovery" + source_type.toLowerCase())) {
+				//List<String> numericalHeaders = new ArrayList<String>();
+				/*if (!serverDiscoveryNumbericalColumns.containsKey("Discovery" + source_type.toLowerCase())) {
 					numericalHeaders = getReportNumericalHeaders("Discovery", source_type.toLowerCase(), "Discovery",
 							siteKey);
 					serverDiscoveryNumbericalColumns.put("Discovery" + source_type.toLowerCase(), numericalHeaders);
 				} else {
 					numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
-				}
+				}*/
+				List<String> numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
 
 				List<String> columns = Arrays.asList(filteredData.columns());
 
-				for (String column : numericalHeaders) {
-					if (columns.contains(column)) {
-						filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
+				System.out.println("------numericalHeaders------- " +source_type + " : " +  numericalHeaders);
+				if(numericalHeaders != null) {
+					for (String column : numericalHeaders) {
+						if (columns.contains(column)) {
+							System.out.println("------column------- " + column);
+							filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
+						}
 					}
-				}
 
+				}
+				
 				if (source_type.equalsIgnoreCase("vmware-host")) {
 					filteredData = filteredData.withColumn("Server Type", lit("vmware-host"));
 				}
 
 				filteredData.createOrReplaceGlobalTempView(viewName);
+				filteredData.printSchema();
 				
 				System.out.println("---------View created------ :: " + viewName);
 			} catch (Exception e) {
