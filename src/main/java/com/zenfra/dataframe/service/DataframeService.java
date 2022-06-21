@@ -2644,7 +2644,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 	}
 
-	public JSONArray getDsrData(String dsrReportName, String siteKey, String serverName, String deviceType) {
+	public JSONObject getDsrData(String dsrReportName, String siteKey, String serverName, String deviceType) {
+		JSONObject responseJSONObject = new JSONObject();
+		
 		JSONArray resultArray = new JSONArray();
 		JSONArray reportResult = new JSONArray();
 		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
@@ -2684,7 +2686,38 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return reportResult;
+		
+		try {
+			
+			JSONArray headerInfo = new JSONArray();
+			
+			StructField[] fields = dsrData.schema().fields();
+
+			for (StructField field : fields) {
+			JSONObject column = new JSONObject();
+			
+				DataType fieldType = field.dataType();
+				String fieldName = field.name();
+				column.put("actualName", fieldName);
+				column.put("displayName", fieldName);
+				column.put("lockPinned", false);
+				column.put("lockPosition", false);
+				column.put("pinned", "");
+				if(fieldType.typeName().equalsIgnoreCase("string")) {
+					column.put("dataType", "string");
+				} else {
+					column.put("dataType", "integer");
+				}
+				headerInfo.add(column);
+			}
+			
+			responseJSONObject.put("headerInfo", headerInfo);
+			responseJSONObject.put("data", reportResult);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return responseJSONObject;
 	}
 	
 	

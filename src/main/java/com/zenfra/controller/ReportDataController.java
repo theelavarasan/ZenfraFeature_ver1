@@ -745,9 +745,13 @@ public class ReportDataController {
 				System.out.println("!!!!! VM: " + vmname);
 				System.out.println("!!!!! vCenter: " + vCenter);
 
-				JSONArray dsrData = dataframeService.getDsrData(subReportList.get(0).toString(), siteKey, serverName, deviceType);
+				JSONObject dsrData = dataframeService.getDsrData(subReportList.get(0).toString(), siteKey, serverName, deviceType);
 				JSONObject data = new JSONObject();
-				data.put("data", dsrData);
+				data.putAll(dsrData);
+				data.put("responseCode", "200");
+				data.put("responseDescription", "successfully loaded");
+				data.put("responseMessage", "success");
+				
 				resultJSONObject.put(subReportList.get(0).toString(), data);
 				resultJSONObject.put("title", "Detailed Report for Server (" + serverName + ")");
 
