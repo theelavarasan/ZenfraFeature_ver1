@@ -46,10 +46,12 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -2654,8 +2656,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		} catch (Exception e) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
 			
-			File file = new File(dsrPath);
-			System.out.println("----------------dsrPath----12------ " + file.getAbsolutePath());
+			File file = new File(dsrPath);			
 			  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
@@ -2665,12 +2666,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		}
 		
 		try {
-			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString());	
-			System.out.println("---------------resultArray---DSR-- " +resultArray);
+			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString());
 			
 			for (int i = 0; i < resultArray.size(); i++) {
-				JSONObject jsonObject = (JSONObject) resultArray.get(i);
-				System.out.println("---------------resultArray---jsonObject-- " +jsonObject);
+				JSONObject jsonObject = (JSONObject) resultArray.get(i);				
 				List<String> keySet = new LinkedList<String>(jsonObject == null ? new HashSet<String>() : jsonObject.keySet());
 				for (int j = 0; j < keySet.size(); j++) {
 					if (jsonObject.get(keySet.get(j)) != null
@@ -2686,6 +2685,201 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			e.printStackTrace();
 		}
 		return reportResult;
+	}
+	
+	
+	
+	
+	@SuppressWarnings({ "unchecked", "null" })
+	public JSONArray getHeaderInfoList(JSONArray resultJSONArray, String reportType, String deviceType)
+			throws SQLException {
+
+		// logger.info("!!!!!!!!!!!! reportType: " + reportType);
+		JSONArray jsonArray = new JSONArray();
+		try {
+			String columnsQuery = "";
+			if (reportType.equalsIgnoreCase("end-to-end-basic") || reportType.equalsIgnoreCase("Discovery")) {
+				String[] deviceTypeArray = deviceType.split("~");
+
+				columnsQuery = "select column_name, alias_name, data_type, is_pinned from report_columns where lower(report_name)= '"
+
+						+ reportType.toLowerCase() + "' and lower(replace(device_type,' ','')) = '"
+						+ deviceTypeArray[0].toLowerCase().replaceAll("\\s+", "") + "' and lower(report_by) = '"
+						+ deviceTypeArray[1].toLowerCase() + "' order by cast(seq as int), column_name";
+
+			} else {
+				columnsQuery = "select column_name, alias_name, data_type, is_pinned from report_columns where lower(report_name) = '"
+
+						+ reportType.toLowerCase() + "' and lower(replace(device_type,' ','')) = '"
+						+ deviceType.toLowerCase().replaceAll("\\s+", "") + "' order by cast(seq as int), column_name";
+			}
+
+			if (reportType.equalsIgnoreCase("capacity")) {
+				columnsQuery = "select column_name, data_type from report_capacity_columns where lower(report_name) = 'capacity' and lower(replace(device_type,' ','')) = 'vmware' and report_id = '"
+						+ deviceType.replaceAll("\\s+", "") + "' order by cast(seq as int), column_name";
+			}
+
+			System.out.println("columnsQuery1: " + columnsQuery);			
+			JSONArray columnData = reportDao.getSubreportHeader(columnsQuery);
+			System.out.println(":: columnData:: " + columnData);
+			// logger.info("!!!!!!!!!! columnData size: " + columnData.size());
+			List<String> headerList = new LinkedList<String>();
+			List<String> headerInfo = new LinkedList<String>();
+			Set<String> headerSet = reportType.equalsIgnoreCase("migrationautomation") ? new TreeSet<String>()
+					: new HashSet<String>();
+			if (columnData.isEmpty()) {
+				// logger.info("!!!!!!!!!!!!!!!!!! getHeaderInfoList");
+
+				if (resultJSONArray.size() > 0) {
+
+					for (int i = 0; i < resultJSONArray.size(); i++) {
+						if (reportType.equalsIgnoreCase("migrationmapping")
+								|| reportType.equalsIgnoreCase("optimization")) {
+							JSONObject jsonObject = (JSONObject) resultJSONArray.get(i);
+							headerSet.addAll(jsonObject.keySet());
+						} else {
+							ZenfraJSONObject resultJSONObject = (ZenfraJSONObject) resultJSONArray.get(i);
+							headerSet.addAll(resultJSONObject.keySet());
+							// headerList = new ArrayList<String>(resultJSONObject.keySet());
+						}
+					}
+
+				}
+				if (!headerSet.isEmpty()) {
+					headerList.addAll(headerSet);
+				}
+				// logger.info("!!!!!!!!!!!!!!!!!! headerList: " + headerList);
+				String numberPattern = "[+-]?([0-9]*[.])?[0-9]+";
+				// String numberPattern = "^[1-9]\d*(\.\d+)?$";
+				if (!reportType.equalsIgnoreCase("detailed")) {
+					if (headerList != null) {
+						for (int i = 0; i < headerList.size(); i++) {
+							Object obj = null;
+							if (reportType.equalsIgnoreCase("migrationmapping")
+									|| reportType.equalsIgnoreCase("optimization")) {
+								JSONObject jsonObject = (JSONObject) resultJSONArray.get(0);
+								obj = jsonObject.get(headerList.get(i));
+							} else {
+								ZenfraJSONObject resultJSONObject = (ZenfraJSONObject) resultJSONArray.get(0);
+								obj = resultJSONObject.get(headerList.get(i));
+							}
+
+							if (!headerList.get(i).equals("rid")) {
+								if (!headerList.get(i).toLowerCase().startsWith("filter_")) {
+									if (obj != null
+											&& Pattern.matches(numberPattern, obj.toString().replace("\"", ""))) {
+										if (!headerList.get(i).equalsIgnoreCase("sid")) {
+											if (headerList.get(i).equalsIgnoreCase("FID")) {
+												headerInfo.add(
+														headerList.get(i) + "~" + headerList.get(i) + "~" + "string");
+											} else {
+												headerInfo.add(
+														headerList.get(i) + "~" + headerList.get(i) + "~" + "integer");
+											}
+
+										} else {
+											headerInfo
+													.add(headerList.get(i) + "~" + headerList.get(i) + "~" + "String");
+										}
+									} else {
+										headerInfo.add(headerList.get(i) + "~" + headerList.get(i) + "~" + "String");
+									}
+								}
+							}
+						}
+					}
+				} else {
+					// logger.info("############### detailed report columns");
+					if (headerList != null) {
+						for (int i = 0; i < headerList.size(); i++) {
+
+							if (!headerList.get(i).equals("rid")) {
+								headerInfo.add(headerList.get(i) + "~" + headerList.get(i) + "~" + "String");
+							}
+						}
+					}
+				}
+			} else {
+				System.out.println(":: reportType:: " + reportType);
+				if (!reportType.equalsIgnoreCase("detailed")) {
+					for (int i = 0; i < columnData.size(); i++) {
+						ZenfraJSONObject columnObject = (ZenfraJSONObject) columnData.get(i);
+						String data = columnObject.get("aliasName") + "~" + columnObject.get("columnName") + "~"
+								+ columnObject.get("dataType") + "~" + columnObject.get("isPinned");
+						if (!headerInfo.contains(data)) {
+							headerInfo.add(data);
+						}
+					}
+				}
+			}
+
+			// logger.info("!!!!!!!!!!!222: " + headerInfo);
+
+			System.out.println(":: headerInfo:: " + headerInfo.size() + " : " + headerInfo);
+			for (int i = 0; i < headerInfo.size(); i++) {
+				ZenfraJSONObject zenfraJSONObject = new ZenfraJSONObject();
+				String[] headerValues = headerInfo.get(i).split("~");
+				if (reportType.equalsIgnoreCase("migrationmapping")) {
+					headerValues[0] = headerValues[0].replace("_", " ");
+				}
+				zenfraJSONObject.put("displayName", headerValues[0]);
+				zenfraJSONObject.put("actualName", headerValues[1]);
+				zenfraJSONObject.put("dataType", headerValues[2]);
+				boolean pinned = false;
+				if (headerValues.length == 4) {
+					pinned = Boolean.valueOf(headerValues[3]);
+				}
+
+				if (pinned) {
+					zenfraJSONObject.put("lockPinned", true);
+					zenfraJSONObject.put("lockPosition", true);
+					zenfraJSONObject.put("pinned", "left");
+				} else {
+					zenfraJSONObject.put("lockPinned", false);
+					zenfraJSONObject.put("lockPosition", false);
+					zenfraJSONObject.put("pinned", "");
+				}
+
+				if (reportType.equalsIgnoreCase("project-summary")) {
+					String pinnedColumn = deviceType.split("~")[1];
+					if (headerValues[0].trim().equalsIgnoreCase(pinnedColumn)) {
+						zenfraJSONObject.put("lockPinned", true);
+						zenfraJSONObject.put("lockPosition", true);
+						zenfraJSONObject.put("pinned", "left");
+					} else {
+						zenfraJSONObject.put("lockPinned", false);
+						zenfraJSONObject.put("lockPosition", false);
+						zenfraJSONObject.put("pinned", "");
+					}
+				} else if (reportType.equalsIgnoreCase("migrationmapping")) {
+					if (headerValues[0].trim().equalsIgnoreCase("Disk Name")) {
+						zenfraJSONObject.put("lockPinned", true);
+						zenfraJSONObject.put("lockPosition", true);
+						zenfraJSONObject.put("pinned", "left");
+					} else if (headerValues[0].trim().equalsIgnoreCase("Capacity")) {
+						zenfraJSONObject.put("lockPinned", true);
+						zenfraJSONObject.put("lockPosition", true);
+						zenfraJSONObject.put("pinned", "left");
+					} else {
+						zenfraJSONObject.put("lockPinned", false);
+						zenfraJSONObject.put("lockPosition", false);
+						zenfraJSONObject.put("pinned", "");
+					}
+				}
+				jsonArray.add(zenfraJSONObject);
+
+				
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return jsonArray;
+
 	}
 	
 }

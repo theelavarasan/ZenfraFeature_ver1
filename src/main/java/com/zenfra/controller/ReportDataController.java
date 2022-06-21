@@ -746,7 +746,9 @@ public class ReportDataController {
 				System.out.println("!!!!! vCenter: " + vCenter);
 
 				JSONArray dsrData = dataframeService.getDsrData(subReportList.get(0).toString(), siteKey, serverName, deviceType);
-				resultJSONObject.put(subReportList.get(0).toString(), dsrData);
+				JSONObject data = new JSONObject();
+				data.put("data", data);
+				resultJSONObject.put(subReportList.get(0).toString(), data);
 				resultJSONObject.put("title", "Detailed Report for Server (" + serverName + ")");
 
 			}
