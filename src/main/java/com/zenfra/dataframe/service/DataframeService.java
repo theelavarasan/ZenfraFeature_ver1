@@ -1350,11 +1350,11 @@ public class DataframeService {
 
 				List<String> columns = Arrays.asList(filteredData.columns());
 
-				System.out.println("------numericalHeaders------- " +source_type + " : " +  numericalHeaders);
+				//System.out.println("------numericalHeaders------- " +source_type + " : " +  numericalHeaders);
 				if(numericalHeaders != null) {
 					for (String column : numericalHeaders) {
 						if (columns.contains(column)) {
-							System.out.println("------column------- " + column);
+							//System.out.println("------column------- " + column);
 							filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
 						}
 					}
