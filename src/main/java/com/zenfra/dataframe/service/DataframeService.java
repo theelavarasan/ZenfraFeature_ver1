@@ -930,6 +930,14 @@ public class DataframeService {
 		System.out.println("reportBy :: " + reportBy);
 		System.out.println("siteKey :: " + siteKey);
 		
+		if(source_type.toLowerCase().contains("nutanix")){
+			source_type = "nutanix";
+		} 
+		if(source_type.toLowerCase().contains("hyper-v")){
+			source_type = "hyper-v";
+		} 
+		
+		
 		return reportDao.getReportNumericalHeaders(reportName, source_type, reportBy, siteKey);
 	}
 
@@ -1338,20 +1346,27 @@ public class DataframeService {
 				} else {
 					numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
 				}
+				//List<String> numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
 
 				List<String> columns = Arrays.asList(filteredData.columns());
 
-				for (String column : numericalHeaders) {
-					if (columns.contains(column)) {
-						filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
+				//System.out.println("------numericalHeaders------- " +source_type + " : " +  numericalHeaders);
+				if(numericalHeaders != null) {
+					for (String column : numericalHeaders) {
+						if (columns.contains(column)) {
+							//System.out.println("------column------- " + column);
+							filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
+						}
 					}
-				}
 
+				}
+				
 				if (source_type.equalsIgnoreCase("vmware-host")) {
 					filteredData = filteredData.withColumn("Server Type", lit("vmware-host"));
 				}
 
 				filteredData.createOrReplaceGlobalTempView(viewName);
+				filteredData.printSchema();
 				
 				System.out.println("---------View created------ :: " + viewName);
 			} catch (Exception e) {
