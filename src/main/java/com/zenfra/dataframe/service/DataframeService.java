@@ -2720,7 +2720,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			}
 
 			System.out.println("columnsQuery1: " + columnsQuery);			
-			JSONArray columnData = reportDao.getSubreportHeader(columnsQuery);
+			JSONArray columnData = new JSONArray(); //reportDao.getSubreportHeader(columnsQuery);
 			System.out.println(":: columnData:: " + columnData);
 			// logger.info("!!!!!!!!!! columnData size: " + columnData.size());
 			List<String> headerList = new LinkedList<String>();
