@@ -2668,7 +2668,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		}
 		
 		try {
-			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString().replace("\"", "").replace("\\", ""));
+			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString());  //.replace("\"", "").replace("\\", "")
 			
 			for (int i = 0; i < resultArray.size(); i++) {
 				JSONObject jsonObject = (JSONObject) resultArray.get(i);				
