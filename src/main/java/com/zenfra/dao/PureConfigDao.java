@@ -232,7 +232,7 @@ public class PureConfigDao implements PureConfigService {
 				"to_char(to_timestamp(pc.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time, pc.api_token, pc.user_name, pc.password, pc.connection_type from pure_key_config pc\r\n" + 
 				"LEFT JOIN user_temp ut1 on ut1.user_id = pc.created_by\r\n" + 
 				"LEFT JOIN user_temp ut2 on ut2.user_id = pc.updated_by\r\n" + 
-				"where pc.is_active=true and pc.site_key = '" + siteKey + "'";
+				"where pc.is_active=true and pc.site_key = '" + siteKey + "' order by updated_time Desc";
 		System.out.println("-----------------List Query Pure:" + listQuery);
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password"));
