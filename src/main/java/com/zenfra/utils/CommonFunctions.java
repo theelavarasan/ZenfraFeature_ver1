@@ -41,6 +41,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.ftp.FtpScheduler;
 
@@ -737,5 +738,79 @@ public class CommonFunctions {
 		}
 
 		return list;
+	}
+	
+	public Map<String, Object> getfilterProp(Map<String, Object> row) throws ParseException {
+		JSONArray jsonArray = new JSONArray();
+		jsonArray = (JSONArray) row.get("filterProperty");
+		
+		row.replace("filterProperty", testMethod(jsonArray));
+		
+		return row;
+	}
+
+	public FavouriteModel convertfilterprop(FavouriteModel favouriteModel) throws ParseException {
+		JSONArray jsonArray = (JSONArray) favouriteModel.getFilterProperty();
+		favouriteModel.setFilterProperty(testMethod(jsonArray));
+		
+		return favouriteModel;
+	}
+
+	@SuppressWarnings("unchecked")
+	public JSONArray testMethod(JSONArray jsonArray) {
+		JSONArray finalfilterArray = new JSONArray();
+		JsonMapper jsonMapper = new JsonMapper();
+		JSONObject finalJsonObject = new JSONObject();
+		for (int i = 0 ; i < jsonArray.size(); i++) {
+			JSONObject jsonObject = (JSONObject) jsonMapper.convertValue(jsonArray.get(i), JSONObject.class);
+			JSONObject jsonObject2 = new JSONObject();
+	
+				
+				if(jsonObject.get("selection").toString().equalsIgnoreCase("Local") && jsonObject.get("name").toString().equalsIgnoreCase("reportList") && jsonObject.get("label").toString().equalsIgnoreCase("Discovery Type")) {
+					for (int j = 0 ; j < jsonArray.size(); j++) {
+						JSONArray finalJsonArray = new JSONArray();
+						jsonObject2 = (JSONObject) jsonMapper.convertValue(jsonArray.get(j), JSONObject.class);
+						if((jsonObject2.get("selection").toString().equalsIgnoreCase("Server") && jsonObject2.get("name").toString().equalsIgnoreCase("reportBy") && jsonObject2.get("label").toString().equalsIgnoreCase("Analytics By")) || 
+								(jsonObject2.get("selection").toString().equalsIgnoreCase("Server") && jsonObject2.get("name").toString().equalsIgnoreCase("category") && jsonObject2.get("label").toString().equalsIgnoreCase("Category"))) {
+							jsonObject.replace("selection", "Local", "Server");  
+						} else if((jsonObject2.get("selection").toString().equalsIgnoreCase("Switch") && jsonObject2.get("name").toString().equalsIgnoreCase("reportBy") && jsonObject2.get("label").toString().equalsIgnoreCase("Analytics By")) || 
+								(jsonObject2.get("selection").toString().equalsIgnoreCase("Switch") && jsonObject2.get("name").toString().equalsIgnoreCase("category") && jsonObject2.get("label").toString().equalsIgnoreCase("Category"))) {
+							jsonObject.replace("selection", "Local", "Switch");
+						} else if((jsonObject2.get("selection").toString().equalsIgnoreCase("Storage") && jsonObject2.get("name").toString().equalsIgnoreCase("reportBy") && jsonObject2.get("label").toString().equalsIgnoreCase("Analytics By")) || 
+								(jsonObject2.get("selection").toString().equalsIgnoreCase("Storage") && jsonObject2.get("name").toString().equalsIgnoreCase("category") && jsonObject2.get("label").toString().equalsIgnoreCase("Category"))) {
+							jsonObject.replace("selection", "Local", "Storage");
+						} 
+						finalJsonArray.add(jsonObject);
+					}
+				} else if(jsonObject.get("selection").toString().equalsIgnoreCase("End-To-End-Basic") && jsonObject.get("name").toString().equalsIgnoreCase("reportList") && jsonObject.get("label").toString().equalsIgnoreCase("Discovery Type")) {
+					for (int j = 0 ; j < jsonArray.size(); j++) {
+						JSONArray finalJsonArray = new JSONArray();
+						jsonObject2 = (JSONObject) jsonMapper.convertValue(jsonArray.get(j), JSONObject.class);
+						if((jsonObject2.get("selection").toString().equalsIgnoreCase("Server") && jsonObject2.get("name").toString().equalsIgnoreCase("reportBy") && jsonObject2.get("label").toString().equalsIgnoreCase("Analytics By")) || 
+								(jsonObject2.get("selection").toString().equalsIgnoreCase("Server") && jsonObject2.get("name").toString().equalsIgnoreCase("category") && jsonObject2.get("label").toString().equalsIgnoreCase("Category")) || 
+								(jsonObject2.get("selection").toString().equalsIgnoreCase("Storage") && jsonObject2.get("name").toString().equalsIgnoreCase("category") && jsonObject2.get("label").toString().equalsIgnoreCase("Category")) ||
+								(jsonObject2.get("selection").toString().equalsIgnoreCase("Switch") && jsonObject2.get("name").toString().equalsIgnoreCase("category") && jsonObject2.get("label").toString().equalsIgnoreCase("Category"))) {
+							jsonObject.replace("selection", "End-To-End-Basic", "Server - Switch - Storage Summary");  
+						} 
+						finalJsonArray.add(jsonObject);
+					}
+				} else if(jsonObject.get("selection").toString().equalsIgnoreCase("End-To-End-Detail") && jsonObject.get("name").toString().equalsIgnoreCase("reportList") && jsonObject.get("label").toString().equalsIgnoreCase("Discovery Type")) {
+					for (int j = 0 ; j < jsonArray.size(); j++) {
+						JSONArray finalJsonArray = new JSONArray();
+						jsonObject2 = (JSONObject) jsonMapper.convertValue(jsonArray.get(j), JSONObject.class);
+						if((jsonObject2.get("selection").toString().equalsIgnoreCase("Server") && jsonObject2.get("name").toString().equalsIgnoreCase("reportBy") && jsonObject2.get("label").toString().equalsIgnoreCase("Analytics By")) || 
+								(jsonObject2.get("selection").toString().equalsIgnoreCase("Server") && jsonObject2.get("name").toString().equalsIgnoreCase("category") && jsonObject2.get("label").toString().equalsIgnoreCase("Category")) || 
+								(jsonObject2.get("selection").toString().equalsIgnoreCase("Storage") && jsonObject2.get("name").toString().equalsIgnoreCase("category") && jsonObject2.get("label").toString().equalsIgnoreCase("Category")) ||
+								(jsonObject2.get("selection").toString().equalsIgnoreCase("Switch") && jsonObject2.get("name").toString().equalsIgnoreCase("category") && jsonObject2.get("label").toString().equalsIgnoreCase("Category"))) {
+							jsonObject.replace("selection", "End-To-End-Detail", "Server - Switch - Storage Detailed");  
+						} 
+						finalJsonArray.add(jsonObject);
+					}
+				}
+				
+				finalJsonObject.put("filterProperty", jsonObject);
+				finalfilterArray.add(jsonObject);
+		}
+		return finalfilterArray;
 	}
 }

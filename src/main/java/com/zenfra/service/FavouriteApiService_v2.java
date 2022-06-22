@@ -85,7 +85,7 @@ public class FavouriteApiService_v2 {
 					
 					row = common.getFavViewCheckNull(row);		
 					viewArr.add(row);
-					
+					common.getfilterProp(row);
 					// Map<String, Object> rowMap = row;
 					// rowMap = setDeviceType(rowMap);
 					/*if (!reportNameRef.equalsIgnoreCase("healthcheck") && !reportNameRef.equalsIgnoreCase("project-summary")) {
@@ -204,6 +204,7 @@ public class FavouriteApiService_v2 {
 						}		
 						System.out.println("-----values---------"+ values);
 						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase) || (values == null || values.trim().isEmpty())) {
+							common.getfilterProp(row);
 							return common.getFavViewCheckNull(row);							
 						}
 					}
