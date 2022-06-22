@@ -2659,7 +2659,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
 			
 			File file = new File(dsrPath);			
-			  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+			  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
+						.option("ignoreLeadingWhiteSpace", true)
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
@@ -2677,7 +2678,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					if (jsonObject.get(keySet.get(j)) != null
 							&& jsonObject.get(keySet.get(j)).toString().trim().startsWith("[")) {
 						jsonObject.replace(keySet.get(j),
-								jsonObject.get(keySet.get(j)).toString().trim().replace("[", "").replace("]", ""));
+								jsonObject.get(keySet.get(j)).toString().trim().replace("[", "").replace("]", "").trim());
 					}
 				}
 				reportResult.add(jsonObject);
