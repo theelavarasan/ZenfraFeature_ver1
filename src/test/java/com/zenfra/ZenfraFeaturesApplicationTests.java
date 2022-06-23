@@ -57,7 +57,8 @@ class ZenfraFeaturesApplicationTests {
 					String cloumnValuesStr = String.join(",", cloumnValues.stream().map(name -> ("'"+ name.toLowerCase()+"'" ))
 							.collect(Collectors.toList()));		
 		
-			if(operater.equalsIgnoreCase("count")) {
+			String operater = null;
+			if(operater .equalsIgnoreCase("count")) {
 				dataset = sparkSession.sql("select `"+columnName+"` as `colName`, count(*) as `colValue`  from global_temp.kkk  where lower(`"+columnName+"`) in ("+cloumnValuesStr+") group by `"+columnName+"` ");
 			} else if(operater.equalsIgnoreCase("sum")) {
 				dataset = sparkSession.sql("select `"+columnName+"`as `colName`, sum(`"+columnName+"`) as `colValue` from global_temp.kkk  where `"+columnName+"` in ("+cloumnValuesStr+") group by `"+columnName+"`");
