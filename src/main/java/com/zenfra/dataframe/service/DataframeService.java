@@ -1540,7 +1540,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					    		writeServerDataframeToCommonPath(siteKey, componentName);
 					    						
 					    } else {
-					    	createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);	
+					    	createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath, viewNameWithHypen);	
 					    }
 									
 					if (verifyDataframePath.exists()) {
@@ -1676,7 +1676,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			try {
 				Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
 				dataset.createOrReplaceGlobalTempView(viewName);
-				dataset.show();			
+				
 				System.out.println("---------View created-------- :: " + viewName);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -1688,7 +1688,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	}
 	
 	
-	private void createDataframeFromOdb(ServerSideGetRowsRequest request, File filePath, File verifyDataframeParentPath) {
+	private void createDataframeFromOdb(ServerSideGetRowsRequest request, File filePath, File verifyDataframeParentPath, String viewNameWithHypen) {
 		
 		System.out.println("-----initate migration API--");
 		
@@ -1764,7 +1764,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
          if(resultObj.get("data") != null && !resultObj.get("data").toString().equalsIgnoreCase("null")) {
         	  mapper.writeValue(filePath, resultObj.get("data")); 
         	  setFileOwner(filePath);
-         }		  
+         }
+         
+         createDataframeFromJsonFile(viewNameWithHypen,  filePath.getAbsolutePath());
+         
 		 System.out.println("-----------------Write DF PAth----------" + filePath.getAbsolutePath());
 	} catch (Exception e) {
 		// TODO Auto-generated catch block
@@ -1843,7 +1846,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
 								+ siteKey + File.separator + deviceType + File.separator );
 						
-						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
+						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath, viewNameWithHypen);
 						
 				 }
 			
@@ -2022,7 +2025,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		System.out.println("------Tanium verifyDataframeParentPath-------------- " + verifyDataframeParentPath);
 		
 		if(!dfFilePath.exists()) {
-			createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath);
+			createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath, viewNameWithHypen);
 		}
 		
 		JSONArray taniumData = new JSONArray();
@@ -2914,6 +2917,77 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 		return jsonArray;
 
+	}
+
+	public JSONObject prepareChart(String siteKey, String chartConfiguration, String chartType, String reportLabel,
+			String reportName, String analyticstype, String category) {
+
+            String[] reportNameAry = reportName.split("_");
+            String reportList = reportNameAry[0];
+            String logType = reportNameAry[1];
+            String reportBy = reportNameAry[3];
+            
+            String viewNameWithHypen = siteKey + "_" + analyticstype.toLowerCase() + "_"
+    				+ category + "_" + logType + "_" + reportList + "_"
+    				+ reportBy;
+    		String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
+    		
+    		JSONObject resultData = new JSONObject();  
+    		JSONArray lableArray = new JSONArray();
+    		JSONArray valueArray = new JSONArray();
+    		
+		  //find dataframe file path
+		String dataframeFilePath = commonPath + "Dataframe" + File.separator + siteKey + File.separator + logType.toLowerCase() + File.separator + siteKey + "_" + analyticstype.toLowerCase() + "_" + category + "_" + logType.toLowerCase() + "_" + reportList + "_" + reportBy + ".json";  
+		File dfFile = new File(dataframeFilePath);
+		if(dfFile.exists()) {
+			if(chartType != null && chartType.equalsIgnoreCase("pie")) {
+				try {
+					JSONObject chartConfig = (JSONObject) parser.parse(chartConfiguration);
+					if(chartConfig.containsKey("column")) {
+						JSONArray columnAry = (JSONArray) chartConfig.get("column");
+						JSONObject pieColumn = (JSONObject) columnAry.get(0);
+						String columnName = (String) pieColumn.get("value");
+						String className = (String) pieColumn.get("className");
+						String operater = className.split("-")[1];
+						Dataset<Row> dataset = sparkSession.emptyDataFrame();
+						Dataset<Row> lableDataset = sparkSession.emptyDataFrame();
+						try {
+							  lableDataset = sparkSession.sql("select distinct(`"+columnName+"`) from global_temp."+viewName).toDF();
+						} catch (Exception e) {
+							 createDataframeFromJsonFile(viewName, dataframeFilePath);
+							 lableDataset = sparkSession.sql("select distinct(`"+columnName+"`) from global_temp."+viewName).toDF();
+						}		
+						
+						List<String> cloumnValues = lableDataset.as(Encoders.STRING()).collectAsList();					 
+						String cloumnValuesStr = String.join(",", cloumnValues.stream().map(name -> ("'"+ name.toLowerCase()+"'" ))
+										.collect(Collectors.toList()));		
+					
+						if(operater.equalsIgnoreCase("count")) {
+							dataset = sparkSession.sql("select `"+columnName+"` as `colName`, count(*) as `colValue`  from global_temp.kkk  where lower(`"+columnName+"`) in ("+cloumnValuesStr+") group by `"+columnName+"` ");
+						} else if(operater.equalsIgnoreCase("sum")) {
+							dataset = sparkSession.sql("select `"+columnName+"`as `colName`, sum(`"+columnName+"`) as `colValue` from global_temp.kkk  where `"+columnName+"` in ("+cloumnValuesStr+") group by `"+columnName+"`");
+							 
+						} 						 	
+						
+						List<String> resultLsit = dataset.toJSON().collectAsList();
+						for(String result : resultLsit) {
+							JSONObject jsonObj = (JSONObject) parser.parse(result);
+							lableArray.add(jsonObj.get("colName"));
+							valueArray.add(jsonObj.get("colValue"));
+						}
+						resultData.put("label", lableArray);
+						resultData.put("value", valueArray);
+						
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				
+				
+			}
+		}
+		return resultData;
 	}
 	
 }

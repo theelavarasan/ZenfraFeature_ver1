@@ -651,17 +651,16 @@ public class ReportDataController {
 	
 	@PostMapping("getChartDetails")
 	public ResponseEntity<?> prepareChart(
+			@RequestParam("chartConfiguration") String chartConfiguration,
+			@RequestParam("chartType") String chartType, 
+			@RequestParam("reportLabel") String reportLabel,
+			@RequestParam("reportName") String reportName,
+			@RequestParam("analyticstype") String analyticstype,
 			@RequestParam("siteKey") String siteKey,
-			@RequestParam("reportList") String reportList, 
-			@RequestParam("reportBy") String reportBy,
-			@RequestParam("component") String component,
-			@RequestParam("xaxis") String xaxis,
-			@RequestParam("yaxis") String yaxis,
-			@RequestParam("chartType") String chartType,
-			@RequestParam("dataType") String dataType,
+			@RequestParam("category") String category,			
 			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 		
-		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, component, reportList, reportBy, xaxis, yaxis, chartType, dataType);
+		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, chartConfiguration, chartType, reportLabel, reportName, analyticstype, category);
 		return null;
 	}
 	
