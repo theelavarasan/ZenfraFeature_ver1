@@ -170,7 +170,6 @@ public class FavouriteController_v2 {
 						
 
 			if (service.saveFavouriteView(favouriteModel) == 1) {
-				functions.convertfilterprop(favouriteModel);
 				catService.saveMap(favouriteModel.getCategoryList(), favouriteModel.getFavouriteId());
 				favouriteModel.setCategoryColumns(catService.getCategoryLabelById(favouriteModel.getFavouriteId()));
 				favouriteModel.setCreatedBy((user.getFirst_name() + " " + user.getLast_name()));
