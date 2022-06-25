@@ -203,7 +203,6 @@ public class FavouriteApiService_v2 {
 						}		
 						System.out.println("-----values---------"+ values);
 						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase) || (values == null || values.trim().isEmpty())) {
-							common.getfilterProp(row);
 							return common.getFavViewCheckNull(row);							
 						}
 					}
