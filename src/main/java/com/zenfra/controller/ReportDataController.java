@@ -309,7 +309,7 @@ public class ReportDataController {
 				} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
 					componentName = request.getProject();
 				}
-				reportName = request.getReportType();
+				reportName = request.getReportList();
 				deviceType = componentName;
 				reportBy = request.getReportBy();
 				siteKey = request.getSiteKey();
@@ -322,7 +322,7 @@ public class ReportDataController {
 			
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()
 					&& reportBy != null && !reportBy.isEmpty()) {
-				String columnHeaders = reportService.getReportHeader(reportList, deviceType, reportBy, siteKey,
+				String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey,
 						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype());
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 			} else {
