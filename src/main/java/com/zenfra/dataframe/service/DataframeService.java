@@ -2960,8 +2960,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
     		
 		  //find dataframe file path
 		String dataframeFilePath = commonPath + "Dataframe" + File.separator + siteKey + File.separator + logType.toLowerCase() + File.separator + siteKey + "_" + analyticstype.toLowerCase() + "_" + category + "_" + logType.toLowerCase() + "_" + reportList + "_" + reportBy + ".json";  
+		System.out.println("-------dataframeFilePath::7-------- " + dataframeFilePath);
 		File dfFile = new File(dataframeFilePath);
 		if(dfFile.exists()) {
+			System.out.println("-------chartType::7-------- " + chartType);
 			if(chartType != null && chartType.equalsIgnoreCase("pie")) {
 				try {
 					JSONObject chartConfig = (JSONObject) parser.parse(chartConfiguration);
