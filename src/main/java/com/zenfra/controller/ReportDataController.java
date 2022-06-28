@@ -285,7 +285,7 @@ public class ReportDataController {
 					deviceType = request.getOstype();					
 					
 				} else {
-					reportName =  request.getReportList();				
+					reportName =  request.getReportType();				
 					reportBy = request.getReportBy();
 					siteKey = request.getSiteKey();
 					reportList = request.getReportList();
