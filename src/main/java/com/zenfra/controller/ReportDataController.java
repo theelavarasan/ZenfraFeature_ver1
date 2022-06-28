@@ -652,7 +652,7 @@ public class ReportDataController {
 	}
 	
 	@PostMapping("getChartDetails")
-	public ResponseEntity<?> prepareChart(
+	public JSONObject prepareChart(
 			@RequestParam("chartConfiguration") String chartConfiguration,
 			@RequestParam("chartType") String chartType, 
 			@RequestParam("reportLabel") String reportLabel,
@@ -663,7 +663,7 @@ public class ReportDataController {
 			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 		
 		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, chartConfiguration, chartType, reportLabel, reportName, analyticstype, category);
-		return null;
+		return jsonObject;
 	}
 	
 	
