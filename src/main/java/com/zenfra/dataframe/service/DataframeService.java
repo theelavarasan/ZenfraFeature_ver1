@@ -2967,6 +2967,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			if(chartType != null && chartType.equalsIgnoreCase("pie")) {
 				try {
 					JSONObject chartConfig = (JSONObject) parser.parse(chartConfiguration);
+					System.out.println("-------chartConfig::7-------- " + chartConfig);
+					
 					if(chartConfig.containsKey("column")) {
 						JSONArray columnAry = (JSONArray) chartConfig.get("column");
 						JSONObject pieColumn = (JSONObject) columnAry.get(0);
@@ -2975,8 +2977,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String operater = className.split("-")[1];
 						Dataset<Row> dataset = sparkSession.emptyDataFrame();
 						Dataset<Row> lableDataset = sparkSession.emptyDataFrame();
+						
+						System.out.println("-------chartConfig::7-------- " + columnName + " : " + columnName);
+						
+						
 						try {
-							  lableDataset = sparkSession.sql("select distinct(`"+columnName+"`) from global_temp."+viewName).toDF();
+							  lableDataset = sparkSession.sql("select distinct(`"+columnName+"`) from global_temp."+columnName).toDF();
 						} catch (Exception e) {
 							 createDataframeFromJsonFile(viewName, dataframeFilePath);
 							 lableDataset = sparkSession.sql("select distinct(`"+columnName+"`) from global_temp."+viewName).toDF();
@@ -2986,6 +2992,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String cloumnValuesStr = String.join(",", cloumnValues.stream().map(name -> ("'"+ name.toLowerCase()+"'" ))
 										.collect(Collectors.toList()));		
 					
+						System.out.println("-------cloumnValues::7-------- " + cloumnValues);
+						
 						if(operater.equalsIgnoreCase("count")) {
 							dataset = sparkSession.sql("select `"+columnName+"` as `colName`, count(*) as `colValue`  from global_temp.kkk  where lower(`"+columnName+"`) in ("+cloumnValuesStr+") group by `"+columnName+"` ");
 						} else if(operater.equalsIgnoreCase("sum")) {
