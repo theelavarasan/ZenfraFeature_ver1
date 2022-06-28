@@ -2946,9 +2946,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
             String[] reportNameAry = reportName.split("_");
             String reportList = reportNameAry[0];
-            String logType = reportNameAry[1];
+            String logType = reportNameAry[1].toLowerCase();
             String reportBy = reportNameAry[3];
-            
+			
             String viewNameWithHypen = siteKey + "_" + analyticstype.toLowerCase() + "_"
     				+ category + "_" + logType + "_" + reportList + "_"
     				+ reportBy;
