@@ -44,6 +44,7 @@ public class ReportDao {
 			params.put("device_type", deviceType.toLowerCase());
 			params.put("report_by", reportBy.toLowerCase());
 			System.out.println("------params--------- " + params);
+			System.out.println("------columns query--------- " + reportQueries.getHeader());
 			List<Map<String, Object>> result = namedJdbc.queryForList(reportQueries.getHeader(), params);
 			reportHeaders = parseResultSetForHeaderInfo(result);
 		} catch (Exception e) {
@@ -65,7 +66,7 @@ public class ReportDao {
 			for (Map<String, Object> rowData : resultList) {
 				JSONObject jsonObj = new JSONObject();
 				jsonObj.putAll(rowData);
-				if (rowCount == 1) {
+				if ((boolean) rowData.get("isPinned")) {
 					jsonObj.put("lockPinned", true);
 					jsonObj.put("lockPosition", true);
 					jsonObj.put("pinned", "left");
