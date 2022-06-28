@@ -2292,12 +2292,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				componentName = request.getProject();
 			}
 			
-			
+			componentName = componentName.toLowerCase();
 			String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
 					+ request.getCategory() + "_" + componentName + "_" + request.getReportList() + "_"
 					+ request.getReportBy();
-			String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");		
-			
+			String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");			
 			
 			if(request.getReportBy().equalsIgnoreCase("server")) {
 				viewName = (siteKey + "_" + componentName).toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");
@@ -2313,8 +2312,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 			System.out.println("-------write Path -------" + viewName + " :: " + verifyDataframeParentPath + " : "  );
 			
-			Dataset<Row> dataset = null;
-			
+			Dataset<Row> dataset = sparkSession.emptyDataFrame();		
 			
 			
 			String reportName = request.getReportList() + "_" + componentName + "_by_" + request.getReportBy();
