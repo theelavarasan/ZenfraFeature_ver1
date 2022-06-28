@@ -2332,7 +2332,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			for(int i=0; i<reportColumns.size(); i++) {
 				JSONObject colObj = (JSONObject) reportColumns.get(i);
 				String colName = (String) colObj.get("displayName");
-				if(dfColumns.contains(colName)) {
+				if(dfColumns.contains(colName) && !reportCols.contains(colName)) {
 					reportCols.add(colName);
 				}
 				
