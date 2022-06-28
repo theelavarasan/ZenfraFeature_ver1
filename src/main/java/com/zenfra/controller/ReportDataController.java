@@ -16,7 +16,9 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -612,7 +614,7 @@ public class ReportDataController {
 	
 	
 	@PostMapping("export")
-	public void test(@RequestBody  ServerSideGetRowsRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+	public void export(@RequestBody  ServerSideGetRowsRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 		
 		String filePath =  dataframeService.writeDfToCsv(request);
 		
@@ -642,7 +644,7 @@ public class ReportDataController {
         }
         
         try {
-        	 FileUtils.deleteDirectory(new File(filePath));
+        	 FileUtils.delete(new File(filePath));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -704,47 +706,112 @@ public class ReportDataController {
 				String vCenter = "";
 				String vmname = "";
 				String sid = "";
+				
+				Map<String, String> whereClause = new HashMap<String, String>();
 
 				if (resultJSON.containsKey(columnName) || resultJSON.containsKey("vmax_Replication Device Count")) {
 					if(resultJSON.containsKey("Possible Server Name(VMAX)")) {
 						serverName = resultJSON.get("Possible Server Name(VMAX)").toString();
 						sid = resultJSON.get("SID").toString();
+						
+						if(!serverName.trim().isEmpty()) {
+							whereClause.put("Possible Server Name(VMAX)", serverName);
+						}
+						if(!sid.trim().isEmpty()) {
+							whereClause.put("SID", sid);
+						}
 					} else if(resultJSON.containsKey("Possible Server Name")) {
 						serverName = resultJSON.get("Possible Server Name").toString();
 						sid = resultJSON.get("Serial Number").toString();
+						
+						if(!serverName.trim().isEmpty()) {
+							whereClause.put("Possible Server Name", serverName);
+						}
+						if(!sid.trim().isEmpty()) {
+							whereClause.put("Serial Number", sid);
+						}
 					} else if(resultJSON.containsKey("vmax_Possible Server Name(VMAX)")) { 
 						serverName = resultJSON.get("vmax_Possible Server Name(VMAX)").toString();
 						sid = resultJSON.get("vmax_SID").toString();
+						
+						if(!serverName.trim().isEmpty()) {
+							whereClause.put("vmax_Possible Server Name(VMAX)", serverName);
+						}
+						if(!sid.trim().isEmpty()) {
+							whereClause.put("vmax_SID", sid);
+						}
+						
 					} else {
 						serverName = resultJSON.get(columnName).toString();
+						
+						whereClause.put(columnName, serverName);
+						
 					}			
 					System.out.println("!!!!! deviceType: " + deviceType);
 					System.out.println("!!!!! resultJSON: " + resultJSON);
 					if(resultJSON.containsKey("Possible Server Name(VMAX)")) {
 						serverName = resultJSON.get("Possible Server Name(VMAX)").toString();
 						sid = resultJSON.get("SID").toString();
+						
+						if(!serverName.trim().isEmpty()) {
+							whereClause.put("Possible Server Name(VMAX)", serverName);
+						}
+						if(!sid.trim().isEmpty()) {
+							whereClause.put("SID", sid);
+						}
+						
 					} else if(resultJSON.containsKey("Possible Server Name")) {
 						serverName = resultJSON.get("Possible Server Name").toString();
 						sid = resultJSON.get("Serial Number").toString();
+						
+						if(!serverName.trim().isEmpty()) {
+							whereClause.put("Possible Server Name", serverName);
+						}
+						if(!sid.trim().isEmpty()) {
+							whereClause.put("Serial Number", sid);
+						}
+						
 					} else if(resultJSON.containsKey("vmax_Possible Server Name(VMAX)")) {
 						serverName = resultJSON.get("vmax_Possible Server Name(VMAX)").toString();
 						sid = resultJSON.get("vmax_SID").toString();
+						
+
+						if(!serverName.trim().isEmpty()) {
+							whereClause.put("vmax_Possible Server Name(VMAX)", serverName);
+						}
+						if(!sid.trim().isEmpty()) {
+							whereClause.put("vmax_SID", sid);
+						}
+						
+						
 					} else {
 						serverName = resultJSON.get("Server Name").toString();
+						
+						whereClause.put(columnName, serverName);
 					}					
 				}
 				
 				if (resultJSON.containsKey("VM")) {
 					vmname = resultJSON.get("VM") == null ? "" : resultJSON.get("VM").toString();
+					
+					if(!vmname.trim().isEmpty()) {
+						whereClause.put("VM", vmname);
+					}
+					
 				}
 				if (resultJSON.containsKey("vCenter")) {
 					vCenter = resultJSON.get("vCenter") == null ? "" : resultJSON.get("vCenter").toString();
+					
+					if(!vCenter.trim().isEmpty()) {
+						whereClause.put("vCenter", vCenter);
+					}
+					
 				}
-				System.out.println("!!!!! serverName: " + serverName);
-				System.out.println("!!!!! VM: " + vmname);
-				System.out.println("!!!!! vCenter: " + vCenter);
+				System.out.println("!!!!! whereClause: " + whereClause);
+				 
+				
 
-				JSONObject dsrData = dataframeService.getDsrData(subReportList.get(0).toString(), siteKey, serverName, deviceType);
+				JSONObject dsrData = dataframeService.getDsrData(subReportList.get(0).toString(), siteKey, whereClause, deviceType);
 				JSONObject data = new JSONObject();
 				data.putAll(dsrData);
 				data.put("responseCode", "200");

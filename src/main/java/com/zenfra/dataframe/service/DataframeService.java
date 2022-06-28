@@ -2655,7 +2655,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 	}
 
-	public JSONObject getDsrData(String dsrReportName, String siteKey, String serverName, String deviceType) {
+	public JSONObject getDsrData(String dsrReportName, String siteKey, Map<String, String> whereClause, String deviceType) {
 		JSONObject responseJSONObject = new JSONObject();
 		
 		JSONArray resultArray = new JSONArray();
@@ -2663,8 +2663,22 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
 		String viewName = dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
 		Dataset<Row> dsrData = sparkSession.emptyDataFrame();
+		
+		String whereQuery = "";
+		for (Map.Entry<String, String> entry : whereClause.entrySet()) {
+		    String colname = entry.getKey();
+		    String colValue = entry.getValue();
+		    if(whereQuery.isEmpty()) {
+		    	whereQuery = "lower(`"+colname+"`)='"+colValue.toLowerCase()+"'";
+		    } else {
+		    	whereQuery = " AND lower(`"+colname+"`)='"+colValue.toLowerCase()+"'";
+		    }
+		}
+		
+		System.out.println("--------whereQuery---------- " + whereQuery);
+		
 		try {
-			dsrData = sparkSession.sql("select * from global_temp."+viewName+" where lower(`Server Name`)='"+serverName.toLowerCase()+"'");
+			dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
 			dsrData.printSchema();
 		} catch (Exception e) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
@@ -2675,7 +2689,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
-				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where lower(`Server Name`)='"+serverName.toLowerCase()+"'");
+				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
 				 
 		}
 		
