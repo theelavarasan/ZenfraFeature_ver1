@@ -2966,8 +2966,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			System.out.println("-------chartType::7-------- " + chartType);
 			if(chartType != null && chartType.equalsIgnoreCase("pie")) {
 				try {
-					JSONObject chartConfig = (JSONObject) parser.parse(chartConfiguration);
-					System.out.println("-------chartConfig::7-------- " + chartConfig);
+					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
+					System.out.println("-------chartConfig::7-------- " + chartConfigObj);
+					
+					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
+					
+					System.out.println("-------chartConfig::8-------- " + chartConfig);
 					
 					if(chartConfig.containsKey("column")) {
 						JSONArray columnAry = (JSONArray) chartConfig.get("column");
