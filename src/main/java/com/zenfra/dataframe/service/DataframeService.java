@@ -2298,9 +2298,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					+ request.getReportBy();
 			String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");			
 			
-			if(request.getReportBy().equalsIgnoreCase("server")) {
-				viewName = (siteKey + "_" + componentName).toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");
-			}
+			/*
+			 * if(request.getReportBy().equalsIgnoreCase("server")) { viewName = (siteKey +
+			 * "_" + componentName).toLowerCase().replaceAll("-", "").replaceAll("\\s+",
+			 * ""); }
+			 */
 			
 			
 			File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
