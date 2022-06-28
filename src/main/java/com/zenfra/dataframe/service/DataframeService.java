@@ -1502,7 +1502,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 	
 		
-		System.out.println("------verifyDataframePath-------" + verifyDataframePath);
+		System.out.println("------verifyDataframePath-------" +viewName + " : " +  verifyDataframePath);
 		
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ siteKey + File.separator + componentName + File.separator );
