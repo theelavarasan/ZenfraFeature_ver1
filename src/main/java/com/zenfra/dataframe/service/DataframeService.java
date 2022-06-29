@@ -3021,6 +3021,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			} else if(chartType != null && chartType.equalsIgnoreCase("table")) {
 				try {
 					JSONObject chartConfig = (JSONObject) parser.parse(chartConfiguration);
+					System.out.println("-------chartConfig::10-------- " + chartConfig);
+					
 					if(chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
 						JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
 						JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
@@ -3029,6 +3031,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONObject yaxisColumn = (JSONObject) yaxisColumnAry.get(0);
 						String xaxisColumnName = (String) xaxisColumn.get("value");
 						String yaxisColumnName = (String) yaxisColumn.get("value");
+						
+						System.out.println("-------chartConfig::12-------- " + xaxisColumnName + " : " + yaxisColumnName);
 						
 						String className = (String) yaxisColumn.get("className");
 						
@@ -3062,6 +3066,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							valueArray.add(jsonObj.get("colValue"));
 						}
 						
+						
+						System.out.println("-------resultLsit::12-------- " + resultLsit);
+						
+						
 						yaxisResult.put("label", lableArray);
 						yaxisResult.put("value", valueArray);
 						
@@ -3080,6 +3088,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						
 						resultData.put("xaixs", xaxisResult);
 						resultData.put("yaixs", yaxisResult);
+						
+						System.out.println("-------resultLsit::13-------- " + xaxisCloumnValues);
 						
 					}
 				} catch (Exception e) {
