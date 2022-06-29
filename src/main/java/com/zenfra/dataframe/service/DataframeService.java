@@ -3055,9 +3055,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 										.collect(Collectors.toList()));		
 					
 						if(operater.equalsIgnoreCase("count")) {
-							yaixsDataset = sparkSession.sql("select `"+yaxisColumnName+"` as `colName`, count(*) as `colValue`  from global_temp.kkk  where lower(`"+yaxisColumnName+"`) in ("+cloumnValuesStr+") group by `"+yaxisColumnName+"` ");
+							yaixsDataset = sparkSession.sql("select `"+yaxisColumnName+"` as `colName`, count(*) as `colValue`  from global_temp."+viewName+" where lower(`"+yaxisColumnName+"`) in ("+cloumnValuesStr+") group by `"+yaxisColumnName+"` ");
 						} else if(operater.equalsIgnoreCase("sum")) {
-							yaixsDataset = sparkSession.sql("select `"+yaxisColumnName+"`as `colName`, sum(`"+yaxisColumnName+"`) as `colValue` from global_temp.kkk  where `"+yaxisColumnName+"` in ("+cloumnValuesStr+") group by `"+yaxisColumnName+"`");
+							yaixsDataset = sparkSession.sql("select `"+yaxisColumnName+"`as `colName`, sum(`"+yaxisColumnName+"`) as `colValue` from global_temp."+viewName+"  where `"+yaxisColumnName+"` in ("+cloumnValuesStr+") group by `"+yaxisColumnName+"`");
 							 
 						} 						 	
 						
