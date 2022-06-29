@@ -2567,7 +2567,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		JSONArray columnArray = new JSONArray();
 		try {
 			
-			String dataframePath = commonPath + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator
+			String dataframePath = commonPath + File.separator + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator
 					+ siteKey + "_" + analyticsType + "_"
 					+ category + "_" + componentName + "_" + reportList + "_" + reportBy + ".json";
 			
