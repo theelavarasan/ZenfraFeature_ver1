@@ -275,7 +275,7 @@ public class ReportDataController {
 				
 				JSONObject columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK); 
-			} else if ((request.getCategory().equalsIgnoreCase("Server") || request.getCategory().equalsIgnoreCase("Storage") || request.getCategory().equalsIgnoreCase("Switch"))&&
+			} else if ((request.getCategory().equalsIgnoreCase("Server")) &&
 					request.getAnalyticstype() != null 
 					&& request.getAnalyticstype().equalsIgnoreCase("Discovery") 
 					&& request.getReportList().equalsIgnoreCase("Local") ) {
@@ -311,7 +311,13 @@ public class ReportDataController {
 				} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
 					componentName = request.getProject();
 				}
-				reportName = request.getReportList();
+				if(request.getReportList().equalsIgnoreCase("Local")) {
+					reportName = request.getReportType();
+				} else {
+					reportName = request.getReportList();
+				}
+				 
+				
 				deviceType = componentName;
 				reportBy = request.getReportBy();
 				siteKey = request.getSiteKey();
