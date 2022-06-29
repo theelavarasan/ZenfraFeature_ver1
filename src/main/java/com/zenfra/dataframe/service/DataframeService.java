@@ -2569,7 +2569,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 			String dataframePath = commonPath + File.separator + "Dataframe" + File.separator + siteKey + File.separator + componentName.toLowerCase() + File.separator
 					+ siteKey + "_" + analyticsType + "_"
-					+ category + "_" + componentName + "_" + reportList + "_" + reportBy + ".json";
+					+ category + "_" + componentName.toLowerCase() + "_" + reportList + "_" + reportBy + ".json";
 			
 			System.out.println("!!!!!############### dataframePath: " + dataframePath);
 			
