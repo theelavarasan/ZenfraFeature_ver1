@@ -2561,6 +2561,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					+ siteKey + "_" + analyticsType + "_"
 					+ category + "_" + componentName + "_" + reportList + "_" + reportBy + ".json";
 			
+			System.out.println("!!!!!############### dataframePath: " + dataframePath);
+			
+			
 			File f = new File(dataframePath);
 			
 			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
