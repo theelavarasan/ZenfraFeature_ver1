@@ -1502,7 +1502,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 	
 		
-		System.out.println("------verifyDataframePath-------" + verifyDataframePath);
+		System.out.println("------verifyDataframePath-------" +viewName + " : " +  verifyDataframePath);
 		
 		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
 				+ siteKey + File.separator + componentName + File.separator );
@@ -2298,10 +2298,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					+ request.getReportBy();
 			String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");			
 			
-			if(request.getReportBy().equalsIgnoreCase("server")) {
-				viewName = (siteKey + "_" + componentName).toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");
-			}
-			
+					
 			
 			File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
 					+ "exportDF" + File.separator + siteKey + File.separator + componentName + File.separator );
@@ -2314,6 +2311,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 			Dataset<Row> dataset = sparkSession.emptyDataFrame();		
 			
+			try {
+				dataset = sparkSession.sql("select * from global_temp." + viewName);		
+			
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("---------View Not exists--------");
+			}
+			
+			String[] columns = dataset.columns();
+			List<String> dfColumns = new ArrayList<>(Arrays.asList(columns));
 			
 			String reportName = request.getReportList() + "_" + componentName + "_by_" + request.getReportBy();
 			
@@ -2325,7 +2332,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			for(int i=0; i<reportColumns.size(); i++) {
 				JSONObject colObj = (JSONObject) reportColumns.get(i);
 				String colName = (String) colObj.get("displayName");
-				reportCols.add(colName);
+				if(dfColumns.contains(colName) && !reportCols.contains(colName)) {
+					reportCols.add(colName);
+				}
+				
 			}
 			         
 			 
@@ -2648,7 +2658,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 	}
 
-	public JSONObject getDsrData(String dsrReportName, String siteKey, String serverName, String deviceType) {
+	public JSONObject getDsrData(String dsrReportName, String siteKey, Map<String, String> whereClause, String deviceType) {
 		JSONObject responseJSONObject = new JSONObject();
 		
 		JSONArray resultArray = new JSONArray();
@@ -2656,8 +2666,22 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
 		String viewName = dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
 		Dataset<Row> dsrData = sparkSession.emptyDataFrame();
+		
+		String whereQuery = "";
+		for (Map.Entry<String, String> entry : whereClause.entrySet()) {
+		    String colname = entry.getKey();
+		    String colValue = entry.getValue();
+		    if(whereQuery.isEmpty()) {
+		    	whereQuery = "lower(`"+colname+"`)='"+colValue.toLowerCase()+"'";
+		    } else {
+		    	whereQuery = " AND lower(`"+colname+"`)='"+colValue.toLowerCase()+"'";
+		    }
+		}
+		
+		System.out.println("--------whereQuery---------- " + whereQuery);
+		
 		try {
-			dsrData = sparkSession.sql("select * from global_temp."+viewName+" where lower(`Server Name`)='"+serverName.toLowerCase()+"'");
+			dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
 			dsrData.printSchema();
 		} catch (Exception e) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
@@ -2668,7 +2692,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
-				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where lower(`Server Name`)='"+serverName.toLowerCase()+"'");
+				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
 				 
 		}
 		
@@ -2925,9 +2949,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
             String[] reportNameAry = reportName.split("_");
             String reportList = reportNameAry[0];
-            String logType = reportNameAry[1];
+            String logType = reportNameAry[1].toLowerCase();
             String reportBy = reportNameAry[3];
-            
+			
             String viewNameWithHypen = siteKey + "_" + analyticstype.toLowerCase() + "_"
     				+ category + "_" + logType + "_" + reportList + "_"
     				+ reportBy;
@@ -2939,11 +2963,19 @@ private void reprocessVmaxDiskSanData(String filePath) {
     		
 		  //find dataframe file path
 		String dataframeFilePath = commonPath + "Dataframe" + File.separator + siteKey + File.separator + logType.toLowerCase() + File.separator + siteKey + "_" + analyticstype.toLowerCase() + "_" + category + "_" + logType.toLowerCase() + "_" + reportList + "_" + reportBy + ".json";  
+		System.out.println("-------dataframeFilePath::7-------- " + dataframeFilePath);
 		File dfFile = new File(dataframeFilePath);
 		if(dfFile.exists()) {
+			System.out.println("-------chartType::7-------- " + chartType);
 			if(chartType != null && chartType.equalsIgnoreCase("pie")) {
 				try {
-					JSONObject chartConfig = (JSONObject) parser.parse(chartConfiguration);
+					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
+					System.out.println("-------chartConfig::7-------- " + chartConfigObj);
+					
+					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
+					
+					System.out.println("-------chartConfig::8-------- " + chartConfig);
+					
 					if(chartConfig.containsKey("column")) {
 						JSONArray columnAry = (JSONArray) chartConfig.get("column");
 						JSONObject pieColumn = (JSONObject) columnAry.get(0);
@@ -2952,6 +2984,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String operater = className.split("-")[1];
 						Dataset<Row> dataset = sparkSession.emptyDataFrame();
 						Dataset<Row> lableDataset = sparkSession.emptyDataFrame();
+						
+						System.out.println("-------chartConfig::7-------- " + columnName + " : " + viewName);
+						
+						
 						try {
 							  lableDataset = sparkSession.sql("select distinct(`"+columnName+"`) from global_temp."+viewName).toDF();
 						} catch (Exception e) {
@@ -2963,10 +2999,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String cloumnValuesStr = String.join(",", cloumnValues.stream().map(name -> ("'"+ name.toLowerCase()+"'" ))
 										.collect(Collectors.toList()));		
 					
+						System.out.println("-------cloumnValues::7-------- " + cloumnValues);
+						
 						if(operater.equalsIgnoreCase("count")) {
-							dataset = sparkSession.sql("select `"+columnName+"` as `colName`, count(*) as `colValue`  from global_temp.kkk  where lower(`"+columnName+"`) in ("+cloumnValuesStr+") group by `"+columnName+"` ");
+							dataset = sparkSession.sql("select `"+columnName+"` as `colName`, count(*) as `colValue`  from global_temp."+viewName+"  where lower(`"+columnName+"`) in ("+cloumnValuesStr+") group by `"+columnName+"` ");
 						} else if(operater.equalsIgnoreCase("sum")) {
-							dataset = sparkSession.sql("select `"+columnName+"`as `colName`, sum(`"+columnName+"`) as `colValue` from global_temp.kkk  where `"+columnName+"` in ("+cloumnValuesStr+") group by `"+columnName+"`");
+							dataset = sparkSession.sql("select `"+columnName+"`as `colName`, sum(`"+columnName+"`) as `colValue` from global_temp."+viewName+"  where `"+columnName+"` in ("+cloumnValuesStr+") group by `"+columnName+"`");
 							 
 						} 						 	
 						
@@ -2982,10 +3020,87 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
-				}
-				
-				
-				
+				} 
+			} else if(chartType != null && chartType.equalsIgnoreCase("table")) {
+				try {
+					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
+					System.out.println("-------chartConfig::7-------- " + chartConfigObj);
+					
+					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
+					System.out.println("-------chartConfig::10-------- " + chartConfig);
+					
+					if(chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
+						JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
+						JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
+						
+						JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
+						JSONObject yaxisColumn = (JSONObject) yaxisColumnAry.get(0);
+						String xaxisColumnName = (String) xaxisColumn.get("value");
+						String yaxisColumnName = (String) yaxisColumn.get("value");
+						
+						System.out.println("-------chartConfig::12-------- " + xaxisColumnName + " : " + yaxisColumnName);
+						
+						String className = (String) yaxisColumn.get("className");
+						
+						String operater = className.split("-")[1];
+						Dataset<Row> yaixsDataset = sparkSession.emptyDataFrame();
+						Dataset<Row> yaixsLableDataset = sparkSession.emptyDataFrame();
+						
+						try {
+							  yaixsLableDataset = sparkSession.sql("select distinct(`"+yaxisColumnName+"`) from global_temp."+viewName).toDF();
+						} catch (Exception e) {
+							 createDataframeFromJsonFile(viewName, dataframeFilePath);
+							 yaixsLableDataset = sparkSession.sql("select distinct(`"+yaxisColumnName+"`) from global_temp."+viewName).toDF();
+						}		
+						
+						List<String> cloumnValues = yaixsLableDataset.as(Encoders.STRING()).collectAsList();					 
+						String cloumnValuesStr = String.join(",", cloumnValues.stream().map(name -> ("'"+ name.toLowerCase()+"'" ))
+										.collect(Collectors.toList()));		
+					
+						if(operater.equalsIgnoreCase("count")) {
+							yaixsDataset = sparkSession.sql("select `"+yaxisColumnName+"` as `colName`, count(*) as `colValue`  from global_temp."+viewName+" where lower(`"+yaxisColumnName+"`) in ("+cloumnValuesStr+") group by `"+yaxisColumnName+"` ");
+						} else if(operater.equalsIgnoreCase("sum")) {
+							yaixsDataset = sparkSession.sql("select `"+yaxisColumnName+"`as `colName`, sum(`"+yaxisColumnName+"`) as `colValue` from global_temp."+viewName+"  where `"+yaxisColumnName+"` in ("+cloumnValuesStr+") group by `"+yaxisColumnName+"`");
+							 
+						} 						 	
+						
+						List<String> resultLsit = yaixsDataset.toJSON().collectAsList();
+						JSONObject yaxisResult = new JSONObject();
+						for(String result : resultLsit) {
+							JSONObject jsonObj = (JSONObject) parser.parse(result);
+							lableArray.add(jsonObj.get("colName"));
+							valueArray.add(jsonObj.get("colValue"));
+						}
+						
+						
+						System.out.println("-------resultLsit::12-------- " + resultLsit);
+						
+						
+						yaxisResult.put("label", lableArray);
+						yaxisResult.put("value", valueArray);
+						
+						Dataset<Row> xaixsDataset = sparkSession.emptyDataFrame();
+						try {
+							xaixsDataset = sparkSession.sql("select distinct(`"+xaxisColumnName+"`) from global_temp."+viewName).toDF();
+						} catch (Exception e) {
+							 createDataframeFromJsonFile(viewName, dataframeFilePath);
+							 xaixsDataset = sparkSession.sql("select distinct(`"+xaxisColumnName+"`) from global_temp."+viewName).toDF();
+						}
+						
+						List<String> xaxisCloumnValues = xaixsDataset.as(Encoders.STRING()).collectAsList();	
+						JSONObject xaxisResult = new JSONObject();
+						xaxisResult.put("label", xaxisColumnName);
+						xaxisResult.put("value", xaxisCloumnValues);
+						
+						resultData.put("xaixs", xaxisResult);
+						resultData.put("yaixs", yaxisResult);
+						
+						System.out.println("-------resultLsit::13-------- " + xaxisCloumnValues);
+						
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				} 
 			}
 		}
 		return resultData;

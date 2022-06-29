@@ -78,6 +78,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(HttpMethod.POST, "/rest/df/getVmaxSubreport").permitAll() 
             .antMatchers(HttpMethod.POST, "/rest/df/subreport").permitAll()             
             .antMatchers(HttpMethod.POST, "/rest/df/export").permitAll() 
+            .antMatchers(HttpMethod.POST, "/rest/df/getChartDetails").permitAll()            
 
             //.antMatchers(HttpMethod.DELETE, "/rest/api/log-file/**").permitAll()
             // Our private endpoints
