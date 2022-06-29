@@ -275,7 +275,7 @@ public class ReportDataController {
 				
 				JSONObject columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK); 
-			} else if (request.getCategory().equalsIgnoreCase("Server") &&
+			} else if ((request.getCategory().equalsIgnoreCase("Server") || request.getCategory().equalsIgnoreCase("Storage") || request.getCategory().equalsIgnoreCase("Switch"))&&
 					request.getAnalyticstype() != null 
 					&& request.getAnalyticstype().equalsIgnoreCase("Discovery") 
 					&& request.getReportList().equalsIgnoreCase("Local") ) {
