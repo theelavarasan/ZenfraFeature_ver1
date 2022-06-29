@@ -2576,23 +2576,26 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 			File f = new File(dataframePath);
 			
-			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
-					.option("mode", "PERMISSIVE").json(dataframePath);
-		
-			String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
-			dataset.createOrReplaceGlobalTempView(viewName);
+			if(f.exists()) {
+				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+						.option("mode", "PERMISSIVE").json(dataframePath);
 			
-			String[] dfColumnArray = dataset.columns();
-			for(int i=0; i<dfColumnArray.length; i++) {
-				JSONObject columnObj = new JSONObject();				
-				columnObj.put("actualName", dfColumnArray[i]);
-				columnObj.put("displayName", dfColumnArray[i]);
-				columnObj.put("dataType", dfColumnArray[i]);
-				columnObj.put("lockPinned", false);
-				columnObj.put("lockPosition", false);
-				columnObj.put("pinned", "");				
-				columnArray.add(columnObj);
+				String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+				dataset.createOrReplaceGlobalTempView(viewName);
+				
+				String[] dfColumnArray = dataset.columns();
+				for(int i=0; i<dfColumnArray.length; i++) {
+					JSONObject columnObj = new JSONObject();				
+					columnObj.put("actualName", dfColumnArray[i]);
+					columnObj.put("displayName", dfColumnArray[i]);
+					columnObj.put("dataType", dfColumnArray[i]);
+					columnObj.put("lockPinned", false);
+					columnObj.put("lockPosition", false);
+					columnObj.put("pinned", "");				
+					columnArray.add(columnObj);
+				}
 			}
+			
 			
 			
 		} catch (Exception e) {
