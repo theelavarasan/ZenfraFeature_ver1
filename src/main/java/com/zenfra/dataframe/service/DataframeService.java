@@ -1813,7 +1813,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					//write server_server dataframe into common path /opt/ZENfra/Dataframe/siteKey/{logType}/jsonFile
 					writeServerDataframeToCommonPath(siteKey, sourceType);
 					
-				} else if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") 
+				} 
+				if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") 
 						|| reportCategory.equalsIgnoreCase("Storage")) { //dataframe created from V2 repo /migrationReport API call... mostly report created from orient DB
 					ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
 						if(reportCategory.equalsIgnoreCase("server")) { //server
