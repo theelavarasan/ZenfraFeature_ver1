@@ -3020,7 +3020,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				} 
 			} else if(chartType != null && chartType.equalsIgnoreCase("table")) {
 				try {
-					JSONObject chartConfig = (JSONObject) parser.parse(chartConfiguration);
+					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
+					System.out.println("-------chartConfig::7-------- " + chartConfigObj);
+					
+					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
 					System.out.println("-------chartConfig::10-------- " + chartConfig);
 					
 					if(chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
