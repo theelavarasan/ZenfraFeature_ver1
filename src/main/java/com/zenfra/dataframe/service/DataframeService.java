@@ -1743,17 +1743,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	 RestTemplate restTemplate = new RestTemplate();
 	
 	 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
-	 ResponseEntity<?> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
-	    		httpRequest, String.class);
+	 /*ResponseEntity<String> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
+	    		httpRequest, String.class);*/
 	   
-	///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
+	ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
 	
 	 JSONObject resultObj = new JSONObject();
 	try {
-		System.out.println("!!!!! restResult.getBody(): " + restResult.getBody().getClass().getName());
-		resultObj = (JSONObject) parser.parse(restResult.getBody().toString());
+		resultObj = (JSONObject) parser.parse(restResult.getBody());
 	} catch (ParseException e1) {
-		// TODO Auto-generated catch block
 		e1.printStackTrace();
 	}
 	 
