@@ -1728,7 +1728,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
     	+"&storage="+request.getStorage()    	
     	;
         uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
-      
+        
+        System.out.println("!!!!! uri: " + uri);
         Map<String, Object> map =   mapper.convertValue(request, new TypeReference<Map<String, Object>>() {});
         map.put("skip", 0);
         map.put("limit", 0);
@@ -1737,7 +1738,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	   
 	    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
 	    		builder.build(map);
-	    System.out.println(builder.buildAndExpand(map).toUri());
+	    System.out.println("!!!!! builder uri: " + builder.buildAndExpand(map).toUri());
 		  
 	 RestTemplate restTemplate = new RestTemplate();
 	
