@@ -1750,6 +1750,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	
 	 JSONObject resultObj = new JSONObject();
 	try {
+		System.out.println("!!!!! restResult.getBody(): " + restResult.getBody().getClass().getName());
 		resultObj = (JSONObject) parser.parse(restResult.getBody());
 	} catch (ParseException e1) {
 		// TODO Auto-generated catch block
