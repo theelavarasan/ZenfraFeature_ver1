@@ -187,14 +187,7 @@ public abstract class JdbcCommonOperations {
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 			obj1 = statement.executeUpdate(query);
-//		try {
-//			System.out.println("query::" + query);
-//			Map<String, String> data1 = DBUtils.getPostgres();
-//			DataSource d = DataSourceBuilder.create().url(data.get("url")).username(data.get("userName"))
-//					.password(data.get("password")).driverClassName("org.postgresql.Driver").build();
-//			jdbc.setDataSource(d);
-//			obj1 = jdbc.update(query);
-//			jdbc.getDataSource().getConnection().close();
+			jdbc.getDataSource().getConnection().close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -203,7 +196,7 @@ public abstract class JdbcCommonOperations {
 			String ex = errors.toString();
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		} finally {
-//			jdbc.getDataSource().getConnection().close();
+			jdbc.getDataSource().getConnection().close();
 		}
 		return obj1;
 	}
