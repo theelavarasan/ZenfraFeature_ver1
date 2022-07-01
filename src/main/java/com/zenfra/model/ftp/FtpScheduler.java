@@ -25,52 +25,48 @@ public class FtpScheduler {
 	@Column
 	private String type;
 
-	
-	
 	@Column
 	private String schedulerCorn;
 
-	
 	@Column
 	@NotBlank(message = "timeSlot must not be empty")
 	private String timeSlot;
-	
-	
+
 	@Column
 	private boolean isActive;
-	
+
 	@Column
 	private String tenantId;
-	
+
 	@Column
 	@NotBlank(message = "siteKey must not be empty")
 	private String siteKey;
-	
+
 	@Column
 	@NotBlank(message = "userId must not be empty")
 	private String userId;
-	
+
 	@Column
 	private JSONArray notificationEmail;
-	
+
 	@Column
 	private JSONArray selectedDay;
-	
+
 	@Column
 	private String selectedDate;
-	
+
 	@Column
 	private String time;
-	
-	
+
 	@Column
 	private String timeZone;
-	
-	
+
 	@Column
 	private String emailString;
-	
-	
+
+	@Column
+	private Boolean isNas;
+
 	public long getId() {
 		return id;
 	}
@@ -143,8 +139,6 @@ public class FtpScheduler {
 		this.timeSlot = timeSlot;
 	}
 
-	
-
 	public String getSelectedDate() {
 		return selectedDate;
 	}
@@ -193,10 +187,12 @@ public class FtpScheduler {
 		this.emailString = emailString;
 	}
 
-	
-	
-	
-	
-	
+	public Boolean getIsNas() {
+		return isNas;
+	}
+
+	public void setIsNas(Boolean isNas) {
+		this.isNas = isNas;
+	}
 
 }

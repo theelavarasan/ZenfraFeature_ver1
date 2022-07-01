@@ -44,7 +44,7 @@ public class FtpSchedulerController {
 	CommonFunctions functions;
 
 	@PostMapping("/runScheduler")
-	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler) {
+	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler, @RequestParam("isNas") boolean isNas) {
 
 		try {
 
@@ -81,6 +81,9 @@ public class FtpSchedulerController {
 			}
 			System.out.println(ftpScheduler.getSchedulerCorn());
 			ftpScheduler.setActive(true);
+			if (isNas) {
+				ftpScheduler.setIsNas(true);
+			}
 			ftpScheduler.setEmailString(ftpScheduler.getNotificationEmail().toJSONString());
 			System.out.println(ftpScheduler.toString());
 			long id = schedulerService.saveFtpScheduler(ftpScheduler);

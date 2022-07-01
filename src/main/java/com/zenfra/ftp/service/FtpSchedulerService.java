@@ -24,6 +24,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException.Unauthorized;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.TimeZone;
@@ -317,7 +318,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 			logFile.setFileName(fileName);
 			logFile.setFileSize(String.valueOf(convFile.length()));
 			logFile.setLogType(logType);
-			//logFile.setExtractedPath(folderPath + "/" + fileName);
+			// logFile.setExtractedPath(folderPath + "/" + fileName);
 			System.out.println("----FTP PATH------   " + convFile.getAbsolutePath());
 			logFile.setExtractedPath(convFile.getAbsolutePath());
 			logFile.setSiteKey(siteKey);
@@ -367,8 +368,8 @@ public class FtpSchedulerService extends CommonEntityManager {
 			System.out.println("Params::" + body);
 			HttpEntity<Object> request = new HttpEntity<>(body, createHeaders("Bearer " + token));
 			String uri = parsingURL + "/parsing/upload";
-			uri =  CommonUtils.checkPortNumberForWildCardCertificate(uri);
-			
+			uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+
 			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, request, String.class);
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
@@ -378,7 +379,9 @@ public class FtpSchedulerService extends CommonEntityManager {
 				System.out.println("invalid response");
 			}
 			System.out.println("Upload response::" + response);
-			//final String rid = root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"", "");
+			// final String rid =
+			// root.get("jData").get("logFileDetails").get(0).get("rid").toString().replace("\"",
+			// "");
 
 			/*
 			 * StringBuilder builder = new StringBuilder(parsingURL+"/parsing/parse");
@@ -476,5 +479,129 @@ public class FtpSchedulerService extends CommonEntityManager {
 		}
 
 		return null;
+	}
+
+	public String parseNasFiles(FtpScheduler s) throws SQLException {
+		ArrayList<File> files = new ArrayList<File>();
+		ProcessingStatus status = new ProcessingStatus();
+		ProcessService process = new ProcessService();
+		JSONObject email = new JSONObject();
+		CommonFunctions functions = new CommonFunctions();
+		ObjectMapper mapper = new ObjectMapper();
+		String passFileList = "";
+		FTPServerModel server = new FTPServerModel();
+		FileNameSettingsService settingsService = new FileNameSettingsService();
+		System.out.println("s.getFileNameSettingsId()::" + s.getFileNameSettingsId());
+
+		String getFileNameSettings = "select * from file_name_settings_model where file_name_setting_id='"
+				+ s.getFileNameSettingsId() + "'";
+		FileNameSettingsModel settings = new FileNameSettingsModel();
+		Map<String, Object> map = getObjectByQueryNew(getFileNameSettings);// settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
+		if (map != null) {
+			settings.setFileNameSettingId(map.get("file_name_setting_id").toString());
+			settings.setFtpName(map.get("ftp_name").toString());
+			settings.setIpAddress(map.get("ip_address").toString());
+			System.out.println(map.get("pattern_string"));
+			try {
+				settings.setPattern(map.get("pattern_string") != null && !map.get("pattern_string").toString().isEmpty()
+						? mapper.readValue(map.get("pattern_string").toString(), JSONArray.class)
+						: new JSONArray());
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			settings.setSiteKey(map.get("site_key").toString());
+			settings.setToPath(map.get("to_path").toString());
+			settings.setUserId(map.get("user_id").toString());
+		}
+
+		System.out.println("settings::" + settings.toString());
+		String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
+				+ "' and ftp_name='" + settings.getFtpName() + "'";
+		Map<String, Object> serverMap = getObjectByQueryNew(serverQuery);// settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
+
+		if (server != null) {
+			server.setFtpName(serverMap.get("ftp_name").toString());
+			server.setIpAddress(serverMap.get("ip_address").toString());
+			server.setPort(serverMap.get("port").toString());
+			server.setServerId(serverMap.get("server_id").toString());
+			server.setServerPassword(serverMap.get("server_password").toString());
+			server.setServerPath(serverMap.get("server_path").toString());
+			server.setServerUsername(serverMap.get("server_username").toString());
+			server.setSiteKey(serverMap.get("site_key").toString());
+			server.setUserId(serverMap.get("user_id").toString());
+		}
+		status.setProcessingType("FTP");
+		status.setProcessing_id(functions.generateRandomId());
+		status.setStartTime(functions.getCurrentDateWithTime());
+		status.setProcessDataId(String.valueOf(server.getServerId()));
+		status.setStatus("Scheduler start");
+		status.setSiteKey(server.getSiteKey());
+		status.setPath(server.getServerPath());
+		status.setEndTime(functions.getCurrentDateWithTime());
+		String processQuery;
+		if (s.getIsNas()) {
+			System.out.println("---isnas--" + s.getIsNas());
+			processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id, is_nas)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id', true);";
+		} else {
+			processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id');";
+		}
+		processQuery = processQuery.replace(":processing_id", status.getProcessing_id())
+				.replace(":end_time", functions.getCurrentDateWithTime()).replace(":log_count", "0")
+				.replace(":path", server.getServerPath())
+				.replace(":process_data_id", String.valueOf(server.getServerId())).replace(":processing_type", "FTP")
+				.replace(":site_key", server.getSiteKey()).replace(":start_time", functions.getCurrentDateWithTime())
+				.replace(":status", "Scheduler started").replace(":tenant_id", "")
+				.replace(":user_id", server.getUserId());
+		excuteByUpdateQueryNew(processQuery);
+
+		files.addAll(getNasFiles(server));
+
+		String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
+		processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
+				.replace(":status", "Retrieving files").replace(":processing_id", status.getProcessing_id());
+		excuteByUpdateQueryNew(processUpdate);
+
+		System.out.println("FileWithPath size::" + files.size());
+		files.addAll(getNasFiles(server));
+		return "Nas Schedular Completed";
+
+	}
+
+	private ArrayList<File> getNasFiles(FTPServerModel server) {
+		ArrayList<File> files;
+		try {
+			System.out.println("---server path---" + server.getServerPath());
+			final File folder = new File(server.getServerPath().toString());
+			files = naslistFilesForFolder(folder);
+			System.out.println("--file-List-" + files);
+			for (File file : files) {
+				callParsing("Vanguard", "587d56d9-f279-4a65-9ab4-abb70e34743b", "5bd4d798-6783-4f6f-bf95-b7b0edb7de26",
+						"5f02cb34-ab38-4321-9749-0698e37de8cd", file.getName(), "", folder.getAbsolutePath(), 1);
+				System.out.println("---folder--" + folder.getAbsolutePath());
+				System.out.println("---file--" + file.getName());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return files;
+
+	}
+
+	public ArrayList<File> naslistFilesForFolder(final File folder) {
+
+		ArrayList<File> fileList = new ArrayList<File>();
+		for (final File fileEntry : folder.listFiles()) {
+			if (fileEntry.isDirectory()) {
+				naslistFilesForFolder(fileEntry);
+				System.out.println("file entry" + fileEntry);
+				fileList.add(fileEntry.getAbsoluteFile());
+			} else {
+				fileList.add(fileEntry.getAbsoluteFile());
+				System.out.println("file entry" + fileEntry);
+				System.out.println(fileEntry.getName());
+			}
+		}
+		return fileList;
 	}
 }
