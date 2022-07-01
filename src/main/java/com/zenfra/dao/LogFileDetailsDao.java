@@ -400,7 +400,8 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement();) {
 
-			String updateQuery = "update log_file_details set updated_by = '" + userId + "' where log_file_id = '"+logFileId+"'";
+			String updateQuery = "update log_file_details set updated_by = '" + userId + "' where log_file_id = '"
+					+ logFileId + "'";
 
 			System.out.println("!!!updateQuery" + updateQuery);
 			statement.executeUpdate(updateQuery);
