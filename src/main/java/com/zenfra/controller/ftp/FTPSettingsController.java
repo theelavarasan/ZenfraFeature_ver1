@@ -64,46 +64,62 @@ public class FTPSettingsController {
 
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
-			ftpServer.setServerPassword(encrypt.encrypt(ftpServer.getServerPassword()));
-			ftpServer.setActive(true);
-			ftpServer.setCreate_by(ftpServer.getUserId());
-			ftpServer.setCreate_time(functions.getCurrentDateWithTime());
-			String serverId = UUID.randomUUID().toString();
-			ftpServer.setServerId(serverId);
+			if (ftpServer.isNas) {
+				ftpServer.setServerPassword(encrypt.encrypt(ftpServer.getServerPassword()));
+				ftpServer.setActive(true);
+				ftpServer.setNas(ftpServer.isNas);
+				ftpServer.setCreate_by(ftpServer.getUserId());
+				ftpServer.setCreate_time(functions.getCurrentDateWithTime());
+				String serverId = UUID.randomUUID().toString();
+				ftpServer.setServerId(serverId);
 
-			ftpServer.setServerPath(ftpServer.getServerPath().startsWith("/") ? ftpServer.getServerPath()
-					: "/" + ftpServer.getServerPath());
-			service.saveFtpServer(ftpServer);
-			response.setResponseCode(HttpStatus.OK);
-			response.setjData(functions.convertEntityToJsonObject(ftpServer));
-			response.setResponseDescription("Saved!");
+				ftpServer.setServerPath(ftpServer.getServerPath().startsWith("/") ? ftpServer.getServerPath()
+						: "/" + ftpServer.getServerPath());
+				service.saveFtpServer(ftpServer);
+				response.setResponseCode(HttpStatus.OK);
+				response.setjData(functions.convertEntityToJsonObject(ftpServer));
+				response.setResponseDescription("Nas Saved!");
+			} else {
+				ftpServer.setServerPassword(encrypt.encrypt(ftpServer.getServerPassword()));
+				ftpServer.setActive(true);
+				ftpServer.setCreate_by(ftpServer.getUserId());
+				ftpServer.setCreate_time(functions.getCurrentDateWithTime());
+				String serverId = UUID.randomUUID().toString();
+				ftpServer.setServerId(serverId);
 
-			FileNameSettingsModel fileName = new FileNameSettingsModel();
+				ftpServer.setServerPath(ftpServer.getServerPath().startsWith("/") ? ftpServer.getServerPath()
+						: "/" + ftpServer.getServerPath());
+				service.saveFtpServer(ftpServer);
+				response.setResponseCode(HttpStatus.OK);
+				response.setjData(functions.convertEntityToJsonObject(ftpServer));
+				response.setResponseDescription("Saved!");
 
-			String deafultString = "[{\"namePattern\":\"*SunOS*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*EMCRPT*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*_Linux_*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*RVTools*\",\"logType\":\"VMWARE\"},{\"namePattern\":\"*3PAR*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*Support*\",\"logType\":\"BROCADE\"},{\"namePattern\":\"*PURE*\",\"logType\":\"PURE\"},{\"namePattern\":\"*ntnx*\",\"logType\":\"NUTANIX\"},{\"namePattern\":\"*treme*\",\"logType\":\"XTREMIO\"},{\"namePattern\":\"*max*\",\"logType\":\"VMAX\"},{\"namePattern\":\"*Splore*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*AIX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*Linux*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*HPUX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*VNXCellera*\",\"logType\":\"VNXFILE\"},{\"namePattern\":\"*vplex*\",\"logType\":\"VPLEX\"},{\"namePattern\":\"*HDS*\",\"logType\":\"HDS\"},{\"namePattern\":\"*netapp*\",\"logType\":\"NETAPP\"},{\"namePattern\":\"*vnx*\",\"logType\":\"VNX\"},{\"namePattern\":\"*isilon*\",\"logType\":\"ISILON\"},{\"namePattern\":\"*cisco*\",\"logType\":\"CISCO\"},{\"namePattern\":\"*test*\",\"logType\":\"AUTO\"}]";
-			FileNameSettingsModel model = fileService
-					.getFileNameSettingsById("dc01e099-e8a5-413a-be30-f86f5ad9b474-default");
-			if (model != null) {
-				System.out.println("Get default file name settings");
-				fileName.setToPath(model.getToPath().replace(":site_key_value", ftpServer.getSiteKey()));
-				deafultString = model.getPatternString();
+				FileNameSettingsModel fileName = new FileNameSettingsModel();
+
+				String deafultString = "[{\"namePattern\":\"*SunOS*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*EMCRPT*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*_Linux_*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*RVTools*\",\"logType\":\"VMWARE\"},{\"namePattern\":\"*3PAR*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*Support*\",\"logType\":\"BROCADE\"},{\"namePattern\":\"*PURE*\",\"logType\":\"PURE\"},{\"namePattern\":\"*ntnx*\",\"logType\":\"NUTANIX\"},{\"namePattern\":\"*treme*\",\"logType\":\"XTREMIO\"},{\"namePattern\":\"*max*\",\"logType\":\"VMAX\"},{\"namePattern\":\"*Splore*\",\"logType\":\"3PAR\"},{\"namePattern\":\"*AIX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*Linux*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*HPUX*\",\"logType\":\"AUTO\"},{\"namePattern\":\"*VNXCellera*\",\"logType\":\"VNXFILE\"},{\"namePattern\":\"*vplex*\",\"logType\":\"VPLEX\"},{\"namePattern\":\"*HDS*\",\"logType\":\"HDS\"},{\"namePattern\":\"*netapp*\",\"logType\":\"NETAPP\"},{\"namePattern\":\"*vnx*\",\"logType\":\"VNX\"},{\"namePattern\":\"*isilon*\",\"logType\":\"ISILON\"},{\"namePattern\":\"*cisco*\",\"logType\":\"CISCO\"},{\"namePattern\":\"*test*\",\"logType\":\"AUTO\"}]";
+				FileNameSettingsModel model = fileService
+						.getFileNameSettingsById("dc01e099-e8a5-413a-be30-f86f5ad9b474-default");
+				if (model != null) {
+					System.out.println("Get default file name settings");
+					fileName.setToPath(model.getToPath().replace(":site_key_value", ftpServer.getSiteKey()));
+					deafultString = model.getPatternString();
+				}
+				ObjectMapper map = new ObjectMapper();
+
+				JSONArray arr = map.readValue(deafultString, JSONArray.class);
+				System.out.println(arr);
+				String fileNameId = UUID.randomUUID().toString();
+				fileName.setFileNameSettingId(fileNameId);
+				fileName.setActive(true);
+				fileName.setFtpName(ftpServer.getFtpName());
+				fileName.setIpAddress(ftpServer.getIpAddress());
+				fileName.setSiteKey(ftpServer.getSiteKey());
+				fileName.setUserId(ftpServer.getUserId());
+				// fileName.setToPath("/opt/ZENfra/ZenfraFiles/"+ftpServer.getSiteKey()+"/UploadedLogs");
+				fileName.setPattern(arr);
+				fileName.setPatternString(arr.toJSONString());
+				fileService.saveEntity(FileNameSettingsModel.class, fileName);
 			}
-			ObjectMapper map = new ObjectMapper();
-
-			JSONArray arr = map.readValue(deafultString, JSONArray.class);
-			System.out.println(arr);
-			String fileNameId = UUID.randomUUID().toString();
-			fileName.setFileNameSettingId(fileNameId);
-			fileName.setActive(true);
-			fileName.setFtpName(ftpServer.getFtpName());
-			fileName.setIpAddress(ftpServer.getIpAddress());
-			fileName.setSiteKey(ftpServer.getSiteKey());
-			fileName.setUserId(ftpServer.getUserId());
-			// fileName.setToPath("/opt/ZENfra/ZenfraFiles/"+ftpServer.getSiteKey()+"/UploadedLogs");
-			fileName.setPattern(arr);
-			fileName.setPatternString(arr.toJSONString());
-			fileService.saveEntity(FileNameSettingsModel.class, fileName);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -227,11 +243,15 @@ public class FTPSettingsController {
 	}
 
 	@GetMapping("/get-ftp-connections-by-user")
-	public ResponseModel_v2 getFtpServers(@RequestParam("siteKey") String siteKey) {
+	public ResponseModel_v2 getFtpServers(@RequestParam("siteKey") String siteKey,
+			@RequestParam("isNas") boolean isNas) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
-
-			response.setjData(service.getFtpConnectionBySiteKey(siteKey));
+			if (isNas) {
+				response.setjData(service.getNasBySiteKeyAndIsNas(siteKey, isNas));
+			} else {
+				response.setjData(service.getFtpConnectionBySiteKey(siteKey));
+			}
 			response.setResponseCode(HttpStatus.OK);
 			response.setResponseMessage("Successfully Executed");
 		} catch (Exception e) {
