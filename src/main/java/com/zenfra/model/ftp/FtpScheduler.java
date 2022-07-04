@@ -67,6 +67,9 @@ public class FtpScheduler {
 	@Column
 	private Boolean isNas;
 
+	@Transient
+	private String[] logType;
+
 	public long getId() {
 		return id;
 	}
@@ -193,6 +196,14 @@ public class FtpScheduler {
 
 	public void setIsNas(Boolean isNas) {
 		this.isNas = isNas;
+	}
+
+	public String[] getLogType() {
+		return logType;
+	}
+
+	public void setLogType(String[] logType) {
+		this.logType = logType;
 	}
 
 }

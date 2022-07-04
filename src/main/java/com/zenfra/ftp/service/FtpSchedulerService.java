@@ -554,7 +554,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 				.replace(":user_id", server.getUserId());
 		excuteByUpdateQueryNew(processQuery);
 
-		files.addAll(getNasFiles(server));
+//		files.addAll(getNasFiles(server, s));
 
 		String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
 		processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
@@ -562,12 +562,12 @@ public class FtpSchedulerService extends CommonEntityManager {
 		excuteByUpdateQueryNew(processUpdate);
 
 		System.out.println("FileWithPath size::" + files.size());
-		files.addAll(getNasFiles(server));
+		files.addAll(getNasFiles(server, s));
 		return "Nas Schedular Completed";
 
 	}
 
-	private ArrayList<File> getNasFiles(FTPServerModel server) {
+	private ArrayList<File> getNasFiles(FTPServerModel server, FtpScheduler s) {
 		ArrayList<File> files;
 		try {
 			System.out.println("---server path---" + server.getServerPath());
@@ -575,8 +575,13 @@ public class FtpSchedulerService extends CommonEntityManager {
 			files = naslistFilesForFolder(folder);
 			System.out.println("--file-List-" + files);
 			for (File file : files) {
-				callParsing("Vanguard", "587d56d9-f279-4a65-9ab4-abb70e34743b", "5bd4d798-6783-4f6f-bf95-b7b0edb7de26",
-						"5f02cb34-ab38-4321-9749-0698e37de8cd", file.getName(), "", folder.getAbsolutePath(), 1);
+				for (String logType : s.getLogType()) {
+					System.out.println("----Log Type----"+ logType);
+					System.out.println("----Log Type----"+ s.getUserId());
+					System.out.println("----Log Type----"+ s.getSiteKey());
+					System.out.println("----Log Type----"+ s.getTenantId());
+					callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "", folder.getAbsolutePath(), s.getId());
+				}
 				System.out.println("---folder--" + folder.getAbsolutePath());
 				System.out.println("---file--" + file.getName());
 			}

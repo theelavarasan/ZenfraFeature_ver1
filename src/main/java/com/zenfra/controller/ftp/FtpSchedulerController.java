@@ -83,6 +83,11 @@ public class FtpSchedulerController {
 			ftpScheduler.setActive(true);
 			if (isNas) {
 				ftpScheduler.setIsNas(true);
+				ftpScheduler.setLogType(ftpScheduler.getLogType());
+				ftpScheduler.setSiteKey(ftpScheduler.getSiteKey());
+				ftpScheduler.setTenantId(ftpScheduler.getTenantId());
+				ftpScheduler.setUserId(ftpScheduler.getUserId());
+				ftpScheduler.setId(ftpScheduler.getId());
 			}
 			ftpScheduler.setEmailString(ftpScheduler.getNotificationEmail().toJSONString());
 			System.out.println(ftpScheduler.toString());

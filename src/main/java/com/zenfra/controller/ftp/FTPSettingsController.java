@@ -189,7 +189,9 @@ public class FTPSettingsController {
 			if (ftpServer.getServerPath() != null && !ftpServer.getServerPath().startsWith("/")) {
 				ftpServer.setServerPath("/" + ftpServer.getServerPath());
 			}
-
+			if(ftpServer.isNas) {
+				ftpServer.setNas(ftpServer.isNas);
+			}
 			ftpServer.setUpdate_by(userId);
 			ftpServer.setUpdated_time(functions.getCurrentDateWithTime());
 			service.saveFtpServer(ftpServer);
