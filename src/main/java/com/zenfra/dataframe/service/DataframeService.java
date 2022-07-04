@@ -2690,13 +2690,24 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		} catch (Exception e) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
 			
-			File file = new File(dsrPath);			
-			  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
+			File file = new File(dsrPath);	
+			if(file.exists()) {
+				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
 						.option("ignoreLeadingWhiteSpace", true)
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
 				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+			} else {
+				prepareDsrReport(siteKey, deviceType);
+				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
+						.option("ignoreLeadingWhiteSpace", true)
+						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
+				 dataset.createOrReplaceGlobalTempView(viewName);
+				 dataset.printSchema();
+				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+			}
+			  
 				 
 		}
 		
