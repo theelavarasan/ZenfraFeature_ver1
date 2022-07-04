@@ -244,7 +244,7 @@ public class FTPSettingsController {
 
 	@GetMapping("/get-ftp-connections-by-user")
 	public ResponseModel_v2 getFtpServers(@RequestParam("siteKey") String siteKey,
-			@RequestParam("isNas") boolean isNas) {
+			@RequestParam(name = "isNas", required = false) boolean isNas) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
 			if (isNas) {
