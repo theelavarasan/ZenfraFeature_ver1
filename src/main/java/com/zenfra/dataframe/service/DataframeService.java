@@ -2642,7 +2642,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	    		  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
 							.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				
-					String viewName = file.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+					String viewName = sourceType.toLowerCase() + "_" + file.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
 					System.out.println("--------DSR View -------- " + viewName);
 					dataset.createOrReplaceGlobalTempView(viewName);
 					dataset.printSchema();
@@ -2670,7 +2670,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		JSONArray resultArray = new JSONArray();
 		JSONArray reportResult = new JSONArray();
 		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
-		String viewName = dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
+		String viewName = deviceType.toLowerCase() + "_" + dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
 		Dataset<Row> dsrData = sparkSession.emptyDataFrame();
 		
 		String whereQuery = "";
