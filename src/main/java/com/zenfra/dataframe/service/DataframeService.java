@@ -2763,17 +2763,20 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 				DataType fieldType = field.dataType();
 				String fieldName = field.name();
-				column.put("actualName", fieldName);
-				column.put("displayName", fieldName);
-				column.put("lockPinned", false);
-				column.put("lockPosition", false);
-				column.put("pinned", "");
-				if(fieldType.typeName().equalsIgnoreCase("string")) {
-					column.put("dataType", "string");
-				} else {
-					column.put("dataType", "integer");
+				if(!fieldName.equalsIgnoreCase("rid")) {
+					column.put("actualName", fieldName);
+					column.put("displayName", fieldName);
+					column.put("lockPinned", false);
+					column.put("lockPosition", false);
+					column.put("pinned", "");
+					if(fieldType.typeName().equalsIgnoreCase("string")) {
+						column.put("dataType", "string");
+					} else {
+						column.put("dataType", "integer");
+					}
+					headerInfo.add(column);
 				}
-				headerInfo.add(column);
+				
 			}
 			
 			responseJSONObject.put("headerInfo", headerInfo);
