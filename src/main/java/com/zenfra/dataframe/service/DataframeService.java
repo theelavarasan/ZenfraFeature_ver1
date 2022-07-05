@@ -2678,7 +2678,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		    if(whereQuery.isEmpty()) {
 		    	whereQuery = "lower(`"+colname+"`)='"+colValue.toLowerCase()+"'";
 		    } else {
-		    	whereQuery = " AND lower(`"+colname+"`)='"+colValue.toLowerCase()+"'";
+		    	whereQuery = whereQuery + " AND lower(`"+colname+"`)='"+colValue.toLowerCase()+"'";
 		    }
 		}
 		
