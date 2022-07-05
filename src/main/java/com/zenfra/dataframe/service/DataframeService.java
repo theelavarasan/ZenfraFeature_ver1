@@ -2706,14 +2706,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
 				 String query = "";
-				 System.out.println("!!!!! dsrPath: " + dsrPath);
+				 System.out.println("!!!!! dsrPath1: " + dsrPath);
 				 if(dsrPath.contains("dsr_LogAnalytics")) {
 					 query = "select * from global_temp."+viewName;
-					 dsrData = sparkSession.sql("select * from global_temp."+viewName);
 				 } else {
 					 query = "select * from global_temp."+viewName+" where "+whereQuery;
 				 }
+				 System.out.println("!!!!! query1: " + query);
 				 dsrData = sparkSession.sql(query);
+				 System.out.println("!!!!! dsrData1: " + dsrData);
 				 
 			} else {
 				prepareDsrReport(siteKey, deviceType);
@@ -2723,14 +2724,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
 				 String query = "";
-				 System.out.println("!!!!! dsrPath: " + dsrPath);
+				 System.out.println("!!!!! dsrPath2: " + dsrPath);
 				 if(dsrPath.contains("dsr_LogAnalytics")) {
 					 query = "select * from global_temp."+viewName;
-					 dsrData = sparkSession.sql("select * from global_temp."+viewName);
 				 } else {
 					 query = "select * from global_temp."+viewName+" where "+whereQuery;
 				 }
+				 System.out.println("!!!!! query2: " + query);
 				 dsrData = sparkSession.sql(query);
+				 System.out.println("!!!!! dsrData2: " + dsrData);
 			}
 			  
 				 
