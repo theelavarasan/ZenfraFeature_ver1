@@ -2667,7 +2667,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	public JSONObject getDsrData(String dsrReportName, String siteKey, Map<String, String> whereClause, String deviceType) {
 		JSONObject responseJSONObject = new JSONObject();
 		
-		sparkSession.sparkContext().setLogLevel("OFF");
 		JSONArray resultArray = new JSONArray();
 		JSONArray reportResult = new JSONArray();
 		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
@@ -2695,6 +2694,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			dsrData.printSchema();
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
 			
 			File file = new File(dsrPath);	
