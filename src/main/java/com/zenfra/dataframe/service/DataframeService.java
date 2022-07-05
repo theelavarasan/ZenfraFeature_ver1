@@ -2697,7 +2697,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
-				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+				 
+				 if(dsrPath.contains("dsr_LogAnalytics")) {
+					 dsrData = sparkSession.sql("select * from global_temp."+viewName);
+				 } else {
+					 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+				 }
+				 
 			} else {
 				prepareDsrReport(siteKey, deviceType);
 				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
@@ -2705,7 +2711,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
-				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+				// dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+				 if(dsrPath.contains("dsr_LogAnalytics")) {
+					 dsrData = sparkSession.sql("select * from global_temp."+viewName);
+				 } else {
+					 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+				 }
 			}
 			  
 				 
