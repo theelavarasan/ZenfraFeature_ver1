@@ -2692,6 +2692,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			dsrData = sparkSession.sql(query);
 			System.out.println("!!!! viewName: " + viewName + " ----- Data: " + dsrData);
 			dsrData.printSchema();
+			dsrData.show();
+			System.out.println("!!!!! dsr count: " + dsrData.count());
+			System.out.println("!!!!! dsr first: " + dsrData.first().get(0));
+			dsrData.first().get(0);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
