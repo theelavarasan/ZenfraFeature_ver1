@@ -2685,7 +2685,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		System.out.println("--------whereQuery---------- " + whereQuery);
 		
 		try {
-			dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+			String query = "select * from global_temp."+viewName+" where "+whereQuery;
+			System.out.println("!!!!! dataframe query: " + query);
+			dsrData = sparkSession.sql(query);
 			dsrData.printSchema();
 		} catch (Exception e) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
@@ -2697,12 +2699,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
-				 
+				 String query = "";
+				 System.out.println("!!!!! dsrPath: " + dsrPath);
 				 if(dsrPath.contains("dsr_LogAnalytics")) {
+					 query = "select * from global_temp."+viewName;
 					 dsrData = sparkSession.sql("select * from global_temp."+viewName);
 				 } else {
-					 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+					 query = "select * from global_temp."+viewName+" where "+whereQuery;
 				 }
+				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
 				 
 			} else {
 				prepareDsrReport(siteKey, deviceType);
@@ -2711,12 +2716,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
-				// dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+				 String query = "";
+				 System.out.println("!!!!! dsrPath: " + dsrPath);
 				 if(dsrPath.contains("dsr_LogAnalytics")) {
+					 query = "select * from global_temp."+viewName;
 					 dsrData = sparkSession.sql("select * from global_temp."+viewName);
 				 } else {
-					 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+					 query = "select * from global_temp."+viewName+" where "+whereQuery;
 				 }
+				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
 			}
 			  
 				 
