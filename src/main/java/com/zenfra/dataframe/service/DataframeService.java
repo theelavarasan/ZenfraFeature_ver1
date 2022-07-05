@@ -188,6 +188,8 @@ public class DataframeService {
 	CommonFunctions commonFunctions;
 
 	private String dbUrl = DBUtils.getPostgres().get("dbUrl");
+	
+	
 
 	// ---------------------SSRM Code-----------------------------------// 
 	 
@@ -2665,6 +2667,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	public JSONObject getDsrData(String dsrReportName, String siteKey, Map<String, String> whereClause, String deviceType) {
 		JSONObject responseJSONObject = new JSONObject();
 		
+		sparkSession.sparkContext().setLogLevel("OFF");
 		JSONArray resultArray = new JSONArray();
 		JSONArray reportResult = new JSONArray();
 		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
@@ -2694,6 +2697,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 			File file = new File(dsrPath);	
 			if(file.exists()) {
+				
 				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
 						.option("ignoreLeadingWhiteSpace", true)
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
