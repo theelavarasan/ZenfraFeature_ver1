@@ -2687,15 +2687,56 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		System.out.println("--------whereQuery---------- " + whereQuery);
 		
 		try {
-			String query = "select * from global_temp."+viewName+" where "+whereQuery;
+			/*String query = "select * from global_temp."+viewName+" where "+whereQuery;
 			System.out.println("!!!!! dataframe query: " + query);
 			dsrData = sparkSession.sql(query);
 			System.out.println("!!!! viewName: " + viewName + " ----- Data: " + dsrData);
 			dsrData.printSchema();
 			dsrData.show();
-			System.out.println("!!!!! dsr count: " + dsrData.count());
-			System.out.println("!!!!! dsr first: " + dsrData.first().get(0));
-			dsrData.first().get(0);
+			System.out.println("!!!!! dsr count: " + dsrData.count());*/
+			
+			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
+			
+			File file = new File(dsrPath);	
+			if(file.exists()) {
+				
+				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
+						.option("ignoreLeadingWhiteSpace", true)
+						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
+				 dataset.createOrReplaceGlobalTempView(viewName);
+				 dataset.printSchema();
+				 dataset.show();
+				 setFileOwner(file.getAbsoluteFile());
+				 
+				 String query = "";
+				 System.out.println("!!!!! dsrPath1: " + dsrPath);
+				 if(dsrPath.contains("dsr_LogAnalytics")) {
+					 query = "select * from global_temp."+viewName;
+				 } else {
+					 query = "select * from global_temp."+viewName+" where "+whereQuery;
+				 }
+				 System.out.println("!!!!! query1: " + query);
+				 dsrData = sparkSession.sql(query);
+				 System.out.println("!!!!! dsrData1: " + dsrData);
+				 
+			} else {
+				prepareDsrReport(siteKey, deviceType);
+				/*Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
+						.option("ignoreLeadingWhiteSpace", true)
+						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
+				 dataset.createOrReplaceGlobalTempView(viewName);
+				 dataset.printSchema();*/
+				 String query = "";
+				 System.out.println("!!!!! dsrPath2: " + dsrPath);
+				 if(dsrPath.contains("dsr_LogAnalytics")) {
+					 query = "select * from global_temp."+viewName;
+				 } else {
+					 query = "select * from global_temp."+viewName+" where "+whereQuery;
+				 }
+				 System.out.println("!!!!! query2: " + query);
+				 dsrData = sparkSession.sql(query);
+				 System.out.println("!!!!! dsrData2: " + dsrData);
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
