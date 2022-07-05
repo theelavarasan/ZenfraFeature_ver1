@@ -2721,11 +2721,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				 
 			} else {
 				prepareDsrReport(siteKey, deviceType);
-				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
+				/*Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
 						.option("ignoreLeadingWhiteSpace", true)
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
-				 dataset.printSchema();
+				 dataset.printSchema();*/
 				 String query = "";
 				 System.out.println("!!!!! dsrPath2: " + dsrPath);
 				 if(dsrPath.contains("dsr_LogAnalytics")) {
