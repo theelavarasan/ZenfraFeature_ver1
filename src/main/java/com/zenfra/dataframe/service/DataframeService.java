@@ -2713,7 +2713,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				 if(dsrPath.contains("dsr_LogAnalytics")) {
 					 query = "select * from global_temp."+viewName;
 				 } else {
-					 query = "select * from global_temp."+viewName+" where "+whereQuery;
+					 query = "select * from global_temp."+viewName; //+" where "+whereQuery;
 				 }
 				 System.out.println("!!!!! query1: " + query);
 				 dsrData = sparkSession.sql(query);
