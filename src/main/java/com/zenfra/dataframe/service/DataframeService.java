@@ -2691,7 +2691,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			String query = "select * from global_temp."+viewName+" where "+whereQuery;
 			System.out.println("!!!!! dataframe query: " + query);
 			dsrData = sparkSession.sql(query);
+			System.out.println("!!!! viewName: " + viewName + " ----- Data: " + dsrData);
 			dsrData.printSchema();
+			
 		} catch (Exception e) {
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
 			
@@ -2711,7 +2713,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				 } else {
 					 query = "select * from global_temp."+viewName+" where "+whereQuery;
 				 }
-				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+				 dsrData = sparkSession.sql(query);
 				 
 			} else {
 				prepareDsrReport(siteKey, deviceType);
@@ -2728,7 +2730,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				 } else {
 					 query = "select * from global_temp."+viewName+" where "+whereQuery;
 				 }
-				 dsrData = sparkSession.sql("select * from global_temp."+viewName+" where "+whereQuery);
+				 dsrData = sparkSession.sql(query);
 			}
 			  
 				 
@@ -2736,7 +2738,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		try {
 			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString());  //.replace("\"", "").replace("\\", "")
-			
+			System.out.println("!!!!! resultArray: " + resultArray);
 			for (int i = 0; i < resultArray.size(); i++) {
 				JSONObject jsonObject = (JSONObject) resultArray.get(i);				
 				List<String> keySet = new LinkedList<String>(jsonObject == null ? new HashSet<String>() : jsonObject.keySet());
