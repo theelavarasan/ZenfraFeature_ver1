@@ -2705,6 +2705,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
 				 dataset.createOrReplaceGlobalTempView(viewName);
 				 dataset.printSchema();
+				 dataset.show();
+				 setFileOwner(file.getAbsoluteFile());
+				 
 				 String query = "";
 				 System.out.println("!!!!! dsrPath1: " + dsrPath);
 				 if(dsrPath.contains("dsr_LogAnalytics")) {
