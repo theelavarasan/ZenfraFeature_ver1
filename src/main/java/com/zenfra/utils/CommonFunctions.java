@@ -461,6 +461,7 @@ public class CommonFunctions {
 			HttpEntity<JSONObject> requestEntity = new HttpEntity<JSONObject>(partObj, headers);
 			String resetLink = hostName + "/mailservice/mail/send";
 			resetLink = CommonUtils.checkPortNumberForWildCardCertificate(resetLink);
+			System.err.println("---reset link---"+resetLink);
 			ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
 			if (uri != null && uri.getBody() != null) {
 				if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
