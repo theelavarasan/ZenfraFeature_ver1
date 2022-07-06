@@ -598,7 +598,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 			}
 			email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
 			email.put("FileList", emailFileList);
-
+			System.out.println("----file size-----"+files.size());
 			if (files.size() > 0) {
 				System.out.println("----file mail-----");
 				process.sentEmailFTP(email);
