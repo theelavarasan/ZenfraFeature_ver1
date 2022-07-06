@@ -700,7 +700,7 @@ public class ReportDataController {
 			if (deviceType.equalsIgnoreCase("HP-UX")) {
 				deviceType = "hpux";
 			} else if (deviceType.equalsIgnoreCase("vmwarehost")) {
-				deviceType = "vmware-host";
+				deviceType = "vmwarehost";
 			}
 			
 			if (reportCategory.trim().equalsIgnoreCase("discovery")
