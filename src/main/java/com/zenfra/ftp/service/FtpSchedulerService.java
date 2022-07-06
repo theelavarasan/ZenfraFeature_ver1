@@ -648,7 +648,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 					.replace(":end_time", functions.getCurrentDateWithTime()).replace(":log_count", "0")
 					.replace(":path", server.getServerPath())
 					.replace(":process_data_id", String.valueOf(server.getServerId()))
-					.replace(":processing_type", "FTP").replace(":site_key", server.getSiteKey())
+					.replace(":processing_type", "NAS").replace(":site_key", server.getSiteKey())
 					.replace(":start_time", functions.getCurrentDateWithTime()).replace(":status", "Scheduler started")
 					.replace(":tenant_id", "").replace(":user_id", server.getUserId());
 			excuteByUpdateQueryNew(processQuery);
