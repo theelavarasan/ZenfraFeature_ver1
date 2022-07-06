@@ -494,7 +494,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 		System.out.println("s.getFileNameSettingsId()::" + s.getFileNameSettingsId());
 		Map<String, String> values = DBUtils.getEmailURL();
 		try {
-			System.out.println("--------------eneter runFtpSchedulerFiles---------" + s.toString());
+			System.out.println("--------------eneter nas runFtpSchedulerFiles---------" + s.toString());
 			List<String> l = new ArrayList<String>();
 			if (s.getEmailString() != null && s.getEmailString() != "[]") {
 				String arr[] = s.getEmailString().replace("\"", "").replace("[", "").replace("]", "").split(",");
@@ -600,11 +600,13 @@ public class FtpSchedulerService extends CommonEntityManager {
 			email.put("FileList", emailFileList);
 
 			if (files.size() > 0) {
+				System.out.println("----file mail-----");
 				process.sentEmailFTP(email);
 			}
 
 			RestTemplate restTemplate = new RestTemplate();
 			for (File logFile : files) {
+				System.out.println("-------mail---------");
 				passFileList += "<li>" + logFile.getName() + "</li>";
 				Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
 					@Override
