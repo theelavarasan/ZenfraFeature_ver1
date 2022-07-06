@@ -8,6 +8,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -56,7 +57,8 @@ public class FtpSchedulerController {
 			}
 
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
-				String corn = "0 minutes current/hour * * ?";
+//				String corn = "0 minutes current/hour * * ?";
+				String corn = "0 0/1 * * * ?";
 				ftpScheduler.setSchedulerCorn(
 						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour())
 								.replace("minutes", functions.getCurrentMinutes()));
@@ -114,8 +116,8 @@ public class FtpSchedulerController {
 			@NotEmpty(message = "Please provide valid fileNameSettingsId") @RequestParam("fileNameSettingsId") String fileNameSettingsId) {
 
 		ResponseModel_v2 response = new ResponseModel_v2();
+		JSONObject dataObj = new JSONObject();
 		try {
-
 			response.setjData(schedulerService.getFtpScheduler(fileNameSettingsId));
 			response.setResponseCode(HttpStatus.OK);
 			response.setResponseMessage("Got the schedular Details Successfully");
