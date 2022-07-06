@@ -45,7 +45,8 @@ public class FtpSchedulerController {
 	CommonFunctions functions;
 
 	@PostMapping("/runScheduler")
-	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler, @RequestParam("isNas") boolean isNas) {
+	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler,
+			@RequestParam("isNas") boolean isNas) {
 
 		try {
 
@@ -57,12 +58,11 @@ public class FtpSchedulerController {
 			}
 
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
-//				String corn = "0 minutes current/hour * * ?";
-				String corn = "0 0/1 * * * ?";
-//				ftpScheduler.setSchedulerCorn(
-//						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour())
-//								.replace("minutes", functions.getCurrentMinutes()));
-				ftpScheduler.setSchedulerCorn("0 0/1 * * * ?");
+				String corn = "0 minutes current/hour * * ?";
+				ftpScheduler.setSchedulerCorn(
+						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour())
+								.replace("minutes", functions.getCurrentMinutes()));
+
 			} else if (ftpScheduler.getType().equalsIgnoreCase("daily")) {
 				String timseslot = functions.convertTimeZone(ftpScheduler.getTimeZone(), ftpScheduler.getTimeSlot());
 				String corn = "0 0 from today/everyday * ?";
