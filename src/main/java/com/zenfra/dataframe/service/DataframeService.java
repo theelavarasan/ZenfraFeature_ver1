@@ -2610,7 +2610,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 	public void prepareDsrReport(String siteKey, String sourceType) {
 		try {
-			
+			System.out.println("!!!!! prepareDsrReport sourceType: " + sourceType);
 			String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
 	    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
 	    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
@@ -2634,7 +2634,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		 ResponseEntity<String> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
 		    		httpRequest, String.class);
 		String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + sourceType + File.separator;
-		
+		System.out.println("!!!!! prepareDsrReport dsrPath: " + dsrPath);
 		 File filesList[] = new File(dsrPath).listFiles();
 	      System.out.println("List of files and directories in the specified directory:");
 	      for(File file : filesList) {
@@ -2697,7 +2697,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		} catch (Exception e) {
 			e.printStackTrace();
 			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
-			
+			System.out.println("!!!!! dsrpath: " + dsrPath);
 			File file = new File(dsrPath);	
 			if(file.exists()) {
 				
