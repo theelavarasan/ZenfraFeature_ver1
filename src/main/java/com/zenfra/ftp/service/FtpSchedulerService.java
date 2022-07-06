@@ -524,7 +524,8 @@ public class FtpSchedulerService extends CommonEntityManager {
 					email.put("firstName", rs.getString("first_name").toString());
 					// email.put("Time", functions.getCurrentDateWithTime());
 					email.put("Notes", "File processing initiated");
-					email.put("ftp_template", values.get("ftp_template_success"));
+//				email.put("ftp_template", values.get("ftp_template_success"));
+					email.put("ftp_template", "userActivation");
 				}
 			}
 //			Map<String, Object> userMap = getObjectByQueryNew(
