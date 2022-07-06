@@ -4,9 +4,14 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -493,6 +498,8 @@ public class FtpSchedulerService extends CommonEntityManager {
 		FileNameSettingsService settingsService = new FileNameSettingsService();
 		System.out.println("s.getFileNameSettingsId()::" + s.getFileNameSettingsId());
 		Map<String, String> values = DBUtils.getEmailURL();
+		Map<String, String> data = new HashMap<>();
+		data = DBUtils.getPostgres();
 		try {
 			System.out.println("--------------eneter nas runFtpSchedulerFiles---------" + s.toString());
 			List<String> l = new ArrayList<String>();
@@ -502,53 +509,124 @@ public class FtpSchedulerService extends CommonEntityManager {
 					Collections.addAll(l, arr);
 				}
 			}
-			Map<String, Object> userMap = getObjectByQueryNew(
-					"select * from user_temp where user_id='" + s.getUserId() + "'");
-			email.put("mailFrom", userMap.get("email").toString());
-			email.put("mailTo", l);
-			email.put("firstName", userMap.get("first_name").toString());
-			// email.put("Time", functions.getCurrentDateWithTime());
-			email.put("Notes", "File processing initiated");
-			email.put("ftp_template", values.get("ftp_template_success"));
 
-			String getFileNameSettings = "select * from file_name_settings_model where file_name_setting_id='"
-					+ s.getFileNameSettingsId() + "'";
-			FileNameSettingsModel settings = new FileNameSettingsModel();
-			Map<String, Object> map = getObjectByQueryNew(getFileNameSettings);// settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
-			if (map != null) {
-				settings.setFileNameSettingId(map.get("file_name_setting_id").toString());
-				settings.setFtpName(map.get("ftp_name").toString());
-				settings.setIpAddress(map.get("ip_address").toString());
-				System.out.println(map.get("pattern_string"));
-				try {
-					settings.setPattern(
-							map.get("pattern_string") != null && !map.get("pattern_string").toString().isEmpty()
-									? mapper.readValue(map.get("pattern_string").toString(), JSONArray.class)
-									: new JSONArray());
-				} catch (JsonProcessingException e) {
-					e.printStackTrace();
+			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+					data.get("password")); Statement statement = connection.createStatement();) {
+
+				String selectQuery = "select * from user_temp where user_id='" + s.getUserId() + "'";
+				System.out.println("!!! selectQuery: " + selectQuery);
+
+				ResultSet rs = statement.executeQuery(selectQuery);
+
+				while (rs.next()) {
+					email.put("mailFrom", rs.getString("email").toString());
+					email.put("mailTo", l);
+					email.put("firstName", rs.getString("first_name").toString());
+					// email.put("Time", functions.getCurrentDateWithTime());
+					email.put("Notes", "File processing initiated");
+					email.put("ftp_template", values.get("ftp_template_success"));
 				}
-				settings.setSiteKey(map.get("site_key").toString());
-				settings.setToPath(map.get("to_path").toString());
-				settings.setUserId(map.get("user_id").toString());
+			}
+//			Map<String, Object> userMap = getObjectByQueryNew(
+//					"select * from user_temp where user_id='" + s.getUserId() + "'");
+//			email.put("mailFrom", userMap.get("email").toString());
+//			email.put("mailTo", l);
+//			email.put("firstName", userMap.get("first_name").toString());
+//			// email.put("Time", functions.getCurrentDateWithTime());
+//			email.put("Notes", "File processing initiated");
+//			email.put("ftp_template", values.get("ftp_template_success"));
+
+			FileNameSettingsModel settings = new FileNameSettingsModel();
+			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+					data.get("password")); Statement statement = connection.createStatement();) {
+
+				String getFileNameSettings = "select * from file_name_settings_model where file_name_setting_id='"
+						+ s.getFileNameSettingsId() + "'";
+
+				System.out.println("!!! getFileNameSettings: " + getFileNameSettings);
+
+				ResultSet rs = statement.executeQuery(getFileNameSettings);
+				while (rs.next()) {
+					settings.setFileNameSettingId(rs.getString("file_name_setting_id").toString());
+					settings.setFtpName(rs.getString("ftp_name").toString());
+					settings.setIpAddress(rs.getString("ip_address").toString());
+					System.out.println(rs.getString("pattern_string"));
+					try {
+						settings.setPattern(rs.getString("pattern_string") != null
+								&& !rs.getString("pattern_string").toString().isEmpty()
+										? mapper.readValue(rs.getString("pattern_string").toString(), JSONArray.class)
+										: new JSONArray());
+					} catch (JsonProcessingException e) {
+						e.printStackTrace();
+					}
+					settings.setSiteKey(rs.getString("site_key").toString());
+					settings.setToPath(rs.getString("to_path").toString());
+					settings.setUserId(rs.getString("user_id").toString());
+				}
+
+				System.out.println("settings::" + settings.toString());
+
 			}
 
-			System.out.println("settings::" + settings.toString());
-			String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
-					+ "' and ftp_name='" + settings.getFtpName() + "'";
-			Map<String, Object> serverMap = getObjectByQueryNew(serverQuery);// settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
+//			String getFileNameSettings = "select * from file_name_settings_model where file_name_setting_id='"
+//					+ s.getFileNameSettingsId() + "'";
+//			FileNameSettingsModel settings = new FileNameSettingsModel();
+//			Map<String, Object> map = getObjectByQueryNew(getFileNameSettings);// settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
+//			if (map != null) {
+//				settings.setFileNameSettingId(map.get("file_name_setting_id").toString());
+//				settings.setFtpName(map.get("ftp_name").toString());
+//				settings.setIpAddress(map.get("ip_address").toString());
+//				System.out.println(map.get("pattern_string"));
+//				try {
+//					settings.setPattern(
+//							map.get("pattern_string") != null && !map.get("pattern_string").toString().isEmpty()
+//									? mapper.readValue(map.get("pattern_string").toString(), JSONArray.class)
+//									: new JSONArray());
+//				} catch (JsonProcessingException e) {
+//					e.printStackTrace();
+//				}
+//				settings.setSiteKey(map.get("site_key").toString());
+//				settings.setToPath(map.get("to_path").toString());
+//				settings.setUserId(map.get("user_id").toString());
+//			}
+//
+//			System.out.println("settings::" + settings.toString());
+			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+					data.get("password")); Statement statement = connection.createStatement();) {
+				String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
+						+ "' and ftp_name='" + settings.getFtpName() + "'";
+				System.out.println("!!! getFileNameSettings: " + serverQuery);
 
-			if (server != null) {
-				server.setFtpName(serverMap.get("ftp_name").toString());
-				server.setIpAddress(serverMap.get("ip_address").toString());
-				server.setPort(serverMap.get("port").toString());
-				server.setServerId(serverMap.get("server_id").toString());
-				server.setServerPassword(serverMap.get("server_password").toString());
-				server.setServerPath(serverMap.get("server_path").toString());
-				server.setServerUsername(serverMap.get("server_username").toString());
-				server.setSiteKey(serverMap.get("site_key").toString());
-				server.setUserId(serverMap.get("user_id").toString());
+				ResultSet rs = statement.executeQuery(serverQuery);
+				while (rs.next()) {
+					server.setFtpName(rs.getString("ftp_name").toString());
+					server.setIpAddress(rs.getString("ip_address").toString());
+					server.setPort(rs.getString("port").toString());
+					server.setServerId(rs.getString("server_id").toString());
+					server.setServerPassword(rs.getString("server_password").toString());
+					server.setServerPath(rs.getString("server_path").toString());
+					server.setServerUsername(rs.getString("server_username").toString());
+					server.setSiteKey(rs.getString("site_key").toString());
+					server.setUserId(rs.getString("user_id").toString());
+				}
+
 			}
+
+//			String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
+//					+ "' and ftp_name='" + settings.getFtpName() + "'";
+//			Map<String, Object> serverMap = getObjectByQueryNew(serverQuery);// settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
+//
+//			if (server != null) {
+//				server.setFtpName(serverMap.get("ftp_name").toString());
+//				server.setIpAddress(serverMap.get("ip_address").toString());
+//				server.setPort(serverMap.get("port").toString());
+//				server.setServerId(serverMap.get("server_id").toString());
+//				server.setServerPassword(serverMap.get("server_password").toString());
+//				server.setServerPath(serverMap.get("server_path").toString());
+//				server.setServerUsername(serverMap.get("server_username").toString());
+//				server.setSiteKey(serverMap.get("site_key").toString());
+//				server.setUserId(serverMap.get("user_id").toString());
+//			}
 			email.put("subject", Constants.ftp_sucess.replace(":ftp_name", server.getFtpName()));
 			email.put("FTPname", server.getFtpName());
 			status.setProcessingType("FTP");
@@ -589,6 +667,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 			for (String logType : s.getLogType()) {
 				for (File fileName : files) {
 					emailFileList += "<li>" + logType + ":" + fileName.getName() + "</li>";
+					System.out.println("---email file list" + emailFileList);
 				}
 			}
 			String statusFtp = "File processing";
@@ -598,32 +677,32 @@ public class FtpSchedulerService extends CommonEntityManager {
 			}
 			email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
 			email.put("FileList", emailFileList);
-			System.out.println("----file size-----"+files.size());
+			System.out.println("----file size-----" + files.size());
 			if (files.size() > 0) {
 				System.out.println("----file mail-----");
 				process.sentEmailFTP(email);
 			}
 
-			RestTemplate restTemplate = new RestTemplate();
-			for (File logFile : files) {
-				System.out.println("-------mail---------");
-				passFileList += "<li>" + logFile.getName() + "</li>";
-				Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
-					@Override
-					public void uncaughtException(Thread th, Throwable ex) {
-						email.put("ftp_template", values.get("ftp_template_partially_processed"));
-						email.put("FileList", "<li>" + logFile.getName() + "</li>");
-						email.put("subject",
-								Constants.ftp_Partially_Processed.replace(":ftp_name", server.getFtpName()));
-						email.put("Notes",
-								"Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
-						if (files.size() > 0) {
-							process.sentEmailFTP(email);
-						}
-					}
-				};
-
-			}
+//			RestTemplate restTemplate = new RestTemplate();
+//			for (File logFile : files) {
+//				System.out.println("-------mail---------");
+//				passFileList += "<li>" + logFile.getName() + "</li>";
+//				Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
+//					@Override
+//					public void uncaughtException(Thread th, Throwable ex) {
+//						email.put("ftp_template", values.get("ftp_template_partially_processed"));
+//						email.put("FileList", "<li>" + logFile.getName() + "</li>");
+//						email.put("subject",
+//								Constants.ftp_Partially_Processed.replace(":ftp_name", server.getFtpName()));
+//						email.put("Notes",
+//								"Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
+//						if (files.size() > 0) {
+//							process.sentEmailFTP(email);
+//						}
+//					}
+//				};
+//
+//			}
 
 			return "Nas Schedular Completed";
 
