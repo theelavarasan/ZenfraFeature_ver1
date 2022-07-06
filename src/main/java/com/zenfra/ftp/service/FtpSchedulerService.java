@@ -662,7 +662,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 
 			System.out.println("FileWithPath size::" + files.size());
 			files.addAll(getNasFiles(server, s));
-			String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+//			String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 			String emailFileList = "";
 			for (String logType : s.getLogType()) {
 				for (File fileName : files) {
@@ -710,8 +710,8 @@ public class FtpSchedulerService extends CommonEntityManager {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
 			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
+//			String ex = errors.toString();
+//			ExceptionHandlerMail.errorTriggerMail(ex);
 			email.put("ftp_template", values.get("ftp_template_failure"));
 			email.put("FileList", passFileList);
 			email.put("subject", Constants.ftp_fail.replace(":ftp_name", server.getFtpName()));
