@@ -303,7 +303,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					System.out.println("start start check sum");
 					// ftpClient.completePendingCommand();
 					System.out.println("start end check sum");
-					if (copyStatus(map, existChecksums)) {
+					if (copyStatus(map, existChecksums, false)) {
 						continue;
 					}
 
@@ -367,13 +367,21 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		return sb.toString();
 	}
 
-	public boolean copyStatus(Map<String, Object> currentMap, Map<String, List<String>> existMap) {
+	public boolean copyStatus(Map<String, Object> currentMap, Map<String, List<String>> existMap, boolean isNas) {
 
 		try {
 
 			System.out.println("start check sum function");
 			CommonFunctions functions = new CommonFunctions();
 
+			if(isNas) {
+				if(currentMap != null && existMap.containsKey(currentMap.get("fileName"))
+					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize")))){
+					System.out.println("---check--"+existMap.get(currentMap.get("fileName")+"--"+existMap.containsKey(currentMap.get("fileName"))));
+					System.out.println("Nas check sum test");
+					return true;
+				}
+			}
 			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
 					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
 							&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {

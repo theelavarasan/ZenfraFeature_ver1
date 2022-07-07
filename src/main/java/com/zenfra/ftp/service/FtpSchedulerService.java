@@ -711,9 +711,9 @@ public class FtpSchedulerService extends CommonEntityManager {
 					map.put("fileName", file.getName());
 					map.put("siteKey", server.getSiteKey());
 					map.put("fileSize", String.valueOf(file.getTotalSpace()));
-					map.put("createDate", functions.getCurrentHour() + " : " + functions.getCurrentMinutes());
+//					map.put("createDate", functions.getCurrentHour() + " : " + functions.getCurrentMinutes());
 					System.out.println("map::" + map);
-					if (ftpClientConfiguration.copyStatus(map, existCheckSums)) {
+					if (ftpClientConfiguration.copyStatus(map, existCheckSums, server.isNas)) {
 						System.out.println("File already present");
 					} else {
 						callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
