@@ -370,11 +370,12 @@ public class FTPClientConfiguration extends CommonEntityManager {
 	public boolean copyStatus(Map<String, Object> currentMap, Map<String, List<String>> existMap, boolean isNas) {
 
 		try {
-
+			System.out.println("-----isNAS---" + isNas);
 			System.out.println("start check sum function");
 			CommonFunctions functions = new CommonFunctions();
 
 			if (isNas) {
+				System.out.println("-----isNAS---" + isNas);
 				if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
 						&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize")))) {
 					System.out.println("---check--" + existMap
@@ -392,10 +393,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 			System.out.println("start check sum end");
 			if (isNas) {
+				System.out.println("-----isNAS---" + isNas);
 				String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
 				query = query.replace(":check_sum_id", functions.generateRandomId())
-						.replace(":file_size", currentMap.get("fileSize").toString())
-						.replace(":create_date", "")
+						.replace(":file_size", currentMap.get("fileSize").toString()).replace(":create_date", "")
 						.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
 						.replace(":file_name", currentMap.get("fileName").toString())
 						.replace(":site_key", currentMap.get("siteKey").toString());
