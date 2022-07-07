@@ -719,7 +719,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 							logType1 = patJson.get("logType").toString().replace("*", ".*");
 							System.out.println("patternVal::" + patternVal);
 							System.out.println("logType::" + logType1);
-							if (file.getName().toString().contains(patternVal) || file.getName().toString().contains(logType1)) {
+							if (file.getName().toString().contains(patternVal) || logType.contains(patternVal)) {
 								System.out.println("-----file pattern found----");
 								callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
 										folder.getAbsolutePath(), s.getId(), server.isNas);
