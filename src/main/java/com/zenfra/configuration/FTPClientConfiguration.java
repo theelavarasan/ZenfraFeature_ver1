@@ -377,6 +377,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			System.out.println("-----isNAS---" + isNas);
 			System.out.println("start check sum function");
 			CommonFunctions functions = new CommonFunctions();
+			boolean nasCheck = false;
 
 			if (isNas) {
 				System.out.println("-----isNAS---" + isNas);
@@ -385,36 +386,34 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					System.out.println("---check--" + existMap
 							.get(currentMap.get("fileName") + "--" + existMap.containsKey(currentMap.get("fileName"))));
 					System.out.println("Nas check sum test");
+					Map<String, String> data = new HashMap<>();
+					data = DBUtils.getPostgres();
+					System.out.println("-----isNAS---" + isNas);
+					try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+							data.get("password")); Statement statement = connection.createStatement();) {
+
+						String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
+						query = query.replace(":check_sum_id", functions.generateRandomId())
+								.replace(":file_size", currentMap.get("fileSize").toString())
+								.replace(":create_date", "")
+								.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
+								.replace(":file_name", currentMap.get("fileName").toString())
+								.replace(":site_key", currentMap.get("siteKey").toString());
+						System.out.println("CheckSum query::" + query);
+						statement.executeQuery(query);
+					}
 					return true;
 				}
-			}
-			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
-					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
-							&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {
-				System.out.println("check test");
-				return true;
-			}
-
-			System.out.println("start check sum end");
-			if (isNas) {
-				Map<String, String> data = new HashMap<>();
-				data = DBUtils.getPostgres();
-				System.out.println("-----isNAS---" + isNas);
-				try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-						data.get("password")); Statement statement = connection.createStatement();) {
-
-					String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
-					query = query.replace(":check_sum_id", functions.generateRandomId())
-							.replace(":file_size", currentMap.get("fileSize").toString()).replace(":create_date", "")
-							.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
-							.replace(":file_name", currentMap.get("fileName").toString())
-							.replace(":site_key", currentMap.get("siteKey").toString());
-					System.out.println("CheckSum query::" + query);
-					statement.executeQuery(query);
+			} else {
+				if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
+						&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
+								&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {
+					System.out.println("check test");
+					return true;
 				}
 
-//				excuteByUpdateQueryNew(query);
-			} else {
+				System.out.println("start check sum end");
+
 				String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
 				query = query.replace(":check_sum_id", functions.generateRandomId())
 						.replace(":file_size", currentMap.get("fileSize").toString())
