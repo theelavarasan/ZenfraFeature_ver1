@@ -606,7 +606,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 			statement3.executeUpdate(processQuery);
 
 			System.out.println("FileWithPath size::" + files.size());
-			files.addAll(getNasFiles(server, s));
+			files.addAll(getNasFiles(server, s, settings));
 //			String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 			String emailFileList = "";
 			for (String logType : s.getLogType()) {
@@ -682,10 +682,11 @@ public class FtpSchedulerService extends CommonEntityManager {
 		}
 	}
 
-	private ArrayList<File> getNasFiles(FTPServerModel server, FtpScheduler s) {
+	private ArrayList<File> getNasFiles(FTPServerModel server, FtpScheduler s, FileNameSettingsModel settings) {
 		ArrayList<File> files;
 		FTPClientConfiguration ftpClientConfiguration = new FTPClientConfiguration();
 		try {
+			System.out.println("---settings pattern---" + settings.getPatternString());
 			System.out.println("---server path---" + server.getServerPath());
 			final File folder = new File(server.getServerPath().toString());
 			files = naslistFilesForFolder(folder, server);
@@ -707,8 +708,25 @@ public class FtpSchedulerService extends CommonEntityManager {
 					if (ftpClientConfiguration.copyStatusNas(map, existCheckSums)) {
 						System.out.println("File already present");
 					} else {
-						callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
-								folder.getAbsolutePath(), s.getId(), server.isNas);
+						String patternVal = null;
+						String logType1 = null;
+						ObjectMapper map1 = new ObjectMapper();
+						FileNameSettingsService fileNameSettingsService = new FileNameSettingsService();
+						for (int j = 0; j < settings.getPattern().size(); j++) {
+							System.out.println("f.getName():::" + file.getName());
+							JSONObject patJson = map1.convertValue(settings.getPattern().get(j), JSONObject.class);
+							patternVal = patJson.get("namePattern").toString().replace("*", ".*");
+							logType = patJson.get("logType").toString().replace("*", ".*");
+							System.out.println("patternVal::" + patternVal);
+							System.out.println("logType::" + logType);
+							if (fileNameSettingsService.isValidMatch(patternVal, file.getName())
+									|| fileNameSettingsService.isValidMatch(logType, file.getName())) {
+								System.out.println("-----file pattern found----");
+								callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
+										folder.getAbsolutePath(), s.getId(), server.isNas);
+							}
+							System.out.println("-----file pattern found----");
+						}
 
 					}
 				}
