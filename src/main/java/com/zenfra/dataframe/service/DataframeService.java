@@ -1676,7 +1676,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	private void createDataframeFromJsonFile(String viewName, String filePath) {
 		if (filePath.endsWith(".json")) {
 			try {
-				Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(filePath);
+				Dataset<Row> dataset = sparkSession.read().json(filePath);//option("multiline", true)
 				dataset.createOrReplaceGlobalTempView(viewName);
 				
 				System.out.println("---------View created-------- :: " + viewName);
