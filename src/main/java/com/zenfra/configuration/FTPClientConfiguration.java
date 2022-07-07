@@ -307,7 +307,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					System.out.println("start start check sum");
 					// ftpClient.completePendingCommand();
 					System.out.println("start end check sum");
-					if (copyStatus(map, existChecksums, false)) {
+					if (copyStatus(map, existChecksums)) {
 						continue;
 					}
 
@@ -371,47 +371,62 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		return sb.toString();
 	}
 
-	public boolean copyStatus(Map<String, Object> currentMap, Map<String, List<String>> existMap, boolean isNas) {
+	public boolean copyStatus(Map<String, Object> currentMap, Map<String, List<String>> existMap) {
 
 		try {
-			System.out.println("-----isNAS---" + isNas);
+
 			System.out.println("start check sum function");
 			CommonFunctions functions = new CommonFunctions();
-			boolean nasCheck = false;
+			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
+					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
+							&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {
+				System.out.println("check test");
+				return true;
+			}
 
-			if (isNas) {
-				System.out.println("-----isNAS---" + isNas);
-				if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
-						&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize")))) {
-					System.out.println("---check--" + existMap
-							.get(currentMap.get("fileName") + "--" + existMap.containsKey(currentMap.get("fileName"))));
-					System.out.println("Nas check sum test");
-					Map<String, String> data = new HashMap<>();
-					data = DBUtils.getPostgres();
-					System.out.println("-----isNAS---" + isNas);
-					try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-							data.get("password")); Statement statement = connection.createStatement();) {
+			System.out.println("start check sum end");
 
-						String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
-						query = query.replace(":check_sum_id", functions.generateRandomId())
-								.replace(":file_size", currentMap.get("fileSize").toString())
-								.replace(":create_date", "")
-								.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
-								.replace(":file_name", currentMap.get("fileName").toString())
-								.replace(":site_key", currentMap.get("siteKey").toString());
-						System.out.println("CheckSum query::" + query);
-						statement.executeQuery(query);
-					}
-					return true;
-				}
+			String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
+			query = query.replace(":check_sum_id", functions.generateRandomId())
+					.replace(":file_size", currentMap.get("fileSize").toString())
+					.replace(":create_date", currentMap.get("createDate").toString())
+					.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
+					.replace(":file_name", currentMap.get("fileName").toString())
+					.replace(":site_key", currentMap.get("siteKey").toString());
+			System.out.println("CheckSum query::" + query);
+			excuteByUpdateQueryNew(query);
+			return false;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+			return false;
+		}
+
+	}
+
+	public boolean copyStatusNas(Map<String, Object> currentMap, Map<String, List<String>> existMap) {
+
+		try {
+
+			System.out.println("start check sum function");
+			CommonFunctions functions = new CommonFunctions();
+			System.out.println("---map--" + currentMap.get("fileName"));
+			System.out.println("---map--" + existMap.containsKey(currentMap.get("fileName")));
+			System.out.println("---map--" + currentMap.get("fileSize"));
+			System.out.println(
+					"---map--" + existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize")));
+			System.out.println(
+					"---map--" + existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")));
+			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
+					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
+							&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {
+				System.out.println("Nas check test");
+				return true;
 			} else {
-				if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
-						&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
-								&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {
-					System.out.println("check test");
-					return true;
-				}
-
 				System.out.println("start check sum end");
 
 				String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
@@ -423,9 +438,8 @@ public class FTPClientConfiguration extends CommonEntityManager {
 						.replace(":site_key", currentMap.get("siteKey").toString());
 				System.out.println("CheckSum query::" + query);
 				excuteByUpdateQueryNew(query);
+				return false;
 			}
-
-			return false;
 
 		} catch (Exception e) {
 			e.printStackTrace();
