@@ -41,7 +41,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.ftp.FtpScheduler;
 
@@ -739,5 +738,4 @@ public class CommonFunctions {
 
 		return list;
 	}
-	
 }

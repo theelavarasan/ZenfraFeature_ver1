@@ -695,7 +695,7 @@ public class DataframeService {
 		if (!isDiscoveryDataInView) {
 			File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator
 					+ siteKey + File.separator + "site_key=" + siteKey + File.separator + "source_type=" + source_type);
-
+			
 			if (verifyDataframePath.exists()) {
 				createSingleDataframe(siteKey, source_type, verifyDataframePath.getAbsolutePath());
 				dataset = sparkSession.sql("select * from global_temp." + viewName);

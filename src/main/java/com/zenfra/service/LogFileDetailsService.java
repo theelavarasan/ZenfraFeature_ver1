@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -42,6 +45,7 @@ import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
@@ -123,7 +127,7 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 						log.setStatus("retrieving");
 					}
 					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
-						
+
 						log.setStatus("retrieved");
 					}
 				}
@@ -147,7 +151,8 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 				JSONObject json = new JSONObject();
 				json.put("status", log.getStatus());
 				json.put("logFileId", log.getLogFileId());
-				if (log.getStatus() != null && (log.getStatus().equalsIgnoreCase("success") || log.getStatus().equalsIgnoreCase("retrieved"))) {
+				if (log.getStatus() != null && (log.getStatus().equalsIgnoreCase("success")
+						|| log.getStatus().equalsIgnoreCase("retrieved"))) {
 					json.put("parsedDateTime",
 							log.getParsedDateTime() != null
 									? common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime())
@@ -454,10 +459,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 	}
 
-	public boolean deleteLogfileProcessAction(List<String> logFileIds) {
+	public boolean deleteLogfileProcessAction(List<String> logFileIds, String userId) {
 		try {
 
-			return logDao.deleteLogfileProcessAction(logFileIds);
+			return logDao.deleteLogfileProcessAction(logFileIds, userId);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -575,5 +580,9 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return jsonArray;
+	}
+
+	public void saveUpdatedBy(String logFileId, String userId) {
+		logDao.saveUpdatedBy(logFileId, userId);
 	}
 }
