@@ -656,10 +656,10 @@ public class FtpSchedulerService extends CommonEntityManager {
 
 //		files.addAll(getNasFiles(server, s));
 
-			String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
-			processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
-					.replace(":status", "Retrieving files").replace(":processing_id", status.getProcessing_id());
-			excuteByUpdateQueryNew(processUpdate);
+//			String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
+//			processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
+//					.replace(":status", "Retrieving files").replace(":processing_id", status.getProcessing_id());
+//			excuteByUpdateQueryNew(processUpdate);
 
 			System.out.println("FileWithPath size::" + files.size());
 			files.addAll(getNasFiles(server, s));
@@ -681,6 +681,10 @@ public class FtpSchedulerService extends CommonEntityManager {
 			System.out.println("----file size-----" + files.size());
 			if (files.size() > 0) {
 				System.out.println("----file mail-----");
+				String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
+				processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
+						.replace(":status", "Retrieved files").replace(":processing_id", status.getProcessing_id());
+				excuteByUpdateQueryNew(processUpdate);
 				process.sentEmailFTP(email);
 			}
 
