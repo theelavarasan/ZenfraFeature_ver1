@@ -58,10 +58,11 @@ public class FtpSchedulerController {
 			}
 
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
-				String corn = "0 minutes current/hour * * ?";
-				ftpScheduler.setSchedulerCorn(
-						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour())
-								.replace("minutes", functions.getCurrentMinutes()));
+//				String corn = "0 minutes current/hour * * ?";
+//				ftpScheduler.setSchedulerCorn(
+//						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour())
+//								.replace("minutes", functions.getCurrentMinutes()));
+				ftpScheduler.setSchedulerCorn("0 0/2 * * * ?");
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("daily")) {
 				String timseslot = functions.convertTimeZone(ftpScheduler.getTimeZone(), ftpScheduler.getTimeSlot());

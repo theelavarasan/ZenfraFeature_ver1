@@ -454,6 +454,8 @@ public class CommonFunctions {
 		try {
 			RestTemplate restTemplate = new RestTemplate();
 			System.out.println("email object" + partObj);
+			
+			
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
@@ -463,6 +465,9 @@ public class CommonFunctions {
 			resetLink = CommonUtils.checkPortNumberForWildCardCertificate(resetLink);
 			System.err.println("---reset link---"+resetLink);
 			ResponseEntity<String> uri = restTemplate.exchange(resetLink, HttpMethod.POST, requestEntity, String.class);
+			
+			
+			
 			if (uri != null && uri.getBody() != null) {
 				if (uri.getBody().equalsIgnoreCase("ACCEPTED")) {
 					isSuccess = true;

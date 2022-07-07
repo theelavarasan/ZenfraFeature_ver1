@@ -115,9 +115,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			System.out.println("Start iStream FTP" + path);
 			FTPClient ftpClient = getConnection(server);
 			fileList = getAllFilesFromPath(server, path, existCheckSums);
-
 			System.out.println("file read END");
-
 			ftpClient.logout();
 			ftpClient.disconnect();
 			System.out.println("End iStream FTP" + path);

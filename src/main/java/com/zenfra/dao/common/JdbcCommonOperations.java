@@ -149,6 +149,7 @@ public abstract class JdbcCommonOperations {
 	}
 
 	public Map<String, Object> getObjectByQueryNew(String query) throws SQLException {
+		
 		Map<String, Object> obj = new HashMap<String, Object>();
 		List<Map<String, Object>> obj1 = new ArrayList<>();
 		DataSource d = null;
