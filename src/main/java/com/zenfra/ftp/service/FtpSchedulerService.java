@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.TimeZone;
 import com.zenfra.configuration.AESEncryptionDecryption;
+import com.zenfra.configuration.FTPClientConfiguration;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.ftp.repo.FtpSchedulerRepo;
 import com.zenfra.model.LogFileDetails;
@@ -509,7 +510,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		try {
-			System.out.println("--------------eneter nas runFtpSchedulerFiles---------" + s.toString());
+			System.out.println("--------------eneter nas runNasSchedulerFiles---------" + s.toString());
 			List<String> l = new ArrayList<String>();
 			if (s.getEmailString() != null && s.getEmailString() != "[]") {
 				String arr[] = s.getEmailString().replace("\"", "").replace("[", "").replace("]", "").split(",");
@@ -517,32 +518,25 @@ public class FtpSchedulerService extends CommonEntityManager {
 					Collections.addAll(l, arr);
 				}
 			}
-
 			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 					data.get("password")); Statement statement = connection.createStatement();) {
 
 				String selectQuery = "select * from user_temp where user_id='" + s.getUserId() + "'";
 				System.out.println("!!! selectQuery: " + selectQuery);
-
 				ResultSet rs = statement.executeQuery(selectQuery);
-
 				while (rs.next()) {
 					email.put("mailFrom", rs.getString("email").toString());
 					email.put("mailTo", l);
 					email.put("firstName", rs.getString("first_name").toString());
-
 					email.put("Notes", "File processing initiated");
 					email.put("ftp_template", values.get("ftp_template_success"));
 				}
 			}
-
 			FileNameSettingsModel settings = new FileNameSettingsModel();
 			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 					data.get("password")); Statement statement = connection.createStatement();) {
-
 				String getFileNameSettings = "select * from file_name_settings_model where file_name_setting_id='"
 						+ s.getFileNameSettingsId() + "'";
-
 				System.out.println("!!! getFileNameSettings: " + getFileNameSettings);
 
 				ResultSet rs = statement.executeQuery(getFileNameSettings);
@@ -565,32 +559,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 				}
 
 				System.out.println("settings::" + settings.toString());
-
 			}
-
-//			String getFileNameSettings = "select * from file_name_settings_model where file_name_setting_id='"
-//					+ s.getFileNameSettingsId() + "'";
-//			FileNameSettingsModel settings = new FileNameSettingsModel();
-//			Map<String, Object> map = getObjectByQueryNew(getFileNameSettings);// settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
-//			if (map != null) {
-//				settings.setFileNameSettingId(map.get("file_name_setting_id").toString());
-//				settings.setFtpName(map.get("ftp_name").toString());
-//				settings.setIpAddress(map.get("ip_address").toString());
-//				System.out.println(map.get("pattern_string"));
-//				try {
-//					settings.setPattern(
-//							map.get("pattern_string") != null && !map.get("pattern_string").toString().isEmpty()
-//									? mapper.readValue(map.get("pattern_string").toString(), JSONArray.class)
-//									: new JSONArray());
-//				} catch (JsonProcessingException e) {
-//					e.printStackTrace();
-//				}
-//				settings.setSiteKey(map.get("site_key").toString());
-//				settings.setToPath(map.get("to_path").toString());
-//				settings.setUserId(map.get("user_id").toString());
-//			}
-//
-//			System.out.println("settings::" + settings.toString());
 			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 					data.get("password")); Statement statement = connection.createStatement();) {
 				String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
@@ -612,21 +581,6 @@ public class FtpSchedulerService extends CommonEntityManager {
 
 			}
 
-//			String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
-//					+ "' and ftp_name='" + settings.getFtpName() + "'";
-//			Map<String, Object> serverMap = getObjectByQueryNew(serverQuery);// settingsService.getFileNameSettingsById(s.getFileNameSettingsId());
-//
-//			if (server != null) {
-//				server.setFtpName(serverMap.get("ftp_name").toString());
-//				server.setIpAddress(serverMap.get("ip_address").toString());
-//				server.setPort(serverMap.get("port").toString());
-//				server.setServerId(serverMap.get("server_id").toString());
-//				server.setServerPassword(serverMap.get("server_password").toString());
-//				server.setServerPath(serverMap.get("server_path").toString());
-//				server.setServerUsername(serverMap.get("server_username").toString());
-//				server.setSiteKey(serverMap.get("site_key").toString());
-//				server.setUserId(serverMap.get("user_id").toString());
-//			}
 			email.put("subject", Constants.ftp_sucess.replace(":ftp_name", server.getFtpName()));
 			email.put("FTPname", server.getFtpName());
 			status.setProcessingType("FTP");
@@ -657,7 +611,6 @@ public class FtpSchedulerService extends CommonEntityManager {
 				statement.executeUpdate(processQuery);
 
 			}
-
 			System.out.println("FileWithPath size::" + files.size());
 			files.addAll(getNasFiles(server, s));
 //			String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
@@ -682,8 +635,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 						data.get("password")); Statement statement = connection.createStatement();) {
 					String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
 					processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
-							.replace(":status", statusFtp)
-							.replace(":processing_id", status.getProcessing_id());
+							.replace(":status", statusFtp).replace(":processing_id", status.getProcessing_id());
 					statement.executeUpdate(processUpdate);
 				}
 				process.sentEmailFTP(email);
@@ -741,20 +693,33 @@ public class FtpSchedulerService extends CommonEntityManager {
 
 	private ArrayList<File> getNasFiles(FTPServerModel server, FtpScheduler s) {
 		ArrayList<File> files;
+		FTPClientConfiguration ftpClientConfiguration = new FTPClientConfiguration();
 		try {
 			System.out.println("---server path---" + server.getServerPath());
 			final File folder = new File(server.getServerPath().toString());
-			files = naslistFilesForFolder(folder);
+			files = naslistFilesForFolder(folder, server);
 			System.out.println("--file-List-" + files);
+			Map<String, List<String>> existCheckSums = ftpClientConfiguration.getCheckSumDetails(server.getSiteKey());
 			for (File file : files) {
 				for (String logType : s.getLogType()) {
 					System.out.println("----Log Type----" + logType);
 					System.out.println("----Log Type----" + s.getUserId());
 					System.out.println("----Log Type----" + s.getSiteKey());
 					System.out.println("----Log Type----" + s.getTenantId());
-					callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
-							folder.getAbsolutePath(), s.getId(), server.isNas);
+					Map<String, Object> map = new HashMap<String, Object>();
+					map.put("serverId", server.getServerId());
+					map.put("fileName", file.getName());
+					map.put("siteKey", server.getSiteKey());
+					map.put("fileSize", String.valueOf(file.getTotalSpace()));
+					map.put("createDate", functions.getCurrentHour() + " : " + functions.getCurrentMinutes());
+					System.out.println("map::" + map);
+					if (ftpClientConfiguration.copyStatus(map, existCheckSums)) {
+						System.out.println("File already present");
+					} else {
+						callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
+								folder.getAbsolutePath(), s.getId(), server.isNas);
 
+					}
 				}
 				System.out.println("---folder--" + folder.getAbsolutePath());
 				System.out.println("---file--" + file.getName());
@@ -768,12 +733,11 @@ public class FtpSchedulerService extends CommonEntityManager {
 
 	}
 
-	public ArrayList<File> naslistFilesForFolder(final File folder) {
-
+	public ArrayList<File> naslistFilesForFolder(final File folder, FTPServerModel server) {
 		ArrayList<File> fileList = new ArrayList<File>();
 		for (final File fileEntry : folder.listFiles()) {
 			if (fileEntry.isDirectory()) {
-				naslistFilesForFolder(fileEntry);
+				naslistFilesForFolder(fileEntry, server);
 				System.out.println("file entry" + fileEntry);
 				fileList.add(fileEntry.getAbsoluteFile());
 			} else {

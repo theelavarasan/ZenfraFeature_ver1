@@ -373,6 +373,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 			System.out.println("start check sum function");
 			CommonFunctions functions = new CommonFunctions();
+
 			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
 					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
 							&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {
