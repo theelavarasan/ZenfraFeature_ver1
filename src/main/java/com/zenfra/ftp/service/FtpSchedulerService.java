@@ -319,11 +319,11 @@ public class FtpSchedulerService extends CommonEntityManager {
 			logFile.setLogFileId(functions.generateRandomId());
 			logFile.setActive(true);
 			logFile.setCreatedDateTime(functions.getCurrentDateWithTime());
-			if(isNas) {
+			if (isNas) {
 				logFile.setDescription("NAS file parsing");
-			}else {
+			} else {
 				logFile.setDescription("FTP file parsing");
-			}	
+			}
 			logFile.setFileName(fileName);
 			logFile.setFileSize(String.valueOf(convFile.length()));
 			logFile.setLogType(logType);
@@ -368,7 +368,11 @@ public class FtpSchedulerService extends CommonEntityManager {
 			body.add("parseFileName", fileName);
 			body.add("isFTP", true);
 			body.add("logType", logType);
-			body.add("description", "FTP file parsing");
+			if (isNas) {
+				body.add("description", "NAS file parsing");
+			} else {
+				body.add("description", "FTP file parsing");
+			}
 			body.add("siteKey", siteKey);
 			body.add("userId", userId);
 			body.add("tenantId", tenantId);
@@ -526,20 +530,11 @@ public class FtpSchedulerService extends CommonEntityManager {
 					email.put("mailFrom", rs.getString("email").toString());
 					email.put("mailTo", l);
 					email.put("firstName", rs.getString("first_name").toString());
-					// email.put("Time", functions.getCurrentDateWithTime());
+
 					email.put("Notes", "File processing initiated");
-//				email.put("ftp_template", values.get("ftp_template_success"));
 					email.put("ftp_template", values.get("ftp_template_success"));
 				}
 			}
-//			Map<String, Object> userMap = getObjectByQueryNew(
-//					"select * from user_temp where user_id='" + s.getUserId() + "'");
-//			email.put("mailFrom", userMap.get("email").toString());
-//			email.put("mailTo", l);
-//			email.put("firstName", userMap.get("first_name").toString());
-//			// email.put("Time", functions.getCurrentDateWithTime());
-//			email.put("Notes", "File processing initiated");
-//			email.put("ftp_template", values.get("ftp_template_success"));
 
 			FileNameSettingsModel settings = new FileNameSettingsModel();
 			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
@@ -662,27 +657,6 @@ public class FtpSchedulerService extends CommonEntityManager {
 				statement.executeUpdate(processQuery);
 
 			}
-//			if (s.getIsNas()) {
-//				System.out.println("---isnas--" + s.getIsNas());
-//				processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id, is_nas)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id', true);";
-//			} else {
-//				processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id');";
-//			}
-//			processQuery = processQuery.replace(":processing_id", status.getProcessing_id())
-//					.replace(":end_time", functions.getCurrentDateWithTime()).replace(":log_count", "0")
-//					.replace(":path", server.getServerPath())
-//					.replace(":process_data_id", String.valueOf(server.getServerId()))
-//					.replace(":processing_type", "NAS").replace(":site_key", server.getSiteKey())
-//					.replace(":start_time", functions.getCurrentDateWithTime()).replace(":status", "Scheduler started")
-//					.replace(":tenant_id", "").replace(":user_id", server.getUserId());
-//			excuteByUpdateQueryNew(processQuery);
-
-//		files.addAll(getNasFiles(server, s));
-
-//			String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
-//			processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
-//					.replace(":status", "Retrieving files").replace(":processing_id", status.getProcessing_id());
-//			excuteByUpdateQueryNew(processUpdate);
 
 			System.out.println("FileWithPath size::" + files.size());
 			files.addAll(getNasFiles(server, s));
@@ -708,15 +682,12 @@ public class FtpSchedulerService extends CommonEntityManager {
 						data.get("password")); Statement statement = connection.createStatement();) {
 					String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
 					processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
-							.replace(":status", "Retrieved files").replace(":processing_id", status.getProcessing_id());
+							.replace(":status", statusFtp)
+							.replace(":processing_id", status.getProcessing_id());
 					statement.executeUpdate(processUpdate);
 				}
 				process.sentEmailFTP(email);
-//				String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
-//				processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
-//						.replace(":status", "Retrieved files").replace(":processing_id", status.getProcessing_id());
-//				excuteByUpdateQueryNew(processUpdate);
-//				process.sentEmailFTP(email);
+
 			}
 
 			RestTemplate restTemplate = new RestTemplate();
@@ -788,6 +759,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 				System.out.println("---folder--" + folder.getAbsolutePath());
 				System.out.println("---file--" + file.getName());
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
