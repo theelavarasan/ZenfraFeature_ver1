@@ -711,7 +711,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 					map.put("serverId", server.getServerId());
 					map.put("fileName", file.getName());
 					map.put("siteKey", server.getSiteKey());
-					map.put("fileSize", String.valueOf(file.getTotalSpace()));
+					map.put("fileSize", String.valueOf(file.getUsableSpace()));
 //					map.put("createDate", functions.getCurrentHour() + " : " + functions.getCurrentMinutes());
 					System.out.println("map::" + map);
 					if (ftpClientConfiguration.copyStatus(map, existCheckSums, server.isNas)) {

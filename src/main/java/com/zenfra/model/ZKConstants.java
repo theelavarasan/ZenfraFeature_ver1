@@ -107,6 +107,7 @@ public class ZKConstants {
 	public final static String ERROR = "Error";
 	public final static String SUCCESS = "Success";
 	public final static String PARAMETER_MISSING = "Parameter missing";
+	public static String POSTGRES_URL_AWS_DB = "postgresurl_aws_db";
 	public static String HEALTHCHECK_COLUMN_ORDER = "healthCheckName,validationRuleName,componentType,reportName,createdBy,createdTime,updatedBy,updatedTime";
 	public static String HEADER_LABEL = "headerLabel";
 
