@@ -578,9 +578,9 @@ public class FtpSchedulerService extends CommonEntityManager {
 				server.setNas(true);
 			}
 
-			email.put("subject", Constants.ftp_sucess.replace(":ftp_name", server.getFtpName()));
+			email.put("subject", Constants.nas_sucess.replace(":ftp_name", server.getFtpName()));
 			email.put("FTPname", server.getFtpName());
-			status.setProcessingType("FTP");
+			status.setProcessingType("NAS");
 			status.setProcessing_id(functions.generateRandomId());
 			status.setStartTime(functions.getCurrentDateWithTime());
 			status.setProcessDataId(String.valueOf(server.getServerId()));
@@ -716,11 +716,10 @@ public class FtpSchedulerService extends CommonEntityManager {
 							System.out.println("f.getName():::" + file.getName());
 							JSONObject patJson = map1.convertValue(settings.getPattern().get(j), JSONObject.class);
 							patternVal = patJson.get("namePattern").toString().replace("*", ".*");
-							logType = patJson.get("logType").toString().replace("*", ".*");
+							logType1 = patJson.get("logType").toString().replace("*", ".*");
 							System.out.println("patternVal::" + patternVal);
-							System.out.println("logType::" + logType);
-							if (fileNameSettingsService.isValidMatch(patternVal, file.getName())
-									|| fileNameSettingsService.isValidMatch(logType, file.getName())) {
+							System.out.println("logType::" + logType1);
+							if (file.getName().toString().contains(patternVal) || file.getName().toString().contains(logType1)) {
 								System.out.println("-----file pattern found----");
 								callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
 										folder.getAbsolutePath(), s.getId(), server.isNas);
