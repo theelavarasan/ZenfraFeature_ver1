@@ -563,7 +563,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 					data.get("password")); Statement statement = connection.createStatement();) {
 				String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
-						+ "' and ftp_name='" + settings.getFtpName() + "'";
+						+ "' and ftp_name='" + settings.getFtpName() + "' and is_nas = true";
 				System.out.println("!!! getFileNameSettings: " + serverQuery);
 
 				ResultSet rs = statement.executeQuery(serverQuery);
@@ -577,6 +577,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 					server.setServerUsername(rs.getString("server_username").toString());
 					server.setSiteKey(rs.getString("site_key").toString());
 					server.setUserId(rs.getString("user_id").toString());
+					server.setNas(true);
 				}
 
 			}
