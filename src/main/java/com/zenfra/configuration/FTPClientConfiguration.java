@@ -424,7 +424,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
 				query = query.replace(":check_sum_id", functions.generateRandomId())
 						.replace(":file_size", currentMap.get("fileSize").toString())
-						.replace(":create_date", currentMap.get("createDate").toString())
+						.replace(":create_date", "")
 						.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
 						.replace(":file_name", currentMap.get("fileName").toString())
 						.replace(":site_key", currentMap.get("siteKey").toString());
