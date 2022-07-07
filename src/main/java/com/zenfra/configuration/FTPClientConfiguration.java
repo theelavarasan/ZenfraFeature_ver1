@@ -8,6 +8,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +28,7 @@ import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Component
@@ -393,15 +397,23 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 			System.out.println("start check sum end");
 			if (isNas) {
+				Map<String, String> data = new HashMap<>();
+				data = DBUtils.getPostgres();
 				System.out.println("-----isNAS---" + isNas);
-				String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
-				query = query.replace(":check_sum_id", functions.generateRandomId())
-						.replace(":file_size", currentMap.get("fileSize").toString()).replace(":create_date", "")
-						.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
-						.replace(":file_name", currentMap.get("fileName").toString())
-						.replace(":site_key", currentMap.get("siteKey").toString());
-				System.out.println("CheckSum query::" + query);
-				excuteByUpdateQueryNew(query);
+				try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+						data.get("password")); Statement statement = connection.createStatement();) {
+
+					String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
+					query = query.replace(":check_sum_id", functions.generateRandomId())
+							.replace(":file_size", currentMap.get("fileSize").toString()).replace(":create_date", "")
+							.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
+							.replace(":file_name", currentMap.get("fileName").toString())
+							.replace(":site_key", currentMap.get("siteKey").toString());
+					System.out.println("CheckSum query::" + query);
+					statement.executeQuery(query);
+				}
+
+//				excuteByUpdateQueryNew(query);
 			} else {
 				String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
 				query = query.replace(":check_sum_id", functions.generateRandomId())

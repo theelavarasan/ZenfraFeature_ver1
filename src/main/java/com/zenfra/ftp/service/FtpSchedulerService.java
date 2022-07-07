@@ -509,7 +509,13 @@ public class FtpSchedulerService extends CommonEntityManager {
 		Map<String, String> values = DBUtils.getEmailURL();
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
-		try {
+		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+				data.get("password"));
+				Statement statement = connection.createStatement();
+				Statement statement1 = connection.createStatement();
+				Statement statement2 = connection.createStatement();
+				Statement statement3 = connection.createStatement();
+				Statement statement4 = connection.createStatement();) {
 			System.out.println("--------------eneter nas runNasSchedulerFiles---------" + s.toString());
 			List<String> l = new ArrayList<String>();
 			if (s.getEmailString() != null && s.getEmailString() != "[]") {
@@ -518,68 +524,58 @@ public class FtpSchedulerService extends CommonEntityManager {
 					Collections.addAll(l, arr);
 				}
 			}
-			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-					data.get("password")); Statement statement = connection.createStatement();) {
-
-				String selectQuery = "select * from user_temp where user_id='" + s.getUserId() + "'";
-				System.out.println("!!! selectQuery: " + selectQuery);
-				ResultSet rs = statement.executeQuery(selectQuery);
-				while (rs.next()) {
-					email.put("mailFrom", rs.getString("email").toString());
-					email.put("mailTo", l);
-					email.put("firstName", rs.getString("first_name").toString());
-					email.put("Notes", "File processing initiated");
-					email.put("ftp_template", values.get("ftp_template_success"));
-				}
+			String selectQuery = "select * from user_temp where user_id='" + s.getUserId() + "'";
+			System.out.println("!!! selectQuery: " + selectQuery);
+			ResultSet rs = statement.executeQuery(selectQuery);
+			while (rs.next()) {
+				email.put("mailFrom", rs.getString("email").toString());
+				email.put("mailTo", l);
+				email.put("firstName", rs.getString("first_name").toString());
+				email.put("Notes", "File processing initiated");
+				email.put("ftp_template", values.get("ftp_template_success"));
 			}
+
 			FileNameSettingsModel settings = new FileNameSettingsModel();
-			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-					data.get("password")); Statement statement = connection.createStatement();) {
-				String getFileNameSettings = "select * from file_name_settings_model where file_name_setting_id='"
-						+ s.getFileNameSettingsId() + "'";
-				System.out.println("!!! getFileNameSettings: " + getFileNameSettings);
+			String getFileNameSettings = "select * from file_name_settings_model where file_name_setting_id='"
+					+ s.getFileNameSettingsId() + "'";
+			System.out.println("!!! getFileNameSettings: " + getFileNameSettings);
 
-				ResultSet rs = statement.executeQuery(getFileNameSettings);
-				while (rs.next()) {
-					settings.setFileNameSettingId(rs.getString("file_name_setting_id").toString());
-					settings.setFtpName(rs.getString("ftp_name").toString());
-					settings.setIpAddress(rs.getString("ip_address").toString());
-					System.out.println(rs.getString("pattern_string"));
-					try {
-						settings.setPattern(rs.getString("pattern_string") != null
-								&& !rs.getString("pattern_string").toString().isEmpty()
-										? mapper.readValue(rs.getString("pattern_string").toString(), JSONArray.class)
-										: new JSONArray());
-					} catch (JsonProcessingException e) {
-						e.printStackTrace();
-					}
-					settings.setSiteKey(rs.getString("site_key").toString());
-					settings.setToPath(rs.getString("to_path").toString());
-					settings.setUserId(rs.getString("user_id").toString());
+			ResultSet rs1 = statement1.executeQuery(getFileNameSettings);
+			while (rs1.next()) {
+				settings.setFileNameSettingId(rs1.getString("file_name_setting_id").toString());
+				settings.setFtpName(rs1.getString("ftp_name").toString());
+				settings.setIpAddress(rs1.getString("ip_address").toString());
+				System.out.println(rs1.getString("pattern_string"));
+				try {
+					settings.setPattern(rs1.getString("pattern_string") != null
+							&& !rs1.getString("pattern_string").toString().isEmpty()
+									? mapper.readValue(rs1.getString("pattern_string").toString(), JSONArray.class)
+									: new JSONArray());
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
 				}
-
-				System.out.println("settings::" + settings.toString());
+				settings.setSiteKey(rs1.getString("site_key").toString());
+				settings.setToPath(rs1.getString("to_path").toString());
+				settings.setUserId(rs1.getString("user_id").toString());
 			}
-			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-					data.get("password")); Statement statement = connection.createStatement();) {
-				String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
-						+ "' and ftp_name='" + settings.getFtpName() + "' and is_nas = true";
-				System.out.println("!!! getFileNameSettings: " + serverQuery);
 
-				ResultSet rs = statement.executeQuery(serverQuery);
-				while (rs.next()) {
-					server.setFtpName(rs.getString("ftp_name").toString());
-					server.setIpAddress(rs.getString("ip_address").toString());
-					server.setPort(rs.getString("port").toString());
-					server.setServerId(rs.getString("server_id").toString());
-					server.setServerPassword(rs.getString("server_password").toString());
-					server.setServerPath(rs.getString("server_path").toString());
-					server.setServerUsername(rs.getString("server_username").toString());
-					server.setSiteKey(rs.getString("site_key").toString());
-					server.setUserId(rs.getString("user_id").toString());
-					server.setNas(true);
-				}
+			System.out.println("settings::" + settings.toString());
+			String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
+					+ "' and ftp_name='" + settings.getFtpName() + "' and is_nas = true";
+			System.out.println("!!! getFileNameSettings: " + serverQuery);
 
+			ResultSet rs2 = statement2.executeQuery(serverQuery);
+			while (rs2.next()) {
+				server.setFtpName(rs2.getString("ftp_name").toString());
+				server.setIpAddress(rs2.getString("ip_address").toString());
+				server.setPort(rs2.getString("port").toString());
+				server.setServerId(rs2.getString("server_id").toString());
+				server.setServerPassword(rs2.getString("server_password").toString());
+				server.setServerPath(rs2.getString("server_path").toString());
+				server.setServerUsername(rs2.getString("server_username").toString());
+				server.setSiteKey(rs2.getString("site_key").toString());
+				server.setUserId(rs2.getString("user_id").toString());
+				server.setNas(true);
 			}
 
 			email.put("subject", Constants.ftp_sucess.replace(":ftp_name", server.getFtpName()));
@@ -593,25 +589,22 @@ public class FtpSchedulerService extends CommonEntityManager {
 			status.setPath(server.getServerPath());
 			status.setEndTime(functions.getCurrentDateWithTime());
 			String processQuery;
-			try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-					data.get("password")); Statement statement = connection.createStatement();) {
-				if (s.getIsNas()) {
-					System.out.println("---isnas--" + s.getIsNas());
-					processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id, is_nas)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id', true);";
-				} else {
-					processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id');";
-				}
-				processQuery = processQuery.replace(":processing_id", status.getProcessing_id())
-						.replace(":end_time", functions.getCurrentDateWithTime()).replace(":log_count", "0")
-						.replace(":path", server.getServerPath())
-						.replace(":process_data_id", String.valueOf(server.getServerId()))
-						.replace(":processing_type", "NAS").replace(":site_key", server.getSiteKey())
-						.replace(":start_time", functions.getCurrentDateWithTime())
-						.replace(":status", "Scheduler started").replace(":tenant_id", "")
-						.replace(":user_id", server.getUserId());
-				statement.executeUpdate(processQuery);
 
+			if (s.getIsNas()) {
+				System.out.println("---isnas--" + s.getIsNas());
+				processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id, is_nas)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id', true);";
+			} else {
+				processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id');";
 			}
+			processQuery = processQuery.replace(":processing_id", status.getProcessing_id())
+					.replace(":end_time", functions.getCurrentDateWithTime()).replace(":log_count", "0")
+					.replace(":path", server.getServerPath())
+					.replace(":process_data_id", String.valueOf(server.getServerId()))
+					.replace(":processing_type", "NAS").replace(":site_key", server.getSiteKey())
+					.replace(":start_time", functions.getCurrentDateWithTime()).replace(":status", "Scheduler started")
+					.replace(":tenant_id", "").replace(":user_id", server.getUserId());
+			statement3.executeUpdate(processQuery);
+
 			System.out.println("FileWithPath size::" + files.size());
 			files.addAll(getNasFiles(server, s));
 //			String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
@@ -632,16 +625,13 @@ public class FtpSchedulerService extends CommonEntityManager {
 			System.out.println("----file size-----" + files.size());
 			if (files.size() > 0) {
 				System.out.println("----file mail-----");
-				try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-						data.get("password")); Statement statement = connection.createStatement();) {
-					String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
-					processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
-							.replace(":status", statusFtp).replace(":processing_id", status.getProcessing_id());
-					statement.executeUpdate(processUpdate);
-				}
-				process.sentEmailFTP(email);
 
+				String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
+				processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
+						.replace(":status", statusFtp).replace(":processing_id", status.getProcessing_id());
+				statement4.executeUpdate(processUpdate);
 			}
+			process.sentEmailFTP(email);
 
 			RestTemplate restTemplate = new RestTemplate();
 			for (File logFile : files) {
