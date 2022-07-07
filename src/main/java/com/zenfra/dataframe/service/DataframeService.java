@@ -1534,7 +1534,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					dataset = sparkSession.sql("select * from global_temp." + viewName);   //we need apply filter order pagination start and end 
 				
 				} else {
-					if(request.getCategory().equalsIgnoreCase("Server") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().trim().toLowerCase().equalsIgnoreCase("VM") || 
+					if(request.getCategory().equalsIgnoreCase("Server") && request.getReportList().equalsIgnoreCase("Local") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().trim().toLowerCase().equalsIgnoreCase("VM") || 
 				    		 request.getReportBy().trim().toLowerCase().equalsIgnoreCase("Host")
 				    		 )){  //Server server vm host dataframe creation					    	
 					    		//createSingleDataframe(siteKey, componentName, verifyDataframePath.getAbsolutePath());
