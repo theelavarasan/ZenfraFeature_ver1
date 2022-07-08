@@ -35,7 +35,7 @@ public class ValidationRuleController {
 		JSONArray resultArray = new JSONArray();
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") && !model.getReportBy().equalsIgnoreCase("Group Info")) {
 			resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
-				   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList());
+				   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList(), model.getAnalyticsType());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Compatibility")) {
 			resultArray = validationRuleService.getVR_Compatibility(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {

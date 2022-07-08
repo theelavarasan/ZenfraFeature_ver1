@@ -59,7 +59,7 @@ public class ValidationRuleService {
 	private JSONParser parser = new JSONParser();
 
 	public Map<String, List<Object>> getDiscoveryReportValues(String siteKey, String reportBy, String columnName,
-			String category, String deviceType, String reportList) {
+			String category, String deviceType, String reportList, String analyticsType) {
 
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		Map<String, List<Object>> resutData = new HashMap<>();
@@ -101,8 +101,12 @@ public class ValidationRuleService {
 					deviceType = deviceType + "-" + "guest";
 				}
 
-				String viewName = siteKey + "_" + deviceType;
-				viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
+				/*String viewName = siteKey + "_" + deviceType;
+				viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");*/
+				
+				String viewNameWithHypen = siteKey + "_" + analyticsType.toLowerCase() + "_"
+						+ category + "_" + deviceType + "_" + reportList + "_" + reportBy;
+				String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
 				dataset = sparkSession.sql("select * from global_temp." + viewName);
 
 				String dataArray = dataset.toJSON().collectAsList().toString();
