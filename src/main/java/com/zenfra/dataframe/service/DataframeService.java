@@ -270,8 +270,8 @@ public class DataframeService {
 
 		Stream<String> columnFilters = filterModel.entrySet().stream().map(applyColumnFilters);
 
-		Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(),
-				(key, group) -> group + " = '" + key + "'");
+		Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(), 
+			   (key, group) -> "`" + group + "` = '" + key + "'");
 
 		String filters = concat(columnFilters, groupToFilter).collect(joining(" AND "));
 
