@@ -1863,9 +1863,28 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	
 
 	private void writeServerDataframeToCommonPath(String siteKey, String sourceType, String reportBy) {
+		
 		String srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
-		+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType.toLowerCase()
-		+ File.separator;
+				+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType.toLowerCase()
+				+ File.separator;
+		if(sourceType.equalsIgnoreCase("nutanix") && reportBy.equalsIgnoreCase("host")) {
+			srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=nutanix-host"
+					+ File.separator;
+		} else if(sourceType.equalsIgnoreCase("nutanix") && reportBy.equalsIgnoreCase("vm")) {
+			srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=nutanix-guest"
+					+ File.separator;
+		} else if(sourceType.equalsIgnoreCase("hyper-v") && reportBy.equalsIgnoreCase("host")) {
+			srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=hyper-v-host"
+					+ File.separator;
+		} else if(sourceType.equalsIgnoreCase("hyper-v") && reportBy.equalsIgnoreCase("vm")) {
+			srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=hyper-v-vm"
+					+ File.separator;
+		}
+		
 		
 		String analyticBy = "discovery";
 		String category = "Server";
