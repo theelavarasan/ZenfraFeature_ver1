@@ -301,7 +301,9 @@ public class FileNameSettingsService extends CommonEntityManager {
 		boolean isMatched = false;
 		try {
 			Pattern pattern = Pattern.compile(patternRegex, Pattern.CASE_INSENSITIVE);
+			System.out.println("--pattern--"+pattern);
 			Matcher matcher = pattern.matcher(content);
+			System.out.println("--matcher--"+matcher);
 			return matcher.find();
 		} catch (Exception e) {
 			e.printStackTrace();
