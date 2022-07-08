@@ -79,13 +79,13 @@ public class ValidationRuleService {
 
 		System.out.println("------category---------" + category);
 
-		if (reportBy != null && ((reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server"))
+		/*if (reportBy != null && ((reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server"))
 				|| ((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host"))
 						&& deviceType.equalsIgnoreCase("Nutanix"))
 				|| ((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host"))
 						&& deviceType.equalsIgnoreCase("Hyper-V"))
 				|| ((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host"))
-						&& deviceType.equalsIgnoreCase("vmware")))) {
+						&& deviceType.equalsIgnoreCase("vmware")))) {*/
 			try {
 				deviceType = deviceType.toLowerCase();
 				if (deviceType != null && !deviceType.trim().isEmpty() && deviceType.contains("hyper")) {
@@ -150,7 +150,7 @@ public class ValidationRuleService {
 				String ex = errors.toString();
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
-		} else {
+		/*} else {
 			String actualDfFolderPath = null;
 			String actualDfFilePath = null;
 			String dataframePath = commonPath + "Dataframe" + File.separator + siteKey + File.separator;
@@ -236,7 +236,7 @@ public class ValidationRuleService {
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
 
-		}
+		}*/
 
 		// dirPath+siteKey+"_"+reportType+"_"+category+"_"+providers+"_"+reportList+"_"+reportBy+".json";
 
