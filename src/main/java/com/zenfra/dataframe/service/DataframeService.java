@@ -1810,7 +1810,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				String deviceType = (String) reportInput.get("device");			
 				
 				
-				if(reportCategory.equalsIgnoreCase("server") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db				
+				if(reportCategory.equalsIgnoreCase("server") && reportList.equalsIgnoreCase("Local") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db				
 					recreateLocalDiscovery(siteKey, sourceType);	
 					//write server_server dataframe into common path /opt/ZENfra/Dataframe/siteKey/{logType}/jsonFile
 					writeServerDataframeToCommonPath(siteKey, sourceType);
