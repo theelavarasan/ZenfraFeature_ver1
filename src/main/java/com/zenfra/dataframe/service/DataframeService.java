@@ -664,7 +664,7 @@ public class DataframeService {
 			} else {
 				//createDataframeOnTheFly(siteKey, source_type);
 				recreateLocalDiscovery(siteKey, source_type);
-				writeServerDataframeToCommonPath(siteKey, source_type);
+				writeServerDataframeToCommonPath(siteKey, source_type, request.getReportBy());
 				dataset = sparkSession.sql("select * from global_temp." + viewName);				
 			}
 		}
@@ -1534,12 +1534,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					dataset = sparkSession.sql("select * from global_temp." + viewName);   //we need apply filter order pagination start and end 
 				
 				} else {
-					if(request.getCategory().equalsIgnoreCase("Server") && request.getReportList().equalsIgnoreCase("Local") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().trim().toLowerCase().equalsIgnoreCase("VM") || 
+					if(request.getCategory().equalsIgnoreCase("Server") && request.getReportList().equalsIgnoreCase("Local") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || 
 				    		 request.getReportBy().trim().toLowerCase().equalsIgnoreCase("Host")
 				    		 )){  //Server server vm host dataframe creation					    	
 					    		//createSingleDataframe(siteKey, componentName, verifyDataframePath.getAbsolutePath());
 					    	    recreateLocalDiscovery(siteKey, componentName);							 
-					    		writeServerDataframeToCommonPath(siteKey, componentName);
+					    		writeServerDataframeToCommonPath(siteKey, componentName, request.getReportBy());
 					    						
 					    } else {
 					    	createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath, viewNameWithHypen);	
@@ -1813,7 +1813,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				if(reportCategory.equalsIgnoreCase("server") && reportList.equalsIgnoreCase("Local") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db				
 					recreateLocalDiscovery(siteKey, sourceType);	
 					//write server_server dataframe into common path /opt/ZENfra/Dataframe/siteKey/{logType}/jsonFile
-					writeServerDataframeToCommonPath(siteKey, sourceType);
+					writeServerDataframeToCommonPath(siteKey, sourceType, reportBy);
 					
 				} 
 				if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") 
@@ -1862,7 +1862,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	
 	
 
-	private void writeServerDataframeToCommonPath(String siteKey, String sourceType) {
+	private void writeServerDataframeToCommonPath(String siteKey, String sourceType, String reportBy) {
 		String srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
 		+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType.toLowerCase()
 		+ File.separator;
@@ -1870,7 +1870,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String analyticBy = "discovery";
 		String category = "Server";
 		String reportList = "Local";
-		String reportBy = "Server";
+		//String reportBy = "Server";
 		
 		String destDirPath = commonPath + File.separator + "Dataframe" +  File.separator + siteKey + File.separator + sourceType + File.separator + siteKey + "_" + analyticBy + "_" + category + "_" + sourceType + "_" + reportList + "_" + reportBy + ".json";
 		System.out.println("srcDirPath :: " + srcDirPath);
