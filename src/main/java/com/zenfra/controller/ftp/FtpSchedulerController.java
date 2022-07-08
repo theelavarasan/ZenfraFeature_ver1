@@ -62,7 +62,7 @@ public class FtpSchedulerController {
 //				ftpScheduler.setSchedulerCorn(
 //						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour())
 //								.replace("minutes", functions.getCurrentMinutes()));
-				ftpScheduler.setSchedulerCorn("0 0/3 * * * ?");
+				ftpScheduler.setSchedulerCorn("0 0/15 * * * ?");
 
 			} else if (ftpScheduler.getType().equalsIgnoreCase("daily")) {
 				String timseslot = functions.convertTimeZone(ftpScheduler.getTimeZone(), ftpScheduler.getTimeSlot());
