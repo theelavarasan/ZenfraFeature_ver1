@@ -1346,7 +1346,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			if (filePath.contains(",")) {
 				filePath = filePath.split(",")[0];
 			}
-				 
+			 System.out.println("!!!!! filePath: " + filePath);	 
 			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
 
 			 return jsonObject; 
