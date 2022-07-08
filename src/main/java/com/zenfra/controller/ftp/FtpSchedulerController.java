@@ -46,7 +46,7 @@ public class FtpSchedulerController {
 
 	@PostMapping("/runScheduler")
 	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler,
-			@RequestParam("isNas") boolean isNas) {
+			@RequestParam(name = "isNas", required = false) boolean isNas) {
 
 		try {
 
