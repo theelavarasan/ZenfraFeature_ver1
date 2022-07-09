@@ -620,10 +620,10 @@ public class FtpSchedulerService extends CommonEntityManager {
                 }
             }
             String statusFtp = "File processing";
-            if (nasEmailFileList.isEmpty() || nasEmailFileList == null) {
-                nasEmailFileList = "No files";
-                statusFtp = "No file to process";
-            }
+//            if (nasEmailFileList.isEmpty() || nasEmailFileList == null) {
+//                nasEmailFileList = "No files";
+//                statusFtp = "No file to process";
+//            }
             email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
             email.put("FileList", nasEmailFileList);
             System.out.println("----file size-----" + files.size());
@@ -717,17 +717,17 @@ public class FtpSchedulerService extends CommonEntityManager {
                             System.out.println("--file Size--" + map.get("fileSize"));
                             //map.put("createDate", functions.getCurrentHour() + " : " + functions.getCurrentMinutes());
                             System.out.println("checksum map::" + map);
+                            if (ftpClientConfiguration.copyStatusNas(map, existCheckSums)) {
+                                System.out.println("File already present");
+                            } else {
+                                if (fileNameSettingsService.isValidMatch(patternVal, file.getName())) {
+                                    System.out.println("-----file pattern found----");
+                                    callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
+                                            folder.getAbsolutePath(), s.getId(), server.isNas);
+                                }
+                                System.out.println("-----file pattern not found----");
+                            }
                         }
-                    }
-                    if (ftpClientConfiguration.copyStatusNas(map, existCheckSums)) {
-                        System.out.println("File already present");
-                    } else {
-                        if (fileNameSettingsService.isValidMatch(patternVal, file.getName())) {
-                            System.out.println("-----file pattern found----");
-                            callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
-                                    folder.getAbsolutePath(), s.getId(), server.isNas);
-                        }
-                        System.out.println("-----file pattern not found----");
                     }
                 }
             }
