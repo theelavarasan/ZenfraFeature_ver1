@@ -76,7 +76,6 @@ public class FtpSchedulerService extends CommonEntityManager {
     @Autowired
     UserCreateService userCreateService;
 
-    String nasEmailFileList = "";
     ArrayList<String> nasLogFileNameList = new ArrayList<>();
     public long saveFtpScheduler(FtpScheduler ftpScheduler) {
 
@@ -620,12 +619,12 @@ public class FtpSchedulerService extends CommonEntityManager {
                 }
             }
             String statusFtp = "File processing";
-//            if (nasEmailFileList.isEmpty() || nasEmailFileList == null) {
-//                nasEmailFileList = "No files";
-//                statusFtp = "No file to process";
-//            }
+            if (emailFileList.isEmpty() || emailFileList == null) {
+                emailFileList = "No files";
+                statusFtp = "No file to process";
+            }
             email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
-            email.put("FileList", nasEmailFileList);
+            email.put("FileList", emailFileList);
             System.out.println("----file size-----" + files.size());
             if (files.size() > 0) {
                 String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
@@ -691,13 +690,20 @@ public class FtpSchedulerService extends CommonEntityManager {
         ObjectMapper map1 = new ObjectMapper();
         long bytes;
         long fileSize;
+
         try {
+            System.out.println("---settings pattern---" + settings.getPattern());
+            System.out.println("---server path---" + server.getServerPath());
             final File folder = new File(server.getServerPath().toString());
             files = nasListFilesForFolder(folder, server);
+            System.out.println("--file-List-" + files);
             Map<String, List<String>> existCheckSums = ftpClientConfiguration.getCheckSumDetails(server.getSiteKey());
             for (File file : files) {
                 for (String logType : s.getLogType()) {
                     System.out.println("----Log Type----" + logType);
+                    System.out.println("----Log Type----" + s.getUserId());
+                    System.out.println("----Log Type----" + s.getSiteKey());
+                    System.out.println("----Log Type----" + s.getTenantId());
                     Map<String, Object> map = new HashMap<String, Object>();
                     System.out.println("f.getName():::" + file.getName());
                     for (int j = 0; j < settings.getPattern().size(); j++) {
@@ -716,20 +722,22 @@ public class FtpSchedulerService extends CommonEntityManager {
                             map.put("fileSize", String.valueOf(fileSize));
                             System.out.println("--file Size--" + map.get("fileSize"));
                             //map.put("createDate", functions.getCurrentHour() + " : " + functions.getCurrentMinutes());
-                            System.out.println("checksum map::" + map);
-                            if (ftpClientConfiguration.copyStatusNas(map, existCheckSums)) {
-                                System.out.println("File already present");
-                            } else {
-                                if (fileNameSettingsService.isValidMatch(patternVal, file.getName())) {
-                                    System.out.println("-----file pattern found----");
-                                    callParsing(logType, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
-                                            folder.getAbsolutePath(), s.getId(), server.isNas);
-                                }
-                                System.out.println("-----file pattern not found----");
-                            }
+                            System.out.println("map::" + map);
                         }
                     }
+                    if (ftpClientConfiguration.copyStatusNas(map, existCheckSums)) {
+                        System.out.println("File already present");
+                    } else {
+                        if (fileNameSettingsService.isValidMatch(patternVal, file.getName())) {
+                            System.out.println("-----file pattern found----");
+                            callParsing(logType1, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
+                                    folder.getAbsolutePath(), s.getId(), server.isNas);
+                        }
+                        System.out.println("-----file pattern not found----");
+                    }
                 }
+                System.out.println("---folder--" + folder.getAbsolutePath());
+                System.out.println("---file--" + file.getName());
             }
 
         } catch (Exception e) {

@@ -414,7 +414,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 			System.out.println("start check sum function");
 			CommonFunctions functions = new CommonFunctions();
-
+			System.out.println("--file map size--"+currentMap.get("fileSize").toString());
 			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))) {
 				System.out.println("Nas check test");
 				return true;
