@@ -689,6 +689,8 @@ public class FtpSchedulerService extends CommonEntityManager {
         String patternVal = null;
         String logType1 = null;
         ObjectMapper map1 = new ObjectMapper();
+        long bytes;
+        long fileSize;
 
         try {
             System.out.println("---settings pattern---" + settings.getPatternString());
@@ -712,11 +714,12 @@ public class FtpSchedulerService extends CommonEntityManager {
                         System.out.println("patternVal::" + patternVal);
                         System.out.println("logType::" + logType1);
                         if (fileNameSettingsService.isValidMatch(patternVal, file.getName())) {
-                            long bytes = file.length();
+                            bytes = file.length();
+                            fileSize = (bytes / 1024);
                             map.put("serverId", server.getServerId());
                             map.put("fileName", file.getName());
                             map.put("siteKey", server.getSiteKey());
-                            map.put("fileSize", String.valueOf(bytes / 1024));
+                            map.put("fileSize", String.valueOf(fileSize));
                             System.out.println("--file Size--" + map.get("fileSize"));
                             //map.put("createDate", functions.getCurrentHour() + " : " + functions.getCurrentMinutes());
                             System.out.println("map::" + map);
