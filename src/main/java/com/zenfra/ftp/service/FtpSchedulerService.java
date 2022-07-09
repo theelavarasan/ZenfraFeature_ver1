@@ -76,6 +76,7 @@ public class FtpSchedulerService extends CommonEntityManager {
     @Autowired
     UserCreateService userCreateService;
 
+    String nasEmailFileList = "";
     public long saveFtpScheduler(FtpScheduler ftpScheduler) {
 
         try {
@@ -502,6 +503,7 @@ public class FtpSchedulerService extends CommonEntityManager {
         JSONObject email = new JSONObject();
         CommonFunctions functions = new CommonFunctions();
         ObjectMapper mapper = new ObjectMapper();
+        JSONArray patternArray = new JSONArray();
         String passFileList = "";
         FTPServerModel server = new FTPServerModel();
         FileNameSettingsService settingsService = new FileNameSettingsService();
@@ -608,20 +610,13 @@ public class FtpSchedulerService extends CommonEntityManager {
             System.out.println("FileWithPath size::" + files.size());
             files.addAll(getNasFiles(server, s, settings));
 //			String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
-            String emailFileList = "";
-            for (String logType : s.getLogType()) {
-                for (File fileName : files) {
-                    emailFileList += "<li>" + logType + ":" + fileName.getName() + "</li>";
-                    System.out.println("---email file list" + emailFileList);
-                }
-            }
             String statusFtp = "File processing";
-            if (emailFileList.isEmpty() || emailFileList == null) {
-                emailFileList = "No files";
+            if (nasEmailFileList.isEmpty() || nasEmailFileList == null) {
+                nasEmailFileList = "No files";
                 statusFtp = "No file to process";
             }
             email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
-            email.put("FileList", emailFileList);
+            email.put("FileList", nasEmailFileList);
             System.out.println("----file size-----" + files.size());
             if (files.size() > 0) {
                 System.out.println("----file mail-----");
@@ -696,11 +691,13 @@ public class FtpSchedulerService extends CommonEntityManager {
             System.out.println("---settings pattern---" + settings.getPatternString());
             System.out.println("---server path---" + server.getServerPath());
             final File folder = new File(server.getServerPath().toString());
-            files = naslistFilesForFolder(folder, server);
+            files = nasListFilesForFolder(folder, server);
             System.out.println("--file-List-" + files);
             Map<String, List<String>> existCheckSums = ftpClientConfiguration.getCheckSumDetails(server.getSiteKey());
             for (File file : files) {
                 for (String logType : s.getLogType()) {
+                    nasEmailFileList += "<li>" + logType + ":" + file.getName() + "</li>";
+                    System.out.println("---email file list" + nasEmailFileList);
                     System.out.println("----Log Type----" + logType);
                     System.out.println("----Log Type----" + s.getUserId());
                     System.out.println("----Log Type----" + s.getSiteKey());
@@ -748,11 +745,11 @@ public class FtpSchedulerService extends CommonEntityManager {
 
     }
 
-    public ArrayList<File> naslistFilesForFolder(final File folder, FTPServerModel server) {
+    public ArrayList<File> nasListFilesForFolder(final File folder, FTPServerModel server) {
         ArrayList<File> fileList = new ArrayList<File>();
         for (final File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
-                naslistFilesForFolder(fileEntry, server);
+                nasListFilesForFolder(fileEntry, server);
                 System.out.println("file entry" + fileEntry);
                 fileList.add(fileEntry.getAbsoluteFile());
             } else {
