@@ -614,7 +614,7 @@ public class FtpSchedulerService extends CommonEntityManager {
                         .replace(":status", "Successfully Processed").replace(":processing_id", status.getProcessing_id());
                 statement4.executeUpdate(processUpdate);
             }
-            process.sentEmailFTP(email);
+ //           process.sentEmailFTP(email);
             RestTemplate restTemplate = new RestTemplate();
             for (File logFile : files) {
                 passFileList += "<li>" + logFile.getName() + "</li>";
