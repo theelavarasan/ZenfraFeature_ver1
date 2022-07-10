@@ -593,21 +593,18 @@ public class FtpSchedulerService extends CommonEntityManager {
             status.setEndTime(functions.getCurrentDateWithTime());
             String processQuery;
 
-            if (s.getIsNas()) {
+            if (s.getIsNas() && settings.getPattern().size() > 0) {
                 System.out.println("---isnas--" + s.getIsNas());
                 processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id, is_nas)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id', true);";
-            } else {
-                processQuery = "INSERT INTO processing_status(processing_id, end_time, log_count, path, process_data_id, processing_type,  site_key, start_time, status, tenant_id, user_id)	VALUES (':processing_id', ':end_time',  ':log_count', ':path', ':process_data_id', ':processing_type', ':site_key', ':start_time', ':status', ':tenant_id', ':user_id');";
+                processQuery = processQuery.replace(":processing_id", status.getProcessing_id())
+                        .replace(":end_time", functions.getCurrentDateWithTime()).replace(":log_count", "0")
+                        .replace(":path", server.getServerPath())
+                        .replace(":process_data_id", String.valueOf(server.getServerId()))
+                        .replace(":processing_type", "NAS").replace(":site_key", server.getSiteKey())
+                        .replace(":start_time", functions.getCurrentDateWithTime()).replace(":status", "Scheduler started")
+                        .replace(":tenant_id", "").replace(":user_id", server.getUserId());
+                statement3.executeUpdate(processQuery);
             }
-            processQuery = processQuery.replace(":processing_id", status.getProcessing_id())
-                    .replace(":end_time", functions.getCurrentDateWithTime()).replace(":log_count", "0")
-                    .replace(":path", server.getServerPath())
-                    .replace(":process_data_id", String.valueOf(server.getServerId()))
-                    .replace(":processing_type", "NAS").replace(":site_key", server.getSiteKey())
-                    .replace(":start_time", functions.getCurrentDateWithTime()).replace(":status", "Scheduler started")
-                    .replace(":tenant_id", "").replace(":user_id", server.getUserId());
-            statement3.executeUpdate(processQuery);
-
             System.out.println("FileWithPath size::" + files.size());
             files.addAll(getNasFiles(server, s, settings, email));
             System.out.println("!!!Files size: " + files.size());
@@ -633,7 +630,8 @@ public class FtpSchedulerService extends CommonEntityManager {
                     }
                 };
             }
-            System.out.println("Nas Scheduler Completed");
+            System.out.println("****Nas Scheduler Completed****");
+            System.out.println("!!!Status: "+status.getStatus());
             return status;
         } catch (Exception e) {
             e.printStackTrace();
@@ -661,7 +659,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 
 
     private ArrayList<File> getNasFiles(FTPServerModel server, FtpScheduler s, FileNameSettingsModel settings, JSONObject email) {
-        ArrayList<File> files;
+        ArrayList<File> files = null;
         FTPClientConfiguration ftpClientConfiguration = new FTPClientConfiguration();
         FileNameSettingsService fileNameSettingsService = new FileNameSettingsService();
         ProcessService process = new ProcessService();
@@ -678,19 +676,18 @@ public class FtpSchedulerService extends CommonEntityManager {
             System.out.println("!!!Settings Pattern: " + settings.getPattern());
             System.out.println("!!!server Path: " + server.getServerPath());
             final File folder = new File(server.getServerPath().toString());
-            files = nasListFilesForFolder(folder, server);
-            System.out.println("File List: " + files);
-            Map<String, List<String>> existCheckSums = ftpClientConfiguration.getCheckSumDetails(server.getSiteKey());
-            for (File file : files) {
-                System.out.println("!!!File Name: " + file.getName());
-                for (int j = 0; j < settings.getPattern().size(); j++) {
-                    JSONObject patJson = map1.convertValue(settings.getPattern().get(j), JSONObject.class);
-                    patternVal = patJson.get("namePattern").toString().replace("*", ".*");
-                    logType1 = patJson.get("logType").toString().replace("*", ".*");
-                    System.out.println("!!!PatternVal: " + patternVal);
-                    System.out.println("!!!Pattern LogType: " + logType1);
-                    if (fileNameSettingsService.isValidMatch(patternVal, file.getName()) ||
-                            fileNameSettingsService.isValidMatch(patternVal, logType1)) {
+            for (int j = 0; j < settings.getPattern().size(); j++) {
+                JSONObject patJson = map1.convertValue(settings.getPattern().get(j), JSONObject.class);
+                patternVal = patJson.get("namePattern").toString().replace("*", ".*");
+                logType1 = patJson.get("logType").toString().replace("*", ".*");
+                System.out.println("!!!PatternVal: " + patternVal);
+                System.out.println("!!!Pattern LogType: " + logType1);
+                files = nasListFilesForFolder(folder, server, patternVal);
+                System.out.println("File List: " + files);
+                Map<String, List<String>> existCheckSums = ftpClientConfiguration.getCheckSumDetails(server.getSiteKey());
+                for (File file : files) {
+                    System.out.println("!!!File Name: " + file.getName());
+                    if (fileNameSettingsService.isValidMatch(patternVal, file.getName())){
                         bytes = file.length();
                         fileSize = (bytes / 1024);
                         map.put("serverId", server.getServerId());
@@ -731,14 +728,19 @@ public class FtpSchedulerService extends CommonEntityManager {
     }
 
 
-    public ArrayList<File> nasListFilesForFolder(final File folder, FTPServerModel server) {
+    public ArrayList<File> nasListFilesForFolder(final File folder, FTPServerModel server, String patternVal) {
         ArrayList<File> fileList = new ArrayList<File>();
+        FileNameSettingsService fileNameSettingsService = new FileNameSettingsService();
         for (final File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
-                nasListFilesForFolder(fileEntry, server);
-                fileList.add(fileEntry.getAbsoluteFile());
+                nasListFilesForFolder(fileEntry, server, patternVal);
+                if (fileNameSettingsService.isValidMatch(patternVal, fileEntry.getName())){
+                    fileList.add(fileEntry.getAbsoluteFile());
+                }
             } else {
-                fileList.add(fileEntry.getAbsoluteFile());
+                if (fileNameSettingsService.isValidMatch(patternVal, fileEntry.getName())){
+                    fileList.add(fileEntry.getAbsoluteFile());
+                }
             }
         }
         return fileList;
