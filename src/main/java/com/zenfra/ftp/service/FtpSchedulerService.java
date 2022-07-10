@@ -521,7 +521,7 @@ public class FtpSchedulerService extends CommonEntityManager {
              Statement statement2 = connection.createStatement();
              Statement statement3 = connection.createStatement();
              Statement statement4 = connection.createStatement();) {
-            System.out.println("--------------eneter nas runNasSchedulerFiles---------" + s.toString());
+            System.out.println("--------------Eneter nas Nas Scheduler Files---------" + s.toString());
             List<String> l = new ArrayList<String>();
             if (s.getEmailString() != null && s.getEmailString() != "[]") {
                 String arr[] = s.getEmailString().replace("\"", "").replace("[", "").replace("]", "").split(",");
@@ -530,7 +530,7 @@ public class FtpSchedulerService extends CommonEntityManager {
                 }
             }
             String selectQuery = "select * from user_temp where user_id='" + s.getUserId() + "'";
-            System.out.println("!!! selectQuery: " + selectQuery);
+            System.out.println("!!!selectQuery: " + selectQuery);
             ResultSet rs = statement.executeQuery(selectQuery);
             while (rs.next()) {
                 email.put("mailFrom", rs.getString("email").toString());
@@ -543,14 +543,14 @@ public class FtpSchedulerService extends CommonEntityManager {
             FileNameSettingsModel settings = new FileNameSettingsModel();
             String getFileNameSettings = "select * from file_name_settings_model where file_name_setting_id='"
                     + s.getFileNameSettingsId() + "'";
-            System.out.println("!!! getFileNameSettings: " + getFileNameSettings);
+            System.out.println("!!!GetFileNameSettings: " + getFileNameSettings);
 
             ResultSet rs1 = statement1.executeQuery(getFileNameSettings);
             while (rs1.next()) {
                 settings.setFileNameSettingId(rs1.getString("file_name_setting_id").toString());
                 settings.setFtpName(rs1.getString("ftp_name").toString());
                 settings.setIpAddress(rs1.getString("ip_address").toString());
-                System.out.println(rs1.getString("pattern_string"));
+                System.out.println("!!!Pattern String: "+rs1.getString("pattern_string"));
                 try {
                     settings.setPattern(rs1.getString("pattern_string") != null
                             && !rs1.getString("pattern_string").toString().isEmpty()
@@ -563,11 +563,9 @@ public class FtpSchedulerService extends CommonEntityManager {
                 settings.setToPath(rs1.getString("to_path").toString());
                 settings.setUserId(rs1.getString("user_id").toString());
             }
-
-            System.out.println("settings::" + settings.toString());
             String serverQuery = "select * from ftpserver_model  where site_key='" + settings.getSiteKey()
                     + "' and ftp_name='" + settings.getFtpName() + "' and is_nas = true";
-            System.out.println("!!! getFileNameSettings: " + serverQuery);
+            System.out.println("!!!GetFileNameSettings: " + serverQuery);
 
             ResultSet rs2 = statement2.executeQuery(serverQuery);
             while (rs2.next()) {
@@ -612,27 +610,11 @@ public class FtpSchedulerService extends CommonEntityManager {
 
             System.out.println("FileWithPath size::" + files.size());
             files.addAll(getNasFiles(server, s, settings, email));
-//			String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
-//            for (String fileName : nasLogFileNameSet) {
-//                for (String logType : nasLogTypeSet) {
-//                    emailFileList += "<li>" + logType + ":" + fileName + "</li>";
-//                    System.out.println("---email file list" + emailFileList);
-//                }
-//            }
-//            System.out.println("----nasLogFileNameList---"+nasLogFileNameList);
-//            System.out.println("----nasLogTypeList---"+nasLogTypeList);
-
-//            String statusFtp = "File processing";
-//            if (emailFileList.isEmpty() || emailFileList == null) {
-//                emailFileList = "No files";
-//                statusFtp = "No file to process";
-//            }//           email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
-//            email.put("FileList", emailFileList);
-            System.out.println("----file size-----" + files.size());
+            System.out.println("!!!Files size: " + files.size());
             if (files.size() > 0) {
                 String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
                 processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
-                        .replace(":status", "Sucessfully Processsed").replace(":processing_id", status.getProcessing_id());
+                        .replace(":status", "Successfully Processed").replace(":processing_id", status.getProcessing_id());
                 statement4.executeUpdate(processUpdate);
             }
             process.sentEmailFTP(email);
@@ -650,17 +632,13 @@ public class FtpSchedulerService extends CommonEntityManager {
                                 "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
                     }
                 };
-
             }
-
-            return "Nas Schedular Completed";
-
+            System.out.println("Nas Scheduler Completed");
+            return status;
         } catch (Exception e) {
             e.printStackTrace();
             StringWriter errors = new StringWriter();
             e.printStackTrace(new PrintWriter(errors));
-//			String ex = errors.toString();
-//			ExceptionHandlerMail.errorTriggerMail(ex);
             email.put("ftp_template", values.get("ftp_template_failure"));
             email.put("FileList", passFileList);
             email.put("subject", Constants.ftp_fail.replace(":ftp_name", server.getFtpName()));
@@ -690,62 +668,49 @@ public class FtpSchedulerService extends CommonEntityManager {
         CommonFunctions functions = new CommonFunctions();
         String patternVal = null;
         String logType1 = null;
+        Map<String, Object> map = new HashMap<String, Object>();
         ObjectMapper map1 = new ObjectMapper();
         long bytes;
         long fileSize;
         String emailFileList = "";
         String statusFtp = "";
         try {
-            System.out.println("---settings pattern---" + settings.getPattern());
-            System.out.println("---server path---" + server.getServerPath());
+            System.out.println("!!!Settings Pattern: " + settings.getPattern());
+            System.out.println("!!!server Path: " + server.getServerPath());
             final File folder = new File(server.getServerPath().toString());
             files = nasListFilesForFolder(folder, server);
-            System.out.println("--file-List-" + files);
+            System.out.println("File List: " + files);
             Map<String, List<String>> existCheckSums = ftpClientConfiguration.getCheckSumDetails(server.getSiteKey());
             for (File file : files) {
-                for (String logType : s.getLogType()) {
-                    System.out.println("----Log Type----" + logType);
-                    System.out.println("----Log Type----" + s.getUserId());
-                    System.out.println("----Log Type----" + s.getSiteKey());
-                    System.out.println("----Log Type----" + s.getTenantId());
-                    Map<String, Object> map = new HashMap<String, Object>();
-                    System.out.println("f.getName():::" + file.getName());
-                    for (int j = 0; j < settings.getPattern().size(); j++) {
-                        JSONObject patJson = map1.convertValue(settings.getPattern().get(j), JSONObject.class);
-                        patternVal = patJson.get("namePattern").toString().replace("*", ".*");
-                        logType1 = patJson.get("logType").toString().replace("*", ".*");
-                        System.out.println("patternVal::" + patternVal);
-                        System.out.println("logType::" + logType1);
-                        if (fileNameSettingsService.isValidMatch(patternVal, file.getName()) ||
-                                fileNameSettingsService.isValidMatch(patternVal, logType1)) {
-                            bytes = file.length();
-                            fileSize = (bytes / 1024);
-                            map.put("serverId", server.getServerId());
-                            map.put("fileName", file.getName());
-                            map.put("siteKey", server.getSiteKey());
-                            map.put("fileSize", String.valueOf(fileSize));
-                            System.out.println("--file Size--" + map.get("fileSize"));
-                            //map.put("createDate", functions.getCurrentHour() + " : " + functions.getCurrentMinutes());
-                            System.out.println("map::" + map);
-                        }
-                    }
-                    if (ftpClientConfiguration.copyStatusNas(map, existCheckSums)) {
-                        System.out.println("File already present");
-                    } else {
-
-                        if (fileNameSettingsService.isValidMatch(patternVal, file.getName()) ||
-                                fileNameSettingsService.isValidMatch(patternVal, logType1)) {
+                System.out.println("!!!File Name: " + file.getName());
+                for (int j = 0; j < settings.getPattern().size(); j++) {
+                    JSONObject patJson = map1.convertValue(settings.getPattern().get(j), JSONObject.class);
+                    patternVal = patJson.get("namePattern").toString().replace("*", ".*");
+                    logType1 = patJson.get("logType").toString().replace("*", ".*");
+                    System.out.println("!!!PatternVal: " + patternVal);
+                    System.out.println("!!!Pattern LogType: " + logType1);
+                    if (fileNameSettingsService.isValidMatch(patternVal, file.getName()) ||
+                            fileNameSettingsService.isValidMatch(patternVal, logType1)) {
+                        bytes = file.length();
+                        fileSize = (bytes / 1024);
+                        map.put("serverId", server.getServerId());
+                        map.put("fileName", file.getName());
+                        map.put("siteKey", server.getSiteKey());
+                        map.put("fileSize", String.valueOf(fileSize));
+                        System.out.println("!!!DB File Size: " + map.get("fileSize"));
+                        System.out.println("!!!Check Sum Map: " + map);
+                        if (ftpClientConfiguration.copyStatusNas(map, existCheckSums)) {
+                            System.out.println("****** File already present ******");
+                        } else {
                             emailFileList += "<li>" + logType1 + ":" + file.getName() + "</li>";
-                            System.out.println("---email file list" + emailFileList);
-                            System.out.println("-----file pattern found----");
+                            System.out.println("!!!Email File List" + emailFileList);
+                            System.out.println("****!!!File Pattern Found!!!****");
                             callParsing(logType1, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
                                     folder.getAbsolutePath(), s.getId(), server.isNas);
+                            System.out.println("****!!!File Pattern Not Found!!!****");
                         }
-                        System.out.println("-----file pattern not found----");
                     }
                 }
-                System.out.println("---folder--" + folder.getAbsolutePath());
-                System.out.println("---file--" + file.getName());
             }
             statusFtp = "File processing";
             if (emailFileList.isEmpty() || emailFileList == null) {
