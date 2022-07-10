@@ -51,6 +51,8 @@ import com.zenfra.utils.Constants;
 import com.zenfra.utils.Contants;
 import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
+import scala.collection.immutable.HashSet;
+import scala.collection.immutable.Set;
 
 @Service
 public class FtpSchedulerService extends CommonEntityManager {
@@ -76,8 +78,8 @@ public class FtpSchedulerService extends CommonEntityManager {
     @Autowired
     UserCreateService userCreateService;
 
-    ArrayList<String> nasLogFileNameList = new ArrayList<>();
-    ArrayList<String> nasLogTypeList = new ArrayList<>();
+//    Set<String> nasLogFileNameSet = new HashSet<>();
+//    Set<String> nasLogTypeSet = new HashSet<>();
     public long saveFtpScheduler(FtpScheduler ftpScheduler) {
 
         try {
@@ -609,31 +611,29 @@ public class FtpSchedulerService extends CommonEntityManager {
             statement3.executeUpdate(processQuery);
 
             System.out.println("FileWithPath size::" + files.size());
-            files.addAll(getNasFiles(server, s, settings));
+            files.addAll(getNasFiles(server, s, settings, email));
 //			String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
-            String emailFileList = "";
+//            for (String fileName : nasLogFileNameSet) {
+//                for (String logType : nasLogTypeSet) {
+//                    emailFileList += "<li>" + logType + ":" + fileName + "</li>";
+//                    System.out.println("---email file list" + emailFileList);
+//                }
+//            }
+//            System.out.println("----nasLogFileNameList---"+nasLogFileNameList);
+//            System.out.println("----nasLogTypeList---"+nasLogTypeList);
 
-            for (String fileName : nasLogFileNameList) {
-                for (String logType : nasLogTypeList) {
-                    emailFileList += "<li>" + logType + ":" + fileName + "</li>";
-                    System.out.println("---email file list" + emailFileList);
-                }
-            }
-            System.out.println("----nasLogFileNameList---"+nasLogFileNameList);
-            System.out.println("----nasLogTypeList---"+nasLogTypeList);
-
-            String statusFtp = "File processing";
-            if (emailFileList.isEmpty() || emailFileList == null) {
-                emailFileList = "No files";
-                statusFtp = "No file to process";
-            }
-            email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
-            email.put("FileList", emailFileList);
+//            String statusFtp = "File processing";
+//            if (emailFileList.isEmpty() || emailFileList == null) {
+//                emailFileList = "No files";
+//                statusFtp = "No file to process";
+//            }
+//            email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
+//            email.put("FileList", emailFileList);
             System.out.println("----file size-----" + files.size());
             if (files.size() > 0) {
                 String processUpdate = "UPDATE processing_status SET log_count=':log_count',  status=':status' WHERE processing_id=':processing_id';";
                 processUpdate = processUpdate.replace(":log_count", String.valueOf(files.size()))
-                        .replace(":status", statusFtp).replace(":processing_id", status.getProcessing_id());
+                        .replace(":status", "Sucessfully Processsed").replace(":processing_id", status.getProcessing_id());
                 statement4.executeUpdate(processUpdate);
             }
             process.sentEmailFTP(email);
@@ -649,9 +649,6 @@ public class FtpSchedulerService extends CommonEntityManager {
                                 Constants.ftp_Partially_Processed.replace(":ftp_name", server.getFtpName()));
                         email.put("Notes",
                                 "Unable to process the file. Don't worry, Admin will check. The above listed files are processing fail.");
-                        if (files.size() > 0) {
-                            process.sentEmailFTP(email);
-                        }
                     }
                 };
 
@@ -685,16 +682,19 @@ public class FtpSchedulerService extends CommonEntityManager {
         }
     }
 
-    private ArrayList<File> getNasFiles(FTPServerModel server, FtpScheduler s, FileNameSettingsModel settings) {
+
+    private ArrayList<File> getNasFiles(FTPServerModel server, FtpScheduler s, FileNameSettingsModel settings, JSONObject email) {
         ArrayList<File> files;
         FTPClientConfiguration ftpClientConfiguration = new FTPClientConfiguration();
         FileNameSettingsService fileNameSettingsService = new FileNameSettingsService();
+        ProcessService process = new ProcessService();
         String patternVal = null;
         String logType1 = null;
         ObjectMapper map1 = new ObjectMapper();
         long bytes;
         long fileSize;
-
+        String emailFileList = "";
+        String statusFtp = "";
         try {
             System.out.println("---settings pattern---" + settings.getPattern());
             System.out.println("---server path---" + server.getServerPath());
@@ -717,7 +717,7 @@ public class FtpSchedulerService extends CommonEntityManager {
                         System.out.println("patternVal::" + patternVal);
                         System.out.println("logType::" + logType1);
                         if (fileNameSettingsService.isValidMatch(patternVal, file.getName()) ||
-                                fileNameSettingsService.isValidMatch(logType1, file.getName())) {
+                                fileNameSettingsService.isValidMatch(patternVal, logType1)) {
                             bytes = file.length();
                             fileSize = (bytes / 1024);
                             map.put("serverId", server.getServerId());
@@ -732,10 +732,11 @@ public class FtpSchedulerService extends CommonEntityManager {
                     if (ftpClientConfiguration.copyStatusNas(map, existCheckSums)) {
                         System.out.println("File already present");
                     } else {
-                        nasLogFileNameList.add(file.getName());
-                        nasLogTypeList.add(logType1);
+
                         if (fileNameSettingsService.isValidMatch(patternVal, file.getName()) ||
-                                fileNameSettingsService.isValidMatch(logType1, file.getName())) {
+                                fileNameSettingsService.isValidMatch(patternVal, logType1)) {
+                            emailFileList += "<li>" + logType1 + ":" + file.getName() + "</li>";
+                            System.out.println("---email file list" + emailFileList);
                             System.out.println("-----file pattern found----");
                             callParsing(logType1, s.getUserId(), s.getSiteKey(), s.getTenantId(), file.getName(), "",
                                     folder.getAbsolutePath(), s.getId(), server.isNas);
@@ -746,7 +747,16 @@ public class FtpSchedulerService extends CommonEntityManager {
                 System.out.println("---folder--" + folder.getAbsolutePath());
                 System.out.println("---file--" + file.getName());
             }
-
+            statusFtp = "File processing";
+            if (emailFileList.isEmpty() || emailFileList == null) {
+                emailFileList = "No files";
+                statusFtp = "No file to process";
+            }
+            email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
+            email.put("FileList", emailFileList);
+            if (files.size() > 0) {
+                process.sentEmailFTP(email);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -754,6 +764,7 @@ public class FtpSchedulerService extends CommonEntityManager {
         return files;
 
     }
+
 
     public ArrayList<File> nasListFilesForFolder(final File folder, FTPServerModel server) {
         ArrayList<File> fileList = new ArrayList<File>();
