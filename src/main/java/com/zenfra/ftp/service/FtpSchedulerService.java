@@ -626,8 +626,7 @@ public class FtpSchedulerService extends CommonEntityManager {
 //            if (emailFileList.isEmpty() || emailFileList == null) {
 //                emailFileList = "No files";
 //                statusFtp = "No file to process";
-//            }
-//            email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
+//            }//           email.put("Time", functions.getCurrentDateWithTime() + " " + TimeZone.getDefault().getDisplayName());
 //            email.put("FileList", emailFileList);
             System.out.println("----file size-----" + files.size());
             if (files.size() > 0) {
@@ -688,6 +687,7 @@ public class FtpSchedulerService extends CommonEntityManager {
         FTPClientConfiguration ftpClientConfiguration = new FTPClientConfiguration();
         FileNameSettingsService fileNameSettingsService = new FileNameSettingsService();
         ProcessService process = new ProcessService();
+        CommonFunctions functions = new CommonFunctions();
         String patternVal = null;
         String logType1 = null;
         ObjectMapper map1 = new ObjectMapper();
