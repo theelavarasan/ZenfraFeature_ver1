@@ -2,6 +2,8 @@ package com.zenfra.dataframe.response;
 
 import java.util.List;
 
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -10,14 +12,18 @@ public class DataResult {
     private long lastRow;
     private List<String> secondaryColumns;
     private long totalRecord;
+    private List<String> countData;
    // private JSONObject unit_conv_details;
     
 
-    public DataResult(List<String> data, long lastRow, List<String> secondaryColumns, long totalRecord) {
+
+	public DataResult(List<String> data, long lastRow, List<String> secondaryColumns, long totalRecord, List<String> countData) {
         this.data = data;
         this.lastRow = lastRow;
         this.secondaryColumns = secondaryColumns;
         this.totalRecord = totalRecord; 
+        this.countData = countData;
+       // this.count = countData;
        // this.unit_conv_details = unit_conv_details;
     }
 
@@ -52,6 +58,17 @@ public class DataResult {
 	public void setTotalRecord(long totalRecord) {
 		this.totalRecord = totalRecord;
 	}
+
+ 
+
+    public List<String> getCountData() {
+		return countData;
+	}
+
+	public void setCountData(List<String> countData) {
+		this.countData = countData;
+	}
+	
 
 	   
 }
