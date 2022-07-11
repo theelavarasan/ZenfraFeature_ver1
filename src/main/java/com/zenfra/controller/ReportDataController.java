@@ -330,7 +330,7 @@ public class ReportDataController {
 			
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()
 					&& reportBy != null && !reportBy.isEmpty()) {
-				String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey,
+				String columnHeaders = reportService.getReportHeader(request, reportName, deviceType, reportBy, siteKey,
 						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype());
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 			} else {
