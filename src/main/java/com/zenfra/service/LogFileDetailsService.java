@@ -10,9 +10,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.clickhouse.client.internal.google.gson.JsonObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.Interface.IService;
 import com.zenfra.configuration.RedisUtil;
@@ -38,6 +45,7 @@ import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.Contants;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Service
@@ -111,18 +119,44 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			List<LogFileDetails> logFile = logDao.getLogFileDetailsByLogids(logFileIds);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 
-			for (LogFileDetails log : logFile) {						
-				if(log.getLogType() != null && !log.getLogType().trim().isEmpty() && (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+			for (LogFileDetails log : logFile) {
 
-					if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+						log.setStatus("retrieving");
+					}
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+
+						log.setStatus("retrieved");
+					}
+				}
+
+//				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+//						&& (log.getLogType().equalsIgnoreCase("pure"))) {
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+//						log.setStatus("retrieving");
+//					}
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+//						log.setStatus("retrieved");
+//					}
+//				}
+
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("CUSTOM EXCEL DATA"))) {
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
 						log.setStatus("import_success");
 					}
 				}
 				JSONObject json = new JSONObject();
 				json.put("status", log.getStatus());
 				json.put("logFileId", log.getLogFileId());
-				if(log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
-					json.put("parsedDateTime", log.getParsedDateTime() != null? common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime()) : "");
+				if (log.getStatus() != null && (log.getStatus().equalsIgnoreCase("success")
+						|| log.getStatus().equalsIgnoreCase("retrieved"))) {
+					json.put("parsedDateTime",
+							log.getParsedDateTime() != null
+									? common.convertToUtc(TimeZone.getDefault(), log.getParsedDateTime())
+									: "");
 				}
 				resultArray.add(json);
 			}
@@ -138,11 +172,11 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 		}
 	}
 
-	public Object getLogFileDetailsBySiteKey(String siteKey) {
+	public Object getLogFileDetailsBySiteKey(String siteKey, boolean fromZenfraCollector) {
 		try {
 
 			Map<String, String> userList = userCreateService.getUserNames();
-			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKey(siteKey);
+			List<LogFileDetails> logFile = logDao.getLogFileDetailsBySiteKey(siteKey, fromZenfraCollector);
 			List<LogFileDetails> logFileUpdate = new ArrayList<LogFileDetails>();
 			for (LogFileDetails log : logFile) {
 				if (userList.containsKey(log.getUploadedBy())) {
@@ -162,6 +196,36 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 						log.setStatus("import_success");
 					}
 				}
+
+				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+						&& (log.getLogType().equalsIgnoreCase("zoom"))) {
+
+					log.setFileName(log.getFileName());
+					log.setCreatedDateTime(log.getCreatedDateTime());
+					log.setUpdatedDateTime(log.getUpdatedDateTime());
+					log.setParsedDateTime(log.getParsedDateTime());
+					log.setParsingStartTime(log.getParsingStartTime());
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+						log.setStatus("retrieving");
+					}
+					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+						log.setStatus("retrieved");
+					}
+				}
+
+//				if (log.getLogType() != null && !log.getLogType().trim().isEmpty()
+//						&& (log.getLogType().equalsIgnoreCase("pure"))) {
+//					log.setCreatedDateTime(log.getCreatedDateTime());
+//					log.setUpdatedDateTime(log.getCreatedDateTime());
+//					log.setParsedDateTime(log.getCreatedDateTime());
+//					log.setParsingStartTime(log.getCreatedDateTime());
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("parsing")) {
+//						log.setStatus("retrieving");
+//					}
+//					if (log.getStatus() != null && log.getStatus().equalsIgnoreCase("success")) {
+//						log.setStatus("retrieved");
+//					}
+//				}
 				logFileUpdate.add(log);
 			}
 
@@ -395,10 +459,10 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 
 	}
 
-	public boolean deleteLogfileProcessAction(List<String> logFileIds) {
+	public boolean deleteLogfileProcessAction(List<String> logFileIds, String userId) {
 		try {
 
-			return logDao.deleteLogfileProcessAction(logFileIds);
+			return logDao.deleteLogfileProcessAction(logFileIds, userId);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -516,5 +580,9 @@ public class LogFileDetailsService implements IService<LogFileDetails> {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return jsonArray;
+	}
+
+	public void saveUpdatedBy(String logFileId, String userId) {
+		logDao.saveUpdatedBy(logFileId, userId);
 	}
 }

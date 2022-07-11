@@ -2,7 +2,10 @@ package com.zenfra.dao.common;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -161,7 +164,7 @@ public abstract class JdbcCommonOperations {
 			jdbc.setDataSource(d);
 			obj1 = jdbc.queryForList(query);
 
-			//System.out.println(obj1);
+			// System.out.println(obj1);
 			obj = obj1.get(0) != null ? obj1.get(0) : new HashMap<String, Object>();
 
 		} catch (Exception e) {
@@ -179,14 +182,11 @@ public abstract class JdbcCommonOperations {
 	public int excuteByUpdateQueryNew(String query) throws SQLException {
 		int obj1 = 0;
 		JdbcTemplate jdbc = new JdbcTemplate();
-
-		try {
-			System.out.println("query::" + query);
-			Map<String, String> data = DBUtils.getPostgres();
-			DataSource d = DataSourceBuilder.create().url(data.get("url")).username(data.get("userName"))
-					.password(data.get("password")).driverClassName("org.postgresql.Driver").build();
-			jdbc.setDataSource(d);
-			obj1 = jdbc.update(query);
+		Map<String, String> data = new HashMap<>();
+		data = DBUtils.getPostgres();
+		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+				data.get("password")); Statement statement = connection.createStatement();) {
+			obj1 = statement.executeUpdate(query);
 			jdbc.getDataSource().getConnection().close();
 
 		} catch (Exception e) {

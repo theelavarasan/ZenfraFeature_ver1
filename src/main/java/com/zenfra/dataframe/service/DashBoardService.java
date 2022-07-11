@@ -233,7 +233,7 @@ public class DashBoardService {
 			ObjectMapper mapper = new ObjectMapper();
 			for (Map<String, Object> list : chartDetails) {
 				JSONObject tempBreak = (JSONObject) parser.parse(list.get("filterProperty") == null ? "{}" : list.get("filterProperty").toString());
-				JSONObject obtemp = (JSONObject) parser.parse(list.toString());
+				JSONObject obtemp=mapper.convertValue(list, JSONObject.class);
 				if (tempBreak != null && tempBreak.containsKey("value") && tempBreak.get("value") != null) {
 					JSONObject tempFilter = (JSONObject) parser.parse(tempBreak.get("value").toString());
 					obtemp.put("filterProperty", tempFilter);

@@ -23,7 +23,6 @@ import com.zenfra.ftp.repo.LogFileDetailsRepo;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.FavouriteView_v2;
-import com.zenfra.model.ZenfraJSONObject;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.ExceptionHandlerMail;
 
@@ -86,7 +85,6 @@ public class FavouriteApiService_v2 {
 					
 					row = common.getFavViewCheckNull(row);		
 					viewArr.add(row);
-					
 					// Map<String, Object> rowMap = row;
 					// rowMap = setDeviceType(rowMap);
 					/*if (!reportNameRef.equalsIgnoreCase("healthcheck") && !reportNameRef.equalsIgnoreCase("project-summary")) {
