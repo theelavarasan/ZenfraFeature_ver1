@@ -167,7 +167,7 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 				System.out.println("-------log-----" + log);
 			} else {
 				log = getFileDetails(siteKey, true);
-				//log = logRepo.getBySiteKeyAndIsActive(siteKey, true);
+				// log = logRepo.getBySiteKeyAndIsActive(siteKey, true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -182,10 +182,9 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 
 	@SuppressWarnings("unchecked")
 	public List<LogFileDetails> getFileDetails(String siteKey, boolean isActive) {
-		
-		
+
 		List<LogFileDetails> log = new ArrayList<LogFileDetails>();
-		
+
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
@@ -201,7 +200,7 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 			ResultSet rs = statement.executeQuery(selectQuery);
 
 			while (rs.next()) {
-				
+
 				LogFileDetails logData = new LogFileDetails();
 
 				logData.setCreatedDateTime(rs.getString("created_date_time"));
@@ -229,8 +228,7 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 				logData.setLogFileId(rs.getString("log_file_id"));
 				logData.setFilePaths(rs.getString("file_paths"));
 				logData.setFileName(rs.getString("file_name"));
-				
-				
+
 //				dataObj.put("createdDateTime", rs.getString("created_date_time"));
 //				dataObj.put("description", rs.getString("description"));
 //				dataObj.put("extractedPath", rs.getString("extracted_path"));
@@ -258,7 +256,7 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 //				dataObj.put("fileName2", rs.getString("file_name2"));
 //				response.add(rs.getString("file_name2"));
 //				System.out.println("---res---"+response);
-				
+
 				log.add(logData);
 			}
 		} catch (Exception e) {
@@ -284,10 +282,10 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 		}
 	}
 
-	public boolean deleteLogfileProcessAction(List<String> logFileIds) {
+	public boolean deleteLogfileProcessAction(List<String> logFileIds, String userId) {
 		try {
 
-			logRepo.updateLogFileIdsActive(logFileIds);
+			logRepo.updateLogFileIdsActive(logFileIds, userId);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -394,6 +392,24 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 		}
 
 		return log;
+	}
+
+	public void saveUpdatedBy(String logFileId, String userId) {
+		Map<String, String> data = new HashMap<>();
+		data = DBUtils.getPostgres();
+		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+				data.get("password")); Statement statement = connection.createStatement();) {
+
+			String updateQuery = "update log_file_details set updated_by = '" + userId + "' where log_file_id = '"
+					+ logFileId + "'";
+
+			System.out.println("!!!updateQuery" + updateQuery);
+			statement.executeUpdate(updateQuery);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }

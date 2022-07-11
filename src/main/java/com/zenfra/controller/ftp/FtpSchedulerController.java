@@ -93,6 +93,7 @@ public class FtpSchedulerController {
 				ftpScheduler.setUserId(ftpScheduler.getUserId());
 				ftpScheduler.setId(ftpScheduler.getId());
 			}
+			ftpScheduler.setIsNas(false);
 			ftpScheduler.setEmailString(ftpScheduler.getNotificationEmail().toJSONString());
 			System.out.println(ftpScheduler.toString());
 			long id = schedulerService.saveFtpScheduler(ftpScheduler);

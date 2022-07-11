@@ -994,7 +994,7 @@ public class ValidationRuleService {
 					"union all \r\n" +
 					"select keys, data from ( \r\n" + 
 					"select keys, json_agg(data) as data from (  \r\n" + 
-					"select concat('server~',keys) as keys, data from ( \r\n" +
+					"select keys, data from ( \r\n" +
 					"select distinct keys, json_array_elements(LocalDiscoveryData) ->> keys as data from ( \r\n" + 
 					"select LocalDiscoveryData, json_object_keys(data) as keys from ( \r\n" + 
 					"select LocalDiscoveryData, json_array_elements(LocalDiscoveryData) as data from (\r\n" + 
@@ -1031,7 +1031,7 @@ public class ValidationRuleService {
 					"where TL.is_active=true and TL.project_id='" + reportBy + "' \r\n" + 
 					") a \r\n" + 
 					") b \r\n" + 
-					") c order by keys \r\n" + 
+					") c where keys <> 'OS Version' order by keys \r\n" + 
 					") c1 order by data \r\n" +
 					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
 					") e where keys = substring('" + columnName + "', position('_' in '" + columnName + "') + 1, length('" + columnName + "')) \r\n " +
