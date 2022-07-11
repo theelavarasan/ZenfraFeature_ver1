@@ -118,7 +118,7 @@ public class ReportDataController {
 				return new ResponseEntity<>(result, HttpStatus.OK);
 			} else  {  // orient db reports
 				
-				DataResult data = dataframeService.getReportDataFromDF(request);
+				DataResult data = dataframeService.getReportDataFromDF(request, false);
 				if (data != null) {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 				}
@@ -331,7 +331,7 @@ public class ReportDataController {
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()
 					&& reportBy != null && !reportBy.isEmpty()) {
 				String columnHeaders = reportService.getReportHeader(request, reportName, deviceType, reportBy, siteKey,
-						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype());
+						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype(), true);
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 			} else {
 				return new ResponseEntity<>(ZKConstants.PARAMETER_MISSING, HttpStatus.OK);

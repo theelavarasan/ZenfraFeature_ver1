@@ -1472,7 +1472,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	}
 	
 
-	public DataResult getReportDataFromDF(ServerSideGetRowsRequest request) {
+	public DataResult getReportDataFromDF(ServerSideGetRowsRequest request, boolean isHeader) {
 
 		String siteKey = request.getSiteKey();
 		
@@ -1572,18 +1572,21 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		}
 		dataset.printSchema();
 		
-		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
-		groupKeys = request.getGroupKeys();
-		valueColumns = request.getValueCols();
-		pivotColumns = request.getPivotCols();
-		filterModel = request.getFilterModel();
-		sortModel = request.getSortModel();
-		isPivotMode = request.isPivotMode();
-		isGrouping = rowGroups.size() > groupKeys.size();
+		if(!isHeader) {
+			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+			groupKeys = request.getGroupKeys();
+			valueColumns = request.getValueCols();
+			pivotColumns = request.getPivotCols();
+			filterModel = request.getFilterModel();
+			sortModel = request.getSortModel();
+			isPivotMode = request.isPivotMode();
+			isGrouping = rowGroups.size() > groupKeys.size();
 
-		rowGroups = formatInputColumnNames(rowGroups);
-		groupKeys = formatInputColumnNames(groupKeys);
-		sortModel = formatSortModel(sortModel);
+			rowGroups = formatInputColumnNames(rowGroups);
+			groupKeys = formatInputColumnNames(groupKeys);
+			sortModel = formatSortModel(sortModel);
+		}
+		
 			
 		dataset = orderBy(groupBy(filter(dataset)));	
 		
