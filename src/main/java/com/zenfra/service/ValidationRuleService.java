@@ -166,8 +166,8 @@ public class ValidationRuleService {
 				File d = new File(actualDfFolderPath);
 				for (File file : d.listFiles()) {
 					if (file.isFile() && file.getName().toLowerCase().contains(category.toLowerCase())
-							&& file.getName().toLowerCase().contains(reportBy.toLowerCase() + ".json")
-							&& file.getName().toLowerCase().contains(reportList.toLowerCase())) { // &&
+							&& (file.getName().toLowerCase().contains(reportBy.toLowerCase() + ".json") || file.getName().toLowerCase().contains(reportBy.toLowerCase().replaceAll("\\s+", "") + ".json"))
+							&& (file.getName().toLowerCase().contains(reportList.toLowerCase()) || file.getName().toLowerCase().contains(reportList.toLowerCase().replaceAll("\\s+", "")))) { // &&
 																									// file.getName().toLowerCase().contains(category.toLowerCase())
 						actualDfFilePath = file.getAbsolutePath();
 						break;
@@ -188,40 +188,43 @@ public class ValidationRuleService {
 				}
 			}
 
-			dataset.printSchema();
+			
 			String dataArray = dataset.toJSON().collectAsList().toString();
 
 			try {
-				JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);
+				if(dataArray != null && !dataArray.isEmpty()) {
+					JSONArray dataObj = mapper.readValue(dataArray, JSONArray.class);
 
-				for (int i = 0; i < dataObj.size(); i++) {
-					LinkedHashMap<String, Object> jsonObject = (LinkedHashMap) dataObj.get(i);
-					List<Object> dataAry = (List<Object>) jsonObject.get("data");
+					for (int i = 0; i < dataObj.size(); i++) {
+						LinkedHashMap<String, Object> jsonObject = (LinkedHashMap) dataObj.get(i);
+						List<Object> dataAry = (List<Object>) jsonObject.get("data");
 
-					for (int j = 0; j < dataAry.size(); j++) {
-						LinkedHashMap<String, Object> data = (LinkedHashMap<String, Object>) dataAry.get(j);
-						Set<String> keys = data.keySet();
-						for (String key : keys) {
+						for (int j = 0; j < dataAry.size(); j++) {
+							LinkedHashMap<String, Object> data = (LinkedHashMap<String, Object>) dataAry.get(j);
+							Set<String> keys = data.keySet();
+							for (String key : keys) {
 
-							if (resutData.containsKey(key.trim())) {
+								if (resutData.containsKey(key.trim())) {
 
-								List<Object> values = resutData.get(key.trim());
-								if (!values.contains(data.get(key))) {
+									List<Object> values = resutData.get(key.trim());
+									if (!values.contains(data.get(key))) {
+										values.add(data.get(key));
+										values.removeAll(Arrays.asList("", null));
+										resutData.put(key, values);
+									}
+								} else {
+
+									List<Object> values = new ArrayList<>();
 									values.add(data.get(key));
 									values.removeAll(Arrays.asList("", null));
 									resutData.put(key, values);
 								}
-							} else {
-
-								List<Object> values = new ArrayList<>();
-								values.add(data.get(key));
-								values.removeAll(Arrays.asList("", null));
-								resutData.put(key, values);
 							}
-						}
 
+						}
 					}
 				}
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 				StringWriter errors = new StringWriter();
@@ -968,7 +971,7 @@ public class ValidationRuleService {
 					+ "select project_id, report_type_column_id, report_type_column_value, option_id, option_value, concat(report_type_column_value, '_', option_id) as label from (\r\n"
 					+ "select project_id, report_type_column_id, report_type_column_value, column_type, option_id, option_value,\r\n"
 					+ "row_number() over(partition by report_type_column_value,option_id, option_value) as row_num from (\r\n"
-					+ "select project_id, concat('filterBy_',group_name) as report_type_column_id, group_name as report_type_column_value,\r\n"
+					+ "select project_id, id as report_type_column_id, group_name as report_type_column_value,\r\n"
 					+ "'select' as column_type, option_id, option_value from (\r\n"
 					+ "select pr.project_id, id, group_name, profile_id as option_id, profile_name as option_value from (\r\n"
 					+ "select tenant_group_fields_id as id, group_name from tenant_group_fields where\r\n"
@@ -981,7 +984,7 @@ public class ValidationRuleService {
 					+ "union all\r\n"
 					+ "select ref_id as id, group_name from project_group_fields where site_key = '" + siteKey + "' and project_id = '" + reportBy + "'\r\n"
 					+ ") a\r\n"
-					+ "JOIN destination_profile pr on pr.migration_group_id = a.id and pr.project_id = '" + reportBy + "'\r\n"
+					+ "JOIN destination_profile pr on pr.migration_group_id = a.id and pr.project_id = '" + reportBy + "' and pr.is_active::boolean = true \r\n"
 					+ ") b\r\n"
 					+ ") c\r\n"
 					+ ") d where row_num = 1\r\n"
@@ -1008,7 +1011,7 @@ public class ValidationRuleService {
 					") c order by keys \r\n" + 
 					") c1 order by data \r\n" +
 					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
-					") e where keys = '" + columnName + "' \r\n" +
+					") e where keys = substring('" + columnName + "', position('_' in '" + columnName + "') + 1, length('" + columnName + "')) \r\n" +
 					"union all \r\n" + 
 					"select keys, data from ( \r\n" + 
 					"select keys, json_agg(data) as data from ( \r\n" + 
@@ -1028,10 +1031,10 @@ public class ValidationRuleService {
 					"where TL.is_active=true and TL.project_id='" + reportBy + "' \r\n" + 
 					") a \r\n" + 
 					") b \r\n" + 
-					") c order by keys \r\n" + 
+					") c where keys <> 'OS Version' order by keys \r\n" + 
 					") c1 order by data \r\n" +
 					") d where data is not null and trim(data) <> '' group by keys \r\n" + 
-					") e where keys = '" + columnName + "' \r\n " +
+					") e where keys = substring('" + columnName + "', position('_' in '" + columnName + "') + 1, length('" + columnName + "')) \r\n " +
 					"union all \r\n " +
 					" select keys, json_agg(data) as data from (\r\n" + 
 					"select concat(source_name,'_',keys) as keys, data from (\r\n" + 
@@ -1041,11 +1044,21 @@ public class ValidationRuleService {
 					"select source_name, primary_key, data from source_data sd \r\n" + 
 					"LEFT JOIN source sc on sc.source_id = sd.source_id\r\n" + 
 					"where sd.source_id in (select json_array_elements_text((input_source::jsonb || third_party_list::jsonb)::json) from project where project_id = '" + reportBy + "') \r\n" + 
-					"and lower(primary_key_value) in (select lower(server_name) from tasklist where is_active = true and project_id = '" + reportBy+ "') \r\n" +
+					"and lower(primary_key_value) in (select lower(server_name) from tasklist where is_active = true and project_id = '" + reportBy + "') \r\n" +
 					") a ) b where keys not in (primary_key, 'siteKey', 'sourceId')\r\n" + 
 					") c\r\n" + 
 					") d order by data\r\n" + 
-					") e where keys = '" + columnName + "' group by keys";
+					") e where keys = '" + columnName + "' group by keys \r\n" +
+					"union all \r\n" + 
+					"select keys, json_agg(data) as data from ( \r\n" + 
+					"select distinct keys, data from (\r\n" + 
+					"select concat('server~',keys) as keys, json_array_elements(data::json) ->> keys as data from (\r\n" + 
+					"select data, json_object_keys(json_array_elements(data::json)) as keys from privillege_data where site_key = '" + siteKey + "' \r\n" + 
+					"and lower(server_name) in (select server_name from tasklist where project_id = '" + reportBy + "') and \r\n" + 
+					"lower(source_id) in (select task_id from tasklist where project_id = '" + reportBy + "') \r\n" + 
+					") a \r\n" + 
+					") b where data <> '' order by data\r\n" + 
+					") c where keys = '" + columnName + "' group by keys";
 					
 			
 			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
@@ -1120,5 +1133,169 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		
 		return resultArray;
 		
+	}
+
+	public JSONArray getVR_VanguardGroupInfo(String siteKey, String columnName) {
+
+	JSONArray resultArray = new JSONArray();
+
+	try {
+
+		String query = "select keys, column_values from (\r\n" + 
+				"select keys, json_agg(column_values) as column_values from (\r\n" + 
+				"select distinct keys, data ->> keys as column_values from (\r\n" + 
+				"select json_build_object('Server Name', server_name, 'Group Name', \"group\", 'Owner', group_owner, 'Superior Group', superior_group, 'Creation Date', creation_date,\r\n" + 
+				"'TERMUACC', termuacc, 'Model Name', model_name, 'Users Connected to the Group', user_name, 'User Id', user_id) as data, keys from ( \r\n" + 
+				"select vsi.server_name, vgi.group, vgi.group_owner, vgi.superior_group, vgi.creation_date,\r\n" + 
+				"vgi.termuacc, vgi.model_name, vui.user_name, vui.user_id\r\n" + 
+				"from vanguard_server_info vsi\r\n" + 
+				"LEFT JOIN vanguard_group_info vgi on vgi.server_name = vsi.server_name\r\n" + 
+				"LEFT JOIN vanguard_user_info vui on vui.server_name = vsi.server_name and vgi.group = vui.group\r\n" + 
+				"where vsi.site_key = '" + siteKey + "' order by vsi.server_name \r\n" + 
+				") a \r\n" + 
+				"LEFT JOIN (\r\n" + 
+				"select column_name as keys from report_columns where device_type = 'Vanguard' and report_by = 'Group Info' \r\n" + 
+				") cl on 1 = 1 \r\n" + 
+				") b \r\n" + 
+				") c group by keys \r\n" + 
+				") d where keys = '" + columnName + "'";
+				
+
+		System.out.println("!!!!! query: " + query);
+		List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+		// JSONParser parser = new JSONParser();
+		System.out.println("!!!!! valueArray: " + valueArray);
+		for (Map<String, Object> list : valueArray) {
+			resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+		}
+
+	} catch (Exception e) {
+		e.printStackTrace();
+		StringWriter errors = new StringWriter();
+		e.printStackTrace(new PrintWriter(errors));
+		String ex = errors.toString();
+		ExceptionHandlerMail.errorTriggerMail(ex);
+	}
+
+	return resultArray;
+
+}
+	
+	
+	public JSONArray getVR_TaniumGroup(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+
+			String query = "select keys, json_agg(column_values) as column_values from ( \r\n" + 
+					"select distinct keys, coalesce(column_values, '') as column_values from (\r\n" + 
+					"select keys, data ->> keys as column_values from ( \r\n" + 
+					"select data, json_object_keys(data) as keys from (\r\n" + 
+					"select serverName, groupName,json_build_object('Server Name', serverName, 'Group Name', groupName, 'Member Of Group', memberOfGroup,\r\n" + 
+					"'Sudoers Access', sudoPrivileges, 'Is Sudoers', isSudoers, 'Group Id', groupId, 'Os Version', osVersion) as data from\r\n" + 
+					"(select\r\n" + 
+					"ugi.server_name serverName\r\n" + 
+					",ugi.group_name groupName\r\n" + 
+					",ugi.gid groupId\r\n" + 
+					",ugi.member_of_group memberOfGroup\r\n" + 
+					",case when usi.user_name is null then 'No' else 'Yes' end as isSudoers\r\n" + 
+					",usi.sudo_privileges as sudoPrivileges\r\n" + 
+					",hd.operating_system as osVersion\r\n" + 
+					"from linux_users_group_info ugi\r\n" + 
+					"left join linux_user_sudo_info usi on ugi.server_name = usi.server_name and ugi.site_key = usi.site_key\r\n" + 
+					"and ugi.group_name = usi.user_name and usi.is_group_user = 'true'\r\n" + 
+					"join linux_host_details hd on hd.server_name = ugi.server_name and ugi.site_key = hd.site_key\r\n" + 
+					"where ugi.site_key = '" + siteKey + "') as d \r\n" + 
+					") a \r\n" + 
+					") b \r\n" + 
+					") c\r\n" + 
+					") d where keys = '" + columnName + "' group by keys";
+					
+
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
+	}
+	
+	public JSONArray getVR_ZoomUsers(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+
+			String query = "select keys, column_values from (\r\n"
+					+ "select keys, json_agg(column_values) as column_values from (\r\n"
+					+ "select distinct keys, data ->> keys as column_values from (\r\n"
+					+ "select json_build_object('userId',user_id,'firstName', first_name,'lastName', last_name, \r\n"
+					+ "'department', department,'email', email, 'role', role, 'status',status,'licenseType', license_type, \r\n"
+					+ "'lastLoginTime', last_login_time, 'lastClientVersion', last_client_version,\r\n"
+					+ "'timeZone',timezone, 'isVerified', is_verified, 'groupNames', group_names, \r\n"
+					+ "'isGroupAdmin',is_group_admin) as data, keys from (\r\n"
+					+ "	\r\n"
+					+ "select zrm.identity as user_id,zrm.first_name,zrm.last_name,zrm.department,zrm.email,zr.name as Role\r\n"
+					+ ",case when zu.status is not null then zu.status else 'Inactive' end as status\r\n"
+					+ ",case when zrm.type = '1' then 'Basic'\r\n"
+					+ "when zrm.type = '2' then 'Licensed'\r\n"
+					+ "when zrm.type = '3' then 'On-prem'\r\n"
+					+ "when zrm.type = '99' then 'None'\r\n"
+					+ "when zrm.type is null then 'None'\r\n"
+					+ "end as License_type\r\n"
+					+ ",zu.last_login_time,zu.last_client_version,zu.timezone\r\n"
+					+ ",case when zu.verified = '1' then 'Yes' else 'No' end as Is_Verified\r\n"
+					+ ",zgm.group_names as group_names\r\n"
+					+ ",case when zgm.is_group_admin is null then 'No' else 'Yes' end as is_group_admin\r\n"
+					+ "from zoom_roles_members zrm\r\n"
+					+ "left join zoom_users zu on zrm.identity = zu.identity and zrm.site_key = zu.site_key\r\n"
+					+ "left join zoom_roles zr on zr.identity = zrm.role_id and zrm.site_key = zr.site_key\r\n"
+					+ "left join (select zgm.site_key,zgm.identity,string_agg(zg.name, ',') as group_names\r\n"
+					+ ",zga.identity as is_group_admin\r\n"
+					+ "from zoom_group_members zgm\r\n"
+					+ "join zoom_groups zg on zg.identity = zgm.group_id and zg.site_key = zgm.site_key\r\n"
+					+ "left join zoom_group_admins zga on zga.group_id = zg.identity and zga.identity = zgm.identity\r\n"
+					+ "group by zgm.site_key,zgm.identity,zga.identity\r\n"
+					+ ") zgm on zgm.identity = zrm.identity and zgm.site_key = zrm.site_key) \r\n"
+					+ "	\r\n"
+					+ "a	\r\n"
+					+ "LEFT JOIN (\r\n"
+					+ "select column_name as keys from report_columns where device_type = 'Zoom' and report_by = 'User'\r\n"
+					+ ") cl on 1 = 1\r\n"
+					+ ") b\r\n"
+					+ ") c group by keys\r\n"
+					+ ") d where keys = '"+columnName+"'\r\n";
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
 	}
 }

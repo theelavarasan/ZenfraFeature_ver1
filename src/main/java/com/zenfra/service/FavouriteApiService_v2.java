@@ -23,7 +23,6 @@ import com.zenfra.ftp.repo.LogFileDetailsRepo;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.FavouriteOrder;
 import com.zenfra.model.FavouriteView_v2;
-import com.zenfra.model.ZenfraJSONObject;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.ExceptionHandlerMail;
 
@@ -79,25 +78,23 @@ public class FavouriteApiService_v2 {
 
 			List<String> processedLogs = logFileDetailsRepo.getDistinctLogTypeBySiteKeyAndStatusIsActive(siteKey, "success",true);
 //			System.out.println("------processedLogs----------" + processedLogs);
-			JSONArray viewArr = new JSONArray();
-
-			 System.out.println(rows.size() + " :: " + rows);
+			JSONArray viewArr = new JSONArray();			
 
 			rows.forEach(row -> {
 				try {
 					
-					row = common.getFavViewCheckNull(row);					
-					
+					row = common.getFavViewCheckNull(row);		
+					viewArr.add(row);
 					// Map<String, Object> rowMap = row;
 					// rowMap = setDeviceType(rowMap);
-					if (!reportNameRef.equalsIgnoreCase("healthcheck") && !reportNameRef.equalsIgnoreCase("project-summary")) {
+					/*if (!reportNameRef.equalsIgnoreCase("healthcheck") && !reportNameRef.equalsIgnoreCase("project-summary")) {
 						Map<String, Object> filteredFavView = filterFavViewByProcessedLogs(row,processedLogs);	
 						if(filteredFavView != null && !filteredFavView.isEmpty()) {	
 							viewArr.add(row);
 						}
 					}else {
 						viewArr.add(row);
-						}
+						}*/
 					
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -203,8 +200,9 @@ public class FavouriteApiService_v2 {
 						String values = prop.get("selection").toString().trim();
 						if(values.toLowerCase().contains("mode") || values.toLowerCase().contains("netapp")) {
 							values = "NETAPP";
-						}						
-						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase)) {
+						}		
+						System.out.println("-----values---------"+ values);
+						if(processedLogs.stream().anyMatch(values::equalsIgnoreCase) || (values == null || values.trim().isEmpty())) {
 							return common.getFavViewCheckNull(row);							
 						}
 					}
@@ -458,7 +456,8 @@ public class FavouriteApiService_v2 {
 				defaultFilterProperty = common.convertStringToJsonArray(defaultFilterProperty).toString();
 
 				String checkFavViewquery = "select count(*) from favourite_view where is_active=true and is_default=true and lower(report_name)='discovery' and lower(favourite_name)= '"
-						+ defaultFavName.toLowerCase() + "' and site_key='" + siteKey + "'" ; // and filter_property = '"+ defaultFilterProperty + "'"; //
+				+ defaultFavName.toLowerCase() + "' and site_key='" + siteKey + "'" ;// and filter_property = '"+ defaultFilterProperty + "'"; //
+
 
 				if (daoFav.getCount(checkFavViewquery) == 0) {
 					FavouriteModel favouriteModel = new FavouriteModel();

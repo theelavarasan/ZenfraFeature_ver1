@@ -77,7 +77,7 @@ public class ChartDAO extends CommonEntityManager {
 	public List<Object> getChartByCategoryId(String catgoryId) {
 		List<Object> chart = new ArrayList<Object>();
 		try {
-			String query = "select * from chart where category_list @> Array[':catgoryId']".replace(":catgoryId",
+			String query = "select * from chart where category_list ilike '%:catgoryId%'".replace(":catgoryId",
 					catgoryId);
 			chart = getEntityListByColumn(query, ChartModel_v2.class);
 		} catch (Exception e) {

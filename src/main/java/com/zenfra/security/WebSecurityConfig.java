@@ -25,74 +25,63 @@ import com.zenfra.service.UserServiceImpl;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private UserServiceImpl userDetailsService;
+	@Autowired
+	private UserServiceImpl userDetailsService;
 
-    @Autowired
-    private JwtAuthenticationEntryPoint unauthorizedHandler;
+	@Autowired
+	private JwtAuthenticationEntryPoint unauthorizedHandler;
 
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
+	@Override
+	@Bean
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
+	}
 
-    @Autowired
-    public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService)
-                .passwordEncoder(encoder());
-    }
+	@Autowired
+	public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
+		auth.userDetailsService(userDetailsService).passwordEncoder(encoder());
+	}
 
-    @Bean
-    public JwtAuthenticationFilter authenticationTokenFilterBean() throws Exception {
-        return new JwtAuthenticationFilter();
-    }
+	@Bean
+	public JwtAuthenticationFilter authenticationTokenFilterBean() throws Exception {
+		return new JwtAuthenticationFilter();
+	}
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-    	 // Enable CORS and disable CSRF
-        http = http.cors().and().csrf().disable();
-        // Set session management to stateless
-        http = http
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and();
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		// Enable CORS and disable CSRF
+		http = http.cors().and().csrf().disable();
+		// Set session management to stateless
+		http = http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
 
-        // Set unauthorized requests exception handler
-        http = http
-            .exceptionHandling()
-				.authenticationEntryPoint(unauthorizedHandler)
-            .and();
+		// Set unauthorized requests exception handler
+		http = http.exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and();
 
-        // Set permissions on endpoints
-        http.authorizeRequests()                    
-            .antMatchers(HttpMethod.POST, "/rest/df/getOdbReportData").permitAll()  
-            .antMatchers(HttpMethod.GET, "/rest/df/createEolEodDf").permitAll()
-            .antMatchers(HttpMethod.POST, "/rest/df/createDataframeOdbData").permitAll()
-            .antMatchers(HttpMethod.POST, "/rest/df/saveDefaultFavView").permitAll()
-            .antMatchers(HttpMethod.POST, "/rest/df/getReportData").permitAll() 
-            .antMatchers(HttpMethod.POST, "/rest/df/getReportHeader").permitAll() 
-            .antMatchers(HttpMethod.GET, "/rest/df/deleteCloudCostDf").permitAll()      
-            .antMatchers(HttpMethod.POST, "/rest/df/getReportDataFromClickHouse").permitAll()
-//            .antMatchers(HttpMethod.GET, "/rest/pure/list").permitAll()
-            .antMatchers(HttpMethod.GET, "/rest/df/deleteCloudCostDf").permitAll() 
-            .antMatchers(HttpMethod.POST, "/rest/df/getReportDataFromClickHouse").permitAll() 
-            .antMatchers(HttpMethod.POST, "/rest/reports/health-check/get-field-values").permitAll() 
-            //.antMatchers(HttpMethod.DELETE, "/rest/api/log-file/**").permitAll()
-            // Our private endpoints
-            .anyRequest().authenticated();
+		// Set permissions on endpoints
+		http.authorizeRequests().antMatchers(HttpMethod.POST, "/rest/df/getOdbReportData").permitAll()
+				.antMatchers(HttpMethod.GET, "/rest/df/createEolEodDf").permitAll()
+				.antMatchers(HttpMethod.POST, "/rest/df/createDataframeOdbData").permitAll()
+				.antMatchers(HttpMethod.POST, "/rest/df/saveDefaultFavView").permitAll()
+				.antMatchers(HttpMethod.POST, "/rest/df/getReportData").permitAll()
+				.antMatchers(HttpMethod.POST, "/rest/df/getReportHeader").permitAll()
+				.antMatchers(HttpMethod.GET, "/rest/df/deleteCloudCostDf").permitAll()
+				.antMatchers(HttpMethod.POST, "/rest/df/getReportDataFromClickHouse").permitAll()
+				.antMatchers(HttpMethod.POST, "/rest/reports/health-check/get-field-values").permitAll()
+				.antMatchers(HttpMethod.POST, "/rest/df/getVmaxSubreport").permitAll()
+				.antMatchers(HttpMethod.GET, "/rest/df/deleteDataframe").permitAll()
+				.antMatchers(HttpMethod.GET, "/rest/df/deleteAllDataframe").permitAll()
 
-        // Add JWT token filter
-        http.addFilterBefore(
-        		authenticationTokenFilterBean(),
-            UsernamePasswordAuthenticationFilter.class
-        );
-    }
+				// .antMatchers(HttpMethod.DELETE, "/rest/api/log-file/**").permitAll()
+				// Our private endpoints
+				.anyRequest().authenticated();
 
-    @Bean
-    public static BCryptPasswordEncoder encoder(){
-        return new BCryptPasswordEncoder();
-    }
-    
-    
+		// Add JWT token filter
+		http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
+	}
+
+	@Bean
+	public static BCryptPasswordEncoder encoder() {
+		return new BCryptPasswordEncoder();
+	}
+
 }
