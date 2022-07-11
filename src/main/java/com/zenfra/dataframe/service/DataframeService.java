@@ -725,6 +725,7 @@ public class DataframeService {
 				
 			
 				if(numericCol != null && !numericCol.trim().isEmpty()) {
+					System.out.println("!!!!! agg numeric columns: " + ("select "+numericCol+"  from global_temp."+viewName+"_tmpReport"));
 					countData = sparkSession.sqlContext().sql("select "+numericCol+"  from global_temp."+viewName+"_tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
 					
 				}
