@@ -24,7 +24,12 @@ public class SchedulerThread implements Runnable {
 		FtpSchedulerService schedulerService = new FtpSchedulerService();
 		System.out.println("----FtpScheduler---" + s.getFileNameSettingsId());
 		try {
-			schedulerService.runFtpSchedulerFiles(s);
+			if (s.getIsNas()) {
+				System.out.println("-------Nas-Scheduler---" + s.getIsNas());
+				schedulerService.parseNasFiles(s);
+			} else {
+				schedulerService.runFtpSchedulerFiles(s);
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -8,6 +8,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +28,7 @@ import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Component
@@ -115,9 +119,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			System.out.println("Start iStream FTP" + path);
 			FTPClient ftpClient = getConnection(server);
 			fileList = getAllFilesFromPath(server, path, existCheckSums);
-
 			System.out.println("file read END");
-
 			ftpClient.logout();
 			ftpClient.disconnect();
 			System.out.println("End iStream FTP" + path);
@@ -394,6 +396,42 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			System.out.println("CheckSum query::" + query);
 			excuteByUpdateQueryNew(query);
 			return false;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+			return false;
+		}
+
+	}
+
+	public boolean copyStatusNas(Map<String, Object> currentMap, Map<String, List<String>> existMap) {
+
+		try {
+
+			System.out.println("start check sum function");
+			CommonFunctions functions = new CommonFunctions();
+			System.out.println("--file map size--"+currentMap.get("fileSize").toString());
+			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))) {
+				System.out.println("Nas check test");
+				return true;
+			} else {
+				System.out.println("start check sum end");
+
+				String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
+				query = query.replace(":check_sum_id", functions.generateRandomId())
+						.replace(":file_size", currentMap.get("fileSize").toString())
+						.replace(":create_date", "")
+						.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
+						.replace(":file_name", currentMap.get("fileName").toString())
+						.replace(":site_key", currentMap.get("siteKey").toString());
+				System.out.println("CheckSum query::" + query);
+				excuteByUpdateQueryNew(query);
+				return false;
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

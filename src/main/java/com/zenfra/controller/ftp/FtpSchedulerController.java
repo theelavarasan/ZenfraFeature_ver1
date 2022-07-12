@@ -8,6 +8,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -44,7 +45,8 @@ public class FtpSchedulerController {
 	CommonFunctions functions;
 
 	@PostMapping("/runScheduler")
-	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler) {
+	public @ResponseBody String runScheduler(@Valid @RequestBody FtpScheduler ftpScheduler,
+			@RequestParam(name = "isNas", required = false) boolean isNas) {
 
 		try {
 
@@ -56,10 +58,12 @@ public class FtpSchedulerController {
 			}
 
 			if (ftpScheduler.getType().equalsIgnoreCase("hour")) {
-				String corn = "0 minutes current/hour * * ?";
-				ftpScheduler.setSchedulerCorn(
-						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour())
-								.replace("minutes", functions.getCurrentMinutes()));
+//				String corn = "0 minutes current/hour * * ?";
+//				ftpScheduler.setSchedulerCorn(
+//						corn.replace("hour", ftpScheduler.getTime()).replace("current", functions.getCurrentHour())
+//								.replace("minutes", functions.getCurrentMinutes()));
+				ftpScheduler.setSchedulerCorn("0 0/5 * * * ?");
+
 			} else if (ftpScheduler.getType().equalsIgnoreCase("daily")) {
 				String timseslot = functions.convertTimeZone(ftpScheduler.getTimeZone(), ftpScheduler.getTimeSlot());
 				String corn = "0 0 from today/everyday * ?";
@@ -81,6 +85,16 @@ public class FtpSchedulerController {
 			}
 			System.out.println(ftpScheduler.getSchedulerCorn());
 			ftpScheduler.setActive(true);
+			if (isNas) {
+				ftpScheduler.setIsNas(true);
+				ftpScheduler.setLogType(ftpScheduler.getLogType());
+				ftpScheduler.setSiteKey(ftpScheduler.getSiteKey());
+				ftpScheduler.setTenantId(ftpScheduler.getTenantId());
+				ftpScheduler.setUserId(ftpScheduler.getUserId());
+				ftpScheduler.setId(ftpScheduler.getId());
+			}else {
+				ftpScheduler.setIsNas(false);
+			}		
 			ftpScheduler.setEmailString(ftpScheduler.getNotificationEmail().toJSONString());
 			System.out.println(ftpScheduler.toString());
 			long id = schedulerService.saveFtpScheduler(ftpScheduler);
@@ -106,8 +120,8 @@ public class FtpSchedulerController {
 			@NotEmpty(message = "Please provide valid fileNameSettingsId") @RequestParam("fileNameSettingsId") String fileNameSettingsId) {
 
 		ResponseModel_v2 response = new ResponseModel_v2();
+		JSONObject dataObj = new JSONObject();
 		try {
-
 			response.setjData(schedulerService.getFtpScheduler(fileNameSettingsId));
 			response.setResponseCode(HttpStatus.OK);
 			response.setResponseMessage("Got the schedular Details Successfully");

@@ -81,6 +81,7 @@ public class ProcessService {
 
 	public void sentEmailFTP(JSONObject map) {
 		try {
+			
 			CommonFunctions common = new CommonFunctions();
 			System.out.println("map::" + map);
 			JSONObject partObj = new JSONObject();
