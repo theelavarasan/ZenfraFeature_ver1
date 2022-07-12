@@ -88,6 +88,7 @@ public class DBUtils {
 			// ZKModel.zkData = zkConnection.getZKData();
 			value.put("mail_url", ZKModel.getProperty(ZKConstants.SEND_MAIL_URL));
 			value.put("ftp_template_success", ZKModel.getProperty(ZKConstants.FTP_FILE_COMLETE_MAILL_TEMPLATE_SUCCESS));
+			value.put("ftp_template_success_02", ZKModel.getProperty(ZKConstants.FTP_FILE_COMLETE_MAILL_TEMPLATE_SUCCESS_02));
 			value.put("ftp_template_fail", ZKModel.getProperty(ZKConstants.FTP_FILE_COMLETE_MAILL_TEMPLATE_FAIL));
 			value.put("ftp_template_partially_processed",
 					ZKModel.getProperty(ZKConstants.FTP_FILE_COMLETE_MAILL_TEMPLATE_PARTIALLY_PROCESSED));
