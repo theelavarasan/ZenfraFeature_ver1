@@ -221,16 +221,16 @@ public class FtpSchedulerService extends CommonEntityManager {
 
             System.out.println("FileWithPath size::" + files.size());
 
-            String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
+//            String token = functions.getZenfraToken(Constants.ftp_email, Constants.ftp_password);
 
             List<LogFileDetails> logFiles = new ArrayList<LogFileDetails>();
             String emailFileList = "";
             String updateFiles = "";
             for (FileWithPath file : files) {
-                System.out.println("Token::" + token);
+//                System.out.println("Token::" + token);
                 System.out.println("Final::" + file.getPath());
                 LogFileDetails url = callParsing(file.getLogType(), settings.getUserId(), settings.getSiteKey(),
-                        s.getTenantId(), file.getName(), token, file.getPath(), s.getId(), false);
+                        s.getTenantId(), file.getName(), "", file.getPath(), s.getId(), false);
                 logFiles.add(url);
                 emailFileList += "<li>" + file.getLogType() + ":" + file.getName() + "</li>";
                 updateFiles += updateFiles + "," + file.getName();
