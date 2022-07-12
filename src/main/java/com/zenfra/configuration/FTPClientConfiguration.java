@@ -24,6 +24,8 @@ import org.apache.commons.net.ftp.FTPSClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
@@ -70,20 +72,28 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		try {
 			System.out.println(server.getIpAddress() + ":" + Integer.parseInt(server.getPort()));
 //			FTPClient ftpClient = new FTPClient();
-			FTPSClient ftpClient = new FTPSClient();
-			ftpClient.connect(server.getIpAddress(), Integer.parseInt(server.getPort()));
+//			FTPSClient ftpClient = new FTPSClient();
+//			ftpClient.connect(server.getIpAddress(), Integer.parseInt(server.getPort()));
 
-			boolean ftpChk = ftpClient.login(server.getServerUsername(), server.getServerPassword());
+			JSch jsch = new JSch();
+			Session session = jsch.getSession(server.getServerUsername(), server.getIpAddress(),
+					Integer.parseInt(server.getPort()));
+			session.setConfig("StrictHostKeyChecking", "no");
+			session.setPassword(server.getServerPassword());
+			session.connect();
+			System.out.println("Connection established.");
+			System.out.println("Creating SFTP Channel.");
+//			boolean ftpChk = ftpClient.login(server.getServerUsername(), server.getServerPassword());
 
-			System.out.println("FTP client Code:: " + ftpChk);
-			if (!ftpChk) {
-				return "Test Connection Failed!";
-			}
-			if (!ftpClient.changeWorkingDirectory(server.getServerPath())) {
-				return "The given path is invalid!";
-			}
-			ftpClient.logout();
-			ftpClient.disconnect();
+//			System.out.println("FTP client Code:: " + ftpChk);
+//			if (!ftpChk) {
+//				return "Test Connection Failed!";
+//			}
+//			if (!ftpClient.changeWorkingDirectory(server.getServerPath())) {
+//				return "The given path is invalid!";
+//			}
+//			ftpClient.logout();
+//			ftpClient.disconnect();
 			return "Test Connection Success!";
 		} catch (Exception e) {
 			e.printStackTrace();
