@@ -20,6 +20,7 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPCommand;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPSClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +69,8 @@ public class FTPClientConfiguration extends CommonEntityManager {
 	public static String testConenction(FTPServerModel server) {
 		try {
 			System.out.println(server.getIpAddress() + ":" + Integer.parseInt(server.getPort()));
-			FTPClient ftpClient = new FTPClient();
+//			FTPClient ftpClient = new FTPClient();
+			FTPSClient ftpClient = new FTPSClient();
 			ftpClient.connect(server.getIpAddress(), Integer.parseInt(server.getPort()));
 
 			boolean ftpChk = ftpClient.login(server.getServerUsername(), server.getServerPassword());
