@@ -46,6 +46,7 @@ public class ReportDao {
 			System.out.println("------params--------- " + params);
 			System.out.println("------columns query--------- " + reportQueries.getHeader());
 			List<Map<String, Object>> result = namedJdbc.queryForList(reportQueries.getHeader(), params);
+			System.out.println("!!!!! result: " + result);
 			reportHeaders = parseResultSetForHeaderInfo(result);
 		} catch (Exception e) {
 			e.printStackTrace();
