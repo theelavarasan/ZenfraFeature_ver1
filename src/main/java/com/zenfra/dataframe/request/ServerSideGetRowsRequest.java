@@ -59,18 +59,36 @@ public class ServerSideGetRowsRequest implements Serializable {
     
     private String source;  
     private String categoryOpt;  
+    
+    private String switchtype;
+    private String storage;
+    private String project;
+    private String thirdPartyId;
+    private String providers;
+    private String userId;
+    
+    private String exportType;
+    
 
 
-	public ServerSideGetRowsRequest() {
+	/*public ServerSideGetRowsRequest() {
         this.rowGroupCols = emptyList();
         this.valueCols = emptyList();
         this.pivotCols = emptyList();
         this.groupKeys = emptyList();
         this.filterModel = emptyMap();
         this.sortModel = emptyList();
-    }
+    }*/
 
-    public int getStartRow() {
+    public String getExportType() {
+		return exportType;
+	}
+
+	public void setExportType(String exportType) {
+		this.exportType = exportType;
+	}
+
+	public int getStartRow() {
         return startRow;
     }
 
@@ -130,7 +148,7 @@ public class ServerSideGetRowsRequest implements Serializable {
         return filterModel;
     }
 
-    public void setFilterModel(Map<String, ColumnFilter> filterModel) {
+    public void setFilterModel(Map<String, ColumnFilter> filterModel) {    
         this.filterModel = filterModel;
     }
 
@@ -247,6 +265,55 @@ public class ServerSideGetRowsRequest implements Serializable {
 	public void setCategoryOpt(String categoryOpt) {
 		this.categoryOpt = categoryOpt;
 	}
+
+	public String getSwitchtype() {
+		return switchtype;
+	}
+
+	public void setSwitchtype(String switchtype) {
+		this.switchtype = switchtype;
+	}
+
+	public String getStorage() {
+		return storage;
+	}
+
+	public void setStorage(String storage) {
+		this.storage = storage;
+	}
+
+	public String getProject() {
+		return project;
+	}
+
+	public void setProject(String project) {
+		this.project = project;
+	}
+
+	public String getThirdPartyId() {
+		return thirdPartyId;
+	}
+
+	public void setThirdPartyId(String thirdPartyId) {
+		this.thirdPartyId = thirdPartyId;
+	}
+
+	public String getProviders() {
+		return providers;
+	}
+
+	public void setProviders(String providers) {
+		this.providers = providers;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+	
 	
 
     

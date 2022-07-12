@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,8 +64,8 @@ public class ReportService {
 	@Autowired
 	private FavouriteDao_v2 favouriteDao_v2;
 
-	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey,
-			String reportList, String category, String actualDeviceType, String reportCategory) {
+	public String getReportHeader(ServerSideGetRowsRequest request,String reportName, String deviceType, String reportBy, String siteKey,
+			String reportList, String category, String actualDeviceType, String reportCategory, String analyticsType, boolean isHeader) {
 		JSONArray result = new JSONArray();
 		if (reportName.equalsIgnoreCase("migrationautomation")) { // get headers from dataframe
 
@@ -72,6 +73,15 @@ public class ReportService {
 
 		} else {
 			result = reportDao.getReportHeader(reportName, deviceType, reportBy);
+		}
+		
+		// for some reports we need to get column headers from report data
+		if(result.isEmpty()) {
+			result = dataframeService.getReportHeaderFromData(siteKey, category, reportList, deviceType, reportBy, analyticsType);
+			if(result.isEmpty()) {
+				dataframeService.getReportDataFromDF(request, isHeader);
+				result = dataframeService.getReportHeaderFromData(siteKey, category, reportList, deviceType, reportBy, analyticsType);
+			}
 		}
 
 		// String report_label = reportList + " " + deviceType + " by "+ reportBy;
@@ -92,6 +102,8 @@ public class ReportService {
 
 		return resultObject.toString();
 	}
+
+	
 
 	private String getReportLabelName(String category, String reportList, String deviceType, String reportBy) {
 		try {
@@ -589,5 +601,8 @@ public class ReportService {
 		
 		return resultObject;
 	}
+
+	 
+
 
 }

@@ -5,17 +5,26 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 //@SpringBootTest
@@ -25,6 +34,58 @@ class ZenfraFeaturesApplicationTests {
 
 		SparkSession sparkSession = SparkSession.builder().master("local").appName("simple").getOrCreate();
 		JavaSparkContext sc = new JavaSparkContext(sparkSession.sparkContext());
+		
+		try {
+			File f = new File("C:\\opt\\ZENfra\\Dataframe\\Pagination\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e_discovery_Server_windows_Local_HBA.json");
+			 Dataset<Row> dataset = sparkSession.read().option("multiline", true).json(f.getAbsolutePath()); 
+			dataset.createOrReplaceGlobalTempView("kkk");
+			
+			dataset.printSchema();
+			
+			String columnName = "HBA Name";
+			
+			Dataset<Row> lableDataset = sparkSession.emptyDataFrame();
+			try {
+				  lableDataset = sparkSession.sql("select distinct(`"+columnName+"`) from global_temp.kkk").toDF();
+			} catch (Exception e) {
+				 e.printStackTrace();
+			}		
+			
+			List<String> cloumnValues = lableDataset.as(Encoders.STRING()).collectAsList();
+		 
+		 
+					String cloumnValuesStr = String.join(",", cloumnValues.stream().map(name -> ("'"+ name.toLowerCase()+"'" ))
+							.collect(Collectors.toList()));		
+		
+			String operater = null;
+			if(operater .equalsIgnoreCase("count")) {
+				dataset = sparkSession.sql("select `"+columnName+"` as `colName`, count(*) as `colValue`  from global_temp.kkk  where lower(`"+columnName+"`) in ("+cloumnValuesStr+") group by `"+columnName+"` ");
+			} else if(operater.equalsIgnoreCase("sum")) {
+				dataset = sparkSession.sql("select `"+columnName+"`as `colName`, sum(`"+columnName+"`) as `colValue` from global_temp.kkk  where `"+columnName+"` in ("+cloumnValuesStr+") group by `"+columnName+"`");
+				 
+			} 
+			
+			JSONParser parser = new JSONParser();
+			
+			JSONArray lableArray = new JSONArray();
+			JSONArray valueArray = new JSONArray();
+			JSONObject resultData = new JSONObject();	
+			
+			List<String> resultLsit = dataset.toJSON().collectAsList();
+			for(String result : resultLsit) {
+				JSONObject jsonObj = (JSONObject) parser.parse(result);
+				lableArray.add(jsonObj.get("colName"));
+				valueArray.add(jsonObj.get("colValue"));
+			}
+			resultData.put("label", lableArray);
+			resultData.put("value", valueArray);
+			
+			System.out.println("--------resultData-----" + resultData);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
 		/*
 		 * Map<String, String> orientDBProps = new HashMap<String, String>();
 		 * orientDBProps.put("url","jdbc:orient:remote:uatdb.zenfra.co/uatvpsdb");
@@ -53,7 +114,7 @@ class ZenfraFeaturesApplicationTests {
 
 		// System.out.println("-----------conn-----------" + conn.isClosed());
 
-		createDataframeForJsonData("", sparkSession);
+		//createDataframeForJsonData("", sparkSession);
 		// getMigrationReport("", sparkSession);
 	}
 

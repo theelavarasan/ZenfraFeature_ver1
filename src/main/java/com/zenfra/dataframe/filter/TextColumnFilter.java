@@ -14,9 +14,9 @@ public class TextColumnFilter extends ColumnFilter {
 
     
     public TextColumnFilter(String value, String type, String filter) {
-        this.value = value.replaceAll("\\s+", "_").toLowerCase();
-        this.type = type.replaceAll("\\s+", "_").toLowerCase();
-        this.filter = filter.replaceAll("\\s+", "_").toLowerCase();
+        this.value = value;//.replaceAll("\\s+", "_").toLowerCase();
+        this.type = type;//.replaceAll("\\s+", "_").toLowerCase();
+        this.filter = filter;//.replaceAll("\\s+", "_").toLowerCase();
     }
 
     public String getValue() {
