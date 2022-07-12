@@ -33,6 +33,7 @@ public class FTPServerModel implements Serializable {
 	
 	private String timeoutLimit;
 	
+	public boolean isNas;
 	
 	private boolean isActive;
 	public boolean isActive() {
@@ -40,6 +41,14 @@ public class FTPServerModel implements Serializable {
 	}
 	public void setActive(boolean isActive) {
 		this.isActive = isActive;
+	}
+	
+	public boolean isNas() {
+		return isNas;
+	}
+
+	public void setNas(boolean isNas) {
+		this.isNas = isNas;
 	}
 	
 	@NotBlank(message = "ipAddress must not be empty")

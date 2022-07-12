@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.validation.constraints.NotEmpty;
+
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -75,6 +77,20 @@ public class FileNameSettingsService extends CommonEntityManager {
 
 		try {
 			return repo.getsaveFileNameSettings(siteKey, connectionName);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+			return null;
+		}
+	}
+
+	public FileNameSettingsModel getsaveFileNameSettingsAndIsNas(String siteKey, String connectionName, boolean isNas) {
+
+		try {
+			return repo.getsaveFileNameSettingsAndIsNas(siteKey, connectionName, isNas);
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -264,6 +280,23 @@ public class FileNameSettingsService extends CommonEntityManager {
 		return list;
 	}
 
+	public List<FileNameSettingsModel> getFileNameSettingsByNasNameAndIsNas(String siteKey, String ftpName,
+			boolean isNas) {
+		List<FileNameSettingsModel> list = new ArrayList<FileNameSettingsModel>();
+		try {
+			list = repo.getsaveFileNameSettingsByNasNameAndIsNas(siteKey, ftpName, isNas);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return list;
+	}
+
 	static boolean isValidMatch(String patternRegex, String content) {
 		boolean isMatched = false;
 		try {
@@ -307,4 +340,5 @@ public class FileNameSettingsService extends CommonEntityManager {
 		}
 		return false;
 	}
+
 }

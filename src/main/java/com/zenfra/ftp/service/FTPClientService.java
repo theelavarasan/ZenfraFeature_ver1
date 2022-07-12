@@ -122,6 +122,20 @@ public class FTPClientService {
 
 	}
 
+	public Object getNasBySiteKeyAndIsNas(String siteKey, boolean isNas) {
+		try {
+			return repo.findNasBySiteKeyAndIsNas(siteKey, isNas);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+			return null;
+		}
+
+	}
+
 	public List<FileWithPath> getFiles(String siteKey, String path, String connectionName, FTPServerModel server) {
 
 		List<FileWithPath> listFilesFromPath = new ArrayList<FileWithPath>();

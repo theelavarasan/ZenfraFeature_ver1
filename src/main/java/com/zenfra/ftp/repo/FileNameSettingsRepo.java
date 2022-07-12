@@ -17,6 +17,9 @@ public interface FileNameSettingsRepo extends JpaRepository<FileNameSettingsMode
 
 	@Query("select s from FileNameSettingsModel s where s.siteKey=:siteKey and s.ftpName=:ftpName")
 	FileNameSettingsModel getsaveFileNameSettings(@Param("siteKey")String siteKey,@Param("ftpName") String ftpName);
+	
+	@Query("select s from FileNameSettingsModel s where s.siteKey=:siteKey and s.ftpName=:ftpName and s.isNas=:isNas")
+	FileNameSettingsModel getsaveFileNameSettingsAndIsNas(@Param("siteKey")String siteKey,@Param("ftpName") String ftpName,@Param("isNas") boolean isNas);
 
 	@Query("delete from FileNameSettingsModel s where s.siteKey=:siteKey and s.ftpName=:ftpName")
 	void deletesaveFileNameSettings(@Param("siteKey")String siteKey,@Param("ftpName") String ftpName);
@@ -24,6 +27,9 @@ public interface FileNameSettingsRepo extends JpaRepository<FileNameSettingsMode
 	
 	@Query("select s from FileNameSettingsModel s where s.siteKey=:siteKey and  s.ftpName=:ftpName")
 	List<FileNameSettingsModel> getsaveFileNameSettingsByFtpName(@Param("siteKey") String siteKey,@Param("ftpName") String ftpName);
+	
+	@Query("select s from FileNameSettingsModel s where s.siteKey=:siteKey and  s.ftpName=:ftpName and s.isNas=:isNas")
+	List<FileNameSettingsModel> getsaveFileNameSettingsByNasNameAndIsNas(@Param("siteKey") String siteKey,@Param("ftpName") String ftpName,@Param("isNas") boolean isNas);
 
 	@Query("select s from FileNameSettingsModel s where s.siteKey=:siteKey and s.ftpName=:ftpName")
 	List<FileNameSettingsModel> getsaveFileNameSettingsList(String siteKey, String ftpName);

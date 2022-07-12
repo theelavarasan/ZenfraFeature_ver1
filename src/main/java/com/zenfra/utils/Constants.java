@@ -10,6 +10,7 @@ public class Constants {
 	public static String ftp_password="Zenfra@123$";
 
 	public static String ftp_sucess="FTP - :ftp_name Data processing initiated successfully";
+	public static String nas_sucess="NAS - :ftp_name Data processing initiated successfully";
 	public static String ftp_fail="FTP - :ftp_name Data processing initiation failed";
 	public static String ftp_Partially_Processed="FTP - :ftp_name Data processing successfully initiated via FTP";
 

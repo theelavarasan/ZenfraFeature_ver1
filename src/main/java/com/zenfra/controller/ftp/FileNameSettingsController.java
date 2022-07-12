@@ -33,137 +33,150 @@ import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.utils.NullAwareBeanUtilsBean;
 
-
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/rest/fNSetting")
 @Validated
 public class FileNameSettingsController {
 	public static final Logger logger = LoggerFactory.getLogger(FileNameSettingsController.class);
-	
-	
+
 	@Autowired
 	FileNameSettingsService service;
-	
+
 	@Autowired
 	FTPClientService ftpservice;
-	
+
 	@SuppressWarnings({ "unchecked", "static-access" })
 	@PostMapping("/save")
-	public ResponseModel_v2 saveFNSettings(
-			@Valid @RequestBody FileNameSettingsModel fileNameSettings) {
+	public ResponseModel_v2 saveFNSettings(@Valid @RequestBody FileNameSettingsModel fileNameSettings) {
 		ResponseModel_v2 response = new ResponseModel_v2();
 		try {
-			
-			
-			FileNameSettingsModel exist=service.getFileNameSettingsById(fileNameSettings.getFileNameSettingId());
 
-			
-			if(exist==null) {
+			FileNameSettingsModel exist = service.getFileNameSettingsById(fileNameSettings.getFileNameSettingId());
+
+			if (exist == null) {
+				if (fileNameSettings.isNas) {
+					fileNameSettings.setNas(true);
+				}
 				System.out.println(fileNameSettings.toString());
 				System.out.println("enter new");
 				String fileNameSettingId = UUID.randomUUID().toString();
 				fileNameSettings.setFileNameSettingId(fileNameSettingId);
-				fileNameSettings.setActive(true);	
+				fileNameSettings.setActive(true);
 				fileNameSettings.setPatternString(fileNameSettings.getPattern().toJSONString());
-				service.saveFileNameSettings(fileNameSettings);			
-			}else {
+				service.saveFileNameSettings(fileNameSettings);
+			} else {
+				if (fileNameSettings.isNas) {
+					fileNameSettings.setNas(true);
+				}
 				exist.setPatternString(fileNameSettings.getPattern().toJSONString());
 				System.out.println("enter exist");
-				BeanUtils.copyProperties(fileNameSettings, exist, NullAwareBeanUtilsBean.getNullPropertyNames(fileNameSettings));
+				BeanUtils.copyProperties(fileNameSettings, exist,
+						NullAwareBeanUtilsBean.getNullPropertyNames(fileNameSettings));
 				System.out.println(exist.toString());
 				exist.setActive(true);
 				service.saveFileNameSettings(exist);
 			}
-			
+
 			response.setResponseCode(HttpStatus.OK);
-			 response.setResponseMessage("Saved FileName Settings");
-			
+			response.setResponseMessage("Saved FileName Settings");
+
 			return response;
-		
+
 		} catch (Exception e) {
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
-			response.setResponseMessage("Getting exception in Saving File name Settings: "+e.getMessage());
+			response.setResponseMessage("Getting exception in Saving File name Settings: " + e.getMessage());
 			// service.saveFtpServer(server);
 			return response;
-		}		
+		}
 	}
+
 	@PostMapping("/get")
-	public ResponseModel_v2 getFNSettings(
-			 @RequestParam String userId,
-			 @NotEmpty(message = "Please provide valid siteKey") @RequestParam String siteKey,
-			 @NotEmpty(message = "Please provide valid ftp name") @RequestParam String ftpName) {
+	public ResponseModel_v2 getFNSettings(@RequestParam String userId,
+			@NotEmpty(message = "Please provide valid siteKey") @RequestParam String siteKey,
+			@NotEmpty(message = "Please provide valid ftp name") @RequestParam String ftpName,
+			@RequestParam(name = "isNas", required = false) boolean isNas) {
 		System.out.println("Get into FN Settings");
 		ResponseModel_v2 response = new ResponseModel_v2();
+		List<FileNameSettingsModel> list;
 		try {
-			List<FileNameSettingsModel> list=service.getFileNameSettingsByFtpName(siteKey,ftpName);
+			if (isNas) {
+				list = service.getFileNameSettingsByNasNameAndIsNas(siteKey, ftpName, isNas);
+			} else {
+				list = service.getFileNameSettingsByFtpName(siteKey, ftpName);
+			}
 			response.setjData(list);
 			response.setResponseCode(HttpStatus.OK);
 			response.setResponseMessage("File Name Settings get call executed Successfully");
 
-		} catch(Exception e) {
+		} catch (Exception e) {
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			response.setResponseMessage("Error in get File Name API");
-			logger.error("ERROR in GET CALL: "+e.getMessage());
-		}	
+			logger.error("ERROR in GET CALL: " + e.getMessage());
+		}
 		return response;
 	}
-	
+
 	@PostMapping("/delete")
 	public ResponseModel_v2 deleteFNSettings(@RequestParam(name = "authUserId", required = false) String userId,
-			 @NotEmpty(message = "Please provide valid siteKey") @RequestParam String siteKey, 
-			 @NotEmpty(message = "Please provide valid serverUsername") @RequestParam String serverUsername) {
+			@NotEmpty(message = "Please provide valid siteKey") @RequestParam String siteKey,
+			@NotEmpty(message = "Please provide valid serverUsername") @RequestParam String serverUsername,
+			@RequestParam(name = "isNas", required = false) boolean isNas) {
 		ResponseModel_v2 response = new ResponseModel_v2();
-		
+		FileNameSettingsModel model;
+
 		try {
-			FileNameSettingsModel model=service.getsaveFileNameSettings(siteKey, serverUsername);
-				model.setActive(false);
+			if (isNas) {
+			 model = service.getsaveFileNameSettingsAndIsNas(siteKey, serverUsername, isNas);
+			} else {
+			model = service.getsaveFileNameSettings(siteKey, serverUsername);
+			}
+			model.setActive(false);
 			service.saveFileNameSettings(model);
 			response.setResponseCode(HttpStatus.OK);
 			response.setResponseMessage("File Name Settings got Successfully");
 
-		} catch(Exception e) {
+		} catch (Exception e) {
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
 			response.setResponseMessage("Error in get File Name API");
-			logger.error("ERROR in GET CALL: "+e.getMessage());
-		}	
+			logger.error("ERROR in GET CALL: " + e.getMessage());
+		}
 		return response;
 	}
-	
-	
+
 	@PostMapping("/getFromPattern")
 	public ResponseModel_v2 getFilesFromPattern(@RequestParam(name = "authUserId", required = false) String userId,
-			@RequestParam String siteKey, @RequestParam String ftpName) { 
+			@RequestParam String siteKey, @RequestParam String ftpName, @RequestParam(name = "isNas", required = false) boolean isNas) {
 		ResponseModel_v2 response = new ResponseModel_v2();
-		try {			
-			List<FileWithPath> filesFillter = service.getFilesByPattern(siteKey, ftpName,userId);
-			System.out.println("filesFillter:: "+filesFillter);
+		try {
+			List<FileWithPath> filesFillter = service.getFilesByPattern(siteKey, ftpName, userId);
+			System.out.println("filesFillter:: " + filesFillter);
 			response.setjData(filesFillter);
 			response.setResponseMessage("Files From pattern executed...");
 		} catch (Exception e) {
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
-			response.setResponseMessage(e.getMessage());		
+			response.setResponseMessage(e.getMessage());
 		}
 		return response;
 	}
-	
+
 	@PostMapping("/moveFilesByPattern")
 	public ResponseModel_v2 moveFilesByPattern(@RequestParam(name = "authUserId", required = false) String userId,
-			@RequestParam String siteKey,@RequestParam String serverUsername) { 
+			@RequestParam String siteKey, @RequestParam String serverUsername) {
 		ResponseModel_v2 response = new ResponseModel_v2();
-		
+
 		try {
-			List<FileWithPath> files =null;// ftpservice.getFiles(siteKey, null, serverUsername);
-			
-			List<FileUploadStatus> status = service.moveFilesByPattern(siteKey, serverUsername,files);
+			List<FileWithPath> files = null;// ftpservice.getFiles(siteKey, null, serverUsername);
+
+			List<FileUploadStatus> status = service.moveFilesByPattern(siteKey, serverUsername, files);
 			response.setjData(status);
-			response.setResponseMessage("Files From pattern executed...");		
+			response.setResponseMessage("Files From pattern executed...");
 		} catch (Exception e) {
 			response.setResponseCode(HttpStatus.EXPECTATION_FAILED);
-			response.setResponseMessage(e.getMessage());		
-		
+			response.setResponseMessage(e.getMessage());
+
 		}
 		return response;
 	}
-	
+
 }

@@ -95,6 +95,7 @@ public class ZKConstants {
 	public static String parsingServerProtocol = "parsingServerProtocol";
 
 	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE_SUCCESS = "ftp_template_success";
+	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE_SUCCESS_02 = "ftp_template_success_02";
 	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE_FAIL = "ftp_template_failure";
 	public static String FTP_FILE_COMLETE_MAILL_TEMPLATE_PARTIALLY_PROCESSED = "ftp_template_partially_processed";
 	public static String MAIL_SERVICE_URL = "mailServiceUrl";
@@ -107,6 +108,7 @@ public class ZKConstants {
 	public final static String ERROR = "Error";
 	public final static String SUCCESS = "Success";
 	public final static String PARAMETER_MISSING = "Parameter missing";
+	public static String POSTGRES_URL_AWS_DB = "postgresurl_aws_db";
 	public static String HEALTHCHECK_COLUMN_ORDER = "healthCheckName,validationRuleName,componentType,reportName,createdBy,createdTime,updatedBy,updatedTime";
 	public static String HEADER_LABEL = "headerLabel";
 
