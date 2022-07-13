@@ -204,11 +204,14 @@ public class FTPClientService {
 			for (FileWithPath s : files) {
 				FileUploadStatus status = new FileUploadStatus();
 				if (s.isSubFolder()) {
+					System.out.println("--sub folder---");
+					System.out.println("s.getSubFolderPath()"+s.getSubFolderPath()+" s.getPath()"+s.getPath());
 					status.setStatus(FTPClientConfiguration.getFileFromFtp(server, s.getSubFolderPath(), s.getPath(),
 							s.getName()));
 				} else {
 					status.setStatus(FTPClientConfiguration.getFileFromFtp(server, server.getServerPath(), s.getPath(),
 							s.getName()));
+					System.out.println("server.getServerPath()"+server.getServerPath()+" s.getPath()"+s.getPath());
 				}
 				status.setFileName(s.getName());
 				statusList.add(status);

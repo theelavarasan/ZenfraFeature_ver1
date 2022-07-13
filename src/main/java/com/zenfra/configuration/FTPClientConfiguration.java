@@ -211,7 +211,6 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			String str = sftpChannel.getHome();
 			sftpChannel.disconnect();
 
-			sftpChannel.disconnect();
 			return str;
 		} catch (Exception e) {
 			e.printStackTrace();
