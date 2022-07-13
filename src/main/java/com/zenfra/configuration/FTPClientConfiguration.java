@@ -191,10 +191,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				f.mkdir();
 			}
 
-			ChannelSftp sftpChannel = (ChannelSftp) getConnection(server);
-			sftpChannel.lcd(path);
-			System.out.println("!!!!! lcd: " + sftpChannel.lpwd());
-			Vector<ChannelSftp.LsEntry> list = sftpChannel.ls("."); 
+			Channel sftpChannel = (ChannelSftp) getConnection(server);
+			((ChannelSftp) sftpChannel).lcd(path);
+			System.out.println("!!!!! lcd: " + ((ChannelSftp) sftpChannel).lpwd());
+			Vector<ChannelSftp.LsEntry> list = ((ChannelSftp) sftpChannel).ls("."); 
 			
 			for (ChannelSftp.LsEntry oListItem : list) {
                 // output each item from directory listing for logs
@@ -205,7 +205,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
                     // Grab the remote file ([remote filename], [local path/filename to write file to])
 
                 	System.out.println("get " + oListItem.getFilename());
-                	sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName);  // while testing, disable this or all of your test files will be grabbed
+                	((ChannelSftp) sftpChannel).get(oListItem.getFilename(), toPath + "/" + fileName);  // while testing, disable this or all of your test files will be grabbed
 
                     grabCount++; 
                     // Delete remote file
@@ -215,7 +215,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
                 }
             }
 
-		String str = sftpChannel.getHome();
+		String str = ((ChannelSftp) sftpChannel).getHome();
 			sftpChannel.disconnect();
 
 			return str;
