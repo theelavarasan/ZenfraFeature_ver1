@@ -198,7 +198,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			}
 
 			ChannelSftp sftpChannel = (ChannelSftp) getConnection(server);
-			sftpChannel.lcd(path);
+//			sftpChannel.lcd(path);
 			System.out.println("!!!!! lcd: " + sftpChannel.lpwd());
 			Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(".");
 
