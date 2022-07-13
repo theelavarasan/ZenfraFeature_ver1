@@ -27,8 +27,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
@@ -37,6 +42,7 @@ import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 import com.zenfra.model.ZenfraJSONObject;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Component
@@ -96,6 +102,10 @@ public class ReportService {
 		resultObject.put("headerInfo", result);
 		resultObject.put("report_label", report_label);
 		resultObject.put("report_name", report_name);
+		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax")) {
+			resultObject.put("subLinkDetails", getDSRConfigData(request, deviceType));
+		}
+		
 
 		JSONObject metrics = dataframeService.getUnitConvertDetails(reportName, deviceType);
 		resultObject.put("unit_conv_details", metrics);
@@ -600,6 +610,31 @@ public class ReportService {
 		}
 		
 		return resultObject;
+	}
+	
+	private JSONObject getDSRConfigData(ServerSideGetRowsRequest request, String deviceType) {
+		
+		JSONObject resultObject = new JSONObject();
+		
+		try {
+			String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+	    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+	    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+	        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/auth/dsr-config";
+	        uri = uri+"?category="+request.getCategory()
+	    	+"&reportList="+request.getReportList()
+	    	+"&reportBy="+request.getReportBy()
+	    	+"&reportName="+request.getReportType()
+	    	+"&deviceType="+deviceType;
+	        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+	        RestTemplate restTemplate = new RestTemplate();
+	        resultObject = restTemplate.getForObject(uri, JSONObject.class);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultObject;
+		
 	}
 
 	 
