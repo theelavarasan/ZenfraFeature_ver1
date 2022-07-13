@@ -299,8 +299,8 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 		List<FileWithPath> files = new ArrayList<FileWithPath>();
 		try {
-			ChannelSftp sftpChannel = (ChannelSftp) getConnection(server);
-
+			ChannelSftp sftpChannel = getConnection(server);
+			sftpChannel.connect();
 //			ftpClient.enterLocalPassiveMode();
 			files.addAll(getAllFilesFromPath(sftpChannel, parentDir, "", 0, server, files, existChecksums, false));
 //			ftpClient.logout();
@@ -325,7 +325,6 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			if (!currentDir.equals("")) {
 				dirToList += "/" + currentDir;
 			}
-			sftpChanel.connect();
 			sftpChanel.cd(dirToList);
 			Vector<ChannelSftp.LsEntry> files = sftpChanel.ls(dirToList);
 
