@@ -791,7 +791,11 @@ public class ReportDataController {
 						
 						
 					} else {
+						if(deviceType.equalsIgnoreCase("ibmsvc")) {
+							serverName = resultJSON.get("Host Name").toString();
+						} else {
 						serverName = resultJSON.get("Server Name").toString();
+						}
 						
 						whereClause.put(columnName, serverName);
 					}					
