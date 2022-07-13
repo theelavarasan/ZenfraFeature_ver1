@@ -47,7 +47,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 	@Autowired
 	CommonFunctions functions;
 
-	public static Channel loginClient(FTPServerModel server) {
+	public static ChannelSftp loginClient(FTPServerModel server) {
 
 		try {
 			FTPClient ftpClient = new FTPClient();
@@ -74,9 +74,9 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			session.connect();
 			System.out.println("Connection established.");
 			System.out.println("Creating SFTP Channel.");
-			Channel sftp = session.openChannel("sftp");
-			sftp.connect();
-			return sftp;
+//			Channel sftp = session.openChannel("sftp");
+//			sftp.connect();
+			return (ChannelSftp) session.openChannel("sftp");
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -140,7 +140,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		}
 	}
 
-	public static Channel getConnection(FTPServerModel server) {
+	public static ChannelSftp getConnection(FTPServerModel server) {
 		try {
 
 			return loginClient(server);
@@ -197,15 +197,16 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				f.mkdir();
 			}
 
-			ChannelSftp sftpChannel = (ChannelSftp) getConnection(server);
-			sftpChannel.cd(path);
+			ChannelSftp sftpChannel = getConnection(server);
+			sftpChannel.connect();
+//			sftpChannel.cd(path);
 			System.out.println("!!!!! lcd: " + sftpChannel.lpwd());
 			Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(path);
 			System.out.println("---ls ----"+sftpChannel.ls(".")+"-----"+list);
 			for (ChannelSftp.LsEntry oListItem : list) {
 				// output each item from directory listing for logs
 				System.out.println("--oListItem--"+oListItem.toString());
-//				sftpChannel.put(path+ "/" +fileName, toPath+ "/" +fileName);
+				sftpChannel.put(path+ "/" +fileName, toPath+ "/" +fileName);
 				// If it is a file (not a directory)
 				if (!oListItem.getAttrs().isDir()) {
 					// Grab the remote file ([remote filename], [local path/filename to write file
@@ -213,7 +214,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 					System.out.println("get " + oListItem.getFilename());
 					sftpChannel.put(path+ "/" +oListItem.getFilename(), toPath  + "/" + fileName);
-//					sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName); // while testing, disable this or
+					sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName); // while testing, disable this or
 																						// all of your test files will																// be grabbed
 					System.out.println("----listed---"+sftpChannel.ls(toPath));
 					grabCount++;
@@ -226,8 +227,9 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					// remove any downloaded files from the inbox.
 				}
 			}
-
+			
 			String str = sftpChannel.getHome();
+			sftpChannel.exit();
 			sftpChannel.disconnect();
 
 			return str;
