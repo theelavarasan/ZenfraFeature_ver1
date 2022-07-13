@@ -69,7 +69,8 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			Session session = jsch.getSession(server.getServerUsername(), server.getIpAddress(),
 					Integer.parseInt(server.getPort()));
 			session.setConfig("StrictHostKeyChecking", "no");
-			session.setPassword(server.getServerPassword());
+			session.setPassword(encryption.decrypt(server.getServerPassword()));
+			System.out.println("ip: "+server.getIpAddress() +" pass: "+ server.getServerPassword());
 			session.connect();
 			System.out.println("Connection established.");
 			System.out.println("Creating SFTP Channel.");
