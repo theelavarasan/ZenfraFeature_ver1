@@ -2694,6 +2694,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		JSONArray resultArray = new JSONArray();
 		JSONArray reportResult = new JSONArray();
+		String keyName = dsrReportName;
 		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
 		String viewName = deviceType.toLowerCase() + "_" + dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
 		Dataset<Row> dsrData = sparkSession.emptyDataFrame();
@@ -2743,7 +2744,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				 }
 				 dsrData = sparkSession.sql(query);
 			} else {
-				prepareDsrReport(siteKey, deviceType);
+				prepareDsrReportForSingleTab(siteKey, deviceType, keyName);
 				 String query = "";
 				
 				 if(dsrPath.contains("dsr_LogAnalytics")) {
@@ -3168,6 +3169,63 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			}
 		}
 		return resultData;
+	}
+	
+	public void prepareDsrReportForSingleTab(String siteKey, String sourceType, String reportName) {
+		try {
+			System.out.println("!!!!! prepareDsrReport sourceType: " + sourceType);
+			String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+	    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+	    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+	        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/prepareSubreportDataForSingleTab?siteKey="+siteKey+"&logType="+sourceType+"&dsrName="+reportName;
+	        
+	    	
+	        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+	      
+	        Map<String, String> map =  new HashMap<String, String>();
+	        map.put("siteKey", siteKey);
+	        map.put("logType", sourceType);
+	       	  Map<String, Object> body= new LinkedHashMap<>();
+		    body.putAll(map); 
+		   
+		    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
+		    		builder.build(map);
+		    System.out.println(builder.buildAndExpand(map).toUri());
+			  
+		 RestTemplate restTemplate = new RestTemplate();
+		
+		 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
+		 ResponseEntity<String> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
+		    		httpRequest, String.class);
+		String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + sourceType + File.separator;
+		System.out.println("!!!!! prepareDsrReport dsrPath: " + dsrPath);
+		 File filesList[] = new File(dsrPath).listFiles();
+	      System.out.println("List of files and directories in the specified directory:");
+	      for(File file : filesList) {
+	    	  if(file.getAbsolutePath().contains("_dsr_")) {
+	    		  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+							.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
+				
+					String viewName = sourceType.toLowerCase() + "_" + file.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+					System.out.println("--------DSR View -------- " + viewName);
+					dataset.createOrReplaceGlobalTempView(viewName);
+					dataset.printSchema();
+					dataset.show();
+		    	  setFileOwner(file.getAbsoluteFile());
+	    	  }
+	    	
+	      }
+		   
+		///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
+		
+		  
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+			
+		  
+		
 	}
 	
 }
