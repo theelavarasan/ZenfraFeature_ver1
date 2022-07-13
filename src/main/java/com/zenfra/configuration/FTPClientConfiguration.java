@@ -111,12 +111,13 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			} else if (sftp.isConnected()) {
 				sftp.cd(server.getIpAddress());
 				System.out.println("--sftp-ls-"+sftp.ls(server.getIpAddress()));
+			}else {
 				return "The given path is invalid!";
-			} 
+			}
 				
 			sftp.disconnect();
 			session.disconnect();
-			return "Test Connection Sucessfull!";	
+			return "Test Connection Successfull!";	
 //			boolean ftpChk = ftpClient.login(server.getServerUsername(), server.getServerPassword());
 
 //			System.out.println("FTP client Code:: " + ftpChk);
