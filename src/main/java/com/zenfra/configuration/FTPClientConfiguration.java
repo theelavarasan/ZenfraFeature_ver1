@@ -201,7 +201,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			sftpChannel.cd(path);
 			System.out.println("!!!!! lcd: " + sftpChannel.lpwd());
 			Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(path);
-			System.out.println("---ls ----"+sftpChannel.ls("."));
+			System.out.println("---ls ----"+sftpChannel.ls(".")+"-----"+list);
 			for (ChannelSftp.LsEntry oListItem : list) {
 				// output each item from directory listing for logs
 				System.out.println("--oListItem--"+oListItem.toString());
@@ -212,7 +212,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					// to])
 
 					System.out.println("get " + oListItem.getFilename());
-					sftpChannel.put(path+ "/" +fileName, toPath);
+					sftpChannel.put(path+ "/" +oListItem.getFilename(), toPath  + "/" + fileName);
 //					sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName); // while testing, disable this or
 																						// all of your test files will																// be grabbed
 					System.out.println("----listed---"+sftpChannel.ls(toPath));
