@@ -105,6 +105,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				System.out.println("Connection established.");
 				System.out.println("Creatiftng SFTP Channel.");
 				sftp = (ChannelSftp) session.openChannel("sftp");
+				System.out.println("-----sftp-----"+sftp);
 				sftp.connect();
 			} else if (sftp.ls(server.getServerPath()) != null) {
 				return "The given path is invalid!";
@@ -112,7 +113,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				
 			sftp.disconnect();
 			session.disconnect();
-			return "Test Connection Failed!";	
+			return "Test Connection Sucessfull!";	
 //			boolean ftpChk = ftpClient.login(server.getServerUsername(), server.getServerPassword());
 
 //			System.out.println("FTP client Code:: " + ftpChk);
@@ -191,10 +192,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				f.mkdir();
 			}
 
-			Channel sftpChannel = (ChannelSftp) getConnection(server);
-			((ChannelSftp) sftpChannel).lcd(path);
-			System.out.println("!!!!! lcd: " + ((ChannelSftp) sftpChannel).lpwd());
-			Vector<ChannelSftp.LsEntry> list = ((ChannelSftp) sftpChannel).ls("."); 
+			ChannelSftp sftpChannel = (ChannelSftp) getConnection(server);
+			sftpChannel.lcd(path);
+			System.out.println("!!!!! lcd: " + sftpChannel.lpwd());
+			Vector<ChannelSftp.LsEntry> list = sftpChannel.ls("."); 
 			
 			for (ChannelSftp.LsEntry oListItem : list) {
                 // output each item from directory listing for logs
@@ -205,9 +206,10 @@ public class FTPClientConfiguration extends CommonEntityManager {
                     // Grab the remote file ([remote filename], [local path/filename to write file to])
 
                 	System.out.println("get " + oListItem.getFilename());
-                	((ChannelSftp) sftpChannel).get(oListItem.getFilename(), toPath + "/" + fileName);  // while testing, disable this or all of your test files will be grabbed
+                	sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName);  // while testing, disable this or all of your test files will be grabbed
 
                     grabCount++; 
+
                     // Delete remote file
                     //c.rm(oListItem.getFilename());  // Note for SFTP grabs from this remote host, deleting the file is unnecessary, 
                                                       //   as their system automatically moves an item to the 'downloaded' subfolder
@@ -215,7 +217,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
                 }
             }
 
-		String str = ((ChannelSftp) sftpChannel).getHome();
+			String str = sftpChannel.getHome();
 			sftpChannel.disconnect();
 
 			return str;
