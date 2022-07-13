@@ -1586,10 +1586,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			rowGroups = formatInputColumnNames(rowGroups);
 			groupKeys = formatInputColumnNames(groupKeys);
 			sortModel = formatSortModel(sortModel);
+			dataset = orderBy(groupBy(filter(dataset)));
 		}
 		
+		
+		
 			
-		dataset = orderBy(groupBy(filter(dataset)));	
 		
 		
 		Dataset<Row> countData = getDataframeNumericColAgg(dataset, viewName, numericColumns, dataframeColumns);	
