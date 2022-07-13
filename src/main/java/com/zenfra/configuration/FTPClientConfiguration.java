@@ -176,39 +176,46 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public static String getFileFromFtp(FTPServerModel server, String path, String toPath, String fileName) {
-
+		
+		int grabCount = 0;
 		try {
 
 			System.out.println("path::" + path);
 			System.out.println("toPath::" + toPath);
 			System.out.println("fileName::" + fileName);
-
-			ChannelSftp sftpChannel = (ChannelSftp) getConnection(server);
-			sftpChannel.cd(toPath);
-//			sshClient.changeWorkingDirectory(path);
-//			sshClient.setFileType(FTP.BINARY_FILE_TYPE);
-//			sshClient.enterLocalPassiveMode();
+			
 			File f = new File(toPath);
 			if (!(f.exists() && f.isDirectory())) {
 				f.mkdir();
 			}
 
-			toPath = toPath + "/" + fileName;
-			System.out.println("toPath::" + toPath);
-			try (FileOutputStream fos = new FileOutputStream(toPath)) {
-				sftpChannel.get(fileName, fos);
-			} catch (IOException e) {
-				e.printStackTrace();
-				StringWriter errors = new StringWriter();
-				e.printStackTrace(new PrintWriter(errors));
-				String ex = errors.toString();
-				ExceptionHandlerMail.errorTriggerMail(ex);
-				getFileFromFtp(server, path, toPath, fileName);
-				return e.getMessage().toString();
-			}
+			ChannelSftp sftpChannel = (ChannelSftp) getConnection(server);
+			sftpChannel.lcd(path);
+			System.out.println("!!!!! lcd: " + sftpChannel.lpwd());
+			Vector<ChannelSftp.LsEntry> list = sftpChannel.ls("."); 
+			
+			for (ChannelSftp.LsEntry oListItem : list) {
+                // output each item from directory listing for logs
+				System.out.println(oListItem.toString()); 
 
-			String str = sftpChannel.getHome();
+                // If it is a file (not a directory)
+                if (!oListItem.getAttrs().isDir()) {
+                    // Grab the remote file ([remote filename], [local path/filename to write file to])
+
+                	System.out.println("get " + oListItem.getFilename());
+                	sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName);  // while testing, disable this or all of your test files will be grabbed
+
+                    grabCount++; 
+                    // Delete remote file
+                    //c.rm(oListItem.getFilename());  // Note for SFTP grabs from this remote host, deleting the file is unnecessary, 
+                                                      //   as their system automatically moves an item to the 'downloaded' subfolder
+                                                      //   after it has been grabbed.  For other target hosts, un comment this line to remove any downloaded files from the inbox.
+                }
+            }
+
+		String str = sftpChannel.getHome();
 			sftpChannel.disconnect();
 
 			return str;
