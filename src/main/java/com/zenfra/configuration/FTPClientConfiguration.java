@@ -325,6 +325,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			if (!currentDir.equals("")) {
 				dirToList += "/" + currentDir;
 			}
+			sftpChanel.connect();
 			sftpChanel.cd(dirToList);
 			Vector<ChannelSftp.LsEntry> files = sftpChanel.ls(dirToList);
 
@@ -387,7 +388,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 				}
 			}
-
+			sftpChanel.exit();
 			return fileList;
 		} catch (Exception e) {
 			e.printStackTrace();
