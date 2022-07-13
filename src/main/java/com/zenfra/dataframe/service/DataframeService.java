@@ -3176,7 +3176,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
 	    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
 	    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
-	        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/prepareSubreportData?siteKey="+siteKey+"&logType="+sourceType+"&dsrName="+reportName;
+	        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/prepareSubreportDataForSingleTab?siteKey="+siteKey+"&logType="+sourceType+"&dsrName="+reportName;
 	    	
 	        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
 	      
