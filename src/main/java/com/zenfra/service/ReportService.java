@@ -103,7 +103,7 @@ public class ReportService {
 		resultObject.put("report_label", report_label);
 		resultObject.put("report_name", report_name);
 		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax")) {
-			resultObject.put("subLinkDetails", getDSRConfigData(request));
+			resultObject.put("subLinkDetails", getDSRConfigData(request, deviceType));
 		}
 		
 
@@ -612,7 +612,7 @@ public class ReportService {
 		return resultObject;
 	}
 	
-	private JSONObject getDSRConfigData(ServerSideGetRowsRequest request) {
+	private JSONObject getDSRConfigData(ServerSideGetRowsRequest request, String deviceType) {
 		
 		JSONObject resultObject = new JSONObject();
 		
@@ -625,7 +625,7 @@ public class ReportService {
 	    	+"&reportList="+request.getReportList()
 	    	+"&reportBy="+request.getReportBy()
 	    	+"&reportName="+request.getReportType()
-	    	+"&deviceType="+request.getDeviceType();
+	    	+"&deviceType="+deviceType;
 	        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
 	        RestTemplate restTemplate = new RestTemplate();
 	        resultObject = restTemplate.getForObject(uri, JSONObject.class);
