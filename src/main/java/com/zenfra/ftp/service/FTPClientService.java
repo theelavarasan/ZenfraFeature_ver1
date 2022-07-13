@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.zenfra.configuration.FTPClientConfiguration;
+import com.zenfra.configuration.SFTPClientConfiguration;
 import com.zenfra.ftp.repo.FTPServerRepo;
 import com.zenfra.model.ResponseModel_v2;
 import com.zenfra.model.ftp.FTPServerModel;
