@@ -2694,6 +2694,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		JSONArray resultArray = new JSONArray();
 		JSONArray reportResult = new JSONArray();
+		String keyName = dsrReportName;
 		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
 		String viewName = deviceType.toLowerCase() + "_" + dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
 		Dataset<Row> dsrData = sparkSession.emptyDataFrame();
@@ -2743,7 +2744,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				 }
 				 dsrData = sparkSession.sql(query);
 			} else {
-				prepareDsrReportForSingleTab(siteKey, deviceType, dsrReportName);
+				prepareDsrReportForSingleTab(siteKey, deviceType, keyName);
 				 String query = "";
 				
 				 if(dsrPath.contains("dsr_LogAnalytics")) {
