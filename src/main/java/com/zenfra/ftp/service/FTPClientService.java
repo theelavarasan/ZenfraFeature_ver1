@@ -200,6 +200,7 @@ public class FTPClientService {
 
 		try {
 			System.out.println("Get files from FTP start");
+			System.out.println("---files--"+files);
 			List<FileUploadStatus> statusList = new ArrayList<FileUploadStatus>();
 			for (FileWithPath s : files) {
 				FileUploadStatus status = new FileUploadStatus();
@@ -209,9 +210,9 @@ public class FTPClientService {
 					status.setStatus(FTPClientConfiguration.getFileFromFtp(server, s.getSubFolderPath(), s.getPath(),
 							s.getName()));
 				} else {
-					status.setStatus(FTPClientConfiguration.getFileFromFtp(server, server.getServerPath(), s.getPath(),
-							s.getName()));
 					System.out.println("server.getServerPath()"+server.getServerPath()+" s.getPath()"+s.getPath());
+					status.setStatus(FTPClientConfiguration.getFileFromFtp(server, server.getServerPath(), s.getPath(),
+							s.getName()));				
 				}
 				status.setFileName(s.getName());
 				statusList.add(status);
