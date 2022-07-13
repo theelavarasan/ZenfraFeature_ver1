@@ -110,8 +110,8 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				System.out.println("sftp connected "+ sftp.isConnected());
 			}  
 			if (sftp.isConnected()) {
-				sftp.cd(server.getIpAddress());
-				System.out.println("--sftp-ls-"+sftp.ls(server.getIpAddress()));
+				sftp.cd(server.getServerPath());
+				System.out.println("--sftp-ls-"+sftp.ls(server.getServerPath()));
 			}else {
 				return "The given path is invalid!";
 			}
