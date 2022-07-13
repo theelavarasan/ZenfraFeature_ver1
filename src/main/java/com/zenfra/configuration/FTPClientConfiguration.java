@@ -74,7 +74,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			System.out.println("Connection established.");
 			System.out.println("Creating SFTP Channel.");
 			Channel sftp = session.openChannel("sftp");
-			
+			sftp.connect();
 			return sftp;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -94,15 +94,24 @@ public class FTPClientConfiguration extends CommonEntityManager {
 //			ftpClient.connect(server.getIpAddress(), Integer.parseInt(server.getPort()));
 
 			JSch jsch = new JSch();
-			
+			ChannelSftp sftp = null;
 			Session session = jsch.getSession(server.getServerUsername(), server.getIpAddress(),
 					Integer.parseInt(server.getPort()));
 			session.setConfig("StrictHostKeyChecking", "no");
 			session.setPassword(server.getServerPassword());
 			session.connect();
-			System.out.println("Connection established.");
-			System.out.println("Creating SFTP Channel.");
-			
+			if (session.isConnected()) {
+				System.out.println("Connection established.");
+				System.out.println("Creatiftng SFTP Channel.");
+				sftp = (ChannelSftp) session.openChannel("sftp");
+				sftp.connect();
+			} else if (sftp.ls(server.getServerPath()) != null) {
+				return "The given path is invalid!";
+			} 
+				
+			sftp.disconnect();
+			session.disconnect();
+			return "Test Connection Failed!";	
 //			boolean ftpChk = ftpClient.login(server.getServerUsername(), server.getServerPassword());
 
 //			System.out.println("FTP client Code:: " + ftpChk);
@@ -114,7 +123,6 @@ public class FTPClientConfiguration extends CommonEntityManager {
 //			}
 //			ftpClient.logout();
 //			ftpClient.disconnect();
-			return "Test Connection Success!";
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -149,6 +157,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			Map<String, List<String>> existCheckSums = getCheckSumDetails(server.getSiteKey());
 
 			System.out.println("Start iStream FTP" + path);
+			System.out.println("ip: "+server.getIpAddress() + "pass: "+server.getServerPassword());
 			Channel sftpChannel= getConnection(server);
 			fileList = getAllFilesFromPath(server, path, existCheckSums);
 			System.out.println("file read END");
