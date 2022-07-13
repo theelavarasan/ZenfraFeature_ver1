@@ -624,7 +624,8 @@ public class ReportService {
 	        uri = uri+"?category="+request.getCategory()
 	    	+"&reportList="+request.getReportList()
 	    	+"&reportBy="+request.getReportBy()
-	    	+"&reportName="+request.getReportType();
+	    	+"&reportName="+request.getReportType()
+	    	+"&deviceType="+request.getDeviceType();
 	        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
 	        RestTemplate restTemplate = new RestTemplate();
 	        resultObject = restTemplate.getForObject(uri, JSONObject.class);
