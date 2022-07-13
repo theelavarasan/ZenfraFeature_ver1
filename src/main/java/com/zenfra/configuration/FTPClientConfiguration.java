@@ -205,7 +205,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			for (ChannelSftp.LsEntry oListItem : list) {
 				// output each item from directory listing for logs
 				System.out.println(oListItem.toString());
-				sftpChannel.put(path, toPath+ "/" +fileName);
+				sftpChannel.put(path+ "/" +fileName, toPath+ "/" +fileName);
 				// If it is a file (not a directory)
 				if (!oListItem.getAttrs().isDir()) {
 					// Grab the remote file ([remote filename], [local path/filename to write file
