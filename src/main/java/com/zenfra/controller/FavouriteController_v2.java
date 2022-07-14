@@ -599,11 +599,11 @@ public class FavouriteController_v2 {
 	}
 
 	@PostMapping("/healthCheckValidate")
-	public JSONArray getHealthCheckNames(@RequestParam("siteKey") String siteKey) {
+	public boolean getHealthCheckNames(@RequestParam("siteKey") String siteKey, @RequestParam("healthCheckName") String healthCheckName) {
 
-		JSONArray responseArray = new JSONArray();
+		boolean result = false;
 		try {
-			responseArray = healthCheckService.getHealthCheckNames(siteKey);
+			result = healthCheckService.getHealthCheckNames(siteKey, healthCheckName);
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -612,7 +612,7 @@ public class FavouriteController_v2 {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 
 		}
-		return responseArray;
+		return result;
 
 	}
 

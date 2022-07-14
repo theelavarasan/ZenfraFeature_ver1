@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,7 +23,6 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.zenfra.dao.HealthCheckDao;
 import com.zenfra.dao.HealthCheckDisplayDao;
 import com.zenfra.model.HealthCheck;
@@ -474,16 +474,18 @@ public class HealthCheckService {
 		return resultArray;
 	}
 
-	public JSONArray getHealthCheckNames(String siteKey) {
-		JSONArray resultArray = new JSONArray();
-		try {
-			List<Object> resultList = healthCheckDao.getEntityListByColumn(
-					"select * from health_check where site_key='" + siteKey + "'", HealthCheck.class);
-			if (resultList != null && !resultList.isEmpty()) {
-				for (Object obj : resultList) {
-					if (obj instanceof HealthCheck) {
-						resultArray.add(((HealthCheck) obj).getHealthCheckName());
-					}
+	public boolean getHealthCheckNames(String siteKey, String healthCheckName) {
+		Map<String, String> dbConnection = DBUtils.getPostgres();
+		boolean isActive = false;
+		try(Connection connection = DriverManager.getConnection(dbConnection.get("url"), dbConnection.get("userName"), dbConnection.get("password"));
+				Statement statement = connection.createStatement();) {
+			String query = "select * from health_check where site_key = '" + siteKey + "' and health_check_name = '" + healthCheckName + "'";
+			ResultSet resultSet = statement.executeQuery(query);
+			while(resultSet.next()) {
+				if(resultSet.getString("health_check_name").equalsIgnoreCase(healthCheckName)) {
+					isActive = true;
+				} else {
+					isActive = false;
 				}
 			}
 		} catch (Exception e) {
@@ -493,7 +495,7 @@ public class HealthCheckService {
 			String ex = errors.toString();
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
-		return resultArray;
+		return isActive;
 	}
 
 	public JSONArray getHeaderListFromV2(String siteKey, String userId, String token) {
