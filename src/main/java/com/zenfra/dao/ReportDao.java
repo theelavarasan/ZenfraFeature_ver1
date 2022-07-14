@@ -3,7 +3,6 @@ package com.zenfra.dao;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,10 +42,7 @@ public class ReportDao {
 			params.put("report_name", reportName.toLowerCase());
 			params.put("device_type", deviceType.toLowerCase());
 			params.put("report_by", reportBy.toLowerCase());
-			System.out.println("------params--------- " + params);
-			System.out.println("------columns query--------- " + reportQueries.getHeader());
 			List<Map<String, Object>> result = namedJdbc.queryForList(reportQueries.getHeader(), params);
-			System.out.println("!!!!! result: " + result);
 			reportHeaders = parseResultSetForHeaderInfo(result);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -67,7 +63,7 @@ public class ReportDao {
 			for (Map<String, Object> rowData : resultList) {
 				JSONObject jsonObj = new JSONObject();
 				jsonObj.putAll(rowData);
-				if ((boolean) rowData.get("isPinned")) {
+				if (rowCount == 1) {
 					jsonObj.put("lockPinned", true);
 					jsonObj.put("lockPosition", true);
 					jsonObj.put("pinned", "left");
@@ -294,33 +290,5 @@ public class ReportDao {
 			e.printStackTrace();
 		}
 		
-	}
-
-	public List<Map<String, Object>> getReportCombinationByLogType(String sourceType) {
-		List<Map<String, Object>> reportCombination = new ArrayList<Map<String, Object>>();
-		try {
-			reportCombination = jdbc.queryForList("SELECT report_type as \"reportList\", report_by as \"reportBy\", category, device FROM public.device_discovery_report_config where lower(name)='"+sourceType.toLowerCase()+"' and enabled ='1'");
-	
-			 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		 
-		return reportCombination;
-	}
-	
-	public List<Map<String, Object>> getListOfMapByQuery(String query) {
-		List<Map<String, Object>> reportCombination = new ArrayList<>();
-		try {
-			reportCombination = jdbc.queryForList(query);
-	
-			 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-	 
-		return reportCombination;
 	}
 }

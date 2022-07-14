@@ -266,7 +266,7 @@ public class AwsInventoryController {
 				// delete AWS dataframe
 				try { // remove orient db dataframe
 					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator
-							+ "Dataframe" + File.separator + siteKey
+							+ "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey
 							+ File.separator; // + sourceType + File.separator;
 					File[] directories = new File(dataframePath).listFiles(File::isDirectory);
 					for (File dir : directories) {
