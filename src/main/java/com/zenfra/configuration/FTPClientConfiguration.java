@@ -199,9 +199,9 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 			ChannelSftp sftpChannel = getConnection(server);
 			sftpChannel.connect();
-			sftpChannel.cd(path);
+			sftpChannel.lcd(path);
 			System.out.println("!!!!! lcd: " + sftpChannel.lpwd());
-			Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(path);
+			Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(".");
 			System.out.println("---ls ----"+sftpChannel.ls(".")+"-----"+list);
 			for (ChannelSftp.LsEntry oListItem : list) {
 				// output each item from directory listing for logs
