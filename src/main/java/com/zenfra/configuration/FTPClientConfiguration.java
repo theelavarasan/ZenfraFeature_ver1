@@ -211,10 +211,9 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				if (!oListItem.getAttrs().isDir()) {
 					// Grab the remote file ([remote filename], [local path/filename to write file
 					// to])
-					File fl = new File(path+ "/" +oListItem.getFilename());
-					System.out.println("---fl---" + fl.getAbsolutePath() + "--name--"+fl.getName());
+					
 					System.out.println("get " + oListItem.getFilename());
-					sftpChannel.put(fl.getAbsolutePath() , toPath  + "/" + fileName);
+					sftpChannel.put(path+"/" + fileName, toPath  + "/" + fileName);
 					sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName); // while testing, disable this or
 																						// all of your test files will																// be grabbed
 					System.out.println("----listed---"+sftpChannel.ls(toPath));
