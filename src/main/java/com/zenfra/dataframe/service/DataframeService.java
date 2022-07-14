@@ -11,14 +11,14 @@ import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.sum;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,32 +30,44 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
@@ -64,6 +76,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
+import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
@@ -71,18 +84,23 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.mortbay.util.ajax.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sparkproject.guava.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
@@ -102,10 +120,15 @@ import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.AwsInstanceCcrData;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
+import com.zenfra.model.ZenfraJSONObject;
+import com.zenfra.utils.CommonFunctions;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
+import scala.collection.JavaConversions;
 import scala.collection.JavaConverters;
+import scala.collection.Seq;
 
 @Repository
 public class DataframeService {
@@ -118,13 +141,14 @@ public class DataframeService {
 	private Map<String, ColumnFilter> filterModel;
 	private boolean isGrouping, isPivotMode;
 
-	private List<String> actualColumnNames = null;
-	private List<String> renamedColumnNames = null;
+ 
 	private Map<String, List<String>> serverDiscoveryNumbericalColumns = new HashMap<String, List<String>>();
 
-	private static DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+	 
 
 	JSONParser parser = new JSONParser();
+	
+	private ObjectMapper mapper = new ObjectMapper();
 
 	@Autowired
 	SparkSession sparkSession;
@@ -136,7 +160,7 @@ public class DataframeService {
 
 	@PostConstruct
 	public void init() {
-		commonPath = ZKModel.getProperty(ZKConstants.DATAFRAME_PATH);
+		commonPath = ZKModel.getProperty(ZKConstants.DATAFRAME_PATH);		
 	}
 
 	// @Value("${zenfra.path}")
@@ -160,69 +184,20 @@ public class DataframeService {
 	@Autowired
 	AwsInstanceCcrDataRepository awsInstanceCcrDataRepository;
 	
-	 ObjectMapper mapper = new ObjectMapper();			 
-
+	@Autowired
+	CommonFunctions commonFunctions;
 
 	private String dbUrl = DBUtils.getPostgres().get("dbUrl");
+	
+	
 
-	// ---------------------SSRM Code-----------------------------------//
-
-	public static Dataset<Row> union(final Dataset<Row> ds1, final Dataset<Row> ds2) {
-		Set<String> ds1Cols = Sets.newHashSet(ds1.columns());
-		Set<String> ds2Cols = Sets.newHashSet(ds2.columns());
-		final Set<String> total = Sets.newHashSet(ds1Cols);
-		total.addAll(ds2Cols);
-		return ds1.select(expr(ds1Cols, total)).union(ds2.select(expr(ds2Cols, total)));
-	}
-
-	private static Column[] expr(final Set<String> cols, final Set<String> allCols) {
-		return allCols.stream().map(x -> {
-			if (cols.contains(x)) {
-				return col(x);
-			} else {
-				return lit(null).as(x);
-			}
-		}).toArray(Column[]::new);
-	}
-
-	private static Dataset<Row> unionDatasets(Dataset<Row> one, Dataset<Row> another) {
-		StructType firstSchema = one.schema();
-		List<String> anotherFields = Arrays.asList(another.schema().fieldNames());
-		another = balanceDataset(another, firstSchema, anotherFields);
-		StructType secondSchema = another.schema();
-		List<String> oneFields = Arrays.asList(one.schema().fieldNames());
-		one = balanceDataset(one, secondSchema, oneFields);
-		return another.union(one);
-	}
-
-	private static Dataset<Row> balanceDataset(Dataset<Row> dataset, StructType schema, List<String> fields) {
-		for (StructField e : schema.fields()) {
-			if (!fields.contains(e.name())) {
-				dataset = dataset.withColumn(e.name(), functions.lit(null));
-				dataset = dataset.withColumn(e.name(),
-						dataset.col(e.name()).cast(Optional.ofNullable(e.dataType()).orElse(DataTypes.StringType)));
-			}
-		}
-		return dataset;
-	}
-
-	private String selectSql() {
-		if (!isGrouping)
-			return "select *";
-
-		Stream<String> groupCols = rowGroups.stream().limit(groupKeys.size() + 1);
-
-		Stream<String> valCols = valueColumns.stream().map(ColumnVO::getField);
-
-		Stream<String> pivotCols = isPivotMode ? pivotColumns.stream().map(ColumnVO::getField) : Stream.empty();
-
-		return "select " + concat(groupCols, concat(pivotCols, valCols)).collect(joining(","));
-	}
-
+	// ---------------------SSRM Code-----------------------------------// 
+	 
 	private Dataset<Row> groupBy(Dataset<Row> df) {
 		if (!isGrouping)
 			return df;
 
+		
 		Column[] groups = rowGroups.stream().limit(groupKeys.size() + 1).map(functions::col).toArray(Column[]::new);
 
 		return agg(pivot(df.groupBy(groups)));
@@ -249,192 +224,90 @@ public class DataframeService {
 	}
 
 	private Dataset<Row> orderBy(Dataset<Row> df) {
-		Stream<String> groupCols = rowGroups.stream().limit(groupKeys.size() + 1);
+		try {
+			Stream<String> groupCols = rowGroups.stream().limit(groupKeys.size() + 1);
 
-		Stream<String> valCols = valueColumns.stream().map(ColumnVO::getField);
+			Stream<String> valCols = valueColumns.stream().map(ColumnVO::getField);
 
-		List<String> allCols = concat(groupCols, valCols).collect(toList());
+			List<String> allCols = concat(groupCols, valCols).collect(toList());
 
-		Column[] cols = sortModel.stream().map(model -> Pair.of(model.getColId(), model.getSort().equals("asc")))
-				.filter(p -> !isGrouping || allCols.contains(p.getKey()))
-				.map(p -> p.getValue() ? col(p.getKey()).asc() : col(p.getKey()).desc()).toArray(Column[]::new);
+			Column[] cols = sortModel.stream().map(model -> Pair.of(model.getColId(), model.getSort().equals("asc")))
+					.filter(p -> !isGrouping || allCols.contains(p.getKey()))
+					.map(p -> p.getValue() ? col(p.getKey()).asc() : col(p.getKey()).desc()).toArray(Column[]::new);
 
-		return df.orderBy(cols);
+			return df.orderBy(cols);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		return df;
 	}
 
-	/*
-	 * private Dataset<Row> filter(Dataset<Row> df) { Function<Map.Entry<String,
-	 * ColumnFilter>, String> applyColumnFilters = entry -> { String columnName =
-	 * entry.getKey(); ColumnFilter filter = entry.getValue();
-	 * 
-	 * if (filter instanceof SetColumnFilter) { return setFilter().apply(columnName,
-	 * (SetColumnFilter) filter); }
-	 * 
-	 * if (filter instanceof NumberColumnFilter) { return
-	 * numberFilter().apply(columnName, (NumberColumnFilter) filter); }
-	 * 
-	 * if (filter instanceof TextColumnFilter) { return
-	 * textFilter().apply(columnName, (TextColumnFilter) filter); }
-	 * 
-	 * return ""; };
-	 * 
-	 * 
-	 * Stream<String> columnFilters = filterModel.entrySet() .stream()
-	 * .map(applyColumnFilters);
-	 * 
-	 * Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(),
-	 * (key, group) -> group + " = '" + key + "'");
-	 * 
-	 * String filters = concat(columnFilters, groupToFilter)
-	 * .collect(joining(" AND "));
-	 * 
-	 * return filters.isEmpty() ? df : df.filter(filters); }
-	 */
-
-	private Dataset<Row> filter(Dataset<Row> df, String viewName) {
-
+	
+	private Dataset<Row> filter(Dataset<Row> df) {
 		Function<Map.Entry<String, ColumnFilter>, String> applyColumnFilters = entry -> {
 			String columnName = entry.getKey();
 			ColumnFilter filter = entry.getValue();
+			columnName = "`" + columnName + "`";
 
-			if (filter instanceof SetColumnFilter) {
-				return setFilter().apply(columnName, (SetColumnFilter) filter);
+			if(filter != null) {
+				if (filter instanceof SetColumnFilter) {
+					return setFilter().apply(columnName, (SetColumnFilter) filter);
+				}
+
+				if (filter instanceof NumberColumnFilter) {
+					return numberFilter().apply(columnName, (NumberColumnFilter) filter);
+				}
+
+				if (filter instanceof TextColumnFilter) {
+					return textFilter().apply(columnName, (TextColumnFilter) filter);
+				}
 			}
-
-			if (filter instanceof NumberColumnFilter) {
-
-				return numberFilter().apply(columnName, (NumberColumnFilter) filter);
-			}
-
-			/*
-			 * if (filter instanceof TextColumnFilter) {
-			 * 
-			 * return formTextQuery(columnName, (TextColumnFilter) filter);
-			 * //textFilter().apply(columnName, (TextColumnFilter) filter);
-			 * 
-			 * }
-			 */
+			
 
 			return "";
 		};
 
-		String finalTextFilterQueryTemp = "";
-		boolean customQuery = false;
+		Stream<String> columnFilters = filterModel.entrySet().stream().map(applyColumnFilters);
 
-		if (filterModel.toString().contains("condition1")) { // custom query
+		Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(), 
+			   (key, group) -> "`" + group + "` = '" + key + "'");
 
-			for (Map.Entry<String, ColumnFilter> entry : filterModel.entrySet()) {
-				String columnName = entry.getKey();
-				columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
-				ColumnFilter filter = entry.getValue();
+		String filters = concat(columnFilters, groupToFilter).collect(joining(" AND "));
 
-				if (filter instanceof NumberColumnFilter) {
-					customQuery = true;
-
-					df.select(col(columnName).cast("int").as(columnName));
-
-					String str = formNumberQuery(columnName, (NumberColumnFilter) filter);
-
-					if (finalTextFilterQueryTemp.isEmpty()) {
-						finalTextFilterQueryTemp = str;
-					} else {
-						finalTextFilterQueryTemp = finalTextFilterQueryTemp + " AND " + str;
-					}
-				}
-
-				if (filter instanceof TextColumnFilter) {
-					customQuery = true;
-					String str = formTextQuery(columnName, (TextColumnFilter) filter);
-
-					if (finalTextFilterQueryTemp.isEmpty()) {
-						finalTextFilterQueryTemp = str;
-					} else {
-						finalTextFilterQueryTemp = finalTextFilterQueryTemp + " AND " + str;
-					}
-
-				}
-
-			}
-		} else if (filterModel.toString().contains("defaultFilter")) { // && filterModel.toString().contains("text")
-			for (Map.Entry<String, ColumnFilter> entry : filterModel.entrySet()) {
-				String columnName = entry.getKey();
-				columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
-				columnName = "lower(" + "" + columnName + "" + ")";
-
-				ColumnFilter filter = entry.getValue();
-				if (filter instanceof TextColumnFilter) {
-					customQuery = true;
-					TextColumnFilter textColumnFilter = (TextColumnFilter) filter;
-
-					String expression = textColumnFilter.getType();
-					String filterText = textColumnFilter.getFilter();
-
-					finalTextFilterQueryTemp = formatTextFilterType(columnName, expression, filterText);
-
-				}
-			}
-		}
-
-		if (customQuery) {
-			Dataset<Row> filteredData = df.sqlContext()
-					.sql("select * from " + viewName + " where " + finalTextFilterQueryTemp);
-
-			return filteredData;
-		} else {
-
-			Stream<String> columnFilters = filterModel.entrySet().stream().map(applyColumnFilters);
-
-			Stream<String> groupToFilter = zip(groupKeys.stream(), rowGroups.stream(),
-					(key, group) -> group + " = '" + key + "'");
-
-			String filters = concat(columnFilters, groupToFilter).collect(joining(" AND "));
-
-			return filters.isEmpty() ? df : df.filter(filters);
-		}
+		return filters.isEmpty() ? df : df.filter(filters);
 	}
+	 
 
 	private String formNumberQuery(String columnName, NumberColumnFilter filter) {
-		columnName = "`" + columnName + "`";
-		columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
-		JSONObject condition1 = filter.getCondition1();
-		JSONObject condition2 = filter.getCondition2();
-		String operator = filter.getOperator();
+		Integer filterValue = filter.getFilter();
+		String filerType = filter.getType();		 
+		
+		String filterQuery = formatNumberFilterType(columnName, filerType, filterValue, 0);
+		
+		  if(filter.getCondition1() != null && filter.getCondition1().containsKey("filter")) {
+			  JSONObject condition1 = filter.getCondition1();
+				JSONObject condition2 = filter.getCondition2();
+				String operator = filter.getOperator();
 
-		String condition1Type = (String) condition1.get("type");
-		int condition1Filter = (Integer) condition1.get("filter");
-		int condition1FilterTo = (Integer) condition1.get("filterTo");
+				String condition1Type = (String) condition1.get("type");
+				int condition1Filter = (Integer) condition1.get("filter");
+				int condition1FilterTo = (Integer) condition1.get("filterTo");
 
-		String condition2Type = (String) condition2.get("type");
-		int condition2Filter = (Integer) condition2.get("filter");
-		int condition2FilterTo = (Integer) condition2.get("filterTo");
+				String condition2Type = (String) condition2.get("type");
+				int condition2Filter = (Integer) condition2.get("filter");
+				int condition2FilterTo = (Integer) condition2.get("filterTo");
 
-		String query1 = formatNumberFilterType(columnName, condition1Type, condition1Filter, condition1FilterTo);
-		String query2 = formatNumberFilterType(columnName, condition2Type, condition2Filter, condition2FilterTo);
-		String filterQuery = "( " + query1 + " " + operator + " " + query2 + " )";
+				String query1 = formatNumberFilterType(columnName, condition1Type, condition1Filter, condition1FilterTo);
+				String query2 = formatNumberFilterType(columnName, condition2Type, condition2Filter, condition2FilterTo);
+				filterQuery = "( " + query1 + " " + operator + " " + query2 + " )";
+		  }
+		
+		
 		return filterQuery;
 	}
 
-	private String formTextQuery(String columnName, TextColumnFilter filter) {
-		columnName = columnName.replaceAll("\\s+", "_").toLowerCase();
-		columnName = "lower(`" + columnName + "`)";
-
-		JSONObject condition1 = filter.getCondition1();
-		JSONObject condition2 = filter.getCondition2();
-		String operator = filter.getOperator();
-
-		String condition1Type = (String) condition1.get("type");
-		String condition1Filter = (String) condition1.get("filter");
-
-		String condition2Type = (String) condition2.get("type");
-		String condition2Filter = (String) condition2.get("filter");
-
-		String query1 = formatTextFilterType(columnName, condition1Type, condition1Filter);
-		String query2 = formatTextFilterType(columnName, condition2Type, condition2Filter);
-
-		String filterQuery = "( " + query1 + " " + operator + " " + query2 + " )";
-
-		return filterQuery;
-	}
+	
 
 	private String formatTextFilterType(String columnName, String expression, String filterText) {
 		String query = "";
@@ -479,38 +352,50 @@ public class DataframeService {
 				+ (filter.getValues().isEmpty() ? " IN ('') " : " IN " + asString(filter.getValues()));
 	}
 
-	/*
-	 * private BiFunction<String, TextColumnFilter, String> textFilter() { return
-	 * (String columnName, TextColumnFilter filter) -> textFilterInput(columnName,
-	 * filter.getCondition1(), filter.getCondition2(), filter.getOperator()); }
-	 */
+	
+	  private BiFunction<String, TextColumnFilter, String> textFilter() { 
+		  
+		  return (String columnName, TextColumnFilter filter) -> textFilterInput(filter, columnName);
+	  }
+	 
 
-	/*
-	 * private String textFilterInput(String columnName, JSONObject condition1,
-	 * JSONObject condition2, String operator) {
-	 * 
-	 * 
-	 * 
-	 * String query = columnName +"=\"" +condition1.get("filter").toString()+"\"" +
-	 * " " + operator + " " + columnName +"=\""
-	 * +condition2.get("filter").toString()+"\"";
-	 * System.out.println("============query=====================================" +
-	 * query); return query; }
-	 */
+	
+	  private String textFilterInput(TextColumnFilter textFilter, String columnName) {	
+		    columnName = "lower(" + columnName + ")";
+			String query = formatTextFilterType(columnName, textFilter.getType(), textFilter.getFilter());		
+		  
+		  if(textFilter.getCondition1() != null && textFilter.getCondition1().containsKey("filter")) {
+			
+
+				JSONObject condition1 = textFilter.getCondition1();
+				JSONObject condition2 = textFilter.getCondition2();
+				String operator = textFilter.getOperator();
+
+				String condition1Type = (String) condition1.get("type");
+				String condition1Filter = (String) condition1.get("filter");
+
+				String condition2Type = (String) condition2.get("type");
+				String condition2Filter = (String) condition2.get("filter");
+
+				String query1 = formatTextFilterType(columnName, condition1Type, condition1Filter);
+				String query2 = formatTextFilterType(columnName, condition2Type, condition2Filter);
+
+				query = "( " + query1 + " " + operator + " " + query2 + " )";
+		  }
+		
+		return query;
+	}
+	 
 
 	private BiFunction<String, NumberColumnFilter, String> numberFilter() {
-		return (String columnName, NumberColumnFilter filter) -> {
-			Integer filterValue = filter.getFilter();
-			String filerType = filter.getType();
-			String operator = operatorMap.get(filerType);
-
-			return columnName
-					+ (filerType.equals("inRange") ? " BETWEEN " + filterValue + " AND " + filter.getFilterTo()
-							: " " + operator + " " + filterValue);
+		return (String columnName, NumberColumnFilter filter) -> {		
+			
+			return formNumberQuery(columnName, (NumberColumnFilter) filter);
+			
 		};
 	}
 
-	private DataResult paginate(Dataset<Row> df, ServerSideGetRowsRequest request) {
+	private DataResult paginate(Dataset<Row> df, ServerSideGetRowsRequest request, List<String> countData ) {
 
 		int startRow = request.getStartRow();
 		int endRow = request.getEndRow();
@@ -518,12 +403,11 @@ public class DataframeService {
 		// save schema to recreate data frame
 		StructType schema = df.schema();
 
-		System.out.println("-------------dataset----last-rc---------- " + new Date());
-
+	
 		// obtain row count
 		long rowCount = df.count();
 
-		System.out.println("-------------after----last-rc---------- " + new Date());
+	
 
 		// convert data frame to RDD and introduce a row index so we can filter results
 		// by range
@@ -536,12 +420,13 @@ public class DataframeService {
 
 		// collect paginated results into a list of json objects
 		List<String> paginatedResults = sparkSession.sqlContext().createDataFrame(filteredRdd, schema).toJSON()
-				.collectAsList();
+				.collectAsList(); 
+		 
 
 		// calculate last row
 		long lastRow = endRow >= rowCount ? rowCount : -1;
 
-		return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count());
+		return new DataResult(paginatedResults, lastRow, getSecondaryColumns(df), df.count(), countData );
 	}
 
 	private List<String> getSecondaryColumns(Dataset<Row> df) {
@@ -554,56 +439,16 @@ public class DataframeService {
 		return "(" + l.stream().map(addQuotes).collect(joining(", ")) + ")";
 	}
 
-	private String textFilterInput(JSONObject textFilterJson) {
-
-		String query = "";
-		try {
-
-			if (textFilterJson != null) {
-				if (textFilterJson.containsKey("condition1") && textFilterJson.containsKey("condition2")
-						&& textFilterJson.containsKey("operator")) { // multiple filter condition
-					JSONObject cond1 = (JSONObject) textFilterJson.get("condition1");
-					JSONObject cond2 = (JSONObject) textFilterJson.get("condition2");
-
-					query = cond1.get("filter").toString() + " " + textFilterJson.get("operator") + " "
-							+ cond2.get("filter").toString();
-
-				} else {
-					query = "'%" + textFilterJson.get("filter") + "%'";
-				}
-
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-
-		System.out.println("-------------Query--------------------" + query);
-
-		return query;
-	}
-
-	private static Map<String, String> operatorMap = new HashMap<String, String>() {
-		{
-			put("equals", "=");
-			put("notEqual", "<>");
-			put("lessThan", "<");
-			put("lessThanOrEqual", "<=");
-			put("greaterThan", ">");
-			put("greaterThanOrEqual", ">=");
-		}
-	};
-
 	// ---------------------SSRM Code-----------------------------------//
+	
+	
+	//--------------------- Server report data frame creation start------------------------//
 
 	public String createDataframeForLocalDiscovery(String tableName) {
 
 		logger.info("create dataframe for local discovery table");
 		try {
-			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+			String path = commonPath + File.separator + "Dataframe" + File.separator + "DF" + File.separator;
 
 			Map<String, String> options = new HashMap<String, String>();
 			options.put("url", dbUrl);
@@ -617,13 +462,15 @@ public class DataframeService {
 
 			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
 					.sql("select distinct(site_key) from local_discovery");
-			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();	
-		
+
+			//List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();	
+			List<String> siteKeys = new ArrayList<String>();
+			siteKeys.add("ddccdf5f-674f-40e6-9d05-52ab36b10d0e");
 			// String DataframePath = dataframePath + File.separator;
 			siteKeys.forEach(siteKey -> {
 				try {
 					Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
-							"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, LOWER(source_type) as source_type_ref, actual_os_type  from local_discovery where site_key='"
+							"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
 									+ siteKey + "'");
 
 					File f = new File(path + siteKey);
@@ -640,8 +487,7 @@ public class DataframeService {
 							e.getMessage(), e);
 				}
 			});
-
-			// remove double quotes from json file
+			
 			File[] files = new File(path).listFiles();
 			if (files != null) {
 				DataframeUtil.formatJsonFile(files);
@@ -649,8 +495,6 @@ public class DataframeService {
 
 			createDataframeGlobalView();
 
-			// boolean fileOwnerChanged =
-			// DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
 
 			return ZKConstants.SUCCESS;
 		} catch (Exception exp) {
@@ -659,72 +503,178 @@ public class DataframeService {
 
 		return ZKConstants.ERROR;
 	}
+	
+	public void createDataframeGlobalView() {
+		String path = commonPath + File.separator + "Dataframe" + File.separator + "DF" + File.separator;
+		File[] files = new File(path).listFiles();
+		if (files != null) {
+			createLocalDiscoveryView(files);
+		}
 
+	}
+
+	private void createLocalDiscoveryView(File[] files) {
+		String path = commonPath + File.separator + "Dataframe" + File.separator + "tmp" + File.separator;
+		for (File file : files) {
+			if (file.isDirectory()) {
+				createLocalDiscoveryView(file.listFiles());
+			} else {
+				createDataframeGlobally(path, file);
+			}
+		}
+
+	}
+	
+	private void createDataframeGlobally(String path, File file) {
+		String filePath = file.getAbsolutePath();
+
+		if (filePath.endsWith(".json")) {
+			String source_type = file.getParentFile().getName().replace("source_type=", "").trim();
+			String siteKey = file.getParentFile().getParentFile().getName().replace("site_key=", "").trim();
+			String dataframeFilePath = path + siteKey + File.separator + "site_key=" + siteKey + File.separator
+					+ "source_type=" + source_type + File.separator + "*.json";
+			String viewName = siteKey + "_" + source_type.toLowerCase();
+			viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
+			prepareDataframe(source_type, siteKey, dataframeFilePath, viewName);
+
+		}
+	}
+
+	private void prepareDataframe(String source_type, String siteKey, String dataframeFilePath, String viewName) {
+		try {
+			Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath);
+			dataset.createOrReplaceTempView("tmpView");
+			Dataset<Row> filteredData = sparkSession.emptyDataFrame();
+			
+			System.out.println("----viewName-----" + viewName + " : " + dataframeFilePath);			
+
+			String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"
+						+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_name)=lcase(ldView.`OS`) ";
+
+			try {
+				dataset = sparkSession.sql(sql);
+				dataset.createOrReplaceTempView("datawithoutFilter");
+				filteredData = sparkSession.sql(
+						"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
+			} catch (Exception e) {
+				
+				sql = "select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1";
+				dataset.createOrReplaceTempView("datawithoutFilter");
+				filteredData = sparkSession.sql(
+						"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
+
+			}
+			List<String> numericalHeaders = new ArrayList<String>();
+			if (!serverDiscoveryNumbericalColumns.containsKey("Discovery" + source_type.toLowerCase())) {
+				numericalHeaders = getReportNumericalHeaders("Discovery", source_type.toLowerCase(), "Discovery",
+						siteKey);
+				serverDiscoveryNumbericalColumns.put("Discovery" + source_type.toLowerCase(), numericalHeaders);
+			} else {
+				numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
+			}
+
+			List<String> columns = Arrays.asList(filteredData.columns());
+
+			for (String column : numericalHeaders) {
+				if (columns.contains(column)) {
+					filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
+				}
+			}
+
+			if (source_type.equalsIgnoreCase("vmware-host")) {
+				filteredData = filteredData.withColumn("Server Type", lit("vmware-host"));
+			}
+			
+			filteredData = addNonExistColumn(filteredData, "End Of Life - OS");
+			filteredData = addNonExistColumn(filteredData, "End Of Extended Support - OS");
+			filteredData = addNonExistColumn(filteredData, "End Of Life - HW");
+			filteredData = addNonExistColumn(filteredData, "End Of Extended Support - HW");
+
+			if(!Arrays.stream(filteredData.columns()).anyMatch(""::equals)) {
+				
+			}
+			
+			filteredData.createOrReplaceGlobalTempView(viewName);
+
+			System.out.println("---------View created-------- :: " + viewName);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	//--------------------- Server report data frame creation end------------------------//
+	
+	private Dataset<Row> addNonExistColumn(Dataset<Row> filteredData, String colName) {
+		try {
+			if(!Arrays.stream(filteredData.columns()).anyMatch(colName::equals)) {
+				filteredData = filteredData.withColumn(colName, lit(""));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return filteredData;
+	}
+
+	//------------------------getReportData API Start------------------------------------//
 	public DataResult getReportData(ServerSideGetRowsRequest request) {
 
 		String siteKey = request.getSiteKey();
 		String source_type = request.getSourceType().toLowerCase();
 
-		if (source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
+		if (source_type != null && (source_type.trim().isEmpty() && source_type.contains("hyper") || 
+				source_type.trim().isEmpty() && source_type.contains("vmware") || 
+				source_type.trim().isEmpty() && source_type.contains("nutanix") ||
+				source_type.trim().isEmpty() && source_type.contains("hyper"))) {
 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
-		} else if (source_type != null && !source_type.trim().isEmpty()
-				&& (source_type.contains("vmware") && request.getReportBy().toLowerCase().contains("host"))) {
+		} /*else if (source_type != null && !source_type.trim().isEmpty()
+				&& (source_type.contains("vmware")) {
 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
 		} else if (source_type != null && !source_type.trim().isEmpty()
 				&& (source_type.contains("nutanix") && request.getReportBy().toLowerCase().contains("host"))) {
 			source_type = source_type + "-" + request.getReportBy().toLowerCase();
 		} else if (source_type != null && !source_type.trim().isEmpty()
 				&& (source_type.contains("nutanix") && request.getReportBy().toLowerCase().equalsIgnoreCase("vm"))) {
-			source_type = source_type + "-" + "guest";
-		}
+			source_type = source_type + "-" + "vm";
+		} */
 
-		System.out.println("---------source_type------" + source_type);
+	
 
 		boolean isDiscoveryDataInView = false;
 		Dataset<Row> dataset = null;
 		String viewName = siteKey + "_" + source_type.toLowerCase();
 		viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
-		try {
-			dataset = sparkSession.sql("select * from global_temp." + viewName);
-			dataset.cache();
-			isDiscoveryDataInView = true;
+		System.out.println("---------viewName------" + viewName);
+		
+		
+		
+		try { 
+				dataset = sparkSession.sql("select * from global_temp." + viewName);			
+				isDiscoveryDataInView = true; 
 		} catch (Exception e) {
 			System.out.println("---------View Not exists--------");
 		}
 
 		if (!isDiscoveryDataInView) {
-			File verifyDataframePath = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator
-					+ siteKey + File.separator + "site_key=" + siteKey + File.separator + "source_type=" + source_type);
+			File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+					+ siteKey + File.separator + source_type);
 
 			if (verifyDataframePath.exists()) {
 				createSingleDataframe(siteKey, source_type, verifyDataframePath.getAbsolutePath());
-				dataset = sparkSession.sql("select * from global_temp." + viewName);
-				dataset.cache();
+				dataset = sparkSession.sql("select * from global_temp." + viewName);				
 			} else {
-				createDataframeOnTheFly(siteKey, source_type);
-				dataset = sparkSession.sql("select * from global_temp." + viewName);
-				dataset.cache();
+				//createDataframeOnTheFly(siteKey, source_type);
+				recreateLocalDiscovery(siteKey, source_type);
+				writeServerDataframeToCommonPath(siteKey, source_type, request.getReportBy());
+				dataset = sparkSession.sql("select * from global_temp." + viewName);				
 			}
 		}
 
-		System.out.println("--------dataset-------" + dataset.count());
+	
+		//type cast numeric columns in dataframe
+		
+		
 		dataset.printSchema();
-		if (request.getEndRow() == 0) { // temp code
-			request.setEndRow((int) dataset.count());
-		} else { // actual server side pagniation
-
-			actualColumnNames = Arrays.asList(dataset.columns());
-			Dataset<Row> renamedDataSet = renameDataFrame(dataset);
-			renamedDataSet.createOrReplaceTempView(viewName + "renamedDataSet");
-
-			Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from " + viewName + "renamedDataSet");
-			renamedColumnNames = Arrays.asList(df.columns());
-
-			dataset = orderBy(groupBy(filter(df, viewName + "renamedDataSet")));
-
-			dataset = reassignColumnName(actualColumnNames, renamedColumnNames, dataset);
-		}
-
+		
 		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
 		groupKeys = request.getGroupKeys();
 		valueColumns = request.getValueCols();
@@ -737,214 +687,69 @@ public class DataframeService {
 		rowGroups = formatInputColumnNames(rowGroups);
 		groupKeys = formatInputColumnNames(groupKeys);
 		sortModel = formatSortModel(sortModel);
-
-		dataset = dataset.dropDuplicates();
-
-		return paginate(dataset, request);
+			
+		dataset = orderBy(groupBy(filter(dataset)));	
+		Dataset<Row> countData = sparkSession.emptyDataFrame(); 
+		
+		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), source_type, request.getReportBy(),request.getSiteKey());
+		List<String> dataframeColumns  = Arrays.asList(dataset.columns()); 
+		//type cast to numeric columns
+		try {		
+			if(numericColumns != null && !numericColumns.isEmpty()) {
+				dataset = typeCastNumericColumns(dataset, numericColumns, viewName, dataframeColumns);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		countData = getDataframeNumericColAgg(dataset, viewName, numericColumns, dataframeColumns);	
+		countData.show();
+	
+		return paginate(dataset, request, countData.toJSON().collectAsList());
 
 	}
 
-	public DataResult getReportData_old(ServerSideGetRowsRequest request) {
-
-		String siteKey = request.getSiteKey();
-		String source_type = request.getSourceType().toLowerCase();
-
-		if (source_type != null && !source_type.trim().isEmpty() && source_type.contains("hyper")) {
-			source_type = source_type + "-" + request.getReportBy().toLowerCase();
-		} else if (source_type != null && !source_type.trim().isEmpty()
-				&& (source_type.contains("vmware") && request.getReportBy().toLowerCase().contains("host"))) {
-			source_type = source_type + "-" + request.getReportBy().toLowerCase();
-		} else if (source_type != null && !source_type.trim().isEmpty()
-				&& (source_type.contains("nutanix") && request.getReportBy().toLowerCase().contains("host"))) {
-			source_type = source_type + "-" + request.getReportBy().toLowerCase();
-		} else if (source_type != null && !source_type.trim().isEmpty()
-				&& (source_type.contains("nutanix") && request.getReportBy().toLowerCase().equalsIgnoreCase("vm"))) {
-			source_type = source_type + "-" + "guest";
-		}
-
-		boolean isDiscoveryDataInView = false;
-		Dataset<Row> dataset = null;
-		String viewName = siteKey + "_" + source_type.toLowerCase();
-		viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
+	private Dataset<Row> getDataframeNumericColAgg(Dataset<Row> dataset, String viewName, List<String> numericColumns, List<String> dataframeColumns) {
+		Dataset<Row> countData = sparkSession.emptyDataFrame();
 		try {
-			dataset = sparkSession.sql("select * from global_temp." + viewName);
-			dataset.cache();
-			isDiscoveryDataInView = true;
+		
+			if(numericColumns != null && !numericColumns.isEmpty()) {
+				dataset.createOrReplaceGlobalTempView(viewName+"_tmpReport");
+				numericColumns.retainAll(dataframeColumns);
+			
+				
+				String numericCol = String.join(",", numericColumns
+			            .stream()
+			            .map(col -> ("sum(`" + col + "`) as `"+col+"`"))
+			            .collect(Collectors.toList()));	
+				
+			
+				if(numericCol != null && !numericCol.trim().isEmpty()) {
+					System.out.println("!!!!! agg numeric columns: " + ("select "+numericCol+"  from global_temp."+viewName+"_tmpReport"));
+					countData = sparkSession.sqlContext().sql("select "+numericCol+"  from global_temp."+viewName+"_tmpReport");//.sqlContext().sql("select `Total Size` group by `Total Size`").groupBy(new Column("`Total Size`""));
+					
+				}
+				 
+				 
+			}
+			
 		} catch (Exception e) {
-			System.out.println("---------View Not exists--------");
-		}
-
-		try {
-			// isDiscoveryDataInView = false;
-			if (!isDiscoveryDataInView) {
-				File verifyDataframePath = new File(
-						commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey + File.separator
-								+ "site_key=" + siteKey + File.separator + "source_type=" + source_type);
-				System.out.println(
-						"----->>>>>>>>>>>>>>>>----View Not exists--verifyDataframePath------" + verifyDataframePath);
-				if (!verifyDataframePath.exists()) {
-					System.out.println("---------true-----");
-					// createDataframeOnTheFly(siteKey, source_type);
-				}
-				System.out.println("---------false-----");
-				String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
-						+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + source_type
-						+ File.separator + "*.json";
-				System.out.println("---------true-filePath----" + filePath);
-				dataset = sparkSession.read().json(filePath);
-				dataset.createOrReplaceTempView("tmpView");
-				dataset = sparkSession.sql(
-						"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1 ");
-				dataset.createOrReplaceGlobalTempView(viewName);
-				dataset.cache();
-			}
-
-			// ---------------------EOL EOS---------------------------//
-
-			int osCount = eolService.getEOLEOSData();
-			int hwCount = eolService.getEOLEOSHW();
-
-			String hwJoin = "";
-			String hwdata = "";
-			String osJoin = "";
-			String osdata = "";
-
-			if (osCount > 0) {
-				if (Arrays.stream(dataset.columns()).anyMatch("Server Type"::equals)
-						&& dataset.first().fieldIndex("Server Type") != -1) {
-					Dataset<Row> eolos = sparkSession
-							.sql("select * from global_temp.eolDataDF where lower(os_type)='" + source_type + "'"); // where
-																													// lower(`Server
-																													// Name`)="+source_type
-					eolos.createOrReplaceTempView("eolos");
-					eolos.show();
-
-					if (eolos.count() > 0) {
-						osJoin = " left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and lcase(eol.os_type)=lcase(ldView.`Server Type`) "; // where
-																																													// lcase(eol.os_version)=lcase(ldView.`OS
-																																													// Version`)
-																																													// and
-																																													// lcase(eol.os_type)=lcase(ldView.`Server
-																																													// Type`)
-						osdata = ",eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`";
-					}
-				}
-
-			}
-
-			if (hwCount > 0) {
-				if (Arrays.stream(dataset.columns()).anyMatch("Server Model"::equals)
-						&& dataset.first().fieldIndex("Server Model") != -1) {
-
-					hwJoin = " left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', ''))";
-					hwdata = ",eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`";
-				}
-			}
-
-			// sparkSession.sql("select * from (select *, row_number() over (partition by
-			// source_id order by log_date desc) as rank from tmpView ) ld where
-			// ld.rank=1");
-
-			String sql = "select * from (" + " select ldView.*" + osdata + hwdata
-					+ " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank"
-					+ " from global_temp." + viewName + " ldView" + hwJoin + osJoin + " ) ld where ld.my_rank = 1";
-
-			dataset = sparkSession.sql(sql).toDF();
-
-			if ((osCount > 0 || hwCount > 0) && dataset.count() == 0) {
-				hwJoin = "";
-				hwdata = "";
-				osJoin = "";
-				osdata = "";
-				String sqlDf = "select * from (" + " select ldView.*" + osdata + hwdata
-						+ " ,ROW_NUMBER() OVER (PARTITION BY ldView.`Server Name` ORDER BY ldView.`log_date` desc) as my_rank"
-						+ " from global_temp." + viewName + " ldView" + hwJoin + osJoin + " ) ld where ld.my_rank = 1";
-
-				dataset = sparkSession.sql(sqlDf).toDF();
-			}
-
-			actualColumnNames = Arrays.asList(dataset.columns());
-			Dataset<Row> renamedDataSet = renameDataFrame(dataset);
-			renamedDataSet.createOrReplaceTempView(viewName + "renamedDataSet");
-			if (request.getEndRow() == 0) { // temp code
-				request.setEndRow((int) dataset.count());
-			}
-
-			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
-			groupKeys = request.getGroupKeys();
-			valueColumns = request.getValueCols();
-			pivotColumns = request.getPivotCols();
-			filterModel = request.getFilterModel();
-			sortModel = request.getSortModel();
-			isPivotMode = request.isPivotMode();
-			isGrouping = rowGroups.size() > groupKeys.size();
-
-			rowGroups = formatInputColumnNames(rowGroups);
-			groupKeys = formatInputColumnNames(groupKeys);
-			sortModel = formatSortModel(sortModel);
-
-			Dataset<Row> df = renamedDataSet.sqlContext().sql(selectSql() + " from " + viewName + "renamedDataSet");
-			renamedColumnNames = Arrays.asList(df.columns());
-
-			Dataset<Row> results = orderBy(groupBy(filter(df, viewName + "renamedDataSet")));
-
-			results = reassignColumnName(actualColumnNames, renamedColumnNames, results);
-			// results.printSchema();
-
-			results = results.dropDuplicates();
-
-			List<String> numericalHeaders = getReportNumericalHeaders("Discovery",
-					request.getSourceType().toLowerCase(), "Discovery", siteKey);
-
-			List<String> columns = Arrays.asList(results.columns());
-
-			for (String column : numericalHeaders) {
-				if (columns.contains(column)) {
-					results = results.withColumn(column, results.col(column).cast("float"));
-				}
-
-			}
-
-			if (source_type.equalsIgnoreCase("vmware-host")) {
-				results = results.withColumn("Server Type", lit("vmware-host"));
-			}
-
-			return paginate(results, request);
-		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-			logger.error("Exception occured while fetching local discoverydata from DF{}", e.getMessage(), e);
 		}
-
-		return null;
+		return countData;
 	}
 
 	public List<String> getReportNumericalHeaders(String reportName, String source_type, String reportBy,
 			String siteKey) {
 		// TODO Auto-generated method stub
-		System.out.println("reportName :: " + reportName);
-		System.out.println("source_type :: " + source_type);
-		System.out.println("reportBy :: " + reportBy);
-		System.out.println("siteKey :: " + siteKey);
-		
-		if(source_type.toLowerCase().contains("nutanix")){
-			source_type = "nutanix";
-		} 
-		if(source_type.toLowerCase().contains("hyper-v")){
-			source_type = "hyper-v";
-		} 
-		
-		
 		return reportDao.getReportNumericalHeaders(reportName, source_type, reportBy, siteKey);
 	}
 
 	private void createDataframeOnTheFly(String siteKey, String source_type) {
 		try {
 			source_type = source_type.toLowerCase();
-			String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+			String path = commonPath + File.separator + "Dataframe" + File.separator;
 
 			Map<String, String> options = new HashMap<String, String>();
 			options.put("url", dbUrl);
@@ -996,7 +801,7 @@ public class DataframeService {
 	private List<SortModel> formatSortModel(List<SortModel> sortModels) {
 		List<SortModel> sortModel = new ArrayList<>();
 		for (SortModel sm : sortModels) {
-			sm.setColId(sm.getColId().replaceAll("\\s+", "_").toLowerCase());
+			sm.setColId(sm.getColId());  //.replaceAll("\\s+", "_").toLowerCase()
 			sortModel.add(sm);
 		}
 		return sortModel;
@@ -1006,284 +811,20 @@ public class DataframeService {
 		List<String> tmpList = new ArrayList<>();
 		if (list != null && !list.isEmpty()) {
 			for (String l : list) {
-				tmpList.add(l.replaceAll("\\s+", "_").toLowerCase());
+				tmpList.add(l);  //.replaceAll("\\s+", "_").toLowerCase()
 			}
 		}
 		return tmpList;
 	}
-
-	private Dataset<Row> reassignColumnName(List<String> actualColumnNames, List<String> renamedColumnNames,
-			Dataset<Row> df) {
-		Map<String, String> columnNameMap = new HashMap<>();
-		actualColumnNames.forEach(actualName -> {
-			String actualNameTmp = actualName.replaceAll("\\s+", "_");
-			renamedColumnNames.forEach(newName -> {
-				if (actualNameTmp.equalsIgnoreCase(newName)) {
-					columnNameMap.put(newName, actualName);
-				}
-			});
-		});
-
-		for (Entry<String, String> map : columnNameMap.entrySet()) {
-			df = df.withColumnRenamed(map.getKey(), map.getValue());
-		}
-
-		return df;
-	}
-
-	public static Dataset<Row> renameDataFrame(Dataset<Row> dataset) {
-		for (String column : dataset.columns()) {
-			dataset = dataset.withColumnRenamed(column, column.replaceAll(" ", "_").toLowerCase());
-		}
-
-		return dataset;
-	}
-
-	public String appendLocalDiscovery(String siteKey, String sourceType, JSONObject data) {
-		String result = "";
-		try {
-			sourceType = sourceType.toLowerCase();
-			String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
-					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType
-					+ File.separator;
-			File siteKeyAndSourceType = new File(filePath);
-
-			JSONObject newJson = new JSONObject();
-			newJson.put("source_id", data.get("sourceId").toString());
-			newJson.put("site_key", data.get("siteKey").toString());
-			newJson.put("data_temp", data.get("data").toString());
-			newJson.put("log_date", data.get("logDate").toString());
-			newJson.put("source_type", data.get("sourceType").toString());
-			newJson.put("actual_os_type", data.get("actualOSType").toString());
-			newJson.put("server_name", data.get("serverName").toString());
-
-			System.out.println("---------------newJson-----------------------------" + newJson);
-
-			String viewName = siteKey + "_" + sourceType;
-			viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
-
-			if (siteKeyAndSourceType.exists()) { // site key and source type present
-
-				Path path = Paths.get(filePath);
-				List<String> filesExists = DataframeUtil.getAllFileNamesByType(path, ".json");
-
-				if (filesExists != null && filesExists.size() > 0) { // append
-
-					String tmpFile = writeJosnFile(commonPath + File.separator + "LocalDiscoveryDF" + File.separator
-							+ siteKey + File.separator + "site_key=" + siteKey + File.separator + "tmp.json",
-							newJson.toJSONString());
-
-					if (!tmpFile.isEmpty()) {
-						File[] files = new File[1];
-						files[0] = new File(tmpFile);
-						DataframeUtil.formatJsonFile(files);
-
-						try {
-
-							Dataset<Row> newDataframeToAppend = sparkSession.read().json(tmpFile);
-							newDataframeToAppend = newDataframeToAppend.drop("site_key").drop("source_type");
-							newDataframeToAppend.write().option("escape", "").option("quotes", "")
-									.option("ignoreLeadingWhiteSpace", true).mode(SaveMode.Append)
-									.format("org.apache.spark.sql.json").save(filePath);
-							newDataframeToAppend.unpersist();
-
-							System.out.println(
-									"-----------newDataframeToAppend------------------" + newDataframeToAppend.count());
-
-							Dataset<Row> mergedDataframe = sparkSession.read().json(filePath);
-							mergedDataframe.createOrReplaceTempView("tmpView");
-							// mergedDataframe.sqlContext().sql("select * from (select *, rank() over
-							// (partition by source_id order by log_date desc) as rank from tmpView ) ld
-							// where ld.rank=1 ");
-							sparkSession.sql(
-									"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-							mergedDataframe.createOrReplaceGlobalTempView(viewName);
-							mergedDataframe.cache();
-
-							sparkSession.sql("REFRESH TABLE global_temp." + viewName);
-							System.out.println("----------------Dataframe Append--------------------------------");
-							DataframeUtil.deleteFile(tmpFile);
-							result = ZKConstants.SUCCESS;
-						} catch (Exception e) {
-							e.printStackTrace();
-							StringWriter errors = new StringWriter();
-							e.printStackTrace(new PrintWriter(errors));
-							String ex = errors.toString();
-							ExceptionHandlerMail.errorTriggerMail(ex);
-						}
-					}
-				}
-			} else {
-				// create template
-
-				// check if source type exits
-				String sourceTypePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
-						+ File.separator + "site_key=" + siteKey + File.separator + "source_type="
-						+ sourceType.toLowerCase();
-
-				File newSiteKey = new File(
-						commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey + File.separator);
-				boolean siteKeyPresent = true;
-				if (!newSiteKey.exists()) {
-					siteKeyPresent = false;
-				}
-
-				File sourceTypeFolder = new File(sourceTypePath);
-
-				if (siteKeyPresent && !sourceTypeFolder.exists() || !siteKeyPresent) {
-					sourceTypeFolder.mkdir();
-
-					System.out.println("------------create new dataframe for new source type---------------- ");
-					String tmpFile = writeJosnFile(newSiteKey.getAbsolutePath() + "tmp.json", newJson.toString());
-					File[] files = new File[1];
-					files[0] = new File(tmpFile);
-					DataframeUtil.formatJsonFile(files);
-
-					Dataset<Row> newDataframe = sparkSession.read().json(tmpFile);
-					newDataframe = newDataframe.drop("site_key").drop("source_type");
-
-					// String newFolderName = commonPath + File.separator + "LocalDiscoveryDF" +
-					// File.separator + siteKey + File.separator + "site_key="+siteKey +
-					// File.separator;
-
-					newDataframe.write().option("escape", "").option("quotes", "")
-							.option("ignoreLeadingWhiteSpace", true).format("org.apache.spark.sql.json")
-							.mode(SaveMode.Overwrite).save(sourceTypePath);
-					newDataframe.unpersist();
-
-					Dataset<Row> mergedDataframe = sparkSession.read().json(filePath);
-					mergedDataframe.createOrReplaceTempView("tmpView");
-					// mergedDataframe.sqlContext().sql("select * from (select *, rank() over
-					// (partition by source_id order by log_date desc) as rank from tmpView ) ld
-					// where ld.rank=1 ");
-					sparkSession.sql(
-							"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-					mergedDataframe.createOrReplaceGlobalTempView(viewName);
-					mergedDataframe.cache();
-					mergedDataframe.printSchema();
-
-					DataframeUtil.deleteFile(tmpFile);
-					System.out.println("---------new Dataframe created with new source type-------------- ");
-					result = ZKConstants.SUCCESS;
-				}
-
-			}
-
-			// boolean fileOwnerChanged =
-			// DataframeUtil.changeOwnerForFile(fileOwnerGroupName);
-
-		} catch (Exception e) {
-			// logger.error("Exception occured when append dataframe {}", e.getMessage(),
-			// e);
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-		return result;
-	}
-
-	private String writeJosnFile(String filePath, String data) {
-		String result = "";
-		try {
-			data = data.replaceAll("server_name", "sever_name_col");
-			FileWriter file = new FileWriter(filePath);
-			file.write(data.toString());
-			file.close();
-
-			// DataframeUtil.setFilePermission(filePath);
-
-			File f = new File(filePath);
-			if (f.exists()) {
-				result = f.getAbsolutePath();
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-
-		return result;
-	}
-
-	public void createDataframeGlobalView() {
-		String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
-		File[] files = new File(path).listFiles();
-		if (files != null) {
-			createLocalDiscoveryView(files);
-		}
-
-	}
-
-	private void createLocalDiscoveryView(File[] files) {
-		String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
-		for (File file : files) {
-			if (file.isDirectory()) {
-				createLocalDiscoveryView(file.listFiles());
-			} else {
-				createDataframeGlobally(path, file);
-			}
-		}
-
-	}
-
+	
 	private void createSingleDataframe(String siteKey, String source_type, String filePath) {
 		try {
+			
+			String dataframeFilePath = filePath + File.separator + "*.json";
 			String viewName = siteKey + "_" + source_type.toLowerCase();
 			viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
-
-			Dataset<Row> dataset = sparkSession.read().json(filePath + File.separator + "*.json");
-			dataset.createOrReplaceTempView("tmpView");
-			Dataset<Row> filteredData = sparkSession.emptyDataFrame();
-
-			// select * from (select *, row_number() over (partition by source_id order by
-			// log_date desc) as rank from tmpView ) ld where ld.rank=1
-
-			String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"
-					+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and (lcase(eol.os_type)=lcase(ldView.source_type_ref) or lcase(eol.os_name) like lcase('%ldView.source_type_ref%'))";
-			try {
-				dataset = sparkSession.sql(sql);
-				dataset.createOrReplaceTempView("datawithoutFilter");
-				filteredData = sparkSession.sql(
-						"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
-			} catch (Exception e) {
-				e.printStackTrace();
-				StringWriter errors = new StringWriter();
-				e.printStackTrace(new PrintWriter(errors));
-				String ex = errors.toString();
-				ExceptionHandlerMail.errorTriggerMail(ex);
-				sql = "select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1";
-				dataset.createOrReplaceTempView("datawithoutFilter");
-				filteredData = sparkSession.sql(
-						"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
-
-			}
-			List<String> numericalHeaders = new ArrayList<String>();
-			if (!serverDiscoveryNumbericalColumns.containsKey("Discovery" + source_type.toLowerCase())) {
-				numericalHeaders = getReportNumericalHeaders("Discovery", source_type.toLowerCase(), "Discovery",
-						siteKey);
-				serverDiscoveryNumbericalColumns.put("Discovery" + source_type.toLowerCase(), numericalHeaders);
-			} else {
-				numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
-			}
-
-			List<String> columns = Arrays.asList(filteredData.columns());
-
-			for (String column : numericalHeaders) {
-				if (columns.contains(column)) {
-					filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
-				}
-			}
-
-			if (source_type.equalsIgnoreCase("vmware-host")) {
-				filteredData = filteredData.withColumn("Server Type", lit("vmware-host"));
-			}
-
-			filteredData.createOrReplaceGlobalTempView(viewName);
+			
+			prepareDataframe(source_type, siteKey, dataframeFilePath, viewName);
 
 			System.out.println("--------single-View created-------- :: " + viewName);
 		} catch (Exception e) {
@@ -1295,330 +836,8 @@ public class DataframeService {
 		}
 	}
 
-	private void createDataframeGlobally(String path, File file) {
-		String filePath = file.getAbsolutePath();
-
-		if (filePath.endsWith(".json")) {
-			String source_type = file.getParentFile().getName().replace("source_type=", "").trim();
-			String siteKey = file.getParentFile().getParentFile().getName().replace("site_key=", "").trim();
-			String dataframeFilePath = path + siteKey + File.separator + "site_key=" + siteKey + File.separator
-					+ "source_type=" + source_type + File.separator + "*.json";
-			String viewName = siteKey + "_" + source_type.toLowerCase();
-			viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
-			try {
-				Dataset<Row> dataset = sparkSession.read().json(dataframeFilePath);
-				dataset.createOrReplaceTempView("tmpView");
-				Dataset<Row> filteredData = sparkSession.emptyDataFrame();
-
-				//dataset.printSchema();
-				//dataset.show();
-				//System.out.println("----viewName-----" + viewName + " : " + dataframeFilePath);
-
-				//System.out.println("----dataset-----" + dataset.count());
-				// select * from (select *, row_number() over (partition by source_id order by
-				// log_date desc) as rank from tmpView ) ld where ld.rank=1
-
-				String sql = " select ldView.*, eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`,eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`"
-							+ " from tmpView ldView  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(ldView.`Server Model`, ' ', '')) left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(ldView.`OS Version`) and (lcase(eol.os_type)=lcase(ldView.source_type_ref) or lcase(eol.os_name) like lcase('%ldView.source_type_ref%'))";
-
-				try {
-					dataset = sparkSession.sql(sql);
-					dataset.createOrReplaceTempView("datawithoutFilter");
-					filteredData = sparkSession.sql(
-							"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
-				} catch (Exception e) {
-					//e.printStackTrace();
-					/*StringWriter errors = new StringWriter();
-					e.printStackTrace(new PrintWriter(errors));
-					String ex = errors.toString();
-					ExceptionHandlerMail.errorTriggerMail(ex);*/
-					sql = "select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1";
-					dataset.createOrReplaceTempView("datawithoutFilter");
-					filteredData = sparkSession.sql(
-							"select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from datawithoutFilter) ld where ld.rank=1 ");
-
-				}
-				List<String> numericalHeaders = new ArrayList<String>();
-				if (!serverDiscoveryNumbericalColumns.containsKey("Discovery" + source_type.toLowerCase())) {
-					numericalHeaders = getReportNumericalHeaders("Discovery", source_type.toLowerCase(), "Discovery",
-							siteKey);
-					serverDiscoveryNumbericalColumns.put("Discovery" + source_type.toLowerCase(), numericalHeaders);
-				} else {
-					numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
-				}
-				//List<String> numericalHeaders = serverDiscoveryNumbericalColumns.get("Discovery" + source_type.toLowerCase());
-
-				List<String> columns = Arrays.asList(filteredData.columns());
-
-				//System.out.println("------numericalHeaders------- " +source_type + " : " +  numericalHeaders);
-				if(numericalHeaders != null) {
-					for (String column : numericalHeaders) {
-						if (columns.contains(column)) {
-							//System.out.println("------column------- " + column);
-							filteredData = filteredData.withColumn(column, filteredData.col(column).cast("integer"));
-						}
-					}
-
-				}
-				
-				if (source_type.equalsIgnoreCase("vmware-host")) {
-					filteredData = filteredData.withColumn("Server Type", lit("vmware-host"));
-				}
-
-				filteredData.createOrReplaceGlobalTempView(viewName);
-				filteredData.printSchema();
-				
-				System.out.println("---------View created------ :: " + viewName);
-			} catch (Exception e) {
-				//e.printStackTrace();
-			/*	StringWriter errors = new StringWriter();
-				e.printStackTrace(new PrintWriter(errors));
-				String ex = errors.toString();
-				ExceptionHandlerMail.errorTriggerMail(ex);*/
-			}
-
-		}
-	}
-
-	public JSONArray getReportHeader(String reportType, String deviceType, String reportBy) {
-		JSONArray jSONArray = new JSONArray();
-		// jSONArray = postgresCompServiceImpl.getReportHeader(reportType, deviceType,
-		// reportBy);
-		return jSONArray;
-	}
-
-	public String createReportHeaderDF() {
-		try {
-			System.out.println("---------------2--------------------");
-			Map<String, String> options = new HashMap<String, String>();
-			options.put("url", dbUrl);
-			options.put("dbtable", "report_columns");
-
-			@SuppressWarnings("deprecation")
-			Dataset<Row> headerDF = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
-			headerDF.createOrReplaceGlobalTempView("report_columns");
-			System.out.println("---------------3--------------------");
-			return ZKConstants.SUCCESS;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-		return ZKConstants.ERROR;
-	}
-
-	private void createReportHeaderGlobalView(Dataset<Row> headerDF) {
-
-		try {
-
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-
-	}
-
-	public String createDataframeForReportHeader(String tableName) {
-		logger.info("create dataframe for local discovery table");
-		try {
-			commonPath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
-			Map<String, String> options = new HashMap<String, String>();
-			options.put("url", dbUrl);
-			options.put("dbtable", tableName);
-
-			@SuppressWarnings("deprecation")
-			Dataset<Row> localDiscoveryDF = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
-
-			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");
-			formattedDataframe.createOrReplaceTempView("local_discovery");
-
-			Dataset<Row> siteKeDF = formattedDataframe.sqlContext()
-					.sql("select distinct(site_key) from local_discovery");
-			List<String> siteKeys = siteKeDF.as(Encoders.STRING()).collectAsList();
-
-			// String DataframePath = dataframePath + File.separator;
-			siteKeys.forEach(siteKey -> {
-				try {
-					Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
-							"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
-									+ siteKey + "'");
-					File f = new File(commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey);
-					if (!f.exists()) {
-						f.mkdir();
-					}
-					dataframeBySiteKey.write().option("escape", "").option("quotes", "")
-							.option("ignoreLeadingWhiteSpace", true).partitionBy("site_key", "source_type")
-							.format("org.apache.spark.sql.json").mode(SaveMode.Overwrite).save(f.getPath());
-					dataframeBySiteKey.unpersist();
-				} catch (Exception e) {
-					logger.error("Not able to create dataframe for local discovery table site key " + siteKey,
-							e.getMessage(), e);
-				}
-			});
-
-			// remove double quotes from json file
-			File[] files = new File(commonPath).listFiles();
-			if (files != null) {
-				DataframeUtil.formatJsonFile(files);
-			}
-
-			createDataframeGlobalView();
-
-			return ZKConstants.SUCCESS;
-		} catch (Exception exp) {
-			logger.error("Not able to create dataframe {}", exp.getMessage(), exp);
-		}
-
-		return ZKConstants.ERROR;
-
-	}
-
-	/*
-	 * @SuppressWarnings("unchecked") public JSONObject getSubReportList(String
-	 * deviceType, String reportName) throws IOException, ParseException {
-	 * System.out.println("!!!!! deviceType: " + deviceType);
-	 * if(deviceType.equalsIgnoreCase("HP-UX")) { deviceType = "hpux"; } JSONParser
-	 * parser = new JSONParser();
-	 * 
-	 * Map<String, JSONArray> columnsMap = new LinkedHashMap<String, JSONArray>();
-	 * JSONObject result = new JSONObject();
-	 * 
-	 * String linkDevices = ZKModel.getProperty(ZKConstants.CRDevice); JSONArray
-	 * devicesArray = (JSONArray) parser.parse(linkDevices);
-	 * if(reportName.trim().equalsIgnoreCase("discovery")) { String linkColumns =
-	 * ZKModel.getProperty(ZKConstants.CRCOLUMNNAMES); JSONArray columnsArray =
-	 * (JSONArray) parser.parse(linkColumns);
-	 * 
-	 * for(int a = 0; a < devicesArray.size(); a++) { JSONArray columnsNameArray =
-	 * new JSONArray(); for(int i = 0; i < columnsArray.size(); i++) { JSONObject
-	 * jsonObject = (JSONObject) columnsArray.get(i);
-	 * if(jsonObject.containsKey(devicesArray.get(a).toString().toLowerCase())) {
-	 * columnsNameArray = (JSONArray)
-	 * parser.parse(jsonObject.get(devicesArray.get(a).toString().toLowerCase()).
-	 * toString()); columnsMap.put(devicesArray.get(a).toString().toLowerCase(),
-	 * columnsNameArray); } } }
-	 * 
-	 * } else if(reportName.trim().equalsIgnoreCase("compatibility")) { JSONArray
-	 * columnsNameArray = new JSONArray(); columnsNameArray.add("Host Name");
-	 * for(int a = 0; a < devicesArray.size(); a++) {
-	 * columnsMap.put(devicesArray.get(a).toString().toLowerCase(),
-	 * columnsNameArray); }
-	 * 
-	 * }
-	 * 
-	 * 
-	 * if(!columnsMap.isEmpty()) { Map<String, Properties> propMap = new
-	 * TreeMap<String, Properties>(); if(deviceType.equalsIgnoreCase("all")) {
-	 * for(int i = 0; i < devicesArray.size(); i++) { String deviceValue = "";
-	 * if(devicesArray.get(i).toString().equalsIgnoreCase("HP-UX")) { deviceValue =
-	 * "hpux"; } String path = "/opt/config/" + deviceValue.toLowerCase() +
-	 * "ServerClickReport.properties"; System.out.println("!!!!! path: " + path);
-	 * InputStream inputFile = null;
-	 * 
-	 * try {
-	 * 
-	 * File file = new File(path); if(file.exists()) {
-	 * 
-	 * inputFile = new FileInputStream(file); Properties prop = new Properties();
-	 * prop.load(inputFile);
-	 * 
-	 * if(devicesArray.get(i).toString().equalsIgnoreCase("HP-UX")) { deviceValue =
-	 * "hpux"; } propMap.put(deviceValue.toLowerCase(), prop); }
-	 * 
-	 * } catch (Exception e) { e.printStackTrace(); StringWriter errors = new
-	 * StringWriter(); e.printStackTrace(new PrintWriter(errors)); String ex =
-	 * errors.toString(); ExceptionHandlerMail.errorTriggerMail(ex); }
-	 * 
-	 * 
-	 * 
-	 * } } else { String path = "/opt/config/" + deviceType.toLowerCase() +
-	 * "ServerClickReport.properties"; System.out.println("!!!!! path: " + path);
-	 * InputStream inputFile = null;
-	 * 
-	 * try {
-	 * 
-	 * File file = new File(path); if(file.exists()) {
-	 * 
-	 * inputFile = new FileInputStream(file); Properties prop = new Properties();
-	 * prop.load(inputFile); propMap.put(deviceType.toLowerCase(), prop); }
-	 * 
-	 * } catch (Exception e) { e.printStackTrace(); StringWriter errors = new
-	 * StringWriter(); e.printStackTrace(new PrintWriter(errors)); String ex =
-	 * errors.toString(); ExceptionHandlerMail.errorTriggerMail(ex); }
-	 * 
-	 * }
-	 * 
-	 * List<String> propKeys = new ArrayList<String>(propMap.keySet());
-	 * System.out.println("!!!!! propKeys: " + propKeys);
-	 * 
-	 * 
-	 * ZenfraJSONObject resultObject = new ZenfraJSONObject();
-	 * 
-	 * JSONArray postDataColumnArray = new JSONArray(); List<String> columnsKey =
-	 * new ArrayList<String>(columnsMap.keySet());
-	 * 
-	 * 
-	 * for(int i = 0; i < columnsKey.size(); i++) { JSONArray columnsNameArray =
-	 * columnsMap.get(columnsKey.get(i)); JSONObject tabInfoObject = new
-	 * JSONObject(); for(int j = 0; j < columnsNameArray.size(); j++) {
-	 * if(!columnsNameArray.get(j).toString().equalsIgnoreCase("vCenter")) {
-	 * ZenfraJSONObject tabArrayObject = new ZenfraJSONObject(); for(int k = 0; k <
-	 * propKeys.size(); k++) { Properties prop = propMap.get(propKeys.get(k));
-	 * List<Object> tabKeys = new ArrayList<Object>(prop.keySet()); JSONArray
-	 * tabInnerArray = new JSONArray();
-	 * 
-	 * for(int l = 0; l < tabKeys.size(); l++) { ZenfraJSONObject tabValueObject =
-	 * new ZenfraJSONObject(); String key = tabKeys.get(l).toString(); String keyId
-	 * = tabKeys.get(l).toString(); //System.out.println("!!!!! key: " + key);
-	 * String value = ""; String keyName = ""; String keyLabel = ""; String keyView
-	 * = ""; String keyOrdered = ""; if(key.contains("$")) { String[] keyArray =
-	 * key.split("\\$"); value = keyArray[0]; keyName = keyArray[0].replace("~",
-	 * ""); keyLabel = value.replace("~", " "); keyView = keyArray[1]; keyOrdered =
-	 * keyArray[2]; } else { keyName = key.replace("~", ""); keyLabel =
-	 * key.replace("~", " "); keyView = "H"; keyOrdered = "0"; }
-	 * 
-	 * tabValueObject.put("value", keyId); tabValueObject.put("name", keyName);
-	 * tabValueObject.put("label", keyLabel); tabValueObject.put("view", keyView);
-	 * tabValueObject.put("ordered", Integer.parseInt(keyOrdered));
-	 * tabInnerArray.add(tabValueObject); } if(!tabInnerArray.isEmpty()) {
-	 * tabArrayObject.put(propKeys.get(k), tabInnerArray); }
-	 * 
-	 * } if(!tabArrayObject.isEmpty()) { tabInfoObject.put("tabInfo",
-	 * tabArrayObject); tabInfoObject.put("tabInfo", tabArrayObject);
-	 * tabInfoObject.put("skipValues", new JSONArray()); tabInfoObject.put("title",
-	 * "Detailed Report for Server (" + columnsNameArray.get(j) + ")");
-	 * if(!postDataColumnArray.contains(columnsNameArray.get(j))) {
-	 * if(deviceType.equalsIgnoreCase("vmware")) { postDataColumnArray.add("VM");
-	 * postDataColumnArray.add("vCenter"); } else
-	 * if(deviceType.equalsIgnoreCase("vmware-host")) {
-	 * postDataColumnArray.add("Server Name"); postDataColumnArray.add("vCenter"); }
-	 * else { postDataColumnArray.add(columnsNameArray.get(j)); }
-	 * 
-	 * } resultObject.put(columnsNameArray.get(j), tabInfoObject);
-	 * //resultObject.put("skipValues", new JSONArray());
-	 * result.put("subLinkColumns", resultObject); } } }
-	 * 
-	 * }
-	 * 
-	 * 
-	 * 
-	 * result.put("postDataColumns", postDataColumnArray); result.put("deviceType",
-	 * deviceType.toLowerCase().trim()); JSONArray refferedDeviceType = new
-	 * JSONArray(); if(reportName.equalsIgnoreCase("compatibility")) {
-	 * refferedDeviceType.add("OS Type"); } else
-	 * if(reportName.equalsIgnoreCase("taskList")) {
-	 * refferedDeviceType.add("Source Type"); } result.put("deviceTypeRefColumn",
-	 * refferedDeviceType);
-	 * 
-	 * 
-	 * 
-	 * }
-	 * 
-	 * //System.out.println("!!!!! result: " + result); return result; }
-	 */
-
+	
+	
 	public JSONArray getReportHeaderForMigrationMethod(String siteKey, String deviceType) {
 		JSONArray resultArray = new JSONArray();
 
@@ -1628,7 +847,7 @@ public class DataframeService {
 		try {
 			dataset = sparkSession.sql("select * from global_temp." + viewName);
 		} catch (Exception e) {
-			String filePath = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
+			String filePath = commonPath + File.separator + "Dataframe" + File.separator + siteKey
 					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + deviceType
 					+ File.separator + "*.json";
 			dataset = sparkSession.read().json(filePath);
@@ -1707,7 +926,7 @@ public class DataframeService {
 	}
 
 	private void reinitiateDiscoveryDataframe(String siteKey, String sourceType) {
-		String path = commonPath + File.separator + "LocalDiscoveryDF" + File.separator;
+		
 		Dataset<Row> localDiscoveryDF = sparkSession.sql(
 				"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
 						+ siteKey + "' and LOWER(source_type)='" + sourceType + "'");
@@ -1719,15 +938,16 @@ public class DataframeService {
 					"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"
 							+ siteKey + "' and LOWER(source_type)='" + sourceType + "'");
 
-			String filePathSrc = commonPath + File.separator + "LocalDiscoveryDF" + File.separator + siteKey
+			String filePathSrc = commonPath + File.separator + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
 					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType
 					+ File.separator;
 			File f = new File(filePathSrc);
 			if (!f.exists()) {
 				f.mkdir();
+				setFileOwner(f);
 			}
 
-			dataframeBySiteKey.show();
+		
 
 			dataframeBySiteKey = dataframeBySiteKey.drop("site_key").drop("source_type");
 
@@ -1795,63 +1015,7 @@ public class DataframeService {
 		return resultJSONObject;
 	}
 
-	public DataResult getCloudCostData_old(ServerSideGetRowsRequest request) {
-		Dataset<Row> dataset = null;
-		try {
-			String siteKey = request.getSiteKey();
-			String deviceType = request.getDeviceType();
-
-			String viewName = siteKey + "_" + deviceType.toLowerCase();
-			viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "") + "_opt";
-
-			boolean isDiscoveryDataInView = false;
-			try {
-				dataset = sparkSession.sql("select * from global_temp." + viewName);
-				dataset.cache();
-				isDiscoveryDataInView = true;
-			} catch (Exception e) {
-
-			}
-
-			if (!isDiscoveryDataInView) {
-				Map<String, String> options = new HashMap<String, String>();
-				options.put("url", dbUrl);
-				options.put("dbtable", "mview_aws_cost_report");
-				sparkSession.sqlContext().load("jdbc", options).registerTempTable("mview_aws_cost_report");
-				dataset = sparkSession.sql("select * from mview_aws_cost_report where site_key='" + siteKey + "'");
-				dataset.createOrReplaceGlobalTempView(viewName);
-				dataset.cache();
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-
-		dataset = DataframeUtil.renameDataFrameColumn(dataset, "data_temp_", "");
-
-		rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
-		groupKeys = request.getGroupKeys();
-		valueColumns = request.getValueCols();
-		pivotColumns = request.getPivotCols();
-		filterModel = request.getFilterModel();
-		sortModel = request.getSortModel();
-		isPivotMode = request.isPivotMode();
-		isGrouping = rowGroups.size() > groupKeys.size();
-
-		rowGroups = formatInputColumnNames(rowGroups);
-		groupKeys = formatInputColumnNames(groupKeys);
-		sortModel = formatSortModel(sortModel);
-		request.setStartRow(1);
-		request.setEndRow((int) dataset.count());
-
-		dataset.show();
-
-		return paginate(dataset, request);
-	}
+	
 
 	public List<Map<String, Object>> getCloudCostDataPostgresFn(ServerSideGetRowsRequest request) {
 		
@@ -1861,117 +1025,7 @@ public class DataframeService {
 		return cloudCostData;
 		
 	}
-	public DataResult getCloudCostData(ServerSideGetRowsRequest request) {
-		
-		 
-		
-		
-		Dataset<Row> dataset = sparkSession.emptyDataFrame();
-		String viewName = request.getSiteKey().replaceAll("\\s+", "").replaceAll("-", "") + "_cloudcost";
-
-		try {
-			dataset = sparkSession.sql("select * from global_temp." + viewName);
-			dataset.cache();
-		} catch (Exception e) {
-			dataset = getOptimizationReport(request);
-			dataset.cache();
-			
-			/*String cloudCostDfPath = commonPath + "Dataframe" + File.separator + "CCR" + File.separator
-					+ request.getSiteKey() + File.separator;
-			File filePath = new File(commonPath + "Dataframe" + File.separator + "CCR" + File.separator
-					+ request.getSiteKey() + File.separator);
-
-			if (filePath.exists()) {
-				dataset = sparkSession.read().json(cloudCostDfPath + "*.json");
-				dataset.createOrReplaceGlobalTempView(viewName);
-				dataset.cache();
-			} else {
-				dataset = getOptimizationReport(request);
-				dataset.cache();
-			}*/
-
-		}
-
-		try {
-			String category = request.getCategoryOpt();
-
-			String siteKey = request.getSiteKey();
-			String deviceType = request.getDeviceType();
-			String sourceId = request.getSource();
-
-			if (deviceType.equalsIgnoreCase("All")) {
-				deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware', 'ec2')";
-			} else {
-				deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";
-				if (category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
-					deviceType = "lcase(`Server Type`)='ec2' and lcase(`OS Name`) = '"
-							+ request.getDeviceType().toLowerCase() + "'";
-				}
-			}
-
-			List<String> taskListServers = new ArrayList<>();
-			if (request.getProjectId() != null && !request.getProjectId().isEmpty()) {
-				List<Map<String, Object>> resultMap = favouriteDao_v2.getJsonarray(
-						"select server_name from tasklist where project_id='" + request.getProjectId() + "'");
-				if (resultMap != null && !resultMap.isEmpty()) {
-					for (Map<String, Object> map : resultMap) {
-						taskListServers.add((String) map.get("server_name"));
-					}
-				}
-			}
-
-			if (!taskListServers.isEmpty()) {
-				String serverNames = String.join(",", taskListServers.stream()
-						.map(name -> ("'" + name.toLowerCase() + "'")).collect(Collectors.toList()));
-				deviceType = " lcase(`Server Name`) in (" + serverNames + ")";
-			}
-
-			// dataset.show(false);
-
-			String sourceQuery = "";
-
-			if (sourceId != null && !sourceId.isEmpty() && !sourceId.equalsIgnoreCase("All")) {
-				sourceQuery = " and customExcelSrcId='" + sourceId + "'";
-			}
-
-			if (deviceType.equalsIgnoreCase("All") && category.equalsIgnoreCase("All")
-					&& sourceId.equalsIgnoreCase("All")) {
-				//
-			} else {
-				if (category.equalsIgnoreCase("All")) {
-					dataset = sparkSession
-							.sql("select * from global_temp." + viewName + " where " + deviceType + sourceQuery);
-				} else {
-					dataset = sparkSession.sql("select * from global_temp." + viewName + " where " + deviceType
-							+ " and lcase(report_by)='" + category.toLowerCase() + "'" + sourceQuery);
-				}
-			}
-
-			request.setStartRow(0);
-			request.setEndRow((int) dataset.count());
-			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
-			groupKeys = request.getGroupKeys();
-			valueColumns = request.getValueCols();
-			pivotColumns = request.getPivotCols();
-			filterModel = request.getFilterModel();
-			sortModel = request.getSortModel();
-			isPivotMode = request.isPivotMode();
-			isGrouping = rowGroups.size() > groupKeys.size();
-
-			return paginate(dataset, request);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-
-		dataset = sparkSession.emptyDataFrame();
-		return paginate(dataset, request);
-
-	}
+	
 	
 	private List<Map<String, Object>> getCloudCostDataFromPostgres(ServerSideGetRowsRequest request) {
 		JSONArray cloudCostData = new JSONArray();
@@ -1990,12 +1044,7 @@ public class DataframeService {
 			for (Object o : headers) {
 				if (o instanceof JSONObject) {
 					String col = (String) ((JSONObject) o).get("actualName");
-					String dataType = (String) ((JSONObject) o).get("dataType");
-					/*if (dataType.equalsIgnoreCase("String")) {
-						columnHeaders.add(col);
-					} else {
-						numberColumnHeaders.add(col);
-					}*/
+					String dataType = (String) ((JSONObject) o).get("dataType");				
 					columnHeaders.add(col);
 
 				}
@@ -2200,925 +1249,10 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	}
 	
 
-	public Dataset<Row> getOptimizationReport(ServerSideGetRowsRequest request) {
-
-		String siteKey = request.getSiteKey();
-		String deviceType = request.getDeviceType();
-
-		String reportName = request.getReportType();
-		String deviceTypeHeder = "All";
-		String reportBy = request.getReportType();
-		JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
-
-		// String [] categoryArray = request.getCategory().replaceAll( "^\\[|\\]$",
-		// "").replaceAll("\"", "").trim().split( "," );
-		// String [] sourceArray = request.getSource().replaceAll( "^\\[|\\]$",
-		// "").replaceAll("\"", "").trim().split( "," );
-
-		String discoveryFilterqry = "";
-
-		List<String> columnHeaders = new ArrayList<>();
-		List<String> numberColumnHeaders = new ArrayList<>();
-		if (headers != null && headers.size() > 0) {
-			for (Object o : headers) {
-				if (o instanceof JSONObject) {
-					String col = (String) ((JSONObject) o).get("actualName");
-					String dataType = (String) ((JSONObject) o).get("dataType");
-					if (dataType.equalsIgnoreCase("String")) {
-						columnHeaders.add(col);
-					} else {
-						numberColumnHeaders.add(col);
-					}
-
-				}
-			}
-		}
-
-		List<String> taskListServers = new ArrayList<>();
-		if (request.getProjectId() != null && !request.getProjectId().isEmpty()) {
-			List<Map<String, Object>> resultMap = favouriteDao_v2
-					.getJsonarray("select server_name from tasklist where project_id='" + request.getProjectId() + "'");
-			if (resultMap != null && !resultMap.isEmpty()) {
-				for (Map<String, Object> map : resultMap) {
-					taskListServers.add((String) map.get("server_name"));
-				}
-			}
-		}
-
-		if (deviceType.equalsIgnoreCase("All") || !deviceType.isEmpty()) {
-			deviceType = " lcase(aws.`Server Type`) in ('windows','linux', 'vmware')";
-			discoveryFilterqry = " lcase(source_type) in ('windows','linux', 'vmware')";
-		} else {
-			deviceType = "lcase(aws.`Server Type`)='" + deviceType.toLowerCase() + "'";
-			discoveryFilterqry = " lcase(source_type)='" + deviceType.toLowerCase() + "'";
-		}
-
-		if (!taskListServers.isEmpty()) {
-			String serverNames = String.join(",", taskListServers.stream().map(name -> ("'" + name.toLowerCase() + "'"))
-					.collect(Collectors.toList()));
-			deviceType = " lcase(aws.`Server Name`) in (" + serverNames + ")";
-			discoveryFilterqry = " lcase(server_name) in (" + serverNames + ")";
-		}
-
-		System.out.println("----------------------deviceTypeCondition--------------------------" + deviceType);
-
-		Dataset<Row> dataCheck = null;
-
-		String cloudCostDfPath = commonPath + File.separator + "Dataframe" + File.separator + "CCR" + File.separator;
-
-		File file = new File(cloudCostDfPath);
-		if (!file.exists()) {
-			file.mkdir();
-			try {
-				Path resultFilePath = Paths.get(cloudCostDfPath);
-				UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
-						.lookupPrincipalByName("zenuser");
-				Files.setOwner(resultFilePath, owner);
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
-
-		}
-
-		try {
-
-			constructReport(siteKey, discoveryFilterqry);
-
-			int dataCount = getEOLEOSCount(siteKey);
-
-			int eolHwcount = getEOLEHWCount(siteKey);
-
-			String hwJoin = "";
-			String hwdata = ",'' as `End Of Life - HW`,'' as `End Of Extended Support - HW`";
-			if (eolHwcount != 0) {
-				hwJoin = "left join global_temp.eolHWData eolHw on lcase(eolHw.`Server Name`) = lcase(aws.`Server Name`)";
-				hwdata = ",eolHw.`End Of Life - HW`,eolHw.`End Of Extended Support - HW`";
-			}
-
-			String sql = "select * from (" + " select "
-					+ " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by, '0' as customExcelSrcId,"
-					+ " lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`,"
-					+ " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, "
-					+ " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, "
-					+ " aws.`HBA Speed`,aws.`Number of Ports`, aws.Host, "
-					+ " round((round(aws.`AWS On Demand Price`,2) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS On Demand Price`,"
-					+ " round((round(aws.`AWS 3 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 3 Year Price`,"
-					+ " round((round(aws.`AWS 1 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 1 Year Price`,"
-					+ " aws.`AWS Instance Type`,aws.`AWS Region`,aws.`AWS Specs`,"
-					+ " round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`,"
-					+ " round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`,"
-					+ " round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`,"
-					+ " azure.`Azure Instance Type`,azure.`Azure Specs`," + " google.`Google Instance Type`, "
-					+ " google.`Google On Demand Price`," + " google.`Google 1 Year Price`,"
-					+ " google.`Google 3 Year Price`,"
-					+ " aws.`OS Version`, eol.`End Of Life - OS`,eol.`End Of Extended Support - OS`" + " " + hwdata
-					+ " " + " from global_temp.awsReport aws "
-					+ " left join global_temp.eoleosDataDF eol on eol.`Server Name`=aws.`Server Name` "
-					+ " left join global_temp.azureReport azure on azure.`Server Name` = aws.`Server Name`"
-					+ " left join global_temp.googleReport google on google.`Server Name` = aws.`Server Name` " + " "
-					+ hwJoin + " " + " where aws.site_key='" + siteKey + "' and " + deviceType
-					+ " order by aws.`Server Name` asc) ld where ld.my_rank = 1";
-
-			if (dataCount == 0) {
-				sql = "select * from (" + " select "
-						+ " ROW_NUMBER() OVER (PARTITION BY aws.`Server Name` ORDER BY aws.`log_date` desc) as my_rank, 'Physical Servers' as report_by, '0' as customExcelSrcId, "
-						+ "lower(aws.`Server Name`) as `Server Name`, aws.`OS Name`, aws.`Server Type`, aws.`Server Model`,"
-						+ " aws.`Memory`, aws.`Total Size`, aws.`Number of Processors`, aws.`Logical Processor Count`, "
-						+ " round(aws.`CPU GHz`,2) as `CPU GHz`, aws.`Processor Name`,aws.`Number of Cores`,aws.`DB Service`, "
-						+ " aws.`HBA Speed`,aws.`Number of Ports`, aws.Host,"
-						+ " round((round(aws.`AWS On Demand Price`,2) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS On Demand Price`,"
-						+ " round((round(aws.`AWS 3 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 3 Year Price`,"
-						+ " round((round(aws.`AWS 1 Year Price`) +((case when aws.`Total Size` >16384 then 16384 else aws.`Total Size` end)*0.10)),2) as `AWS 1 Year Price`,"
-						+ " aws.`AWS Instance Type`,aws.`AWS Region`,aws.`AWS Specs`,"
-						+ " round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`,"
-						+ " round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`,"
-						+ " round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`,"
-						+ " azure.`Azure Instance Type`,azure.`Azure Specs`," + " google.`Google Instance Type`, "
-						+ " google.`Google On Demand Price`," + " google.`Google 1 Year Price`,"
-						+ " google.`Google 3 Year Price`,"
-						+ " aws.`OS Version`, '' as `End Of Life - OS`,'' as `End Of Extended Support - OS`" + " "
-						+ hwdata + " " + " from global_temp.awsReport aws "
-						+ " left join global_temp.azureReport azure on azure.`Server Name` = aws.`Server Name`"
-						+ " left join global_temp.googleReport google on google.`Server Name` = aws.`Server Name` "
-						+ " " + hwJoin + " " + " where aws.site_key='" + siteKey + "' and " + deviceType
-						+ " order by aws.`Server Name` asc) ld where ld.my_rank = 1";
-			}
-
-			boolean isTaskListReport = false;
-			if (!taskListServers.isEmpty()) {
-				isTaskListReport = true;
-			}
-			List<String> categoryList = new ArrayList<>();
-			List<String> sourceList = new ArrayList<>();
-
-			if (!isTaskListReport) {
-				/*
-				 * categoryList.add(request.getCategoryOpt());
-				 * sourceList.add(request.getSource());
-				 */
-				categoryList.add("All");
-				sourceList.add("All");
-			}
-
-			dataCheck = sparkSession.sql(sql).toDF();
-			List<String> colHeaders = Arrays.asList(dataCheck.columns());
-
-			if (!isTaskListReport && !categoryList.contains("All") && !categoryList.contains("Physical Servers")) {
-				dataCheck = sparkSession.emptyDataFrame();
-			}
-
-			Dataset<Row> awsInstanceData = null;
-			if (!isTaskListReport && (categoryList.contains("All") || categoryList.contains("AWS Instances"))) {
-				awsInstanceData = getAwsInstanceData(colHeaders, siteKey, deviceTypeHeder);
-				/*
-				 * if(awsInstanceData != null && !awsInstanceData.isEmpty()) {
-				 * if(dataCheck.isEmpty()) { dataCheck = awsInstanceData; } else { dataCheck =
-				 * dataCheck.unionByName(awsInstanceData); }
-				 * 
-				 * }
-				 */
-			}
-
-			List<String> physicalServerNames = new ArrayList<String>();
-			if (categoryList.contains("All")) {
-				List<Row> serverNames = dataCheck.select(functions.col("Server Name")).collectAsList();
-				serverNames.forEach((Consumer<? super Row>) row -> physicalServerNames.add(row.getAs("Server Name")));
-			}
-
-			Dataset<Row> thirdPartyData = null;
-			if (!isTaskListReport && (categoryList.contains("All") || categoryList.contains("Custom Excel Data"))) {
-
-				thirdPartyData = getThirdPartyData(colHeaders, siteKey, deviceTypeHeder, sourceList,
-						request.getDeviceType(), physicalServerNames);
-
-				/*
-				 * if(thirdPartyData != null && !thirdPartyData.isEmpty()) {
-				 * if(dataCheck.isEmpty()) { dataCheck = thirdPartyData; } else { dataCheck =
-				 * dataCheck.unionByName(thirdPartyData); } }
-				 */
-
-			}
-
-			/*
-			 * sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
-			 * sparkSession.catalog().dropGlobalTempView("awsReportForThirdParty");
-			 * sparkSession.catalog().dropGlobalTempView("eoleosDataDF");
-			 * sparkSession.catalog().dropGlobalTempView("eolHWData");
-			 * sparkSession.catalog().dropGlobalTempView("awsReport");
-			 * sparkSession.catalog().dropGlobalTempView("azureReport");
-			 * sparkSession.catalog().dropGlobalTempView("googleReport");
-			 * sparkSession.catalog().dropGlobalTempView("azureReportForAWSInstance");
-			 * sparkSession.catalog().dropGlobalTempView("awsReportForThirdParty");
-			 * sparkSession.catalog().dropGlobalTempView("googleReportForAWSInstance");
-			 */
-			dataCheck = dataCheck.unionByName(awsInstanceData).unionByName(thirdPartyData);
-			// dataCheck = sparkSession.sql("SELECT * FROM global_temp.ccrPhysicalDF UNION
-			// ALL SELECT * FROM global_temp.awsInstanceDF UNION ALL SELECT * FROM
-			// global_temp.thirdPartyDataDF");
-
-			// dataCheck.printSchema();
-			// dataCheck.show();
-
-			/*
-			 * for(String col : columnHeaders) { dataCheck = dataCheck.withColumn(col,
-			 * functions.when(col(col).equalTo(""),"N/A")
-			 * .when(col(col).equalTo(null),"N/A").when(col(col).isNull(),"N/A")
-			 * .otherwise(col(col))); }
-			 */
-			dataCheck = dataCheck
-					.withColumn("AWS 1 Year Price",
-							functions.round(dataCheck.col("AWS 1 Year Price").cast(DataTypes.createDecimalType(32, 2))))
-					.withColumn("AWS 3 Year Price",
-							functions.round(dataCheck.col("AWS 3 Year Price").cast(DataTypes.createDecimalType(32, 2))))
-					.withColumn("AWS On Demand Price",
-							functions.round(
-									dataCheck.col("AWS On Demand Price").cast(DataTypes.createDecimalType(32, 2))))
-					.withColumn("Google 1 Year Price",
-							functions.round(
-									dataCheck.col("Google 1 Year Price").cast(DataTypes.createDecimalType(32, 2))))
-					.withColumn("Google 3 Year Price",
-							functions.round(
-									dataCheck.col("Google 3 Year Price").cast(DataTypes.createDecimalType(32, 2))))
-					.withColumn("Google On Demand Price",
-							functions.round(
-									dataCheck.col("Google On Demand Price").cast(DataTypes.createDecimalType(32, 2))))
-					.withColumn("Azure 1 Year Price",
-							functions.round(
-									dataCheck.col("Azure 1 Year Price").cast(DataTypes.createDecimalType(32, 2))))
-					.withColumn("Azure 3 Year Price",
-							functions.round(
-									dataCheck.col("Azure 3 Year Price").cast(DataTypes.createDecimalType(32, 2))))
-					.withColumn("Azure On Demand Price",
-							functions.round(
-									dataCheck.col("Azure On Demand Price").cast(DataTypes.createDecimalType(32, 2))))
-					.withColumn("Logical Processor Count", dataCheck.col("Logical Processor Count").cast("integer"))
-					.withColumn("Memory", dataCheck.col("Memory").cast("integer"))
-					.withColumn("Number of Cores", dataCheck.col("Number of Cores").cast("integer"))
-					.withColumn("Number of Processors", dataCheck.col("Number of Processors").cast("integer"))
-					.withColumn("Number of Ports", dataCheck.col("Number of Ports").cast("integer"))
-					.withColumn("Total Size", dataCheck.col("Total Size").cast("integer"))
-					.withColumn("AWS Instance Type",
-							functions.when(col("AWS Instance Type").equalTo(""), "N/A")
-									.when(col("AWS Instance Type").equalTo(null), "N/A")
-									.when(col("AWS Instance Type").isNull(), "N/A").otherwise(col("AWS Instance Type")))
-					.withColumn("OS Version",
-							functions.when(col("OS Version").equalTo(""), "N/A")
-									.when(col("OS Version").equalTo(null), "N/A")
-									.when(col("OS Version").isNull(), "N/A").otherwise(col("OS Version")))
-					.withColumn("Server Name",
-							functions.when(col("Server Name").equalTo(""), "N/A")
-									.when(col("Server Name").equalTo(null), "N/A")
-									.when(col("Server Name").isNull(), "N/A").otherwise(col("Server Name")))
-					.withColumn("Server Model",
-							functions.when(col("Server Model").equalTo(""), "N/A")
-									.when(col("Server Model").equalTo(null), "N/A")
-									.when(col("Server Model").isNull(), "N/A").otherwise(col("Server Model")))
-					.withColumn("End Of Extended Support - OS",
-							functions.when(col("End Of Extended Support - OS").equalTo(""), "N/A")
-									.when(col("End Of Extended Support - OS").equalTo(null), "N/A")
-									.when(col("End Of Extended Support - OS").isNull(), "N/A")
-									.otherwise(col("End Of Extended Support - OS")))
-					.withColumn("Google Instance Type", functions.when(col("Google Instance Type").equalTo(""), "N/A")
-							.when(col("Google Instance Type").equalTo(null), "N/A")
-							.when(col("Google Instance Type").isNull(), "N/A").otherwise(col("Google Instance Type")))
-					.withColumn("End Of Life - HW",
-							functions.when(col("End Of Life - HW").equalTo(""), "N/A")
-									.when(col("End Of Life - HW").equalTo(null), "N/A")
-									.when(col("End Of Life - HW").isNull(), "N/A").otherwise(col("End Of Life - HW")))
-					.withColumn("OS Name",
-							functions.when(col("OS Name").equalTo(""), "N/A").when(col("OS Name").equalTo(null), "N/A")
-									.when(col("OS Name").isNull(), "N/A").otherwise(col("OS Name")))
-					.withColumn("Server Type",
-							functions.when(col("Server Type").equalTo(""), "N/A")
-									.when(col("Server Type").equalTo(null), "N/A")
-									.when(col("Server Type").isNull(), "N/A").otherwise(col("Server Type")))
-					.withColumn("End Of Extended Support - HW",
-							functions.when(col("End Of Extended Support - HW").equalTo(""), "N/A")
-									.when(col("End Of Extended Support - HW").equalTo(null), "N/A")
-									.when(col("End Of Extended Support - HW").isNull(), "N/A")
-									.otherwise(col("End Of Extended Support - HW")))
-					.withColumn("CPU GHz",
-							functions.when(col("CPU GHz").equalTo(""), "N/A").when(col("CPU GHz").equalTo(null), "N/A")
-									.when(col("CPU GHz").isNull(), "N/A").otherwise(col("CPU GHz")))
-					.withColumn("DB Service",
-							functions.when(col("DB Service").equalTo(""), "N/A")
-									.when(col("DB Service").equalTo(null), "N/A")
-									.when(col("DB Service").isNull(), "N/A").otherwise(col("DB Service")))
-					.withColumn("AWS Region",
-							functions.when(col("AWS Region").equalTo(""), "N/A")
-									.when(col("AWS Region").equalTo(null), "N/A")
-									.when(col("AWS Region").isNull(), "N/A").otherwise(col("AWS Region")))
-					.withColumn("AWS Specs",
-							functions.when(col("AWS Specs").equalTo(""), "N/A")
-									.when(col("AWS Specs").equalTo(null), "N/A").when(col("AWS Specs").isNull(), "N/A")
-									.otherwise(col("AWS Specs")))
-					.withColumn("Processor Name",
-							functions.when(col("Processor Name").equalTo(""), "N/A")
-									.when(col("Processor Name").equalTo(null), "N/A")
-									.when(col("Processor Name").isNull(), "N/A").otherwise(col("Processor Name")))
-					.withColumn("HBA Speed",
-							functions.when(col("HBA Speed").equalTo(""), "N/A")
-									.when(col("HBA Speed").equalTo(null), "N/A").when(col("HBA Speed").isNull(), "N/A")
-									.otherwise(col("HBA Speed")))
-					.withColumn("End Of Life - OS",
-							functions.when(col("End Of Life - OS").equalTo(""), "N/A")
-									.when(col("End Of Life - OS").equalTo(null), "N/A")
-									.when(col("End Of Life - OS").isNull(), "N/A").otherwise(col("End Of Life - OS")))
-					.withColumn("Azure Instance Type", functions.when(col("Azure Instance Type").equalTo(""), "N/A")
-							.when(col("Azure Instance Type").equalTo(null), "N/A")
-							.when(col("Azure Instance Type").isNull(), "N/A").otherwise(col("Azure Instance Type")))
-					.withColumn("Azure Specs",
-							functions.when(col("Azure Specs").equalTo(""), "N/A")
-									.when(col("Azure Specs").equalTo(null), "N/A")
-									.when(col("Azure Specs").isNull(), "N/A").otherwise(col("Azure Specs")))
-					.withColumn("my_rank",
-							functions.when(col("my_rank").equalTo(""), "N/A").when(col("my_rank").equalTo(null), "N/A")
-									.when(col("my_rank").isNull(), "N/A").otherwise(col("my_rank")))
-					.withColumn("report_by",
-							functions.when(col("report_by").equalTo(""), "N/A")
-									.when(col("report_by").equalTo(null), "N/A").when(col("report_by").isNull(), "N/A")
-									.otherwise(col("report_by")))
-					.withColumn("customExcelSrcId",
-							functions.when(col("customExcelSrcId").equalTo(""), "N/A")
-									.when(col("customExcelSrcId").equalTo(null), "N/A")
-									.when(col("customExcelSrcId").isNull(), "N/A").otherwise(col("customExcelSrcId")));
-
-			if (!taskListServers.isEmpty()) { // add server~ for task list call
-				List<String> allServers = dataCheck.select("Server Name").as(Encoders.STRING()).collectAsList();
-
-				taskListServers.removeAll(allServers);
-
-				if (taskListServers != null && !taskListServers.isEmpty()) {
-					Dataset<Row> nonOptDataset = getNonOptDatasetData(siteKey, taskListServers);
-
-					if (nonOptDataset != null && !nonOptDataset.isEmpty()) {
-						dataCheck = dataCheck.unionByName(nonOptDataset);
-					}
-				}
-
-				dataCheck = dataCheck.withColumnRenamed("End Of Life - HW", "server~End Of Life - HW")
-						.withColumnRenamed("End Of Extended Support - HW", "server~End Of Extended Support - HW")
-						.withColumnRenamed("End Of Life - OS", "server~End Of Life - OS")
-						.withColumnRenamed("End Of Extended Support - OS", "server~End Of Extended Support - OS");
-
-			}
-
-			/*
-			 * List<String> floatColumns = new ArrayList<String>();
-			 * floatColumns.add("AWS 1 Year Price"); floatColumns.add("AWS 3 Year Price");
-			 * floatColumns.add("AWS On Demand Price");
-			 * floatColumns.add("Google 1 Year Price");
-			 * floatColumns.add("Google 3 Year Price");
-			 * floatColumns.add("Google On Demand Price");
-			 * floatColumns.add("Azure 1 Year Price");
-			 * floatColumns.add("Azure 3 Year Price");
-			 * floatColumns.add("Azure On Demand Price");
-			 */
-
-			/*
-			 * List<String> numericalHeaders = getReportNumericalHeaders("Optimization",
-			 * "All", "Optimization", siteKey);
-			 * 
-			 * List<String> columns = Arrays.asList(dataCheck.columns());
-			 * 
-			 * for(String column : numericalHeaders) { if(columns.contains(column)) {
-			 * if(column.toLowerCase().contains("price")) { dataCheck =
-			 * dataCheck.withColumn(column,
-			 * dataCheck.col(column).cast(DataTypes.createDecimalType(32,2))); }else {
-			 * dataCheck = dataCheck.withColumn(column,
-			 * dataCheck.col(column).cast("integer")); }
-			 * 
-			 * }
-			 * 
-			 * }
-			 */
-			/*
-			 * for(String column : floatColumns) { if(columns.contains(column)) { dataCheck
-			 * = dataCheck.withColumn(column, dataCheck.col(column).cast("float")); }
-			 * 
-			 * }
-			 */
-
-			logger.info("getReport Details Ends");
-
-			try {
-				File ccrPath = new File(cloudCostDfPath + siteKey + File.separator);
-				ccrPath.delete();
-			} catch (Exception e) {
-				e.printStackTrace();
-				StringWriter errors = new StringWriter();
-				e.printStackTrace(new PrintWriter(errors));
-				String ex = errors.toString();
-				ExceptionHandlerMail.errorTriggerMail(ex);
-			}
-
-			String viewName = siteKey.replaceAll("\\s+", "").replaceAll("-", "") + "_cloudcost";
-
-			dataCheck.createOrReplaceGlobalTempView(viewName);
-			dataCheck.cache();
-			// dataCheck.coalesce(1).write().json(cloudCostDfPath+siteKey);
-			dataCheck.coalesce(1).write().option("escape", "").option("quotes", "")
-					.option("ignoreLeadingWhiteSpace", true).format("org.apache.spark.sql.json")
-					.mode(SaveMode.Overwrite).save(cloudCostDfPath + siteKey);
-
-			/*
-			 * dataCheck.write().option("escape", "").option("quotes",
-			 * "").option("ignoreLeadingWhiteSpace", true)
-			 * .format("org.apache.spark.sql.json")
-			 * .mode(SaveMode.Overwrite).save(cloudCostDfPath+siteKey);
-			 */
-
-			//// dataCheck.write().option("escape", "").option("quotes",
-			//// "").option("ignoreLeadingWhiteSpace", true).option("multiline",
-			//// true).option("nullValue", "").option("mode",
-			//// "PERMISSIVE").json(cloudCostDfPath+siteKey);
-
-			Path resultFilePath = Paths.get(cloudCostDfPath + siteKey);
-			UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
-					.lookupPrincipalByName("zenuser");
-			Files.setOwner(resultFilePath, owner);
-
-			Path resultFilePath1 = Paths.get(cloudCostDfPath);
-			UserPrincipal owner1 = resultFilePath.getFileSystem().getUserPrincipalLookupService()
-					.lookupPrincipalByName("zenuser");
-			Files.setOwner(resultFilePath1, owner1);
-
-			/*
-			 * request.setStartRow(0); request.setEndRow((int)dataCheck.count()); rowGroups
-			 * =
-			 * request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
-			 * groupKeys = request.getGroupKeys(); valueColumns = request.getValueCols();
-			 * pivotColumns = request.getPivotCols(); filterModel =
-			 * request.getFilterModel(); sortModel = request.getSortModel(); isPivotMode =
-			 * request.isPivotMode(); isGrouping = rowGroups.size() > groupKeys.size();
-			 */
-			return dataCheck;
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			logger.error("Exception in getReport ", ex);
-			// ex.printStackTrace();
-		}
-
-		dataCheck = sparkSession.emptyDataFrame();
-		return dataCheck; // paginate(dataCheck, request);
-	}
-
-	private Dataset<Row> getThirdPartyData(List<String> columnHeaders, String siteKey, String deviceTypeHeder,
-			List<String> sourceList, String deviceType, List<String> physicalServerNames) {
-		Dataset<Row> result = sparkSession.emptyDataFrame();
-		try {
-			List<AwsInstanceData> thirdPartyData = queryThirdPartyData(siteKey, sourceList, deviceType,
-					physicalServerNames);
-
-			Dataset<Row> data = sparkSession.createDataFrame(thirdPartyData, AwsInstanceData.class);
-
-			data = data.withColumnRenamed("region", "AWS Region").withColumnRenamed("instancetype", "AWS Instance Type")
-					.withColumnRenamed("memoryinfo", "Memory").withColumnRenamed("vcpuinfo", "Number of Cores")
-					.withColumnRenamed("platformdetails", "OS Name").withColumnRenamed("description", "Server Name")
-					.withColumnRenamed("instanceid", "instanceid").withColumnRenamed("updated_date", "updated_date")
-					.withColumnRenamed("serverType", "Server Type");
-			/*
-			 * data = data.withColumnRenamed("instancetype", "AWS Instance Type"); data =
-			 * data.withColumnRenamed("memoryinfo", "Memory"); data =
-			 * data.withColumnRenamed("vcpuinfo", "Number of Cores"); data =
-			 * data.withColumnRenamed("platformdetails", "OS Name"); data =
-			 * data.withColumnRenamed("description", "Server Name"); data =
-			 * data.withColumnRenamed("instanceid", "instanceid"); data =
-			 * data.withColumnRenamed("updated_date", "updated_date"); data =
-			 * data.withColumnRenamed("serverType", "Server Type");
-			 */
-			data.createOrReplaceGlobalTempView("awsInstanceDF");
-
-			// getAwsPricingForThirdParty();
-			getAWSPricingForThirdParty();
-			getAzurePricingForAWS();
-			getGooglePricingForAWS();
-
-			Dataset<Row> data1 = data.drop("instanceid");
-			data1.createOrReplaceGlobalTempView("thirdPartyDataDF");
-
-			try {
-
-				// Dataset<Row> dataCheck1 = sparkSession.sql("select * from (select g.`Google
-				// Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`,
-				// g.`Google 3 Year Price`, ai.`AWS Region`, ai.`AWS Instance Type`,
-				// ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, ai.`OS Name`,
-				// round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`,
-				// round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`,
-				// round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`, azure.`Azure
-				// Instance Type`, azure.`Azure Specs`, ROW_NUMBER () over (partition BY
-				// ai.`instanceid` ORDER BY a.`PricePerUnit` ASC) AS my_rank, concat_ws(',',
-				// concat('Processor: ',a.`Physical Processor`),concat('vCPU:
-				// ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor
-				// Architecture: ',a.`Processor Architecture`) ,concat('Memory:
-				// ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance:
-				// ',a.`Network Performance`)) as `AWS Specs`, round(((select
-				// min(a.`PricePerUnit`) from global_temp.awsPricingDF a where
-				// lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No
-				// Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and
-				// a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730
-				// ),2) as `AWS 3 Year Price`, round(((select min(a.`PricePerUnit`) from
-				// global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS
-				// Name`) and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) =
-				// lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '1yr' and
-				// cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 1 Year Price`,
-				// round((a.`PricePerUnit` * 730),2) as `AWS On Demand Price` from
-				// global_temp.awsInstanceDF ai left join global_temp.googleReportForAWSInstance
-				// g on ai.instanceid=g.instanceid left join
-				// global_temp.azureReportForAWSInstance azure on lower(azure.`OS Name`) =
-				// lower(ai.`actualOsType`) and cast(azure.Memory as float ) = cast(ai.Memory as
-				// float) and cast(azure.VCPUs as int ) = cast(ai.`Number of Cores` as int) left
-				// join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)=
-				// lower(a.`Instance Type`) and a.`License Model` = 'No License required' and
-				// a.Location = 'US East (Ohio)' and a.Tenancy <> 'Host' and a.TermType =
-				// 'OnDemand' and lower(a.`Operating System`) = lower(ai.`OS Name`) and
-				// cast(a.`PricePerUnit` as float ) > 0.0 and ( a.`Product Family` = 'Compute
-				// Instance (bare metal)' or a.`Product Family` = 'Compute Instance' )) AWS
-				// where AWS.my_rank = 1").toDF();
-				result = sparkSession.sql(
-						"select * from (select    'N/A' as `End Of Extended Support - HW`, 'N/A' as `End Of Life - HW`, 'N/A' as `End Of Life - OS`, 'N/A' as `End Of Extended Support - OS`, 'N/A' as `HBA Speed`, 'N/A' as `Processor Name`, 'N/A' as `DB Service`, 'N/A' as `CPU GHz`, 'N/A' as `OS Version`, 'N/A' as `Host`, 'N/A' as `Number of Ports`, 'N/A' as `Number of Processors`, 'N/A' as `Logical Processor Count`, 'N/A' as `Total Size`, 'N/A' as `Server Model`,  ROW_NUMBER() OVER (PARTITION BY ai.`Server Name` order by ai.`Server Name` asc) as my_rank, 'Custom Excel Data' as report_by, ai.customExcelSrcId, g.`Google Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`, g.`Google 3 Year Price`, a.`AWS Region`, a.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, a.`OS Name`, ai.`Server Type`, round( azure.`Azure On Demand Price`, 2 ) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`, 2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`, 2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`, round(a.`AWS On Demand Price`,2) as `AWS On Demand Price`, round(a.`AWS 3 Year Price`,2) as `AWS 3 Year Price`, round(a.`AWS 1 Year Price`,2) as `AWS 1 Year Price`, a.`AWS Specs` from global_temp.thirdPartyDataDF ai left join global_temp.googleReportForAWSInstance g on ai.`Server Name` = g.`instanceid` left join global_temp.azureReportForAWSInstance azure on ai.`Server Name` = azure.`instanceid` left join global_temp.awsReportForThirdParty a on  ai.`Server Name` = a.`Server Name`) thirdParty where thirdParty.my_rank = 1")
-						.toDF();
-
-				/*
-				 * List<String> dup = new ArrayList<>();
-				 * dup.addAll(Arrays.asList(dataCheck1.columns())); List<String> original = new
-				 * ArrayList<>(); original.addAll(columnHeaders); original.removeAll(dup);
-				 */
-				/*
-				 * for(String col : original) {
-				 * 
-				 * dataCheck1 = dataCheck1.withColumn(col, lit("N/A"));
-				 * 
-				 * }
-				 */
-
-				// result = dataCheck1.toDF();
-
-				/*
-				 * Collections.sort(columnHeaders); List<String> tmp = new ArrayList<String>();
-				 * tmp.addAll(Arrays.asList(dataCheck1.columns())); Collections.sort(tmp);
-				 */
-
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-		return result;
-	}
-
-	private List<AwsInstanceData> queryThirdPartyData(String siteKey, List<String> sourceList, String deviceType,
-			List<String> physicalServerNames) {
-		List<AwsInstanceData> row = new ArrayList<>();
-		try {
-			/*
-			 * List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(
-			 * "select data from source_data where source_id in (select source_id from source where is_active='true' and (link_to='All' or site_key='"
-			 * +siteKey+"')) and site_key='"
-			 * +siteKey+"' and (data like '%Memory%' and data like '%Number of Cores%' and data like '%OS Type%' and data like '%Server Name%')"
-			 * );
-			 */
-			boolean isAllSource = false;
-			String sources = "";
-			if (sourceList.contains("All")) {
-				isAllSource = true;
-			} else {
-				sources = String.join(",",
-						sourceList.stream().map(source -> ("'" + source + "'")).collect(Collectors.toList()));
-			}
-
-			String sql = "select source_id, replace(data, '.0\"', '') as data from source_data where source_id in (" + sources + ") and site_key='"
-					+ siteKey + "'";
-
-			String getAllSourceSql = "select source_id, fields from source where is_active='true' and site_key='"
-					+ siteKey
-					+ "' and fields like '%memory%' and fields like '%numberOfCores%' and fields like '%osType%' and fields like '%name%' and fields like '%serverType%'"; // (link_to='All'
-																																											// or
-
-			List<Map<String, Object>> allSource = favouriteDao_v2.getFavouriteList(getAllSourceSql);
-
-			Map<String, JSONArray> sourceMap = new HashMap<String, JSONArray>();
-			if (allSource != null && !allSource.isEmpty()) {
-				for (Map<String, Object> map : allSource) {
-					sourceMap.put((String) map.get("source_id"), (JSONArray) parser.parse((String) map.get("fields")));
-				}
-			}
-
-			if (isAllSource) {
-				sources = String.join(",",
-						sourceMap.keySet().stream().map(source -> ("'" + source + "'")).collect(Collectors.toList()));
-				sql = "select source_id, replace(data, '.0\"', '') as data from source_data where source_id in (" + sources + ") and site_key='"
-						+ siteKey + "'";
-			}
-
-			List<Map<String, Object>> obj = favouriteDao_v2.getFavouriteList(sql);
-
-			List<String> deviceList = new ArrayList<>();
-			if (deviceType.contentEquals("All")) {
-				deviceList.add("vmware");
-				deviceList.add("windows");
-				deviceList.add("linux");
-
-			} else {
-				deviceList.add(deviceType.toLowerCase());
-			}
-
-			if (!obj.isEmpty()) {
-				for (Map<String, Object> o : obj) {
-
-					JSONObject json = (JSONObject) parser.parse((String) o.get("data"));
-					String sourceId = (String) o.get("source_id");
-					JSONArray fieldMapAry = sourceMap.get(sourceId);
-					Map<String, String> mappingNames = new HashMap<String, String>();
-
-					for (int i = 0; i < fieldMapAry.size(); i++) {
-						JSONObject sourceFiledMap = (JSONObject) fieldMapAry.get(i);
-						mappingNames.put((String) sourceFiledMap.get("primaryKey"),
-								(String) sourceFiledMap.get("displayLabel"));
-					}
-
-					if (json.containsKey(mappingNames.get("memory"))
-							&& json.containsKey(mappingNames.get("numberOfCores"))
-							&& json.containsKey(mappingNames.get("osType"))
-							&& json.containsKey(mappingNames.get("name"))
-							&& json.containsKey(mappingNames.get("serverType"))) {
-
-						String actualOsType = "";
-
-						String serverType = (String) json.get(mappingNames.get("serverType"));
-
-						String value = (String) json.get(mappingNames.get("osType"));
-						if (StringUtils.containsIgnoreCase(value, "CentOS")) {
-							value = "LINUX";
-							actualOsType = "CentOS";
-						} else if (StringUtils.containsIgnoreCase(value, "SUSE")) {
-							value = "SUSE";
-							actualOsType = "SUSE";
-						} else if (StringUtils.containsIgnoreCase(value, "Red")) {
-							value = "RHEL";
-							actualOsType = "RHEL";
-						} else if (StringUtils.containsIgnoreCase(value, "LINUX")) {
-							value = "LINUX";
-							actualOsType = "UBUNTU";
-						} else if (StringUtils.containsIgnoreCase(value, "WINDOWS")) {
-							value = "WINDOWS";
-							actualOsType = "WINDOWS";
-						}
-						float mem = Float.parseFloat((String) json.get(mappingNames.get("memory")));
-						float vcpu = Float.parseFloat((String) json.get(mappingNames.get("numberOfCores")));
-						String instanceId = mem + "_" + vcpu;
-						if (deviceList.contains(serverType.toLowerCase())) { // &&
-																				// !physicalServerNames.stream().anyMatch(d
-																				// ->
-																				// d.equalsIgnoreCase((String)json.get(mappingNames.get("name"))))
-							AwsInstanceData awsInstanceData = new AwsInstanceData("US East (Ohio)", "",
-									(String) json.get(mappingNames.get("memory")),
-									(String) json.get(mappingNames.get("numberOfCores")), value,
-									(String) json.get(mappingNames.get("name")),
-									(String) json.get(mappingNames.get("name")), "", actualOsType,
-									(String) json.get(mappingNames.get("serverType")), "Custom Excel Data", sourceId);
-							row.add(awsInstanceData);
-						}
-						//
-					}
-				}
-
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-		return row;
-	}
-
-	private Dataset<Row> getNonOptDatasetData(String siteKey, List<String> taskListServers) {
-		try {
-			String serverList = "";
-			serverList = String.join(",", taskListServers.stream().map(server -> ("'" + server.toLowerCase() + "'"))
-					.collect(Collectors.toList()));
-
-			// , eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support
-			// as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life -
-			// OS`, eol.end_of_extended_support as `End Of Extended Support - OS` from
-			// global_temp.localDiscoveryTemp l left join global_temp.eolDataDF eol on
-			// lcase(eol.os_version)=lcase(l.`OS Version`) and
-			// lcase(eol.os_type)=lcase(l.`Server Type`) left join global_temp.eolHWDataDF
-			// eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) =
-			// lcase(REPLACE(l.`Server Model`, ' ', ''))
-			Dataset<Row> data = sparkSession.sql(
-					"select l.rank as `my_rank`, l.`Server Name`, l.OS as `OS Name`, l.`Server Type`, l.`Server Model`, l.Memory, l.`Total Size`, l.`Number of Processors`, l.`Logical Processor Count`, l.`CPU GHz`, l.`Processor Name`, l.`Number of Cores`, l.`DB Service`, l.`HBA Speed`, l.`Number of Ports`, l.`Host`, 'AWS On Demand Price', 'AWS 3 Year Price', 'AWS 1 Year Price', 'AWS Instance Type', 'AWS Region', 'AWS Specs', 'Azure On Demand Price', 'Azure 3 Year Price', 'Azure 1 Year Price', 'Azure Instance Type', 'Azure Specs', 'Google Instance Type', 'Google On Demand Price', 'Google 1 Year Price', 'Google 3 Year Price', l.`OS Version`, eolHw.end_of_life_cycle as `End Of Life - HW`,eolHw.end_of_extended_support as `End Of Extended Support - HW`, eol.end_of_life_cycle as `End Of Life - OS`, eol.end_of_extended_support as `End Of Extended Support - OS`  from global_temp.localDiscoveryTemp l  left join global_temp.eolDataDF eol on lcase(eol.os_version)=lcase(l.`OS Version`) and (lcase(eol.os_type)=lcase(ldView.source_type_ref) or lcase(eol.os_name) like lcase('%ldView.source_type_ref%'))  left join global_temp.eolHWDataDF eolHw on lcase(REPLACE((concat(eolHw.vendor,' ',eolHw.model)), ' ', '')) = lcase(REPLACE(l.`Server Model`, ' ', '')) where lower(l.`Server Name`) in ("
-							+ serverList + ")");
-
-			data = data.withColumn("AWS On Demand Price", lit("N/A"));
-			data = data.withColumn("AWS 3 Year Price", lit("N/A"));
-			data = data.withColumn("AWS 1 Year Price", lit("N/A"));
-			data = data.withColumn("AWS Instance Type", lit("N/A"));
-			data = data.withColumn("AWS Region", lit("N/A"));
-			data = data.withColumn("AWS Specs", lit("N/A"));
-			data = data.withColumn("Azure On Demand Price", lit("N/A"));
-			data = data.withColumn("Azure 3 Year Price", lit("N/A"));
-			data = data.withColumn("Azure 1 Year Price", lit("N/A"));
-			data = data.withColumn("Azure Instance Type", lit("N/A"));
-			data = data.withColumn("Azure Specs", lit("N/A"));
-			data = data.withColumn("Google Instance Type", lit("N/A"));
-			data = data.withColumn("Google On Demand Price", lit("N/A"));
-			data = data.withColumn("Google 1 Year Price", lit("N/A"));
-			data = data.withColumn("Google 3 Year Price", lit("N/A"));
-			return data;
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-		Dataset<Row> df = sparkSession.emptyDataFrame();
-		return df;
-
-	}
-	
-	
-	private List<Map<String, Object>> getAwsInstanceDataPostgres(List<String> columnHeaders, String siteKey, String deviceType) {
-		List<Map<String, Object>> result = new ArrayList<>();
-		Connection conn = null;
-		Statement stmt = null;
-		if (deviceType.equalsIgnoreCase("All")) {
-			deviceType = " (lower(img.platformdetails) like '%linux%' or lower(img.platformdetails) like '%windows%' or lower(img.platformdetails) like '%vmware%')";
-		} else {
-			deviceType = " lower(img.platformdetails) like '%" + deviceType.toLowerCase() + "%'";
-		}
-		try {
-			String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"
-					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
-														// it.vcpuinfo, it.memoryinfo";
-
-			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(query);
-
-			List<Map<String, String>> awsData = parseAwsData(rs);
-			
-			
-			
-			
-			
-			
- 
-		} catch (Exception e) {
-			e.printStackTrace();
-			 
-		} finally {
-			try {
-				conn.close();
-				// AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
-			} catch (Exception e2) {
-				// TODO: handle exception
-			}
-		}
-		return result;
-	}
 	
 	
 	
-	private Dataset<Row> getAwsInstanceData(List<String> columnHeaders, String siteKey, String deviceType) {
-		Dataset<Row> result = sparkSession.emptyDataFrame();
-		Connection conn = null;
-		Statement stmt = null;
-		if (deviceType.equalsIgnoreCase("All")) {
-			deviceType = " (lower(img.platformdetails) like '%linux%' or lower(img.platformdetails) like '%windows%' or lower(img.platformdetails) like '%vmware%')";
-		} else {
-			deviceType = " lower(img.platformdetails) like '%" + deviceType.toLowerCase() + "%'";
-		}
-		try {
-			String query = "select i.sitekey, i.region, i.instanceid, i.instancetype, i.imageid, it.vcpuinfo, it.memoryinfo, img.platformdetails, tag.value as description, i.updated_date from ec2_instances i  left join ec2_tags tag on i.instanceid=tag.resourceid left join ec2_instancetypes it on i.instancetype=it.instancetype  join ec2_images img on i.imageid=img.imageid where i.sitekey='"
-					+ siteKey + "' and  " + deviceType; // i.sitekey='"+siteKey+" and // + " group by it.instancetype,
-														// it.vcpuinfo, it.memoryinfo";
-
-			conn = AwsInventoryPostgresConnection.dataSource.getConnection();
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(query);
-
-			List<AwsInstanceData> resultRows = resultSetToList(rs);
-			Dataset<Row> data = sparkSession.createDataFrame(resultRows, AwsInstanceData.class);
-
-			// Dataset<Row> data =
-			// sparkSession.read().format("csv").option("header","true").load("E:\\opt\\aws_inventory1.csv").distinct();
-
-			data = data.withColumnRenamed("region", "AWS Region").withColumnRenamed("instancetype", "AWS Instance Type")
-					.withColumnRenamed("memoryinfo", "Memory").withColumnRenamed("vcpuinfo", "Number of Cores")
-					.withColumnRenamed("platformdetails", "OS Name").withColumnRenamed("description", "Server Name")
-					.withColumnRenamed("instanceid", "instanceid").withColumnRenamed("updated_date", "updated_date");
-			/*
-			 * data = data.withColumnRenamed("instancetype", "AWS Instance Type"); data =
-			 * data.withColumnRenamed("memoryinfo", "Memory"); data =
-			 * data.withColumnRenamed("vcpuinfo", "Number of Cores"); data =
-			 * data.withColumnRenamed("platformdetails", "OS Name"); data =
-			 * data.withColumnRenamed("description", "Server Name"); data =
-			 * data.withColumnRenamed("instanceid", "instanceid"); data =
-			 * data.withColumnRenamed("updated_date", "updated_date");
-			 */
-			data.createOrReplaceGlobalTempView("awsInstanceDF");
-
-			getAzurePricingForAWS();
-			getGooglePricingForAWS();
-			try {
-
-				/*
-				 * Dataset<Row> dataCheck1 = sparkSession.sql(
-				 * " select googlePricing.InstanceType as `Google Instance Type`, round(googlePricing.pricePerUnit*730 + (case when awsData.`Operating System` like '%Windows%' then 67.16  when awsData.`Operating System` like '%Red Hat%' then 43.8 else 0  end),2) as `Google On Demand Price`,  round(googlePricing.1YrPrice*730 + (case when awsData.`Operating System` like '%Windows%' then 67.16  when awsData.`Operating System` like '%Red Hat%' then 43.8 else 0  end),2) as `Google 1 Year Price`, round(googlePricing.3YrPrice*730 + (case when awsData.`Operating System` like '%Windows%' then 67.16  when awsData.`Operating System` like '%Red Hat%' then 43.8 else 0  end),2) as `Google 3 Year Price`, awsData.`AWS Region`, awsData.`Memory`, awsData.`Number of Cores`, awsData.`OS Version`, awsData.`Operating System`, awsData.`AWS 3 Year Price`, awsData.`AWS On Demand Price`, round(az.demandPrice,2) as `Azure On Demand Price`, round(az.3YrPrice,2) as `Azure 3 Year Price`, round(az.1YrPrice,2) as `Azure 1 Year Price`, az.InstanceType as `Azure Instance Type` from (select  ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`OS Version`, ai.`Operating System`, ((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where a.`Operating System` = ai.`Operating System` and a.PurchaseOption='No Upfront' and a.`Instance Type`= ai.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`,"
-				 * +
-				 * "((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where a.`Operating System` = ai.`Operating System` and a.PurchaseOption='No Upfront' and a.`Instance Type`=ai.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`,"
-				 * +
-				 * "(a.`PricePerUnit` * 730) as `AWS On Demand Price`  from awsInstanceDF ai left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)=lower(a.`Instance Type`) and  cast(ai.Memory as int) = CAST(a.Memory as int) and cast(ai.`Number of Cores` as int) = CAST(a.vCPU as int) and  a.`License Model`='No License required'  and a.Location='US East (Ohio)' and a.Tenancy <> 'Host' and (a.`Product Family` = 'Compute Instance (bare metal)' or a.`Product Family` = 'Compute Instance')) awsData "
-				 * +
-				 * " left join global_temp.azurePricingDF az on cast(awsData.Memory as int) = CAST(az.Memory as int) and cast(awsData.`Number of Cores` as int) = CAST(az.VCPUs as int) and lcase(az.OperatingSystem) = lcase(awsData.`Operating System`)"
-				 * +
-				 * " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where  Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float)=cast(awsData.`Number of Cores` as float) and cast(googlePricing.Memory as float)=cast(awsData.Memory as float)"
-				 * ) .toDF();
-				 */
-				// Dataset<Row> dataCheck1 = sparkSession.sql("select * from (select ai.`AWS
-				// Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`,
-				// ai.`Server Name`, ai.`OS Name`, round(azure.`Azure On Demand Price`,2) as
-				// `Azure On Demand Price`, round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year
-				// Price`, round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`,
-				// azure.`Azure Instance Type`, azure.`Azure Specs`, ROW_NUMBER () over
-				// (partition BY ai.`instanceid` ORDER BY a.`PricePerUnit` ASC) AS my_rank,
-				// round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where
-				// lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No
-				// Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and
-				// a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730
-				// ),2) as `AWS 3 Year Price`, round(((select min(a.`PricePerUnit`) from
-				// global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS
-				// Name`) and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) =
-				// lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '1yr' and
-				// cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 1 Year Price`,
-				// round((a.`PricePerUnit` * 730),2) as `AWS On Demand Price` from
-				// global_temp.awsInstanceDF ai left join global_temp.azureReportForAWSInstance
-				// azure on lower(azure.`OS Name`) = lower(ai.`actualOsType`) and
-				// cast(azure.Memory as float ) = cast(ai.Memory as float) and cast(azure.VCPUs
-				// as int ) = cast(ai.`Number of Cores` as int) left join
-				// global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)=
-				// lower(a.`Instance Type`) and a.`License Model` = 'No License required' and
-				// a.Location = 'US East (Ohio)' and a.Tenancy <> 'Host' and a.TermType =
-				// 'OnDemand' and lower(a.`Operating System`) = lower(ai.`OS Name`) and
-				// cast(a.`PricePerUnit` as float ) > 0.0 and ( a.`Product Family` = 'Compute
-				// Instance (bare metal)' or a.`Product Family` = 'Compute Instance' )) AWS
-				// where AWS.my_rank = 1").toDF();
-
-				Dataset<Row> dataCheck1 = sparkSession.sql(
-						"select  * from (select   'N/A' as `End Of Extended Support - HW`, 'N/A' as `End Of Life - HW`, 'N/A' as `End Of Life - OS`, 'N/A' as `End Of Extended Support - OS`, 'N/A' as `HBA Speed`, 'N/A' as `Processor Name`, 'N/A' as `DB Service`, 'N/A' as `CPU GHz`, 'N/A' as `OS Version`, 'N/A' as `Host`, 'N/A' as `Number of Ports`, 'N/A' as `Number of Processors`, 'N/A' as `Logical Processor Count`, 'N/A' as `Total Size`, 'N/A' as `Server Model`, 'EC2' as `Server Type`, g.`Google Instance Type`, g.`Google On Demand Price`, g.`Google 1 Year Price`, g.`Google 3 Year Price`, ai.`AWS Region`, ai.`AWS Instance Type`, ai.`Memory`, ai.`Number of Cores`, ai.`Server Name`, ai.`OS Name`, round(azure.`Azure On Demand Price`,2) as `Azure On Demand Price`, round(azure.`Azure 3 Year Price`,2) as `Azure 3 Year Price`, round(azure.`Azure 1 Year Price`,2) as `Azure 1 Year Price`, azure.`Azure Instance Type`, azure.`Azure Specs`,  ROW_NUMBER () over (partition BY ai.`instanceid` ORDER BY a.`PricePerUnit` ASC) AS my_rank, 'AWS Instances' as report_by, '0' as customExcelSrcId, concat_ws(',', concat('Processor: ',a.`Physical Processor`),concat('vCPU: ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor Architecture: ',a.`Processor Architecture`) ,concat('Memory: ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance: ',a.`Network Performance`)) as `AWS Specs`, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a  where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 3 Year Price`, round(((select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`)  and a.PurchaseOption = 'No Upfront' and lcase(a.`Instance Type`) = lcase(ai.`AWS Instance Type`) and a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ),2) as `AWS 1 Year Price`, round((a.`PricePerUnit` * 730),2) as `AWS On Demand Price` from global_temp.awsInstanceDF ai left join global_temp.googleReportForAWSInstance g on ai.instanceid=g.instanceid  left join global_temp.azureReportForAWSInstance azure on lower(azure.`OS Name`) = lower(ai.`actualOsType`) and cast(azure.Memory as float ) = cast(ai.Memory as float)  and cast(azure.VCPUs as int ) = cast(ai.`Number of Cores` as int)  left join global_temp.awsPricingDF a on lower(ai.`AWS Instance Type`)= lower(a.`Instance Type`) and a.`License Model` = 'No License required' and a.Location = 'US East (Ohio)' and a.Tenancy <> 'Host' and a.TermType = 'OnDemand' and lower(a.`Operating System`) = lower(ai.`OS Name`) and cast(a.`PricePerUnit` as float ) > 0.0 and (  a.`Product Family` = 'Compute Instance (bare metal)'   or a.`Product Family` = 'Compute Instance'  )) AWS where AWS.my_rank = 1")
-						.toDF();
-
-				/*
-				 * List<String> dup = new ArrayList<>();
-				 * dup.addAll(Arrays.asList(dataCheck1.columns())); List<String> original = new
-				 * ArrayList<>(); original.addAll(columnHeaders); original.removeAll(dup);
-				 */
-				/*
-				 * for(String col : original) { if(col.equalsIgnoreCase("Server Type")) {
-				 * dataCheck1 = dataCheck1.withColumn(col, lit("EC2")); } else { dataCheck1 =
-				 * dataCheck1.withColumn(col, lit("N/A")); }
-				 * 
-				 * }
-				 */
-
-				result = dataCheck1.toDF();
-
-				/*
-				 * Collections.sort(columnHeaders); List<String> tmp = new ArrayList<String>();
-				 * tmp.addAll(Arrays.asList(dataCheck1.columns())); Collections.sort(tmp);
-				 */
-
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		} finally {
-			try {
-				conn.close();
-				// AwsInventoryPostgresConnection.dataSource.evictConnection(conn);
-			} catch (Exception e2) {
-				// TODO: handle exception
-			}
-		}
-		return result;
-	}
+	
 
 	private List<AwsInstanceData> resultSetToList(ResultSet rs) throws SQLException {
 		ResultSetMetaData md = rs.getMetaData();
@@ -3179,59 +1313,7 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	}
 
 	
-	private List<Map<String, String>> parseAwsData(ResultSet rs) throws SQLException {
-		ResultSetMetaData md = rs.getMetaData();
-		int columns = md.getColumnCount();
-		List<Map<String, String>> rows = new ArrayList<>();
-		while (rs.next()) {
-			Map<String, String> row = new HashMap<String, String>(columns);
-
-			for (int i = 1; i <= columns; ++i) {
-				String colName = md.getColumnName(i);
-				String value = rs.getString(i);
-				if (md.getColumnName(i).equals("vcpuinfo")) {
-					value = getValueFromJson("DefaultVCpus", rs.getString(i));
-				}
-				if (md.getColumnName(i).equals("memoryinfo")) {
-					value = getValueFromJson("SizeInMiB", rs.getString(i));
-					value = Integer.parseInt(value) / 1024 + "";
-				}
-
-				if (md.getColumnName(i).equals("region")) {
-					if (rs.getString(i).equalsIgnoreCase("us-east-2")) {
-						value = "US East (Ohio)";
-					}
-				}
-				if (md.getColumnName(i).equals("platformdetails")) {
-					String actualOsType = "";
-					value = rs.getString(i);
-					if (StringUtils.containsIgnoreCase(value, "CentOS")) {
-						value = "LINUX";
-						actualOsType = "CentOS";
-					} else if (StringUtils.containsIgnoreCase(value, "SUSE")) {
-						value = "SUSE";
-						actualOsType = "SUSE";
-					} else if (StringUtils.containsIgnoreCase(value, "Red")) {
-						value = "RHEL";
-						actualOsType = "RHEL";
-					} else if (StringUtils.containsIgnoreCase(value, "LINUX")) {
-						value = "LINUX";
-						actualOsType = "UBUNTU";
-					} else if (StringUtils.containsIgnoreCase(value, "WINDOWS")) {
-						value = "WINDOWS";
-						actualOsType = "WINDOWS";
-					}
-					row.put("actualOsType", actualOsType);
-				}
-				row.put(colName, value);
-				row.put("report_by", "AWS Instances");
-				row.put("custom_excel_src_id", "0");
-			}
-			
-			rows.add(row);
-		}
-		return rows;
-	}
+	
 	
 	private String getValueFromJson(String key, String jsonString) {
 		try {
@@ -3256,436 +1338,16 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		return "";
 	}
 
-	private void constructReport(String siteKey, String discoveryFilterqry) {
-		logger.info("ConstructReport Starts");
-		try {
-			sparkSession.sqlContext().clearCache();
-			getLocalDiscovery(siteKey, discoveryFilterqry);
-			getAWSPricing();
-			getAzurePricing();
-			getGooglePricing();
+	
 
-		} catch (Exception ex) {
-			logger.error("Exception in ConstructReport", ex);
-			ex.printStackTrace();
-		}
-		logger.info("ConstructReport Ends");
-	}
-
-	private void getLocalDiscovery(String siteKey, String discoveryFilterqry) {			
-	       
-        try {			        	
-        	sparkSession.catalog().dropGlobalTempView("localDiscoveryTemp");
-			Map<String, String> options = new HashMap<String, String>();
-			options.put("url", dbUrl);						
-			options.put("dbtable", "local_discovery");						
-			
-			sparkSession.sqlContext().load("jdbc", options).registerTempTable("local_discovery");
-			Dataset<Row> localDiscoveryDF = sparkSession.sql("select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "' and " + discoveryFilterqry);
-			Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(localDiscoveryDF, "data_temp_", "");				
-			
-			try {
-				Dataset<Row> dataframeBySiteKey = formattedDataframe.sqlContext().sql(
-						"select source_id, data_temp, log_date, source_category, server_name as sever_name_col, site_key, LOWER(source_type) as source_type, actual_os_type  from local_discovery where site_key='"+ siteKey + "'");
-			   String path = commonPath + File.separator + "cloud_cost" + File.separator + siteKey;
-				File f = new File(path);
-				
-				if (!f.exists()) {
-					f.mkdir();
-				}			
-				 
-				try {
-					 Path resultFilePath = Paths.get(f.getAbsolutePath());
-					    UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
-				                .lookupPrincipalByName("zenuser");
-				        Files.setOwner(resultFilePath, owner);
-				} catch (Exception e) {
-					// TODO: handle exception
-				}
-				
-			        
-			        
-				dataframeBySiteKey.write().option("ignoreNullFields", false)
-						.format("org.apache.spark.sql.json")
-						.mode(SaveMode.Overwrite).save(f.getPath());
-				
-				File[] files = new File(path).listFiles();
-				if (files != null) {
-					DataframeUtil.formatJsonFile(files);
-				}
-				
-				
-				 Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json"); 
-   	        	 dataset.createOrReplaceTempView("tmpView");
-   	        	 dataset = sparkSession.sql("select * from (select *, row_number() over (partition by source_id order by log_date desc) as rank from tmpView ) ld where ld.rank=1");
-   	        	//following three conditions only applied for windows logs. windows only following 3 fields, other logs should have column with empty
-   	        	
-   	        	 List<String> columns = Arrays.asList(dataset.columns());
-   	        	 if(!columns.contains("Logical Processor Count")) {
-   	        		dataset = dataset.withColumn("Logical Processor Count", lit(""));
-   	        	 }
-				 if(!columns.contains("DB Service")) {
-					 dataset = dataset.withColumn("DB Service", lit(""));			   	        		 
-					}
-				 if(!columns.contains("Processor Name")) {
-					 dataset =  dataset.withColumn("Processor Name", lit("")); 
-				  }
-				 
-				 if(!columns.contains("Host")) {
-					 dataset =  dataset.withColumn("Host", lit("")); 
-				  }
-   	        	
-   	        	 dataset.createOrReplaceGlobalTempView("localDiscoveryTemp"); 
-   	        	dataset.show();
-   	        	System.out.println("----------localDiscoveryTemp---------- " +dataset.count());
-   		        // dataset.cache();	
-   		         
-   		      //dataset.printSchema();
-   		 	
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
-}
-
-
-	public void getAWSPricingForThirdParty() {
-		try {
-			Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from ("
-					+ " select report.`Server Name`, report.`OS Name`, "
-					+ "  (report.`PricePerUnit` * 730) as `AWS On Demand Price`,"
-					+ " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`, "
-					+ " ((select min(a.PricePerUnit) from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`, "
-					+ " report.`AWS Instance Type`,report.`AWS Region`,report.`AWS Specs`,"
-					+ " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`PricePerUnit` as float) asc) as my_rank"
-					+ " from (SELECT localDiscoveryDF.`Server Name`, localDiscoveryDF.instanceid, "
-					+ " localDiscoveryDF.`OS Name`, "
-					+ " cast(localDiscoveryDF.`Number of Cores` as int) as `Number of Cores`,"
-					+ " cast(localDiscoveryDF.`Memory` as int) as `Memory`, "
-					+ " awsPricing2.`Instance Type` as `AWS Instance Type`, awsPricing2.Location as `AWS Region`"
-					+ " ,concat_ws(',', concat('Processor: ',awsPricing2.`Physical Processor`),concat('vCPU: ',awsPricing2.vCPU)"
-					+ " ,concat('Clock Speed: ',awsPricing2.`Clock Speed`),concat('Processor Architecture: ',awsPricing2.`Processor Architecture`)"
-					+ " ,concat('Memory: ',awsPricing2.Memory),concat('Storage: ',awsPricing2.Storage),concat('Network Performance: ',awsPricing2.`Network Performance`)) as `AWS Specs`"
-					+ " , cast(localDiscoveryDF.`Number of Cores` as int) as `vCPU`, (case when localDiscoveryDF.`Memory` is null then 0 else cast(localDiscoveryDF.`Memory` as int) end) as `MemorySize`, awsPricing2.PricePerUnit as `PricePerUnit`,awsPricing2.`Operating System` as `OperatingSystem` "
-					+ " FROM global_temp.awsInstanceDF localDiscoveryDF"
-					+ " join (Select localDiscoveryDF1.`Server Name` "
-					+ " from global_temp.awsInstanceDF localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`) localDiscoveryTemp2 ON "
-					+ " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name`"
-					+ " left join (select `Operating System`,Memory,min(PricePerUnit) as pricePerUnit, vCPU,TermType from global_temp.awsPricingDF where `License Model`='No License required'"
-					+ " and Location='US East (Ohio)' and Tenancy <> 'Host' and (`Product Family` = 'Compute Instance (bare metal)' or `Product Family` = 'Compute Instance') and cast(PricePerUnit as float) > 0 group by `Operating System`,Memory,vCPU,TermType) awsPricing on"
-					+ " lcase(awsPricing.`Operating System`) = lcase(localDiscoveryDF.`OS Name`) and"
-					+ " awsPricing.Memory >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)"
-					+ " and awsPricing.vCPU >= (cast(localDiscoveryDF.`Number of Cores` as int))"
-					+ " left join global_temp.awsPricingDF awsPricing2 on awsPricing2.`Operating System` = awsPricing.`Operating System` and awsPricing2.PricePerUnit = awsPricing.pricePerUnit and awsPricing.Memory = "
-					+ " awsPricing2.Memory and awsPricing.vCPU = awsPricing2.vCPU and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData"
-					+ " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
-			dataCheck.createOrReplaceGlobalTempView("awsReportForThirdParty");
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-
-	public void getAWSPricing() {
-		try {
-		Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" +
-		" select report.Host, report.log_date,report.`vCPU`, report.site_key, report.`Server Type`, report.`Server Name`, report.`OS Name`,report.`OS Version`, report.`Server Type`, report.`Server Model`," +
-		" report.`Memory` as `Memory`, (case when report.`Total Size` is null then 0 else report.`Total Size` end) as `Total Size`, report.`Number of Processors`, report.`Logical Processor Count`, " +
-		" report.`CPU GHz`, report.`Processor Name`, report.`Number of Cores` as `Number of Cores`, report.`DB Service`, report.`HBA Speed`," +
-		" report.`Number of Ports`, (report.`PricePerUnit` * 730) as `AWS On Demand Price`," +
-		" ((select min(cast (a.PricePerUnit as float)) as `PricePerUnit` from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='3yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 3 Year Price`, " +
-		" ((select min(cast (a.PricePerUnit as float)) as `PricePerUnit` from global_temp.awsPricingDF a where a.`Operating System` = report.`OperatingSystem` and a.PurchaseOption='No Upfront' and a.`Instance Type`=report.`AWS Instance Type` and a.LeaseContractLength='1yr' and cast(a.PricePerUnit as float) > 0) * 730) as `AWS 1 Year Price`, " +
-		" report.`AWS Instance Type`,report.`AWS Region`,report.`AWS Specs`," +
-		" ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`PricePerUnit` as float) asc) as my_rank" +
-		" from (SELECT localDiscoveryDF.log_date,localDiscoveryDF.site_key, localDiscoveryDF.`Server Type`, localDiscoveryDF.`Server Name` , localDiscoveryDF.`Server Type` ," +
-		" localDiscoveryDF.OS as `OS Name`,localDiscoveryDF.`OS Version`,localDiscoveryDF.`Server Model` ," +
-		" cast(localDiscoveryDF.`Logical Processor Count` as int) as `Logical Processor Count`,cast(localDiscoveryDF.`Number of Processors` as int) as `Number of Processors`," +
-		" cast(localDiscoveryDF.`Memory` as int) as `Memory`, round(localDiscoveryDF.`Total Size`,2) as `Total Size`, " +
-		" cast(localDiscoveryDF.`CPU GHz` as int) as `CPU GHz`, localDiscoveryDF.`Processor Name`, " +
-		" cast(localDiscoveryDF.`Number of Cores` as int) as `Number of Cores`," +
-		" localDiscoveryDF.`DB Service`, localDiscoveryDF.`HBA Speed`, cast(localDiscoveryDF.`Number of Ports` as int) as `Number of Ports`," +
-		" awsPricing2.`Instance Type` as `AWS Instance Type`, awsPricing2.Location as `AWS Region`" +
-		" ,concat_ws(',', concat('Processor: ',awsPricing2.`Physical Processor`),concat('vCPU: ',awsPricing2.vCPU)" +
-		" ,concat('Clock Speed: ',awsPricing2.`Clock Speed`),concat('Processor Architecture: ',awsPricing2.`Processor Architecture`)" +
-		" ,concat('Memory: ',awsPricing2.Memory),concat('Storage: ',awsPricing2.Storage),concat('Network Performance: ',awsPricing2.`Network Performance`)) as `AWS Specs`" +
-		" , (case when localDiscoveryDF.`Logical Processor Count` is null and localDiscoveryDF.`Number of Processors` is not null then " +
-		" cast(localDiscoveryDF.`Number of Processors` as int) when localDiscoveryDF.`Logical Processor Count` is not null then " +
-		" cast(localDiscoveryDF.`Logical Processor Count` as int) else 0 end) as `vCPU`, (case when localDiscoveryDF.`Memory` is null then 0 else cast(localDiscoveryDF.`Memory` as int) end) as `MemorySize`, cast(awsPricing2.PricePerUnit as float) as `PricePerUnit`,awsPricing2.`Operating System` as `OperatingSystem`, localDiscoveryDF.Host" +
-		" FROM global_temp.localDiscoveryTemp localDiscoveryDF" +
-		" join (Select localDiscoveryDF1.site_key, localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate " +
-		" from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and " +
-		" localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key" +
-		" left join (select `Operating System`,cast(Memory as int), min(cast(PricePerUnit as float)) as pricePerUnit, cast(vCPU as int),TermType from global_temp.awsPricingDF where `License Model`='No License required'" +
-		" and Location='US East (Ohio)' and Tenancy <> 'Host' and (`Product Family` = 'Compute Instance (bare metal)' or `Product Family` = 'Compute Instance') and cast(PricePerUnit as float) > 0 group by `Operating System`,Memory,vCPU,TermType) awsPricing on" +
-		" lcase(awsPricing.`Operating System`) = lcase((case when localDiscoveryDF.OS like '%Red Hat%' then 'RHEL'" +
-		" when localDiscoveryDF.OS like '%SUSE%' then 'SUSE' when localDiscoveryDF.OS like '%Linux%' OR localDiscoveryDF.OS like '%CentOS%' then 'Linux'" +
-		" when localDiscoveryDF.OS like '%Windows%' then 'Windows' else localDiscoveryDF.`Server Type` end)) and" +
-		" (cast(awsPricing.Memory as int) >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end)" +
-		" or cast(awsPricing.vCPU as int) >= (case when localDiscoveryDF.`Logical Processor Count` is null and localDiscoveryDF.`Number of Processors` is not null then " +
-		" cast(localDiscoveryDF.`Number of Processors` as int) when localDiscoveryDF.`Logical Processor Count` is not null then " +
-		" cast(localDiscoveryDF.`Logical Processor Count` as int) else 0 end))" +
-		" left join global_temp.awsPricingDF awsPricing2 on awsPricing2.`Operating System` = awsPricing.`Operating System` and cast(awsPricing2.PricePerUnit as float) = cast(awsPricing.pricePerUnit as float) and cast(awsPricing.Memory as int) = " +
-		" cast(awsPricing2.Memory as int) and cast(awsPricing.vCPU as int) = cast(awsPricing2.vCPU as int) and awsPricing2.TermType='OnDemand' where cast(awsPricing2.PricePerUnit as float) > 0) report) reportData" +
-		" where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
-		dataCheck.createOrReplaceGlobalTempView("awsReport");		
-		} catch (Exception ex) {
-		ex.printStackTrace();
-		}
-		}
-
-
-
-	public void getAzurePricing() {
-		try {
-			Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from ("
-					+ " select report.log_date,report.`vCPU`, report.site_key, "
-					+ " report.`Server Name`, report.`Server Name`, report.`OS Name`,report.`OS Version`, report.`Server Type`, report.`Server Model`,"
-					+ " report.`Memory` as `Memory`, (case when report.`Total Size` is null then 0 else report.`Total Size` end) as `Total Size`,"
-					+ " report.`Number of Processors`, report.`Logical Processor Count`, "
-					+ " report.`CPU GHz`, report.`Processor Name`, report.`Number of Cores` as `Number of Cores`, report.`DB Service`, report.`HBA Speed`,"
-					+ " report.`Number of Ports`,report.`Azure On Demand Price`,report.`Azure 3 Year Price`, report.`Azure 1 Year Price`, report.`Azure Instance Type`, report.`Azure Specs`, "
-					+ " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`Azure On Demand Price` as float) asc) as my_rank"
-					+ " from (SELECT localDiscoveryDF.log_date,localDiscoveryDF.site_key, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Type`,"
-					+ " localDiscoveryDF.OS as `OS Name`,localDiscoveryDF.`OS Version`,localDiscoveryDF.`Server Model`,"
-					+ " localDiscoveryDF.`Logical Processor Count`,localDiscoveryDF.`Number of Processors`,"
-					+ " cast(localDiscoveryDF.`Memory` as int) as `Memory`, round(localDiscoveryDF.`Total Size`,2) as `Total Size`, "
-					+ " cast(localDiscoveryDF.`CPU GHz` as int) as `CPU GHz`, localDiscoveryDF.`Processor Name`, "
-					+ " cast(localDiscoveryDF.`Number of Cores` as int) as `Number of Cores`,"
-					+ " localDiscoveryDF.`DB Service`, localDiscoveryDF.`HBA Speed`, cast(localDiscoveryDF.`Number of Ports` as int) as `Number of Ports`,"
-					+ " round(azurePricingDF.demandPrice,2) as `Azure On Demand Price`,"
-					+ " round(azurePricingDF.3YrPrice,2) as `Azure 3 Year Price`,"
-					+ " round(azurePricingDF.1YrPrice,2) as `Azure 1 Year Price`,"
-					+ " azurePricingDF.InstanceType as `Azure Instance Type`,azurePricingDF.`Azure Specs`,"
-					+ " (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then "
-					+ " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then "
-					+ " localDiscoveryDF.`Logical Processor Count` else 0 end) as `vCPU`"
-					+ " FROM global_temp.localDiscoveryTemp localDiscoveryDF"
-					+ " left join global_temp.azurePricingDF azurePricingDF on azurePricingDF.VCPUs >= (case when localDiscoveryDF.`Logical Processor Count` is null  and localDiscoveryDF.`Number of Processors` is not null then"
-					+ " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Logical Processor Count` is not null then"
-					+ " localDiscoveryDF.`Logical Processor Count` else 0 end)"
-					+ " and azurePricingDF.Memory >= (case when localDiscoveryDF.Memory is null then 0 else cast(localDiscoveryDF.Memory as int) end) and"
-					+ " lcase(azurePricingDF.OperatingSystem) = lcase((case when localDiscoveryDF.OS like '%Red Hat%' then 'RHEL' "
-					+ " when localDiscoveryDF.OS like '%SUSE%' then 'SUSE' when localDiscoveryDF.OS like '%Linux%' OR localDiscoveryDF.OS like '%CentOS%' then 'Linux'"
-					+ " when localDiscoveryDF.OS like '%Windows%' then 'Windows' else localDiscoveryDF.`Server Type` end))) report ) reportData "
-					+ " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
-			dataCheck.createOrReplaceGlobalTempView("azureReport");
-			dataCheck.cache();
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-
-	public void getAzurePricingForAWS() {
-		try {
-			Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from (" + " select report.`VCPUs`, "
-					+ " report.`instanceid`, report.`OS Name`, " + " report.`Memory` as `Memory`, "
-					+ " report.`Azure On Demand Price`,report.`Azure 3 Year Price`, report.`Azure 1 Year Price`, report.`Azure Instance Type`, report.`Azure Specs`, "
-					+ " ROW_NUMBER() OVER (PARTITION BY report.`instanceid` ORDER BY cast(report.`Azure On Demand Price` as float) asc) as my_rank"
-					+ " from (SELECT ai.`instanceid`, " + " ai.`Number of Cores`, ai.`actualOsType` as `OS Name`, "
-					+ " round(azurePricingDF.demandPrice,2) as `Azure On Demand Price`,"
-					+ " round(azurePricingDF.3YrPrice,2) as `Azure 3 Year Price`,"
-					+ " round(azurePricingDF.1YrPrice,2) as `Azure 1 Year Price`," + " azurePricingDF.VCPUs,"
-					+ " azurePricingDF.Memory, azurePricingDF.`InstanceType` as `Azure Instance Type`, azurePricingDF.`Azure Specs` "
-					+ " FROM global_temp.awsInstanceDF ai"
-					+ " left join global_temp.azurePricingDF azurePricingDF on cast(azurePricingDF.VCPUs as int) >= cast(ai.`Number of Cores` as int) "
-					+ " and cast(azurePricingDF.Memory as float) >= cast(ai.Memory as float) "
-					+ " and lower(azurePricingDF.`OperatingSystem`) = lower(ai.`actualOsType`)"
-					+ " ) report ) reportData " + " where reportData.my_rank= 1 order by reportData.`instanceid` asc")
-					.toDF();
-			dataCheck.createOrReplaceGlobalTempView("azureReportForAWSInstance");
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-
-	public void getAwsPricingForThirdParty() {
-		try {
-			// cast(a.vCPU as int) = cast(ai.`Number of Cores` as int) and cast(a.Memory as
-			// int) = cast (ai.Memory as int) and
-			Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from ("
-					+ " select report.`vCPU`,  report.`Server Name`, "
-					+ " report.`AWS Instance Type`, report.`OS Name`, report.instanceid, "
-					+ " report.`Memory` as `Memory`, "
-					+ " report.`AWS On Demand Price`,report.`AWS 3 Year Price`, report.`AWS 1 Year Price`, report.`AWS Instance Type`, report.`AWS Specs`, "
-					+ " ROW_NUMBER() OVER (PARTITION BY report.`Server Name`  ORDER BY cast(report.`PricePerUnit` as float) asc) as my_rank"
-					+ " from (SELECT ai.`instanceid`, " + " ai.`Number of Cores`, ai.`actualOsType` as `OS Name`, "
-					+ " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and  a.LeaseContractLength = '3yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 3 Year Price`, "
-					+ " round( ( ( select min(a.`PricePerUnit`) from global_temp.awsPricingDF a where lcase(a.`Operating System`) = lcase(ai.`OS Name`) and a.PurchaseOption = 'No Upfront' and  a.LeaseContractLength = '1yr' and cast(a.`PricePerUnit` as float) > 0 ) * 730 ), 2 ) as `AWS 1 Year Price`, "
-					+ " round( (a.`PricePerUnit` * 730), 2 ) as `AWS On Demand Price`, a.`PricePerUnit`, "
-					+ " a.vCPU, ai.`Server Name`, "
-					+ " a.Memory, a.`Instance Type` as `AWS Instance Type`, concat_ws(',', concat('Processor: ',a.`Physical Processor`),concat('vCPU: ',a.vCPU),concat('Clock Speed: ',a.`Clock Speed`),concat('Processor Architecture: ',a.`Processor Architecture`) ,concat('Memory: ',a.Memory),concat('Storage: ',a.Storage),concat('Network Performance: ',a.`Network Performance`)) as `AWS Specs` "
-					+ " FROM global_temp.awsInstanceDF ai"
-					+ " left join global_temp.awsPricingDF a on cast(a.vCPU as int) >=  cast(ai.`Number of Cores` as int) and  cast(a.Memory as int) >= cast (ai.Memory as int) "
-					+ " and a.`TermType`='OnDemand' and Location='US East (Ohio)' and Tenancy <> 'Host'  and (`Product Family` = 'Compute Instance (bare metal)' or `Product Family` = 'Compute Instance') and lower(a.`Operating System`) = lower(ai.`actualOsType`) and cast(a.`PricePerUnit` as float ) > 0.0"
-					+ " ) report ) reportData " + " where reportData.my_rank= 1 order by reportData.`instanceid` asc")
-					.toDF();
-			dataCheck.createOrReplaceGlobalTempView("awsReportForThirdParty");
-
-			dataCheck.show();
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-
-	public void getGooglePricingForAWS() {
-		try {
-			Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from ("
-					+ " select report.`VCPUs`, report.`instanceid`, " + " report.`OS Name`," + " report.`Memory`, "
-					+ " report.`Number of Cores`, "
-					+ " report.`Google Instance Type`,report.`Google On Demand Price`,report.`Google 1 Year Price`,report.`Google 3 Year Price`,"
-					+ " ROW_NUMBER() OVER (PARTITION BY report.`instanceid` ORDER BY cast(report.`Google On Demand Price` as float) asc) as my_rank"
-					+ " from (SELECT ai.`instanceid`, " + " ai.`Number of Cores`, ai.`actualOsType` as `OS Name`,"
-					+ " ai.Memory, ai.instanceid," + " ai.`Number of Cores`, "
-					+ " googlePricing.InstanceType as `Google Instance Type`, googlePricing.`VCPUs`,"
-					+ " round(googlePricing.pricePerUnit * 730 + "
-					+ " (case when ai.`actualOsType` like '%Windows%' then 67.16  when ai.`actualOsType` like '%Red Hat%' then 43.8 else 0  end),2) as `Google On Demand Price`,"
-					+ " round(googlePricing.1YrPrice * 730 + "
-					+ " (case when ai.`actualOsType` like '%Windows%' then 67.16  when ai.`actualOsType` like '%Red Hat%' then 43.8 else 0  end),2) as `Google 1 Year Price`,"
-					+ " round(googlePricing.3YrPrice * 730 + "
-					+ " (case when ai.`actualOsType` like '%Windows%' then 67.16  when ai.`actualOsType` like '%Red Hat%' then 43.8 else 0  end),2) as `Google 3 Year Price`"
-					+ " FROM global_temp.awsInstanceDF ai "
-					+ " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where "
-					+ " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) >=  cast(ai.`Number of Cores` as float) and "
-					+ " cast(googlePricing.Memory as float) >= cast (ai.Memory as float)) report ) reportData "
-					+ " where reportData.my_rank= 1 order by reportData.`instanceid` asc").toDF();
-			dataCheck.createOrReplaceGlobalTempView("googleReportForAWSInstance");
-			dataCheck.cache();
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-
-	public void getGooglePricing() {
-		try {
-			Dataset<Row> dataCheck = sparkSession.sql("select reportData.* from ("
-					+ " select report.log_date,report.`vCPU`, report.site_key, "
-					+ " report.`Server Name`, report.`Server Name`, report.`OS Name`,report.`OS Version`, report.`Server Type`, report.`Server Model`,"
-					+ " report.`Memory` as `Memory`, (case when report.`Total Size` is null then 0 else report.`Total Size` end) as `Total Size`,"
-					+ " report.`Number of Processors`, report.`Logical Processor Count`, "
-					+ " report.`CPU GHz`, report.`Processor Name`, report.`Number of Cores` as `Number of Cores`, report.`DB Service`, report.`HBA Speed`,"
-					+ " report.`Number of Ports`,"
-					+ " report.`Google Instance Type`,report.`Google On Demand Price`,report.`Google 1 Year Price`,report.`Google 3 Year Price`,"
-					+ " ROW_NUMBER() OVER (PARTITION BY report.`Server Name` ORDER BY cast(report.`Google On Demand Price` as float) asc) as my_rank"
-					+ " from (SELECT localDiscoveryDF.log_date,localDiscoveryDF.site_key, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Type`,"
-					+ " localDiscoveryDF.OS as `OS Name`,localDiscoveryDF.`OS Version`,localDiscoveryDF.`Server Model`,"
-					+ " cast(localDiscoveryDF.`Logical Processor Count` as int) as `Logical Processor Count`,cast(localDiscoveryDF.`Number of Processors` as int) as `Number of Processors`,"
-					+ " cast(localDiscoveryDF.Memory as int) as `Memory`, round(localDiscoveryDF.`Total Size`,2) as `Total Size`, "
-					+ " cast(localDiscoveryDF.`CPU GHz` as int) as `CPU GHz`, localDiscoveryDF.`Processor Name` as `Processor Name`, "
-					+ " cast(localDiscoveryDF.`Number of Cores` as int) as `Number of Cores`,"
-					+ " localDiscoveryDF.`DB Service` as `DB Service`, localDiscoveryDF.`HBA Speed` as `HBA Speed`, cast(localDiscoveryDF.`Number of Ports` as int) as `Number of Ports`,"
-					+ " localDiscoveryDF.`Logical Processor Count` as `vCPU`,"
-					+ " googlePricing.InstanceType as `Google Instance Type`,"
-					+ " round(googlePricing.pricePerUnit*730 + "
-					+ " ((case when localDiscoveryDF.`Total Size` is null then 0 else localDiscoveryDF.`Total Size` end) * 0.08) + "
-					+ " (case when localDiscoveryDF.OS like '%Windows%' then 67.16  when localDiscoveryDF.OS like '%Red Hat%' then 43.8 else 0  end),2) as `Google On Demand Price`,"
-					+ " round(googlePricing.1YrPrice*730 + "
-					+ " ((case when localDiscoveryDF.`Total Size` is null then 0 else localDiscoveryDF.`Total Size` end) * 0.05) + "
-					+ " (case when localDiscoveryDF.OS like '%Windows%' then 67.16  when localDiscoveryDF.OS like '%Red Hat%' then 43.8 else 0  end),2) as `Google 1 Year Price`,"
-					+ " round(googlePricing.3YrPrice*730 + "
-					+ " ((case when localDiscoveryDF.`Total Size` is null then 0 else localDiscoveryDF.`Total Size` end) * 0.04) + "
-					+ " (case when localDiscoveryDF.OS like '%Windows%' then 67.16  when localDiscoveryDF.OS like '%Red Hat%' then 43.8 else 0  end),2) as `Google 3 Year Price`"
-					+ " FROM global_temp.localDiscoveryTemp localDiscoveryDF "
-					+ " join (Select localDiscoveryDF1.site_key,localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate "
-					+ " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and "
-					+ " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key"
-					+ " left join (select cast(OnDemandPrice as float) as pricePerUnit,VCPUs,Memory,InstanceType,1YrPrice,3YrPrice from global_temp.googlePricingDF where "
-					+ " Region='US East' order by cast(OnDemandPrice as float) asc) googlePricing on cast(googlePricing.VCPUs as float) >= "
-					+ " (case when localDiscoveryDF.`Number of Processors` is not null then"
-					+ " cast(localDiscoveryDF.`Number of Processors` as int)  when localDiscoveryDF.`Number of Processors` is not null then"
-					+ " localDiscoveryDF.`Logical Processor Count` else 0 end) and "
-					+ " cast(googlePricing.Memory as float) >= (case when localDiscoveryDF.Memory is null then 0 else "
-					+ " cast(localDiscoveryDF.Memory as int) end)) report ) reportData "
-					+ " where reportData.my_rank= 1 order by reportData.`Server Name` asc").toDF();
-			dataCheck.createOrReplaceGlobalTempView("googleReport");
-			dataCheck.cache();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-
-	private int getEOLEOSCount(String siteKey) {
-		logger.info("Construct EOL/EOS Dataframe Begins");
-		int dataCount = 0;
-		try {
-			int count = eolService.getEOLEOSData();
-
-			if (count != 0) {
-				String sql = " select report.source_id, report.site_key, report.`Server Name`,report.`Server Type`,report.`OS Name`,report.`OS Version`, "
-						+ " eol.end_of_life_cycle as `End Of Life - OS`,eol.end_of_extended_support as `End Of Extended Support - OS`"
-						+ " from (select localDiscoveryDF.source_id,localDiscoveryDF.site_key, localDiscoveryDF.`Server Name`, localDiscoveryDF.`Server Type`,"
-						+ " localDiscoveryDF.OS as `OS Name`,localDiscoveryDF.`OS Version`"
-						+ " FROM global_temp.localDiscoveryTemp localDiscoveryDF"
-						+ " join (Select localDiscoveryDF1.site_key,localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate "
-						+ " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and "
-						+ " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key) report"
-						+ " left join global_temp.eolDataDF eol on eol.os_type=report.`Server Type` and replace(trim(report.`OS Name`),'(R)' ' ') like concat('%',trim(eol.os_type),'%')"
-						+
-						// " and trim(report.`OS Version`) like concat('%',trim(eol.osversion),'%') " +
-						" and trim(report.`OS Version`) = trim(eol.os_version) " + " where report.site_key='" + siteKey
-						+ "'";
-
-				Dataset<Row> dataCheck = sparkSession.sql(sql).toDF();
-
-				dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
-				if (dataCount > 0) {
-					dataCheck.createOrReplaceGlobalTempView("eoleosDataDF");
-					// dataCheck.cache();
-				}
-			}
-		} catch (Exception ex) {
-			logger.error("Exception in generating dataframe for EOL/EOS OS data", ex);
-		}
-		logger.info("Construct EOL/EOS Dataframe Ends");
-		return dataCount;
-	}
-
-	private int getEOLEHWCount(String siteKey) {
-		logger.info("Construct EOL/EOS - HW Dataframe Begins");
-		int dataCount = 0;
-		try {
-			int count = eolService.getEOLEOSHW();
-			if (count > 0) {
-				String sql = "select report.source_id, report.site_key, report.`Server Name`,report.`Server Model`, "
-						+ " eol.end_of_life_cycle as `End Of Life - HW`,eol.end_of_extended_support as `End Of Extended Support - HW`"
-						+ " from (select localDiscoveryDF.source_id,localDiscoveryDF.site_key, localDiscoveryDF.`Server Name`,"
-						+ " localDiscoveryDF.`Server Model`" + " FROM global_temp.localDiscoveryTemp localDiscoveryDF"
-						+ " join (Select localDiscoveryDF1.site_key,localDiscoveryDF1.`Server Name`,max(localDiscoveryDF1.log_date) MaxLogDate "
-						+ " from global_temp.localDiscoveryTemp localDiscoveryDF1 group by localDiscoveryDF1.`Server Name`,localDiscoveryDF1.site_key) localDiscoveryTemp2 ON localDiscoveryDF.log_date = localDiscoveryTemp2.MaxLogDate and "
-						+ " localDiscoveryTemp2.`Server Name` = localDiscoveryDF.`Server Name` and localDiscoveryDF.site_key = localDiscoveryTemp2.site_key) report"
-						+ " left join global_temp.eolHWDataDF eol on lcase(concat(eol.vendor,' ',eol.model)) = lcase(report.`Server Model`)"
-						+ " where report.site_key='" + siteKey + "'";
-
-				Dataset<Row> dataCheck = sparkSession.sql(sql).toDF();
-
-				// dataCheck.printSchema();
-
-				dataCount = Integer.parseInt(String.valueOf(dataCheck.count()));
-				if (dataCount > 0) {
-					dataCheck.createOrReplaceGlobalTempView("eolHWData");
-					// dataCheck.cache();
-				}
-			}
-		} catch (Exception ex) {
-			logger.error("Exception in generating dataframe for EOL/EOS - HW data", ex);
-		}
-		logger.info("Construct EOL/EOS - HW Dataframe Ends");
-		return dataCount;
-	}
-
+	
 	public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
 		
 		try {
 			if (filePath.contains(",")) {
 				filePath = filePath.split(",")[0];
 			}
-			
-			 ObjectMapper mapper = new ObjectMapper();			 
+			 System.out.println("!!!!! filePath: " + filePath);	 
 			 JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
 
 			 return jsonObject; 
@@ -3704,110 +1366,11 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 			filePath = filePath.split(",")[0];
 		}
 		try {
-			
-			 System.out.println("----------createDataframeForJsonData----" + filePath);
-			 
 			if(filePath.contains("VMAX_Local_Disk-SAN")) {
-				String dataPath = filePath.replace(".json", "_data.json");
-				 ObjectMapper mapper = new ObjectMapper();			 
-				  JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
-				  List<Map<String, Object>> dataArray =  (List<Map<String, Object>>) jsonObject.get("data");
-				  mapper.writeValue(new File(dataPath), dataArray);		
-				  
-				  try {
-					  Path level = Paths.get(dataPath);				        
-				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
-				       	Files.setOwner(level, owner);
-				       	
-				} catch (Exception e) {
-					// TODO: handle exception
-				}
-				    File f = new File(dataPath);
-					 Dataset<Row> datasetA = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath()); 
-					 String viewName = f.getName().split("_")[0].replaceAll("-", "")+"vmax_disk_san";
-					
-					 datasetA.createOrReplaceGlobalTempView(viewName);
-				Dataset<Row> result = sparkSession.sqlContext().sql("select " + 
-				 		"a.`Local Device ID`, " + 
-				 		"a.`Local Serial Number`, " + 
-				 		"a.`Local Device Configuration`, " + 
-				 		"a.`Local Device Capacity`, " + 
-				 		"a.`Local Device WWN`, " + 
-				 		"a.`Local Device Status`, " + 
-				 		"a.`Local Host Access Mode`, " + 
-				 		"a.`Local Clone Source Device (SRC)`, " + 
-				 		"a.`Local Clone Target Device (TGT)`, " + 
-				 		"a.`Local BCV Device Name`, " + 
-				 		"a.`Local BCV Device Status`, " + 
-				 		"a.`Local BCV State of Pair`, " + 
-				 		"a.`Local Storage Group`, " + 
-				 		"a.`Local Masking View`, " + 
-				 		"a.`Local Initiator Group`, " + 
-				 		"a.`Local Initiator Name`, " + 
-				 		"a.`Local Initiator WWN`, " + 
-				 		"a.`Local Possible Server Name`, " + 
-				 		"a.`Local FA Port`," + 
-				 		"a.`Local FA Port WWN`,  " + 
-				 		"a.`Remote Device Name`, "+
-						"a.`Remote Target ID`, "+
-				 		"b.`Local Device Configuration` as `Remote Device Configuration`," + 
-				 		"b.`Local Device Capacity` as `Remote Device Capacity`," + 
-				 		"b.`Local Device WWN` as `Remote Device WWN`," + 
-				 		"b.`Local Device Status` as `Remote Device Status`," + 
-				 		"b.`Local Host Access Mode` as `Remote Host Access Mode`," + 
-				 		"b.`Local Clone Source Device (SRC)` as `Remote Clone Source Device (SRC)`," + 
-				 		"b.`Local Clone Target Device (TGT)` as `Remote Clone Target Device (TGT)`," + 
-				 		"b.`Local BCV Device Name` as `Remote BCV Device Name`," + 
-				 		"b.`Local BCV Device Status` as `Remote BCV Device Status`," + 
-				 		"b.`Local BCV State of Pair` as `Remote BCV State of Pair`," + 
-				 		"b.`Local Storage Group` as `Remote Storage Group`," + 
-				 		"b.`Local Masking View` as `Remote Masking View`," + 
-				 		"b.`Local Initiator Group` as `Remote Initiator Group`," + 
-				 		"b.`Local Initiator Name` as `Remote Initiator Name`," + 
-				 		"b.`Local Initiator WWN` as `Remote Initiator WWN`," + 
-				 		"b.`Local Possible Server Name` as `Remote Possible Server Name`," + 
-				 		"b.`Local FA Port` as `Remote FA Port`," + 
-				 		"b.`Local FA Port WWN` as `Remote FA Port WWN` " + 
-				 	     "from global_temp."+viewName+" a  " + 
-				 		"left join global_temp."+viewName+" b on a.`Remote Device Name` = b.`Local Device ID` and a.`Remote Target ID` = b.`Local Serial Number`");
-				 
-				
-				result.createOrReplaceGlobalTempView(viewName); 
-				
-				  jsonObject.put("data", parser.parse(result.toJSON().collectAsList().toString()));	
-					System.out.println("------vmaxDiskSanObj---------- " );
-			        try (JsonGenerator jGenerator =
-			                     mapper.getFactory().createGenerator(
-			                             new File(filePath)
-			                             , JsonEncoding.UTF8)) {
-			            
-			        	jGenerator.writeObject(jsonObject);
-			                                       // }
-
-			        } catch (Exception e) {
-			            e.printStackTrace();
-			        } 
-					
-					
-				  
-				  try {
-					  Path level = Paths.get(filePath);				        
-				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
-				       	Files.setOwner(level, owner);
-				       	
-				} catch (Exception e) {
-					// TODO: handle exception
-				}
-				  
-				
-				 
-				  System.out.println("-----------VMAX Disk SAN report completed--------");
-			}
-			 
+				reprocessVmaxDiskSanData(filePath);
+			}	 
 			
 			try {
-				validateNumericColumnData(filePath);
-				
 				File f = new File(filePath);
 				
 				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
@@ -3824,142 +1387,1176 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
 				  
+
 		} catch (Exception e) {
 			e.printStackTrace();			
 		}
 
 	}
-
-	private void validateNumericColumnData(String filePath) {
-		JSONObject resultJSONObject = new JSONObject();
-	try {
-		File file = new File(filePath);
-		if(file.exists()) {
-			
-			
-			
-			String[] fileNameAray = file.getName().split("_");
-			String siteKey = fileNameAray[0];
-			String reportType = fileNameAray[1];
-			String sourceType = fileNameAray[3];
-			String reportBy = fileNameAray[5];
-			reportBy = reportBy.split("\\.")[0];
-			JSONArray formattedArray = new JSONArray();
-			
-			//d8e9c215-b4c9-45b6-b5e2-a180cec4b422_discovery_Server_windows_Local_HBA.json
-			List<String> numericColumns = getReportNumericalHeaders(reportType, sourceType, reportBy,siteKey);		
-			
-			if(numericColumns != null && !numericColumns.isEmpty()) {
-				String content = new String (Files.readAllBytes(Paths.get(filePath)),Charset.forName("UTF-8")); 
-				if(!content.startsWith("\\[")) {
-					content = "["+content+"]";					
-					JSONArray dataArray = (JSONArray) parser.parse(content);				 
-						if(dataArray != null && !dataArray.isEmpty()) {
-							for (int i = 0; i < dataArray.size(); i++) {
-								JSONObject  jsonObject = (JSONObject) dataArray.get(i);
-								if(jsonObject.containsKey("data")) {
-									JSONArray dataAry = (JSONArray) parser.parse(jsonObject.get("data").toString());
-									for (int j = 0; j < dataAry.size(); j++) {
-										JSONObject data = (JSONObject) dataAry.get(j);		
-										Set<String> keys = data.keySet();
-										for(String key : keys) {
-											if(numericColumns.contains(key)) {
-												try {													
-													Number number = NumberFormat.getInstance().parse((String) data.get(key));
-													data.put(key, number);
-												} catch (Exception e) {
-													e.printStackTrace();
-												}
-												
-											}												
-										}
-										formattedArray.add(data);
-									}
-								}
-								
-							}
-						}
-				}	
-				
-				String contentDest = new String (Files.readAllBytes(Paths.get(filePath)),Charset.forName("UTF-8")); 
-				if(!contentDest.startsWith("\\[")) {
-					contentDest = "["+contentDest+"]";					
-					JSONArray dataArray = (JSONArray) parser.parse(contentDest);				 
-						if(dataArray != null && !dataArray.isEmpty()) {
-							for (int i = 0; i < dataArray.size(); i++) {
-								JSONObject  jsonObject = (JSONObject) dataArray.get(i);
-								jsonObject.put("data", formattedArray);
-								resultJSONObject.putAll(jsonObject);
-								
-			}
-						}
-				}
-				mapper.writeValue(new File(filePath), resultJSONObject);
-				  try {
-					  Path level = Paths.get(filePath);				        
-				        UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
-				       	Files.setOwner(level, owner);
-				       	
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}		
-		}
-		
 	
-		
+private void reprocessVmaxDiskSanData(String filePath) {
+	try {
+
+		String dataPath = filePath.replace(".json", "_data.json");
+
+		JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
+		List<Map<String, Object>> dataArray = (List<Map<String, Object>>) jsonObject.get("data");
+		mapper.writeValue(new File(dataPath), dataArray);
+
+		try {
+			Path level = Paths.get(filePath).getParent().getParent();
+			UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService()
+					.lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+			Files.setOwner(level, owner);
+
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		File f = new File(dataPath);
+		Dataset<Row> datasetA = sparkSession.read().option("nullValue", "").json(f.getAbsolutePath());
+		String viewName = f.getName().split("_")[0].replaceAll("-", "") + "vmax_disk_san";
+
+		datasetA.createOrReplaceGlobalTempView(viewName);
+		Dataset<Row> result = sparkSession.sqlContext().sql("select " + "a.`Local Device ID`, "
+				+ "a.`Local Serial Number`, " + "a.`Local Device Configuration`, " + "a.`Local Device Capacity`, "
+				+ "a.`Local Device WWN`, " + "a.`Local Device Status`, " + "a.`Local Host Access Mode`, "
+				+ "a.`Local Clone Source Device (SRC)`, " + "a.`Local Clone Target Device (TGT)`, "
+				+ "a.`Local BCV Device Name`, " + "a.`Local BCV Device Status`, " + "a.`Local BCV State of Pair`, "
+				+ "a.`Local Storage Group`, " + "a.`Local Masking View`, " + "a.`Local Initiator Group`, "
+				+ "a.`Local Initiator Name`, " + "a.`Local Initiator WWN`, " + "a.`Local Possible Server Name`, "
+				+ "a.`Local FA Port`," + "a.`Local FA Port WWN`,  " + "b.`Local Device ID` as `Remote Device Name`,"
+				+ "b.`Local Serial Number` as `Remote Target ID`,"
+				+ "b.`Local Device Configuration` as `Remote Device Configuration`,"
+				+ "b.`Local Device Capacity` as `Remote Device Capacity`,"
+				+ "b.`Local Device WWN` as `Remote Device WWN`," + "b.`Local Device Status` as `Remote Device Status`,"
+				+ "b.`Local Host Access Mode` as `Remote Host Access Mode`,"
+				+ "b.`Local Clone Source Device (SRC)` as `Remote Clone Source Device (SRC)`,"
+				+ "b.`Local Clone Target Device (TGT)` as `Remote Clone Target Device (TGT)`,"
+				+ "b.`Local BCV Device Name` as `Remote BCV Device Name`,"
+				+ "b.`Local BCV Device Status` as `Remote BCV Device Status`,"
+				+ "b.`Local BCV State of Pair` as `Remote BCV State of Pair`,"
+				+ "b.`Local Storage Group` as `Remote Storage Group`,"
+				+ "b.`Local Masking View` as `Remote Masking View`,"
+				+ "b.`Local Initiator Group` as `Remote Initiator Group`,"
+				+ "b.`Local Initiator Name` as `Remote Initiator Name`,"
+				+ "b.`Local Initiator WWN` as `Remote Initiator WWN`,"
+				+ "b.`Local Possible Server Name` as `Remote Possible Server Name`,"
+				+ "b.`Local FA Port` as `Remote FA Port`," + "b.`Local FA Port WWN` as `Remote FA Port WWN` "
+				+ "from global_temp." + viewName + " a  " + "left join global_temp." + viewName
+				+ " b on a.`Remote Device Name` = b.`Local Device ID` and a.`Remote Target ID` = b.`Local Serial Number`");
+
+		result.createOrReplaceGlobalTempView(viewName);
+
+		jsonObject.put("data", parser.parse(result.toJSON().collectAsList().toString()));
+
+		try (JsonGenerator jGenerator = mapper.getFactory().createGenerator(new File(filePath), JsonEncoding.UTF8)) {
+
+			jGenerator.writeObject(jsonObject);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			Path level = Paths.get(filePath);
+			UserPrincipal owner = level.getFileSystem().getUserPrincipalLookupService()
+					.lookupPrincipalByName(ZKConstants.ZENFRA_USER_GROUP_NAME);
+			Files.setOwner(level, owner);
+
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+		System.out.println("-----------VMAX Disk SAN report completed--------");
 	} catch (Exception e) {
 		e.printStackTrace();
 	}
+	}
+	
+
+	public DataResult getReportDataFromDF(ServerSideGetRowsRequest request, boolean isHeader) {
+
+		String siteKey = request.getSiteKey();
+		
+		String componentName = "";
+		if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
+			componentName = request.getOstype();
+		} else if(request.getSwitchtype() != null && !request.getSwitchtype().isEmpty()) { //switch
+			componentName = request.getSwitchtype();
+		} else if(request.getStorage() != null && !request.getStorage().isEmpty()) { //Storage
+			componentName = request.getStorage();
+		} else if(request.getThirdPartyId() != null && !request.getThirdPartyId().isEmpty()) { //Project
+			componentName = request.getThirdPartyId();
+		} else if(request.getProviders() != null && !request.getProviders().isEmpty()) { //Providers
+			componentName = request.getProviders();
+		} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
+			componentName = request.getProject();
+		}
+		
+		componentName = componentName.toLowerCase();
+		String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
+				+ request.getCategory() + "_" + componentName + "_" + request.getReportList() + "_"
+				+ request.getReportBy();
+		String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
+		
+	
+		
+		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator  + siteKey + File.separator + componentName
+				+ File.separator + viewNameWithHypen + ".json");
+		
+	
+		
+		System.out.println("------verifyDataframePath-------" +viewName + " : " +  verifyDataframePath);
+		
+		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ siteKey + File.separator + componentName + File.separator );
+		
+		
+		
+		Dataset<Row> dataset = sparkSession.emptyDataFrame();
+		
+		
+		if(!componentName.toLowerCase().contains("tanium")) {  
+			boolean isDiscoveryDataInView = false;	
+			try {
+				if(verifyDataframePath.exists()) {
+					dataset = sparkSession.sql("select * from global_temp." + viewName);		
+					isDiscoveryDataInView = true;
+				}
+				
+			} catch (Exception e) {
+				System.out.println("---------View Not exists--------");
+			}
+
+			if (!isDiscoveryDataInView) {			
+				
+				if (verifyDataframePath.exists()) {
+					
+					createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
+					dataset = sparkSession.sql("select * from global_temp." + viewName);   //we need apply filter order pagination start and end 
+				
+				} else {
+					if(request.getCategory().equalsIgnoreCase("Server") && request.getReportList().equalsIgnoreCase("Local") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || 
+				    		 request.getReportBy().trim().toLowerCase().equalsIgnoreCase("Host")
+				    		 )){  //Server server vm host dataframe creation					    	
+					    		//createSingleDataframe(siteKey, componentName, verifyDataframePath.getAbsolutePath());
+					    	    recreateLocalDiscovery(siteKey, componentName);							 
+					    		writeServerDataframeToCommonPath(siteKey, componentName, request.getReportBy());
+					    						
+					    } else {
+					    	createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath, viewNameWithHypen);	
+					    }
+									
+					if (verifyDataframePath.exists()) {
+						createDataframeFromJsonFile(viewName, verifyDataframePath.getAbsolutePath());
+						dataset = sparkSession.sql("select * from global_temp." + viewName); 
+					}
+					
+				} 
+			}
+
+		} else { //tanium logic
+			dataset = getTaniumReport(siteKey);		
+		}
+		
+		 setFileOwner(verifyDataframePath);		
+		 
+		List<String> numericColumns = getReportNumericalHeaders(request.getReportType(), componentName, request.getReportBy(),request.getSiteKey());
+		List<String> dataframeColumns  = Arrays.asList(dataset.columns()); 
+		
+		//type cast to numeric columns
+		try {		
+			if(numericColumns != null && !numericColumns.isEmpty()) {
+				dataset = typeCastNumericColumns(dataset, numericColumns, viewName, dataframeColumns);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		dataset.printSchema();
+		
+		if(!isHeader) {
+			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+			groupKeys = request.getGroupKeys();
+			valueColumns = request.getValueCols();
+			pivotColumns = request.getPivotCols();
+			filterModel = request.getFilterModel();
+			sortModel = request.getSortModel();
+			isPivotMode = request.isPivotMode();
+			isGrouping = rowGroups.size() > groupKeys.size();
+
+			rowGroups = formatInputColumnNames(rowGroups);
+			groupKeys = formatInputColumnNames(groupKeys);
+			sortModel = formatSortModel(sortModel);
+			dataset = orderBy(groupBy(filter(dataset)));
+		}
+		
+		
+		
+			
+		
+		
+		Dataset<Row> countData = getDataframeNumericColAgg(dataset, viewName, numericColumns, dataframeColumns);	
+	
+		return paginate(dataset, request, countData.toJSON().collectAsList());
+
+	
+	 
+	}
 	
 	
+ 
+
+	 
+
+	
+	private Dataset<Row> typeCastNumericColumns(Dataset<Row> dataset, List<String> numericColumns, String viewName, List<String> dataframeColumns) {
+		try {
+			
+			System.out.println("-----numericColumns-------- " + numericColumns);			
+             // have to find way to type cast without iteration.... following code take some time and memory for type cast
+			
+			for (String numericColumn : numericColumns) {	
+				if(dataframeColumns.contains(numericColumn)) {
+					dataset = dataset.withColumn(numericColumn, new Column(numericColumn).cast("double"));
+				}
+					
+				
+			}
+ 
+		
+		/*	
+		 * List<Column> numericCol = new ArrayList<>();
+			List<Column> colNames = new ArrayList<>();
+		 * 
+		 * dataset = dataset.select(JavaConversions.asScalaBuffer(colNames));
+		 */
+			
+			/*Seq<String> seqColumnNames = DataframeUtil.convertListToSeq(numericColumns);
+			Seq<Column> numericColumnsSeq = JavaConverters.collectionAsScalaIterableConverter(numericCol).asScala().toStream().map(f, bf)
+					.asScala().toSeq();			
+		 
+			
+		 
+			dataset.withColumns(seqColumnNames, numericColumnsSeq).
+			 
+         */
+			
+			//dataset = dataset.select(dataset.col)
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return dataset;
 	}
 
-	private String findResultDataPath(String dataWritePath) {
-		File dir = new File(dataWritePath);
-		File filesList[] = dir.listFiles();
-		for(File file : filesList) {
-	       if(file.getAbsolutePath().endsWith(".json")) {
-	    	   return file.getAbsolutePath();
-	       }
-	      }
+	private Dataset<Row> getTaniumReport(String siteKey) {
+		
+		Dataset<Row> taniumDataset = sparkSession.emptyDataFrame();
+		
+		try {
+			File taniumDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
+					+ "Tanium"  + siteKey + File.separator );
+			
+			File customDataframFile = new File(commonPath + File.separator + "Dataframe" + File.separator
+					+ "Tanium"
+					+ File.separator + siteKey+"_" + "custom_data" + ".json");
+			
+			String logDataViewName = siteKey  + "tanium_log"; 
+			logDataViewName = logDataViewName.replaceAll("-", "").replaceAll("\\s+", "").toLowerCase();
+			
+			String customDataViewName = siteKey  + "tanium_custom"; 
+			customDataViewName = customDataViewName.replaceAll("-", "").replaceAll("\\s+", "").toLowerCase();
+			
+			Dataset<Row> logDataset = sparkSession.read().option("multiline", true).json(taniumDataframFile.getAbsolutePath()+"*.json");
+			logDataset.createOrReplaceGlobalTempView(logDataViewName);
+			
+			Dataset<Row> customDataset = sparkSession.read().option("multiline", true).json(customDataframFile.getAbsolutePath());
+			customDataset.createOrReplaceGlobalTempView(customDataViewName);
+			taniumDataset = sparkSession.sqlContext().sql("select * from global_temp." + logDataViewName + " ld left join global_temp." + customDataViewName + " cd on ld.server_name=cd.primary_key_value");
+		 } catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return taniumDataset;
+	}
+
+	private void createDataframeFromJsonFile(String viewName, String filePath) {
+		if (filePath.endsWith(".json")) {
+			try {
+				Dataset<Row> dataset = sparkSession.read().json(filePath);//option("multiline", true)
+				dataset.createOrReplaceGlobalTempView(viewName);
+				
+				System.out.println("---------View created-------- :: " + viewName);
+			} catch (Exception e) {
+				e.printStackTrace();
+
+			}
+
+		}
+
+	}
+	
+	
+	private void createDataframeFromOdb(ServerSideGetRowsRequest request, File filePath, File verifyDataframeParentPath, String viewNameWithHypen) {
+		
+		System.out.println("-----initate migration API--");
+		
+		String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+       String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/getReportData/migrationreport";
+    	//String uri = "https://uat.zenfra.co/ZenfraV2/rest/reports/getReportData/migrationreport";
+    	uri = uri+"?authUserId="+request.getStartRow()
+    	+"&reportCategory="+request.getReportCategory()
+    	+"&reportType="+request.getReportType()
+    	+"&siteKey="+request.getSiteKey()
+    	+"&category="+request.getCategory()
+    	+"&project="+request.getProject()
+    	+"&filters="+request.getFilterModel()
+    	+"&analyticstype="+request.getAnalyticstype()
+    	+"&migrationtype="
+    	+"&method="
+    	+"&reportview="
+    	+"&logDate="
+    	+"&skip=0"
+    	+"&limit=0"
+    	+"&mode=" 
+    	+"&ostype="+request.getOstype()
+    	+"&arraytype=" 
+    	+"&vendor="
+    	+"&providers="+request.getProviders()
+    	+"&type="
+    	+"&switchtype="+request.getSwitchtype()
+    	+"&thirdPartyId="+request.getThirdPartyId()
+    	+"&isSubReportAccess=0"
+    	+"&reportList="+request.getReportList()
+    	+"&destinationtype="
+    	+"&collectiondate="
+    	+"&reportBy="+request.getReportBy()
+    	+"&isTasklist=0"
+    	+"&storage="+request.getStorage()    	
+    	;
+        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+        
+        System.out.println("!!!!! uri: " + uri);
+        Map<String, Object> map =   mapper.convertValue(request, new TypeReference<Map<String, Object>>() {});
+        map.put("skip", 0);
+        map.put("limit", 0);
+       	  Map<String, Object> body= new LinkedHashMap<>();
+	    body.putAll(map); 
+	   
+	    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
+	    		builder.build(map);
+	    System.out.println("!!!!! builder uri: " + builder.buildAndExpand(map).toUri());
+		  
+	 RestTemplate restTemplate = new RestTemplate();
+	
+	 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
+	 /*ResponseEntity<String> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
+	    		httpRequest, String.class);*/
+	   
+	ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
+	
+	 JSONObject resultObj = new JSONObject();
+	try {
+		resultObj = (JSONObject) parser.parse(restResult.getBody());
+	} catch (ParseException e1) {
+		e1.printStackTrace();
+	}
+	 
+	  try {		
+         if(!verifyDataframeParentPath.exists()) {
+        	 verifyDataframeParentPath.mkdirs();        	
+         }
+        
+        
+         if(resultObj.get("data") != null && !resultObj.get("data").toString().equalsIgnoreCase("null")) {
+        	  mapper.writeValue(filePath, resultObj.get("data")); 
+        	  setFileOwner(filePath);
+         }
+         
+         createDataframeFromJsonFile(viewNameWithHypen,  filePath.getAbsolutePath());
+         
+		 System.out.println("-----------------Write DF PAth----------" + filePath.getAbsolutePath());
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} 
+		
+	}
+	
+	
+	private void setFileOwner(File filePath) {
+		try {
+			
+			Path resultFilePath = Paths.get(filePath.getAbsolutePath());
+			UserPrincipal owner = resultFilePath.getFileSystem().getUserPrincipalLookupService()
+					.lookupPrincipalByName("zenuser");
+			Files.setOwner(Paths.get(filePath.getAbsolutePath()), owner);
+			
+			if(filePath.getParentFile() != null) {
+				setFileOwner(filePath.getParentFile());
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+	}
+
+	public void recreateReportForDataframe(String siteKey, String sourceType, String userId) {
+
+		List<Map<String, Object>> reportCombination = reportDao.getReportCombinationByLogType(sourceType);
+		
+		if(!reportCombination.isEmpty()) {
+			
+			for(Map<String, Object> reportInput : reportCombination) {
+				String reportList = (String) reportInput.get("reportList");
+				String reportBy = (String) reportInput.get("reportBy");
+				String reportCategory = (String) reportInput.get("category");
+				String deviceType = (String) reportInput.get("device");			
+				
+				
+				if(reportCategory.equalsIgnoreCase("server") && reportList.equalsIgnoreCase("Local") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db				
+					recreateLocalDiscovery(siteKey, sourceType);	
+					//write server_server dataframe into common path /opt/ZENfra/Dataframe/siteKey/{logType}/jsonFile
+					writeServerDataframeToCommonPath(siteKey, sourceType, reportBy);
+					
+				} 
+				if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") 
+						|| reportCategory.equalsIgnoreCase("Storage")) { //dataframe created from V2 repo /migrationReport API call... mostly report created from orient DB
+					ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
+						if(reportCategory.equalsIgnoreCase("server")) { //server
+							request.setOstype(deviceType);
+						} else if(reportCategory.equalsIgnoreCase("switch")) { //switch
+							request.setSwitchtype(deviceType);
+						} else if(reportCategory.equalsIgnoreCase("Storage")) { //Storage
+							request.setStorage(deviceType);
+						} 					
+						request.setAnalyticstype("Discovery");
+						request.setReportCategory("migration");
+						request.setSiteKey(siteKey);
+						request.setCategory(reportCategory);						
+						request.setAnalyticstype("Discovery");
+						request.setReportList(reportList);
+						request.setReportBy(reportBy);
+						request.setReportType("discovery");						
+						
+						deviceType = deviceType.toLowerCase();
+						
+						String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
+								+ request.getCategory() + "_" + deviceType + "_" + request.getReportList() + "_"
+								+ request.getReportBy();
+						 
+						
+						File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+								+ siteKey + File.separator + deviceType
+								+ File.separator + viewNameWithHypen + ".json");
+						
+						File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
+								+ siteKey + File.separator + deviceType + File.separator );
+						
+						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath, viewNameWithHypen);
+						
+				 }
+			
+			}
+		}
+		
+	}
+
+	
+	
+	
+
+	private void writeServerDataframeToCommonPath(String siteKey, String sourceType, String reportBy) {
+		
+		String srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+				+ File.separator + "site_key=" + siteKey + File.separator + "source_type=" + sourceType.toLowerCase()
+				+ File.separator;
+		if(sourceType.equalsIgnoreCase("nutanix") && reportBy.equalsIgnoreCase("host")) {
+			srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=nutanix-host"
+					+ File.separator;
+		} else if(sourceType.equalsIgnoreCase("nutanix") && reportBy.equalsIgnoreCase("vm")) {
+			srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=nutanix-guest"
+					+ File.separator;
+		} else if(sourceType.equalsIgnoreCase("hyper-v") && reportBy.equalsIgnoreCase("host")) {
+			srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=hyper-v-host"
+					+ File.separator;
+		} else if(sourceType.equalsIgnoreCase("hyper-v") && reportBy.equalsIgnoreCase("vm")) {
+			srcDirPath =  commonPath  + "Dataframe" + File.separator + "tmp" + File.separator + siteKey
+					+ File.separator + "site_key=" + siteKey + File.separator + "source_type=hyper-v-vm"
+					+ File.separator;
+		}
+		
+		
+		String analyticBy = "discovery";
+		String category = "Server";
+		String reportList = "Local";
+		//String reportBy = "Server";
+		
+		String destDirPath = commonPath + File.separator + "Dataframe" +  File.separator + siteKey + File.separator + sourceType + File.separator + siteKey + "_" + analyticBy + "_" + category + "_" + sourceType + "_" + reportList + "_" + reportBy + ".json";
+		System.out.println("srcDirPath :: " + srcDirPath);
+		System.out.println("destDirPath :: " + destDirPath);
+		try {
+			Optional<Path> path = Files.walk(Paths.get(srcDirPath))
+			        .filter(Files::isRegularFile)
+			        .filter(p -> p.toFile().getName().contains(".json"))
+			        .findFirst();
+			if(path.isPresent()) {
+				Path filePath = path.get();
+				
+				System.out.println("-------filePath tttt--------- " + filePath );
+				
+				FileUtils.copyFile(filePath.toFile(), new File(destDirPath));
+				
+				setFileOwner(new File(destDirPath));
+				
+				//Delete src path file
+				FileUtils.deleteDirectory(new File(srcDirPath));
+				
+			}
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}
+	}
+
+	//------------------------ Tanium Report------------------------------------------------//
+	@SuppressWarnings("unchecked")
+	private JSONArray getPrivillegeAccessReportData(String siteKey, File filePath) {
+		
+		JSONArray resultArray = new JSONArray(); 
+		JSONParser parser = new JSONParser();
+		String query = "select source_id, server_name, privillege_data, json_agg(source_data) as source_data from (\r\n" + 
+				"select a.source_id, server_name, a.data as privillege_data, td.data as source_data from ( \r\n" + 
+				"select source_id, server_name, replace(data, '.0\"', '\"') as data from privillege_data \r\n" + 
+				"where site_key = '" + siteKey + "' \r\n" + 
+				") a\r\n" + 
+				"LEFT JOIN (select primary_key_value, json_object_agg(source_name, data::json) as data from (\r\n" + 
+				"select source_id, source_name, primary_key_value, data - 'sourceId' - 'siteKey' - 'User Name' - 'Server Name' as data from ( \r\n" +
+				"select source_id, source_name, primary_key_value, data::jsonb || concat('{\"Last Updated Time\":\"', update_time, '\"}')::jsonb as data from (\r\n" + 
+				"select sd.source_id, s.source_name, primary_key_value, \r\n" + 
+				"to_char(to_timestamp(update_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as update_time, \r\n" + 
+				"replace(data, '.0\"', '\"') as data, \r\n" + 
+				"row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num from source_data sd  \r\n" + 
+				"JOIN source s on s.source_id = sd.source_id and s.is_active = true and s.site_key = '" + siteKey + "'  \r\n" + 
+				"where sd.site_key = '" + siteKey + "' \r\n" + 
+				") b  \r\n" + 
+				"where row_num = 1 \r\n" + 
+				") c\r\n" + 
+				") e \r\n" +
+				"group by primary_key_value \r\n" + 
+				") td on td.primary_key_value ilike (a.source_id || '%') or td.primary_key_value ilike (a.server_name || '%') \r\n" + 
+				") c group by source_id, server_name, privillege_data";
+				
+		System.out.println("!!!!! privillege data query: " + query);
+		try {
+			
+			List<Map<String, Object>> taniumData = reportDao.getListOfMapByQuery(query);
+			
+			System.out.println("!!!!! --------------------------------------  !!!!! ");
+			
+			System.out.println(taniumData.size());
+			
+			System.out.println("!!!!! --------------------------------------  !!!!! ");
+			
+			for(Map<String, Object> rs : taniumData) {
+				ZenfraJSONObject dataObject = new ZenfraJSONObject();
+				JSONArray privilegeDataArray = (JSONArray) parser.parse(rs.get("privillege_data") == null ? "[]" : (String) rs.get("privillege_data"));
+				if(!privilegeDataArray.isEmpty()) {
+					JSONObject jsonObject = (JSONObject) privilegeDataArray.get(0);
+					Set<String> keySet = jsonObject.keySet();
+					for(String key : keySet) {
+						dataObject.put("Server Data~" + key, jsonObject.get(key).toString());
+					}
+				}
+				
+				JSONArray sourceDataArray = (JSONArray) parser.parse((rs.get("source_data") == null || (String.valueOf(rs.get("source_data"))).equalsIgnoreCase("[null]")) ? "[]" : String.valueOf(rs.get("source_data")));
+				if(!sourceDataArray.isEmpty()) {
+					for(int i = 0; i < sourceDataArray.size(); i++) {
+						JSONObject sourceDataObject = (JSONObject) sourceDataArray.get(i);
+						Set<String> keySet = sourceDataObject.keySet();
+						for(String key : keySet) {
+							JSONObject jsonObject1 = (JSONObject) sourceDataObject.get(key);
+							Set<String> innerKeySet = jsonObject1.keySet();
+							for(String key1 : innerKeySet) {
+								if(key1 != null && key1.isEmpty() && (key1.equalsIgnoreCase("Processed Date") || key1.equalsIgnoreCase("Date of Last Password Change"))) {
+									String value = jsonObject1.get(key1).toString();
+									value = formatDateStringToUtc(value);
+									dataObject.put(key + "~" + key1, value);
+								} else {
+									dataObject.put(key + "~" + key1, jsonObject1.get(key1).toString());
+								}
+								dataObject.put(key + "~" + key1, jsonObject1.get(key1).toString());
+							}
+						}
+					}
+					
+				}
+				
+				if(!dataObject.isEmpty()) {
+					resultArray.add(dataObject);
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		if(!resultArray.isEmpty()) {
+			 
+			try {
+				  mapper.writeValue(filePath, resultArray);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		
+		return resultArray;
+	}
+	
+	private String formatDateStringToUtc(String value) {
+		try {
+			value = value.replaceAll("UTC", "").replaceAll("utc", "").trim();
+			value = commonFunctions.convertToUtc(TimeZone.getDefault(), value);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return value;
+	}
+
+
+	public JSONObject getReportHeaderForLinuxTanium(ServerSideGetRowsRequest request) {
+		
+		JSONObject header = new JSONObject();
+		
+		String viewNameWithHypen = request.getSiteKey() + "_" + request.getAnalyticstype().toLowerCase() + "_"
+				+ request.getCategory() + "_" + "Tanium" + "_" + request.getReportList() + "_"
+				+ request.getReportBy();
+		
+	
+		
+		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				 + request.getSiteKey() + File.separator + "Tanium"
+				+ File.separator + viewNameWithHypen + ".json");
+		
+		File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				 + request.getSiteKey() + File.separator + "Tanium"
+				+ File.separator + viewNameWithHypen + ".json");
+		
+		File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ request.getSiteKey() + File.separator + "Tanium" + File.separator );
+		
+		System.out.println("------Tanium verifyDataframeParentPath-------------- " + verifyDataframeParentPath);
+		
+		if(!dfFilePath.exists()) {
+			createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath, viewNameWithHypen);
+		}
+		
+		JSONArray taniumData = new JSONArray();
+		if(dfFilePath.exists()) {
+			try {
+			 taniumData = mapper.readValue(dfFilePath, JSONArray.class);
+			 System.out.println("------Tanium taniumData-------------- " + taniumData.size());
+			 if(!taniumData.isEmpty()) {
+				 JSONArray taniumHeader =  getPrivillegedAccessHeaderInfofromData(taniumData, request.getSiteKey(), request.getUserId());
+				 header.put("headerInfo", taniumHeader);	
+				 header.put("report_label", "Server Tanium by Privileged Access");
+				 header.put("report_name", "Local_Tanium_by_Privileged Access");
+				 header.put("unit_conv_details", new JSONArray());
+				 return header;
+				 }
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		} 
+		
+		return null;
+	} 
+
+
+	
+	@SuppressWarnings("unchecked")
+	private JSONArray getPrivillegedAccessHeaderInfofromData(JSONArray dataArray, String siteKey, String userId) {
+		
+		
+		JSONArray resultArray = new JSONArray();
+		Set<String> checkKeys = new HashSet<String>();
+		
+		try {
+			
+			JSONArray columnsArray = getPrivillegedAccessHeaderInfo(siteKey, userId);
+			JSONArray columnsGroupArray = new JSONArray();
+			for(int i = 0; i < columnsArray.size(); i++) {
+				columnsGroupArray.add(columnsArray.get(i).toString().substring(0, columnsArray.get(i).toString().indexOf("~")));
+			}
+			for(int i = 0; i < dataArray.size(); i++) {
+				LinkedHashMap dataObject = (LinkedHashMap) dataArray.get(i);
+				Set<String> dataKeys = dataObject.keySet();
+				for(String key: dataKeys) {
+					if(columnsGroupArray.contains(key.substring(0, key.indexOf("~"))) && (columnsArray.contains(key) || key.contains("Last Updated Time"))) {
+						if(!key.contains("rid") && !key.contains("sourceId") && !key.contains("siteKey")) {
+							if(!checkKeys.contains(key)) {
+								ZenfraJSONObject jsonObject = new ZenfraJSONObject();
+								jsonObject.put("actualName", key);
+								if(key.equalsIgnoreCase("Server Data~Processed Date") || key.contains("Last Updated Time")) {
+									jsonObject.put("dataType", "date");
+								} else {
+									jsonObject.put("dataType", "String");
+								}
+								
+								jsonObject.put("displayName", key.substring(key.indexOf("~") + 1, key.length()));
+								
+									if(key.equalsIgnoreCase("Server Data~Server Name") || key.equalsIgnoreCase("Server Data~User Name")) {
+										jsonObject.put("lockPinned", true);
+										jsonObject.put("lockPosition", true);
+										jsonObject.put("pinned", "left");
+									} else {
+										jsonObject.put("lockPinned", false);
+										jsonObject.put("lockPosition", false);
+										jsonObject.put("pinned", "");
+									}
+									resultArray.add(jsonObject);
+								
+								
+								checkKeys.add(key);
+							}
+						}
+					}
+					
+				}
+				
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+	}
+ 
+
+
+	private JSONArray getPrivillegedAccessHeaderInfo(String siteKey, String userId) {
+		
+		
+		JSONArray resultArray = new JSONArray();
+		
+		String query = "select 'Server Data' as category, concat('Server Data~', column_names) as actual_name, column_names as display_name from (\r\n" + 
+				"select column_name as column_names from report_columns where report_name = 'Discovery' and report_by = 'Privileged Access' \r\n" + 
+				") a\r\n" + 
+				"union all\r\n" + 
+				"select source_name as category, concat(source_name, '~', display_label) as actual_name, display_label as display_name from ( \r\n" + 
+				"select source_name, created_by, display_label, read_policy, update_policy, ut.user_id, is_tenant_admin from ( \r\n" + 
+				"select source_name, created_by, display_label, json_array_elements_text((case when read_policy = '[]' then '[\"test\"]' else read_policy end)::json) as read_policy, \r\n" + 
+				"json_array_elements_text((case when update_policy = '[]' then '[\"test\"]' else update_policy end)::json) as update_policy from ( \r\n" + 
+				"select source_name, created_by, json_array_elements(fields::json) ->> 'displayLabel' as display_label, \r\n" + 
+				"json_array_elements(fields::json) ->> 'read' as read_policy, \r\n" + 
+				"json_array_elements(fields::json) ->> 'update' as update_policy \r\n" + 
+				"from source where is_active = true and site_key = '" + siteKey + "'  \r\n" + 
+				") a1  \r\n" + 
+				") a  \r\n" + 
+				"LEFT JOIN ( \r\n" + 
+				"select user_id, is_tenant_admin, first_name, last_name, site_key, json_array_elements_text(policy_set::json) as policy_set from ( \r\n" + 
+				"select user_id, is_tenant_admin, first_name, last_name, json_array_elements(custom_policy::json) ->> 'siteKey'  as site_key,  \r\n" + 
+				"json_array_elements(custom_policy::json) ->> 'policset' as policy_set from user_temp  \r\n" + 
+				"where user_id = '" + userId + "'  \r\n" + 
+				") a where is_tenant_admin = true or site_key = '" + siteKey + "'  \r\n" + 
+				") ut on ut.policy_set = a.read_policy or ut.policy_set = a.update_policy or is_tenant_admin = true  \r\n" + 
+				") a where user_id is not null or is_tenant_admin = true or created_by = '" + userId + "'";
+		
+		System.out.println("!!!!! privilleges report headerInfo query: " + query);
+		
+		try {
+			List<Map<String, Object>> resultList = reportDao.getListOfMapByQuery(query);
+		for(Map<String, Object> rs : resultList) { 
+				resultArray.add(rs.get("actual_name"));
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
+	}
+
+	public void recreateTaniumReportForDataframe(String siteKey, String sourceType, String userId) {
+
+		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ "Tanium"
+				+ File.separator + siteKey + File.separator);  
+	 
+		
+		try {
+			
+			Map<String, String> options = new HashMap<String, String>();
+			options.put("url", dbUrl);
+			options.put("dbtable", "privillege_data");
+
+			@SuppressWarnings("deprecation")
+			Dataset<Row> privillegeData = sparkSession.sqlContext().jdbc(options.get("url"), options.get("dbtable"));
+
+			//Dataset<Row> formattedDataframe = DataframeUtil.renameDataFrameColumn(privillegeData, "data", "");
+			
+			privillegeData.schema();
+			privillegeData.show();
+			
+			String privilageTempView = (siteKey+"privillege_data").replaceAll("-", "");
+			privillegeData.createOrReplaceTempView(privilageTempView);
+			
+	       Dataset<Row> pvData = privillegeData.sqlContext().sql("select * from "+privilageTempView+" where site_key='"+siteKey+"'");
+	       
+	   
+	 
+	        pvData.write().option("escape", "").option("quotes", "")
+							.option("ignoreLeadingWhiteSpace", true)
+							.format("org.apache.spark.sql.json").mode(SaveMode.Overwrite).save(dfFilePath.getAbsolutePath());
+	        
+	        pvData.show();
+			 
+	    	File[] files = new File(dfFilePath.getAbsolutePath()).listFiles();
+
+			if (files != null) {
+				DataframeUtil.formatJsonFile(files);
+			}
+
+		} catch (Exception exp) {
+			logger.error("Not able to create dataframe {}", exp.getMessage(), exp);
+		}
+		
+	}
+
+	public void recreateCustomExcelReportForDataframe(String siteKey, String userId) {
+		
+		File dfFilePath = new File(commonPath + File.separator + "Dataframe" + File.separator
+				+ "Tanium"
+				+ File.separator + siteKey + File.separator);
+		String pvDataDfFilePath = dfFilePath + "_custom_data" + ".json";
+		
+		try {
+			String query = "select primary_key_value, json_object_agg(source_name, data::json) as data from ( " + 
+					" select source_id, source_name, primary_key_value, data - 'sourceId' - 'siteKey' - 'User Name' - 'Server Name' as data from (  "+ 
+					" select source_id, source_name, primary_key_value, data::jsonb || concat('{\"Last Updated Time\":\"', update_time, '\"}')::jsonb as data from ( " + 
+					" select sd.source_id, s.source_name, primary_key_value, " + 
+					" to_char(to_timestamp(update_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as update_time,  " + 
+					" replace(data, '.0\"', '\"') as data,  " + 
+					" row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num from source_data sd   " + 
+					" JOIN source s on s.source_id = sd.source_id and s.is_active = true and s.site_key = '" + siteKey + "'  " + 
+					" where sd.site_key = '" + siteKey + "' " + 
+					" ) b  " + 
+					" where row_num = 1 " + 
+					" ) c " + 
+					" ) e " + 
+					" group by primary_key_value";
+			
+		
+			JSONArray jsonArray = new JSONArray();
+			List<Map<String, Object>> dataList = reportDao.getListOfMapByQuery(query);
+			
+			for(Map<String, Object> data : dataList) {
+				
+			
+				
+				if(data.containsKey("primary_key_value")) {
+					JSONObject customData = new JSONObject();
+					customData.put("primary_key_value", (String) data.get("primary_key_value"));
+					JSONObject dataObj = mapper.readValue(data.get("data").toString(), JSONObject.class);
+						Set<String> keySet = dataObj.keySet();
+						String srcName = keySet.iterator().next();
+						customData.put("sourceName", srcName);
+						customData.putAll((Map) dataObj.get(srcName));					
+					jsonArray.add(customData);
+				}
+			}
+				 
+		
+		
+			
+			mapper.writeValue(new File(pvDataDfFilePath), jsonArray);
+			
+			String privilageTempView = (siteKey+"_custom_data").replaceAll("-", "");
+			
+			createDataframeFromJsonFile(privilageTempView, pvDataDfFilePath);
+	        
+
+		} catch (Exception exp) {
+			logger.error("Not able to create dataframe {}", exp.getMessage(), exp);
+		}
+		
+		
+	}
+
+	
+	//------------------------ Tanium Report------------------------------------------------//
+	
+	
+	
+	//------------------------Write dataframe to excel start-------------------------------------//
+	
+	public String writeDfToCsv(ServerSideGetRowsRequest request) {
+		String outputFilePath = "";
+		System.out.println("----request------" + request.getAnalyticstype());
+		
+		try {
+			String siteKey = request.getSiteKey();
+			String userId = request.getUserId();
+			
+			String componentName = "";
+			if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
+				componentName = request.getOstype();
+			} else if(request.getSwitchtype() != null && !request.getSwitchtype().isEmpty()) { //switch
+				componentName = request.getSwitchtype();
+			} else if(request.getStorage() != null && !request.getStorage().isEmpty()) { //Storage
+				componentName = request.getStorage();
+			} else if(request.getThirdPartyId() != null && !request.getThirdPartyId().isEmpty()) { //Project
+				componentName = request.getThirdPartyId();
+			} else if(request.getProviders() != null && !request.getProviders().isEmpty()) { //Providers
+				componentName = request.getProviders();
+			} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
+				componentName = request.getProject();
+			}
+			
+			componentName = componentName.toLowerCase();
+			String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
+					+ request.getCategory() + "_" + componentName + "_" + request.getReportList() + "_"
+					+ request.getReportBy();
+			String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");			
+			
+					
+			
+			File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
+					+ "exportDF" + File.separator + siteKey + File.separator + componentName + File.separator );
+			
+			if(!verifyDataframeParentPath.exists()) {
+				verifyDataframeParentPath.mkdirs();
+			}
+			
+			System.out.println("-------write Path -------" + viewName + " :: " + verifyDataframeParentPath + " : "  );
+			
+			Dataset<Row> dataset = sparkSession.emptyDataFrame();		
+			
+			try {
+				dataset = sparkSession.sql("select * from global_temp." + viewName);		
+			
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("---------View Not exists--------");
+			}
+			
+			String[] columns = dataset.columns();
+			List<String> dfColumns = new ArrayList<>(Arrays.asList(columns));
+			
+			String reportName = request.getReportList() + "_" + componentName + "_by_" + request.getReportBy();
+			
+            String exportType = request.getExportType();
+			
+						
+			JSONArray reportColumns = reportDao.getReportHeader(request.getReportType(), componentName, request.getReportBy());
+			List<String> reportCols = new ArrayList<String>();
+			for(int i=0; i<reportColumns.size(); i++) {
+				JSONObject colObj = (JSONObject) reportColumns.get(i);
+				String colName = (String) colObj.get("displayName");
+				if(dfColumns.contains(colName) && !reportCols.contains(colName)) {
+					reportCols.add(colName);
+				}
+				
+			}
+			         
+			 
+			
+			String columnsToExport = String.join(",", reportCols
+		            .stream()
+		            .map(col -> ("`" + col + "`"))
+		            .collect(Collectors.toList()));
+			
+			System.out.println("-------columnsToExport-------" + exportType + " : " + columnsToExport);;
+			if(exportType.equalsIgnoreCase("ARVC") || exportType.equalsIgnoreCase("VRVC")) {
+				JSONObject reportUserCustom =  reportDao.getReportUserCustomData(userId, siteKey, reportName);
+				
+				if(reportUserCustom.containsKey("columnOrder")) {
+					JSONArray visibleColumns = (JSONArray) reportUserCustom.get("columnOrder");
+					if(visibleColumns != null && !visibleColumns.isEmpty()) {
+						columnsToExport =  String.join(",", ((List<String>) visibleColumns.stream().map(json -> json.toString()).collect(Collectors.toList()))
+					            .stream()
+					            .map(col -> ("`" + col + "`"))
+					            .collect(Collectors.toList()));
+					}
+				}
+			}
+			
+			
+			System.out.println("-------columnsToExport----final---" + componentName + " : " + viewName + " : "+ columnsToExport);;
+			
+			if(!componentName.toLowerCase().contains("tanium")) { 
+				try {
+					dataset = sparkSession.sql("select "+columnsToExport+" from global_temp." + viewName);		
+				
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println("---------View Not exists--------");
+				}
+			} else { //tanium logic
+				dataset = getTaniumReport(siteKey);		
+			}
+		
+			rowGroups = request.getRowGroupCols().stream().map(ColumnVO::getField).collect(toList());
+			groupKeys = request.getGroupKeys();
+			valueColumns = request.getValueCols();
+			pivotColumns = request.getPivotCols();
+			filterModel = request.getFilterModel();
+			sortModel = request.getSortModel();
+			isPivotMode = request.isPivotMode();
+			isGrouping = rowGroups.size() > groupKeys.size();
+
+			rowGroups = formatInputColumnNames(rowGroups);
+			groupKeys = formatInputColumnNames(groupKeys);
+			sortModel = formatSortModel(sortModel);
+				
+			dataset = orderBy(groupBy(filter(dataset)));				
+			
+			//filter rows for VRAC VRAC
+			if(exportType.equalsIgnoreCase("VRAC") || exportType.equalsIgnoreCase("VRAC")) {
+				int startRow = request.getStartRow();
+				int endRow = request.getEndRow();
+				StructType schema = dataset.schema();			
+				JavaPairRDD<Row, Long> zippedRows = dataset.toJavaRDD().zipWithIndex();
+				JavaRDD<Row> filteredRdd = zippedRows.filter(pair -> pair._2 >= startRow && pair._2 <= endRow)
+						.map(pair -> pair._1);
+				dataset = sparkSession.sqlContext().createDataFrame(filteredRdd, schema).toDF();
+			}
+			
+			String writePath = verifyDataframeParentPath + File.separator + viewName+ "_export";
+			dataset.coalesce(1).write().mode("overwrite").option("header",true).option("sep","|").option("lineSep","\n")	       
+	        .csv(writePath);
+			
+			setFileOwner(new File(writePath));
+			String filePath = getCsvPath(writePath);			
+			return csvToExcel(filePath, writePath, viewName);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "";
+	}
+	
+	
+	private String getCsvPath(String writePath) {
+		File folder = new File(writePath);
+		String csvPath = ""; 
+		try {
+			for (final File fileEntry : folder.listFiles()) {
+		            if(fileEntry.getName().endsWith(".csv")){
+		            	return fileEntry.getAbsolutePath();
+		            }  
+		       
+		    }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return csvPath;
+	}
+
+	private String  csvToExcel(String csvPath, String csvParentPath, String viewName) {
+		try {
+			
+			System.out.println("--------csvPath---------- " + csvPath);
+			System.out.println("--------csvParentPath---------- " + csvParentPath);
+			System.out.println("--------viewName---------- " + viewName);
+			
+			//open input file
+			BufferedReader br = new BufferedReader(new FileReader(csvPath));
+			//create sheet
+			XSSFWorkbook wb = new XSSFWorkbook();
+			XSSFSheet sheet = wb.createSheet();
+			//read from file
+			String line = br.readLine();
+			for (int rows=0; line != null; rows++) {
+			    //create one row per line
+			    XSSFRow row = sheet.createRow(rows);
+			    //split by semicolon
+			    String[] items = line.split("\\|");
+			    //ignore first item
+			    
+			    for (int i=0, col=0; i<items.length; i++) {
+			       try {
+			    	   String item = items[i];
+				        Cell cell = row.createCell(col++);
+				        //set item
+				        cell.setCellValue(item.replaceAll("\"", ""));
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+			      
+			    }
+			    //read next line
+			    line = br.readLine();
+			}
+			//write to xlsx
+			File parentPath = new File(csvParentPath);
+			String xlsxPath = parentPath.getParentFile().getAbsolutePath()+File.separator+viewName+".xlsx";
+			System.out.println("-----------xlsxPath------------ " + xlsxPath);
+			FileOutputStream out = new FileOutputStream(xlsxPath);
+			wb.write(out);
+			//close resources
+			br.close();
+			out.close();
+			
+			setFileOwner(new File(xlsxPath));
+			
+			FileUtils.deleteDirectory(new File(parentPath.getAbsolutePath()));
+			return xlsxPath;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "";
+		
+	}
+	//------------------------Write dataframe to excel end-------------------------------------//
+
+	public JSONObject prepareChart(String siteKey, String component, String reportList, String reportBy, String xaxis,
+			String yaxis, String chartType, String dataType) {
+		JSONObject jsonObject = new JSONObject();
+		try {
+			File f = new File("C:\\opt\\ZENfra\\Dataframe\\DF\\ddccdf5f-674f-40e6-9d05-52ab36b10d0e\\site_key=ddccdf5f-674f-40e6-9d05-52ab36b10d0e\\source_type=linux\\");
+			 Dataset<Row> dataset = sparkSession.read().json(f.getPath() + File.separator + "*.json"); 
+			dataset.createOrReplaceGlobalTempView("kkk");
+			
+			/*Dataset<Row> dataset = sparkSession.emptyDataFrame();
+			String viewName = siteKey+"_"+component+"_"+reportList+"_"+reportBy;
+			viewName = viewName.toLowerCase().replaceAll("-", "").replaceAll("\\s+", "");		
+			*/
+			dataset = sparkSession.sqlContext().sql("select `"+xaxis+"`, `"+yaxis+"` from global_temp.kkk");
+			   StructType structure = dataset.schema();
+			   StructField[] sf =  structure.fields();
+			   DataType xaxisCol = sf[0].dataType();
+			   DataType yaxisCol = sf[1].dataType();
+			   
+			   jsonObject.put("xaxisField", sf[0].name());
+			   jsonObject.put("yaxisField", sf[1].name());
+			   
+			   if(xaxisCol.typeName().equalsIgnoreCase("string")) {
+				   
+			   }
+			   
+			   System.out.println("----------- " + xaxisCol + " : " + yaxisCol + " : "+ sf[0].name() +  " : "  +sf[1].name());
+		 
+			System.out.println("chart :: " + dataset);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		
+		
 		return null;
 	}
-
-	public void createCloudCostDataframeFromJsonData(String filePath, String viewName) {
-
-		try {
-			Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
-					.option("mode", "PERMISSIVE").json(filePath);
-			dataset.createOrReplaceGlobalTempView(viewName);
-			System.out.println("------------cloud cost view----------" + viewName);
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-
-	}
-
-	public void destroryCloudCostDataframe(String siteKey) {
-		try {
-			String viewName = siteKey.replaceAll("\\s+", "").replaceAll("-", "") + "_cloudcost";
-			sparkSession.catalog().dropGlobalTempView(viewName);
-			String cloudCostDfPath = commonPath + File.separator + "Dataframe" + File.separator + "CCR" + File.separator
-					+ siteKey + File.separator;
-			File dfFolder = new File(cloudCostDfPath);
-			FileSystemUtils.deleteRecursively(dfFolder);
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-
-	}
+	
+	
+	
 
 	public JSONArray getVmaxSubreport(String filePath, String serverName, String sid) {
 		JSONArray resultArray = new JSONArray();
@@ -3993,31 +2590,642 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 		return resultArray;
 	}
 
-	public String deleteDataframe(String siteKey) {
+	public JSONArray getReportHeaderFromData(String siteKey, String category, String reportList, String componentName,
+			String reportBy, String analyticsType) {
+		JSONArray columnArray = new JSONArray();
 		try {
-			String path = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator + siteKey + File.separator;
-			File dir = new File(path);
-			dir.deleteOnExit();
-			return "Successfully Deleted";
+			
+			String dataframePath = commonPath + File.separator + "Dataframe" + File.separator + siteKey + File.separator + componentName.toLowerCase() + File.separator
+					+ siteKey + "_" + analyticsType.toLowerCase() + "_"
+					+ category + "_" + componentName.toLowerCase() + "_" + reportList + "_" + reportBy + ".json";
+			
+			System.out.println("!!!!!############### dataframePath: " + dataframePath);
+			
+			
+			File f = new File(dataframePath);
+			
+			if(f.exists()) {
+				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+						.option("mode", "PERMISSIVE").json(dataframePath);
+			
+				String viewName = f.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+				dataset.createOrReplaceGlobalTempView(viewName);
+				
+				String[] dfColumnArray = dataset.columns();
+				for(int i=0; i<dfColumnArray.length; i++) {
+					JSONObject columnObj = new JSONObject();				
+					columnObj.put("actualName", dfColumnArray[i]);
+					columnObj.put("displayName", dfColumnArray[i]);
+					columnObj.put("dataType", dfColumnArray[i]);
+					columnObj.put("lockPinned", false);
+					columnObj.put("lockPosition", false);
+					columnObj.put("pinned", "");				
+					columnArray.add(columnObj);
+				}
+			}
+			
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		return "Error";
+		return columnArray;
 	}
 
-	public String deleteAllDataframe() {
+	public void prepareDsrReport(String siteKey, String sourceType) {
 		try {
-			String path = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator;
-			File dir = new File(path);
-			dir.deleteOnExit();
-			return "Successfully Deleted";
+			System.out.println("!!!!! prepareDsrReport sourceType: " + sourceType);
+			String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+	    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+	    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+	        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/prepareSubreportData?siteKey="+siteKey+"&logType="+sourceType;
+	    	
+	        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+	      
+	        Map<String, String> map =  new HashMap<String, String>();
+	        map.put("siteKey", siteKey);
+	        map.put("logType", sourceType);
+	       	  Map<String, Object> body= new LinkedHashMap<>();
+		    body.putAll(map); 
+		   
+		    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
+		    		builder.build(map);
+		    System.out.println(builder.buildAndExpand(map).toUri());
+			  
+		 RestTemplate restTemplate = new RestTemplate();
+		
+		 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
+		 ResponseEntity<String> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
+		    		httpRequest, String.class);
+		String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + sourceType + File.separator;
+		System.out.println("!!!!! prepareDsrReport dsrPath: " + dsrPath);
+		 File filesList[] = new File(dsrPath).listFiles();
+	      System.out.println("List of files and directories in the specified directory:");
+	      for(File file : filesList) {
+	    	  if(file.getAbsolutePath().contains("_dsr_")) {
+	    		  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+							.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
+				
+					String viewName = sourceType.toLowerCase() + "_" + file.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+					System.out.println("--------DSR View -------- " + viewName);
+					dataset.createOrReplaceGlobalTempView(viewName);
+					dataset.printSchema();
+					dataset.show();
+		    	  setFileOwner(file.getAbsoluteFile());
+	    	  }
+	    	
+	      }
+		   
+		///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
+		
+		  
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+			
+		  
+		
+	}
+
+	public JSONObject getDsrData(String dsrReportName, String siteKey, Map<String, String> whereClause, String deviceType) {
+		JSONObject responseJSONObject = new JSONObject();
+		
+		JSONArray resultArray = new JSONArray();
+		JSONArray reportResult = new JSONArray();
+		String keyName = dsrReportName;
+		dsrReportName = siteKey+"_dsr_"+dsrReportName.replaceAll("~", "").replaceAll("\\$", "");
+		String viewName = deviceType.toLowerCase() + "_" + dsrReportName.replaceAll("-", "").replaceAll("\\s+", "");
+		Dataset<Row> dsrData = sparkSession.emptyDataFrame();
+		
+		String whereQuery = "";
+		for (Map.Entry<String, String> entry : whereClause.entrySet()) {
+		    String colname = entry.getKey();
+		    String colValue = entry.getValue();
+		    if(whereQuery.isEmpty()) {
+		    	whereQuery = "lower(`"+colname+"`)='"+colValue.toLowerCase()+"'";
+		    } else {
+		    	whereQuery = whereQuery + " AND lower(`"+colname+"`)='"+colValue.toLowerCase()+"'";
+		    }
+		}
+		
+		System.out.println("--------whereQuery---------- " + whereQuery);
+		
+		try {
+			String query = "select * from global_temp."+viewName+" where "+whereQuery;
+			System.out.println("!!!!! dataframe query: " + query);
+			dsrData = sparkSession.sql(query);
+			System.out.println("!!!! viewName: " + viewName + " ----- Data: " + dsrData);
+			dsrData.printSchema();
+			dsrData.show();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + deviceType.toLowerCase() + File.separator + dsrReportName+".json";
+			System.out.println("!!!!! dsrpath: " + dsrPath);
+			File file = new File(dsrPath);	
+			if(file.exists()) {
+				
+				Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "").option("escape", "").option("quotes", "")
+						.option("ignoreLeadingWhiteSpace", true)
+						.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
+				 dataset.createOrReplaceGlobalTempView(viewName);
+				 dataset.printSchema();
+				 dataset.show();
+				 setFileOwner(file.getAbsoluteFile());
+				 
+				 String query = "";
+				 
+				 if(dsrPath.contains("dsr_LogAnalytics")) {
+					 query = "select * from global_temp."+viewName;
+				 } else {
+					 query = "select * from global_temp."+viewName+" where "+whereQuery;
+				 }
+				 dsrData = sparkSession.sql(query);
+			} else {
+				prepareDsrReportForSingleTab(siteKey, deviceType, keyName);
+				 String query = "";
+				
+				 if(dsrPath.contains("dsr_LogAnalytics")) {
+					 query = "select * from global_temp."+viewName;
+				 } else {
+					 query = "select * from global_temp."+viewName+" where "+whereQuery;
+				 }
+				 dsrData = sparkSession.sql(query);
+			}
+			  
+				 
+		}
+		
+		try {
+			resultArray =  (JSONArray) parser.parse(dsrData.toJSON().collectAsList().toString());  //.replace("\"", "").replace("\\", "")
+			
+			for (int i = 0; i < resultArray.size(); i++) {
+				JSONObject jsonObject = (JSONObject) resultArray.get(i);				
+				List<String> keySet = new LinkedList<String>(jsonObject == null ? new HashSet<String>() : jsonObject.keySet());
+				for (int j = 0; j < keySet.size(); j++) {
+					if (jsonObject.get(keySet.get(j)) != null
+							&& jsonObject.get(keySet.get(j)).toString().trim().startsWith("[")) {
+						jsonObject.replace(keySet.get(j),
+								jsonObject.get(keySet.get(j)).toString().trim().replace("[", "").replace("]", "").trim());
+					}
+				}
+				reportResult.add(jsonObject);
+
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		return "Error";
+		try {
+			
+			JSONArray headerInfo = new JSONArray();
+			
+			StructField[] fields = dsrData.schema().fields();
+
+			for (StructField field : fields) {
+			JSONObject column = new JSONObject();
+			
+				DataType fieldType = field.dataType();
+				String fieldName = field.name();
+				if(!fieldName.equalsIgnoreCase("rid")) {
+					column.put("actualName", fieldName);
+					column.put("displayName", fieldName);
+					column.put("lockPinned", false);
+					column.put("lockPosition", false);
+					column.put("pinned", "");
+					if(fieldType.typeName().equalsIgnoreCase("string")) {
+						column.put("dataType", "string");
+					} else {
+						column.put("dataType", "integer");
+					}
+					headerInfo.add(column);
+				}
+				
+			}
+			
+			responseJSONObject.put("headerInfo", headerInfo);
+			responseJSONObject.put("data", reportResult);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return responseJSONObject;
+	}
+	
+	
+	
+	
+	@SuppressWarnings({ "unchecked", "null" })
+	public JSONArray getHeaderInfoList(JSONArray resultJSONArray, String reportType, String deviceType)
+			throws SQLException {
+
+		// logger.info("!!!!!!!!!!!! reportType: " + reportType);
+		JSONArray jsonArray = new JSONArray();
+		try {
+			String columnsQuery = "";
+			if (reportType.equalsIgnoreCase("end-to-end-basic") || reportType.equalsIgnoreCase("Discovery")) {
+				String[] deviceTypeArray = deviceType.split("~");
+
+				columnsQuery = "select column_name, alias_name, data_type, is_pinned from report_columns where lower(report_name)= '"
+
+						+ reportType.toLowerCase() + "' and lower(replace(device_type,' ','')) = '"
+						+ deviceTypeArray[0].toLowerCase().replaceAll("\\s+", "") + "' and lower(report_by) = '"
+						+ deviceTypeArray[1].toLowerCase() + "' order by cast(seq as int), column_name";
+
+			} else {
+				columnsQuery = "select column_name, alias_name, data_type, is_pinned from report_columns where lower(report_name) = '"
+
+						+ reportType.toLowerCase() + "' and lower(replace(device_type,' ','')) = '"
+						+ deviceType.toLowerCase().replaceAll("\\s+", "") + "' order by cast(seq as int), column_name";
+			}
+
+			if (reportType.equalsIgnoreCase("capacity")) {
+				columnsQuery = "select column_name, data_type from report_capacity_columns where lower(report_name) = 'capacity' and lower(replace(device_type,' ','')) = 'vmware' and report_id = '"
+						+ deviceType.replaceAll("\\s+", "") + "' order by cast(seq as int), column_name";
+			}
+
+			System.out.println("columnsQuery1: " + columnsQuery);			
+			JSONArray columnData = new JSONArray(); //reportDao.getSubreportHeader(columnsQuery);
+			System.out.println(":: columnData:: " + columnData);
+			// logger.info("!!!!!!!!!! columnData size: " + columnData.size());
+			List<String> headerList = new LinkedList<String>();
+			List<String> headerInfo = new LinkedList<String>();
+			Set<String> headerSet = reportType.equalsIgnoreCase("migrationautomation") ? new TreeSet<String>()
+					: new HashSet<String>();
+			if (columnData.isEmpty()) {
+				// logger.info("!!!!!!!!!!!!!!!!!! getHeaderInfoList");
+
+				if (resultJSONArray.size() > 0) {
+
+					for (int i = 0; i < resultJSONArray.size(); i++) {
+						if (reportType.equalsIgnoreCase("migrationmapping")
+								|| reportType.equalsIgnoreCase("optimization")) {
+							JSONObject jsonObject = (JSONObject) resultJSONArray.get(i);
+							headerSet.addAll(jsonObject.keySet());
+						} else {
+							ZenfraJSONObject resultJSONObject = (ZenfraJSONObject) resultJSONArray.get(i);
+							headerSet.addAll(resultJSONObject.keySet());
+							// headerList = new ArrayList<String>(resultJSONObject.keySet());
+						}
+					}
+
+				}
+				if (!headerSet.isEmpty()) {
+					headerList.addAll(headerSet);
+				}
+				// logger.info("!!!!!!!!!!!!!!!!!! headerList: " + headerList);
+				String numberPattern = "[+-]?([0-9]*[.])?[0-9]+";
+				// String numberPattern = "^[1-9]\d*(\.\d+)?$";
+				if (!reportType.equalsIgnoreCase("detailed")) {
+					if (headerList != null) {
+						for (int i = 0; i < headerList.size(); i++) {
+							Object obj = null;
+							if (reportType.equalsIgnoreCase("migrationmapping")
+									|| reportType.equalsIgnoreCase("optimization")) {
+								JSONObject jsonObject = (JSONObject) resultJSONArray.get(0);
+								obj = jsonObject.get(headerList.get(i));
+							} else {
+								ZenfraJSONObject resultJSONObject = (ZenfraJSONObject) resultJSONArray.get(0);
+								obj = resultJSONObject.get(headerList.get(i));
+							}
+
+							if (!headerList.get(i).equals("rid")) {
+								if (!headerList.get(i).toLowerCase().startsWith("filter_")) {
+									if (obj != null
+											&& Pattern.matches(numberPattern, obj.toString().replace("\"", ""))) {
+										if (!headerList.get(i).equalsIgnoreCase("sid")) {
+											if (headerList.get(i).equalsIgnoreCase("FID")) {
+												headerInfo.add(
+														headerList.get(i) + "~" + headerList.get(i) + "~" + "string");
+											} else {
+												headerInfo.add(
+														headerList.get(i) + "~" + headerList.get(i) + "~" + "integer");
+											}
+
+										} else {
+											headerInfo
+													.add(headerList.get(i) + "~" + headerList.get(i) + "~" + "String");
+										}
+									} else {
+										headerInfo.add(headerList.get(i) + "~" + headerList.get(i) + "~" + "String");
+									}
+								}
+							}
+						}
+					}
+				} else {
+					// logger.info("############### detailed report columns");
+					if (headerList != null) {
+						for (int i = 0; i < headerList.size(); i++) {
+
+							if (!headerList.get(i).equals("rid")) {
+								headerInfo.add(headerList.get(i) + "~" + headerList.get(i) + "~" + "String");
+							}
+						}
+					}
+				}
+			} else {
+				System.out.println(":: reportType:: " + reportType);
+				if (!reportType.equalsIgnoreCase("detailed")) {
+					for (int i = 0; i < columnData.size(); i++) {
+						ZenfraJSONObject columnObject = (ZenfraJSONObject) columnData.get(i);
+						String data = columnObject.get("aliasName") + "~" + columnObject.get("columnName") + "~"
+								+ columnObject.get("dataType") + "~" + columnObject.get("isPinned");
+						if (!headerInfo.contains(data)) {
+							headerInfo.add(data);
+						}
+					}
+				}
+			}
+
+			// logger.info("!!!!!!!!!!!222: " + headerInfo);
+
+			System.out.println(":: headerInfo:: " + headerInfo.size() + " : " + headerInfo);
+			for (int i = 0; i < headerInfo.size(); i++) {
+				ZenfraJSONObject zenfraJSONObject = new ZenfraJSONObject();
+				String[] headerValues = headerInfo.get(i).split("~");
+				if (reportType.equalsIgnoreCase("migrationmapping")) {
+					headerValues[0] = headerValues[0].replace("_", " ");
+				}
+				zenfraJSONObject.put("displayName", headerValues[0]);
+				zenfraJSONObject.put("actualName", headerValues[1]);
+				zenfraJSONObject.put("dataType", headerValues[2]);
+				boolean pinned = false;
+				if (headerValues.length == 4) {
+					pinned = Boolean.valueOf(headerValues[3]);
+				}
+
+				if (pinned) {
+					zenfraJSONObject.put("lockPinned", true);
+					zenfraJSONObject.put("lockPosition", true);
+					zenfraJSONObject.put("pinned", "left");
+				} else {
+					zenfraJSONObject.put("lockPinned", false);
+					zenfraJSONObject.put("lockPosition", false);
+					zenfraJSONObject.put("pinned", "");
+				}
+
+				if (reportType.equalsIgnoreCase("project-summary")) {
+					String pinnedColumn = deviceType.split("~")[1];
+					if (headerValues[0].trim().equalsIgnoreCase(pinnedColumn)) {
+						zenfraJSONObject.put("lockPinned", true);
+						zenfraJSONObject.put("lockPosition", true);
+						zenfraJSONObject.put("pinned", "left");
+					} else {
+						zenfraJSONObject.put("lockPinned", false);
+						zenfraJSONObject.put("lockPosition", false);
+						zenfraJSONObject.put("pinned", "");
+					}
+				} else if (reportType.equalsIgnoreCase("migrationmapping")) {
+					if (headerValues[0].trim().equalsIgnoreCase("Disk Name")) {
+						zenfraJSONObject.put("lockPinned", true);
+						zenfraJSONObject.put("lockPosition", true);
+						zenfraJSONObject.put("pinned", "left");
+					} else if (headerValues[0].trim().equalsIgnoreCase("Capacity")) {
+						zenfraJSONObject.put("lockPinned", true);
+						zenfraJSONObject.put("lockPosition", true);
+						zenfraJSONObject.put("pinned", "left");
+					} else {
+						zenfraJSONObject.put("lockPinned", false);
+						zenfraJSONObject.put("lockPosition", false);
+						zenfraJSONObject.put("pinned", "");
+					}
+				}
+				jsonArray.add(zenfraJSONObject);
+
+				
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return jsonArray;
+
 	}
 
+	public JSONObject prepareChart(String siteKey, String chartConfiguration, String chartType, String reportLabel,
+			String reportName, String analyticstype, String category) {
 
+            String[] reportNameAry = reportName.split("_");
+            String reportList = reportNameAry[0];
+            String logType = reportNameAry[1].toLowerCase();
+            String reportBy = reportNameAry[3];
+			
+            String viewNameWithHypen = siteKey + "_" + analyticstype.toLowerCase() + "_"
+    				+ category + "_" + logType + "_" + reportList + "_"
+    				+ reportBy;
+    		String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
+    		
+    		JSONObject resultData = new JSONObject();  
+    		JSONArray lableArray = new JSONArray();
+    		JSONArray valueArray = new JSONArray();
+    		
+		  //find dataframe file path
+		String dataframeFilePath = commonPath + "Dataframe" + File.separator + siteKey + File.separator + logType.toLowerCase() + File.separator + siteKey + "_" + analyticstype.toLowerCase() + "_" + category + "_" + logType.toLowerCase() + "_" + reportList + "_" + reportBy + ".json";  
+		System.out.println("-------dataframeFilePath::7-------- " + dataframeFilePath);
+		File dfFile = new File(dataframeFilePath);
+		if(dfFile.exists()) {
+			System.out.println("-------chartType::7-------- " + chartType);
+			if(chartType != null && chartType.equalsIgnoreCase("pie")) {
+				try {
+					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
+					System.out.println("-------chartConfig::7-------- " + chartConfigObj);
+					
+					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
+					
+					System.out.println("-------chartConfig::8-------- " + chartConfig);
+					
+					if(chartConfig.containsKey("column")) {
+						JSONArray columnAry = (JSONArray) chartConfig.get("column");
+						JSONObject pieColumn = (JSONObject) columnAry.get(0);
+						String columnName = (String) pieColumn.get("value");
+						String className = (String) pieColumn.get("className");
+						String operater = className.split("-")[1];
+						Dataset<Row> dataset = sparkSession.emptyDataFrame();
+						Dataset<Row> lableDataset = sparkSession.emptyDataFrame();
+						
+						System.out.println("-------chartConfig::7-------- " + columnName + " : " + viewName);
+						
+						
+						try {
+							  lableDataset = sparkSession.sql("select distinct(`"+columnName+"`) from global_temp."+viewName).toDF();
+						} catch (Exception e) {
+							 createDataframeFromJsonFile(viewName, dataframeFilePath);
+							 lableDataset = sparkSession.sql("select distinct(`"+columnName+"`) from global_temp."+viewName).toDF();
+						}		
+						
+						List<String> cloumnValues = lableDataset.as(Encoders.STRING()).collectAsList();					 
+						String cloumnValuesStr = String.join(",", cloumnValues.stream().map(name -> ("'"+ name.toLowerCase()+"'" ))
+										.collect(Collectors.toList()));		
+					
+						System.out.println("-------cloumnValues::7-------- " + cloumnValues);
+						
+						if(operater.equalsIgnoreCase("count")) {
+							dataset = sparkSession.sql("select `"+columnName+"` as `colName`, count(*) as `colValue`  from global_temp."+viewName+"  where lower(`"+columnName+"`) in ("+cloumnValuesStr+") group by `"+columnName+"` ");
+						} else if(operater.equalsIgnoreCase("sum")) {
+							dataset = sparkSession.sql("select `"+columnName+"`as `colName`, sum(`"+columnName+"`) as `colValue` from global_temp."+viewName+"  where `"+columnName+"` in ("+cloumnValuesStr+") group by `"+columnName+"`");
+							 
+						} 						 	
+						
+						List<String> resultLsit = dataset.toJSON().collectAsList();
+						for(String result : resultLsit) {
+							JSONObject jsonObj = (JSONObject) parser.parse(result);
+							lableArray.add(jsonObj.get("colName"));
+							valueArray.add(jsonObj.get("colValue"));
+						}
+						resultData.put("label", lableArray);
+						resultData.put("value", valueArray);
+						
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				} 
+			} else if(chartType != null && chartType.equalsIgnoreCase("table")) {
+				try {
+					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
+					System.out.println("-------chartConfig::7-------- " + chartConfigObj);
+					
+					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
+					System.out.println("-------chartConfig::10-------- " + chartConfig);
+					
+					if(chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
+						JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
+						JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
+						
+						JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
+						JSONObject yaxisColumn = (JSONObject) yaxisColumnAry.get(0);
+						String xaxisColumnName = (String) xaxisColumn.get("value");
+						String yaxisColumnName = (String) yaxisColumn.get("value");
+						
+						System.out.println("-------chartConfig::12-------- " + xaxisColumnName + " : " + yaxisColumnName);
+						
+						String className = (String) yaxisColumn.get("className");
+						
+						String operater = className.split("-")[1];
+						Dataset<Row> yaixsDataset = sparkSession.emptyDataFrame();
+						Dataset<Row> yaixsLableDataset = sparkSession.emptyDataFrame();
+						
+						try {
+							  yaixsLableDataset = sparkSession.sql("select distinct(`"+yaxisColumnName+"`) from global_temp."+viewName).toDF();
+						} catch (Exception e) {
+							 createDataframeFromJsonFile(viewName, dataframeFilePath);
+							 yaixsLableDataset = sparkSession.sql("select distinct(`"+yaxisColumnName+"`) from global_temp."+viewName).toDF();
+						}		
+						
+						List<String> cloumnValues = yaixsLableDataset.as(Encoders.STRING()).collectAsList();					 
+						String cloumnValuesStr = String.join(",", cloumnValues.stream().map(name -> ("'"+ name.toLowerCase()+"'" ))
+										.collect(Collectors.toList()));		
+					
+						if(operater.equalsIgnoreCase("count")) {
+							yaixsDataset = sparkSession.sql("select `"+yaxisColumnName+"` as `colName`, count(*) as `colValue`  from global_temp."+viewName+" where lower(`"+yaxisColumnName+"`) in ("+cloumnValuesStr+") group by `"+yaxisColumnName+"` ");
+						} else if(operater.equalsIgnoreCase("sum")) {
+							yaixsDataset = sparkSession.sql("select `"+yaxisColumnName+"`as `colName`, sum(`"+yaxisColumnName+"`) as `colValue` from global_temp."+viewName+"  where `"+yaxisColumnName+"` in ("+cloumnValuesStr+") group by `"+yaxisColumnName+"`");
+							 
+						} 						 	
+						
+						List<String> resultLsit = yaixsDataset.toJSON().collectAsList();
+						JSONObject yaxisResult = new JSONObject();
+						for(String result : resultLsit) {
+							JSONObject jsonObj = (JSONObject) parser.parse(result);
+							lableArray.add(jsonObj.get("colName"));
+							valueArray.add(jsonObj.get("colValue"));
+						}
+						
+						
+						System.out.println("-------resultLsit::12-------- " + resultLsit);
+						
+						
+						yaxisResult.put("label", lableArray);
+						yaxisResult.put("value", valueArray);
+						
+						Dataset<Row> xaixsDataset = sparkSession.emptyDataFrame();
+						try {
+							xaixsDataset = sparkSession.sql("select distinct(`"+xaxisColumnName+"`) from global_temp."+viewName).toDF();
+						} catch (Exception e) {
+							 createDataframeFromJsonFile(viewName, dataframeFilePath);
+							 xaixsDataset = sparkSession.sql("select distinct(`"+xaxisColumnName+"`) from global_temp."+viewName).toDF();
+						}
+						
+						List<String> xaxisCloumnValues = xaixsDataset.as(Encoders.STRING()).collectAsList();	
+						JSONObject xaxisResult = new JSONObject();
+						xaxisResult.put("label", xaxisColumnName);
+						xaxisResult.put("value", xaxisCloumnValues);
+						
+						resultData.put("xaixs", xaxisResult);
+						resultData.put("yaixs", yaxisResult);
+						
+						System.out.println("-------resultLsit::13-------- " + xaxisCloumnValues);
+						
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				} 
+			}
+		}
+		return resultData;
+	}
+	
+	public void prepareDsrReportForSingleTab(String siteKey, String sourceType, String reportName) {
+		try {
+			System.out.println("!!!!! prepareDsrReport sourceType: " + sourceType);
+			String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+	    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+	    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+	        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/rest/reports/prepareSubreportDataForSingleTab?siteKey="+siteKey+"&logType="+sourceType+"&dsrName="+reportName;
+	        
+	    	
+	        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+	      
+	        Map<String, String> map =  new HashMap<String, String>();
+	        map.put("siteKey", siteKey);
+	        map.put("logType", sourceType);
+	       	  Map<String, Object> body= new LinkedHashMap<>();
+		    body.putAll(map); 
+		   
+		    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
+		    		builder.build(map);
+		    System.out.println(builder.buildAndExpand(map).toUri());
+			  
+		 RestTemplate restTemplate = new RestTemplate();
+		
+		 HttpEntity<Object> httpRequest = new HttpEntity<>(body);
+		 ResponseEntity<String> restResult = restTemplate.exchange(builder.buildAndExpand(map).toUri() , HttpMethod.POST,
+		    		httpRequest, String.class);
+		String dsrPath = commonPath +"Dataframe" + File.separator + siteKey + File.separator + sourceType + File.separator;
+		System.out.println("!!!!! prepareDsrReport dsrPath: " + dsrPath);
+		 File filesList[] = new File(dsrPath).listFiles();
+	      System.out.println("List of files and directories in the specified directory:");
+	      for(File file : filesList) {
+	    	  if(file.getAbsolutePath().contains("_dsr_")) {
+	    		  Dataset<Row> dataset = sparkSession.read().option("multiline", true).option("nullValue", "")
+							.option("mode", "PERMISSIVE").json(file.getAbsolutePath());
+				
+					String viewName = sourceType.toLowerCase() + "_" + file.getName().replace(".json", "").replaceAll("-", "").replaceAll("\\s+", "");
+					System.out.println("--------DSR View -------- " + viewName);
+					dataset.createOrReplaceGlobalTempView(viewName);
+					dataset.printSchema();
+					dataset.show();
+		    	  setFileOwner(file.getAbsoluteFile());
+	    	  }
+	    	
+	      }
+		   
+		///// ResponseEntity<String> restResult = restTemplate.exchange(uri, HttpMethod.POST, httpRequest, String.class);
+		
+		  
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+			
+		  
+		
+	}
+	
 }
