@@ -213,7 +213,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					// to])
 					
 					System.out.println("get " + oListItem.getFilename());
-					sftpChannel.put(path+"/" + fileName, toPath  + "/" + fileName);
+//					sftpChannel.put(path+"/" + fileName, toPath  + "/" + fileName);
 					sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName); // while testing, disable this or
 																						// all of your test files will																// be grabbed
 					System.out.println("----listed---"+sftpChannel.ls(toPath));
