@@ -216,7 +216,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 //					sftpChannel.put(path+"/" + fileName, toPath  + "/" + fileName);
 					sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName); // while testing, disable this or																						// all of your test files will																			
 					grabCount++;
-
+					System.out.println("--listed files--"+sftpChannel.ls(toPath));
 					// Delete remote file
 					// c.rm(oListItem.getFilename()); // Note for SFTP grabs from this remote host,
 					// deleting the file is unnecessary,
