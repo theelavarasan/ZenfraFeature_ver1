@@ -214,9 +214,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					
 					System.out.println("get " + oListItem.getFilename());
 //					sftpChannel.put(path+"/" + fileName, toPath  + "/" + fileName);
-					sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName); // while testing, disable this or
-																						// all of your test files will																// be grabbed
-					System.out.println("----listed---"+sftpChannel.ls(toPath));
+					sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName); // while testing, disable this or																						// all of your test files will																			
 					grabCount++;
 
 					// Delete remote file
@@ -441,8 +439,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			System.out.println("start check sum function");
 			CommonFunctions functions = new CommonFunctions();
 			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
-					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
-							&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {
+					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize")))) {
 				System.out.println("check test");
 				return true;
 			}
