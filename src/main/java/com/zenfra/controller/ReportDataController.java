@@ -1,48 +1,37 @@
 package com.zenfra.controller;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URLConnection;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.roaringbitmap.longlong.Roaring64NavigableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -105,25 +94,20 @@ public class ReportDataController {
 	@PostMapping("getReportData")
 	public ResponseEntity<?> getReportData(@RequestBody ServerSideGetRowsRequest request) {
 
-		try {			
-			/*if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
+		try {
+			if (request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery")) {
 				DataResult data = dataframeService.getReportData(request);
 				if (data != null) {
 					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 				}
-			} else */ if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
+			} else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
 				JSONObject result = new JSONObject();
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
-			} else  {  // orient db reports
-				
-				DataResult data = dataframeService.getReportDataFromDF(request, false);
-				if (data != null) {
-					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
-				}
+
+
 			}
-			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -170,14 +154,12 @@ public class ReportDataController {
 			@RequestParam("sourceType") String sourceType, @RequestParam("userId") String userId) {
 		System.out.println("---------------api to add default fav view-----------------------" + sourceType + " : "
 				+ siteKey + " : " + userId);
-		
-		sourceType = sourceType.toLowerCase();
 
 		try {			 
 
 			try { // remove orient db dataframe
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
-						+ File.separator + siteKey + File.separator; // +
+						+ File.separator + "migrationReport" + File.separator + siteKey + File.separator; // +
 																											// sourceType
 																											// +
 																											// File.separator;
@@ -214,19 +196,11 @@ public class ReportDataController {
 				String ex = errors.toString();
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
-			
-			sourceType = sourceType.toLowerCase();
-			
-			//recreate Reports after completed parsing			
-			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
-				 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
-			} else {
-				 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
-			}
-			
-			//dataframeService.prepareDsrReport(siteKey, sourceType);
-			dataframeService.prepareDsrReport(siteKey, sourceType);
-			
+
+			/*if ("ddccdf5f-674f-40e6-9d05-52ab36b10d0e".equalsIgnoreCase(siteKey)) {
+				chartService.getChartDatas(siteKey, sourceType);
+			}*/
+			dataframeService.recreateLocalDiscovery(siteKey, sourceType);
 			favouriteApiService_v2.checkAndUpdateDefaultFavView(siteKey, sourceType, userId);
 
 			return new ResponseEntity<>("", HttpStatus.OK);
@@ -240,17 +214,9 @@ public class ReportDataController {
 
 	
 
-	@PostMapping("createCustomExcelDf")
-	public void createCustomExcelDf(@RequestParam("siteKey") String siteKey, @RequestParam("userId") String userId) {
-		
-		 dataframeService.recreateCustomExcelReportForDataframe(siteKey, userId);
-		
-	}
-
 	@PostMapping("getReportHeader")
-	public ResponseEntity<?> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {
+	public ResponseEntity<String> getReportHeader(@ModelAttribute ServerSideGetRowsRequest request) {
 
-	
 		try {
 			String reportName = "";
 			String deviceType = "";
@@ -258,80 +224,24 @@ public class ReportDataController {
 			String siteKey = "";
 			String reportList = "";
 
-			/*if (request.getReportType().equalsIgnoreCase("discovery")) {
+			if (request.getReportType().equalsIgnoreCase("discovery")) {
 				reportName = request.getReportType();
 				deviceType = request.getOstype();
 				reportBy = request.getReportBy();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else*/ 
-			if (request.getReportType().equalsIgnoreCase("optimization")) {
+			} else if (request.getReportType().equalsIgnoreCase("optimization")) {
 				reportName = request.getReportType();
 				deviceType = "All";
 				reportBy = request.getReportType();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else if(request.getOstype() != null && request.getOstype().equalsIgnoreCase("Tanium") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
-				
-				JSONObject columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
-				return new ResponseEntity<>(columnHeaders, HttpStatus.OK); 
-			} else if ((request.getCategory().equalsIgnoreCase("Server")) &&
-					request.getAnalyticstype() != null 
-					&& request.getAnalyticstype().equalsIgnoreCase("Discovery") 
-					&& request.getReportList().equalsIgnoreCase("Local") ) {
-				if(!request.getReportBy().contains("End-")) {  // || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host")
-					reportName = request.getReportType();				
-					reportBy = request.getReportBy();
-					siteKey = request.getSiteKey();
-					reportList = request.getReportList();
-					deviceType = request.getOstype();					
-					
-				} else {
-					reportName =  request.getReportType();				
-					reportBy = request.getReportBy();
-					siteKey = request.getSiteKey();
-					reportList = request.getReportList();
-					deviceType = request.getOstype();
-					
-				}
-				
-			} else {
-			
-				String componentName = "";
-				if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
-					componentName = request.getOstype();
-				} else if(request.getSwitchtype() != null && !request.getSwitchtype().isEmpty()) { //switch
-					componentName = request.getSwitchtype();
-				} else if(request.getStorage() != null && !request.getStorage().isEmpty()) { //Storage
-					componentName = request.getStorage();
-				} else if(request.getThirdPartyId() != null && !request.getThirdPartyId().isEmpty()) { //Project
-					componentName = request.getThirdPartyId();
-				} else if(request.getProviders() != null && !request.getProviders().isEmpty()) { //Providers
-					componentName = request.getProviders();
-				} else if(request.getProject() != null && !request.getProject().isEmpty()) { //Project
-					componentName = request.getProject();
-				}
-				if(request.getReportList().equalsIgnoreCase("Local")) {
-					reportName = request.getReportType();
-				} else {
-					reportName = request.getReportList();
-				}
-				 
-				
-				deviceType = componentName;
-				reportBy = request.getReportBy();
-				siteKey = request.getSiteKey();
-				reportList = request.getReportList();	
-				
 			}
-			
-		
-			
-			
+
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()
 					&& reportBy != null && !reportBy.isEmpty()) {
-				String columnHeaders = reportService.getReportHeader(request, reportName, deviceType, reportBy, siteKey,
-						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype(), true);
+				String columnHeaders = reportService.getReportHeader(reportName, deviceType, reportBy, siteKey,
+						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt());
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 			} else {
 				return new ResponseEntity<>(ZKConstants.PARAMETER_MISSING, HttpStatus.OK);
@@ -339,7 +249,6 @@ public class ReportDataController {
 
 		} catch (Exception e) {
 
-			e.printStackTrace();
 			System.out.println("Not able to get report headers {}" + e);
 		}
 
@@ -465,19 +374,21 @@ public class ReportDataController {
 		eolService.recreateEolEosDataframe();
 	}
 
-	
-
-	@GetMapping("test")
-	public void test(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {
-		
-		dataframeService.recreateTaniumReportForDataframe(siteKey, "Tanium", "5f02cb34-ab38-4321-9749-0698e37de8cd");
-		dataframeService.recreateCustomExcelReportForDataframe(siteKey, "5f02cb34-ab38-4321-9749-0698e37de8cd");
-		 
+	@GetMapping("deleteCloudCostDf")
+	public void deleteCloudCostDf(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {
+		dataframeService.destroryCloudCostDataframe(siteKey);
 	}
 	
 	
-
+	@GetMapping("deleteDataframe")
+	public String deleteDataframe(@RequestParam("siteKey") String siteKey, HttpServletRequest request) {		
+			return dataframeService.deleteDataframe(siteKey);
+	}
 	
+	@GetMapping("deleteAllDataframe")
+	public String deleteAllDataframe(HttpServletRequest request) {
+		return dataframeService.deleteAllDataframe();
+	}
 	
 	@PostMapping("getReportDataFromClickHouse")
 	public ResponseEntity<?> getReportDataFromClickHouse(@RequestParam("siteKey") String siteKey) {
@@ -615,231 +526,5 @@ public class ReportDataController {
 				System.out.println("--------------jsonArray----------------- " + jsonArray.size());
 				return jsonArray;
 		}
-	
-	
-	
-	
-	@PostMapping("export")
-	public void export(@RequestBody  ServerSideGetRowsRequest request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-		
-		String filePath =  dataframeService.writeDfToCsv(request);
-		
-		File file = new File(filePath);
-
-        String mimeType = URLConnection.guessContentTypeFromName(file.getName());
-        if (mimeType == null) {
-            mimeType = "application/octet-stream";
-        }
-
-        httpServletResponse.setContentType(mimeType);
-        httpServletResponse.setHeader("Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
-        httpServletResponse.setContentLength((int) file.length());
-
-        InputStream inputStream = null;
-        try {
-            inputStream = new BufferedInputStream(new FileInputStream(file));
-            FileCopyUtils.copy(inputStream, httpServletResponse.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-				inputStream.close();
-			} catch (IOException e) {				
-				e.printStackTrace();
-			}
-        }
-        
-        try {
-        	 FileUtils.delete(new File(filePath));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		 
-	}
-	
-	@PostMapping("getChartDetails")
-	public JSONObject prepareChart(
-			@RequestParam("chartConfiguration") String chartConfiguration,
-			@RequestParam("chartType") String chartType, 
-			@RequestParam("reportLabel") String reportLabel,
-			@RequestParam("reportName") String reportName,
-			@RequestParam("analyticstype") String analyticstype,
-			@RequestParam("siteKey") String siteKey,
-			@RequestParam("category") String category,			
-			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-		
-		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, chartConfiguration, chartType, reportLabel, reportName, analyticstype, category);
-		return jsonObject;
-	}
-	
-	
-	
-	@PostMapping("subreport")
-	public JSONObject subreport(@RequestAttribute(name = "authUserId", required = false) String userId,
-			@RequestParam(name = "reportName") String reportName, @RequestParam(name = "columnName") String columnName,
-			@RequestParam(name = "selectedData") String resultObject, @RequestParam(name = "siteKey") String siteKey,
-			@RequestParam(name = "logDate") String logDate,
-			@RequestParam(name = "reportCategory") String reportCategory, @RequestParam(name = "userId") String userId1,
-			@RequestParam(name = "deviceType") String deviceType,
-			@RequestParam(name = "subReportId", required = false) String subReportId,
-			@RequestParam(name = "subReportName", required = false) String subReportName,
-			@RequestParam(name = "subReportList", required = false) String subReportList1, HttpServletRequest httpServletRequest)
-			throws IOException, SQLException, ParseException, java.text.ParseException {
-	
-		deviceType = deviceType.toLowerCase().trim().replace("-", "");
-		System.out.println("!!!! deviceType: " + deviceType);
-		System.out.println("!!!! reportCategory: " + reportCategory);
-		System.out.println("!!!! authUserId: " + userId);
-		 
-		JSONObject resultJSONObject = new JSONObject();
-		
-		try {
-			JSONParser parser = new JSONParser();
-			JSONObject resultJSON = (JSONObject) parser.parse(resultObject);
-			JSONArray subReportList = (JSONArray) parser.parse(subReportList1);
-			if (deviceType.equalsIgnoreCase("HP-UX")) {
-				deviceType = "hpux";
-			} else if (deviceType.equalsIgnoreCase("vmwarehost")) {
-				deviceType = "vmwarehost";
-			}
-			
-			if (reportCategory.trim().equalsIgnoreCase("discovery")
-					|| reportCategory.trim().equalsIgnoreCase("compatability")
-					|| reportCategory.trim().equalsIgnoreCase("project")
-					|| reportCategory.trim().equalsIgnoreCase("Compatibility")) {
-
-				String serverName = "";
-				String vCenter = "";
-				String vmname = "";
-				String sid = "";
-				
-				Map<String, String> whereClause = new HashMap<String, String>();
-
-				if (resultJSON.containsKey(columnName) || resultJSON.containsKey("vmax_Replication Device Count")) {
-					if(resultJSON.containsKey("Possible Server Name(VMAX)")) {
-						serverName = resultJSON.get("Possible Server Name(VMAX)").toString();
-						sid = resultJSON.get("SID").toString();
-						
-						if(!serverName.trim().isEmpty()) {
-							whereClause.put("Possible Server Name(VMAX)", serverName);
-						}
-						if(!sid.trim().isEmpty()) {
-							whereClause.put("SID", sid);
-						}
-					} else if(resultJSON.containsKey("Possible Server Name")) {
-						serverName = resultJSON.get("Possible Server Name").toString();
-						sid = resultJSON.get("Serial Number").toString();
-						
-						if(!serverName.trim().isEmpty()) {
-							whereClause.put("Possible Server Name", serverName);
-						}
-						if(!sid.trim().isEmpty()) {
-							whereClause.put("Serial Number", sid);
-						}
-					} else if(resultJSON.containsKey("vmax_Possible Server Name(VMAX)")) { 
-						serverName = resultJSON.get("vmax_Possible Server Name(VMAX)").toString();
-						sid = resultJSON.get("vmax_SID").toString();
-						
-						if(!serverName.trim().isEmpty()) {
-							whereClause.put("vmax_Possible Server Name(VMAX)", serverName);
-						}
-						if(!sid.trim().isEmpty()) {
-							whereClause.put("vmax_SID", sid);
-						}
-						
-					} else {
-						serverName = resultJSON.get(columnName).toString();
-						
-						whereClause.put(columnName, serverName);
-						
-					}			
-					System.out.println("!!!!! deviceType: " + deviceType);
-					System.out.println("!!!!! resultJSON: " + resultJSON);
-					if(resultJSON.containsKey("Possible Server Name(VMAX)")) {
-						serverName = resultJSON.get("Possible Server Name(VMAX)").toString();
-						sid = resultJSON.get("SID").toString();
-						
-						if(!serverName.trim().isEmpty()) {
-							whereClause.put("Possible Server Name(VMAX)", serverName);
-						}
-						if(!sid.trim().isEmpty()) {
-							whereClause.put("SID", sid);
-						}
-						
-					} else if(resultJSON.containsKey("Possible Server Name")) {
-						serverName = resultJSON.get("Possible Server Name").toString();
-						sid = resultJSON.get("Serial Number").toString();
-						
-						if(!serverName.trim().isEmpty()) {
-							whereClause.put("Possible Server Name", serverName);
-						}
-						if(!sid.trim().isEmpty()) {
-							whereClause.put("Serial Number", sid);
-						}
-						
-					} else if(resultJSON.containsKey("vmax_Possible Server Name(VMAX)")) {
-						serverName = resultJSON.get("vmax_Possible Server Name(VMAX)").toString();
-						sid = resultJSON.get("vmax_SID").toString();
-						
-
-						if(!serverName.trim().isEmpty()) {
-							whereClause.put("vmax_Possible Server Name(VMAX)", serverName);
-						}
-						if(!sid.trim().isEmpty()) {
-							whereClause.put("vmax_SID", sid);
-						}
-						
-						
-					} else {
-						if(deviceType.equalsIgnoreCase("ibmsvc")) {
-							serverName = resultJSON.get("Host Name").toString();
-						} else {
-						serverName = resultJSON.get("Server Name").toString();
-						}
-						
-						whereClause.put(columnName, serverName);
-					}					
-				}
-				
-				if (resultJSON.containsKey("VM")) {
-					vmname = resultJSON.get("VM") == null ? "" : resultJSON.get("VM").toString();
-					
-					if(!vmname.trim().isEmpty()) {
-						whereClause.put("VM", vmname);
-					}
-					
-				}
-				if (resultJSON.containsKey("vCenter")) {
-					vCenter = resultJSON.get("vCenter") == null ? "" : resultJSON.get("vCenter").toString();
-					
-					if(!vCenter.trim().isEmpty()) {
-						whereClause.put("vCenter", vCenter);
-					}
-					
-				}
-				System.out.println("!!!!! whereClause: " + whereClause);
-				 
-				
-
-				JSONObject dsrData = dataframeService.getDsrData(subReportList.get(0).toString(), siteKey, whereClause, deviceType);
-				JSONObject data = new JSONObject();
-				data.putAll(dsrData);
-				data.put("responseCode", "200");
-				data.put("responseDescription", "successfully loaded");
-				data.put("responseMessage", "success");
-				
-				resultJSONObject.put(subReportList.get(0).toString(), data);
-				resultJSONObject.put("title", "Detailed Report for Server (" + serverName + ")");
-
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		
-
-		return resultJSONObject;
-	}
 
 }

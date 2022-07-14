@@ -15,14 +15,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPCommand;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPSClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 import com.zenfra.dao.common.CommonEntityManager;
 import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
@@ -31,30 +37,46 @@ import com.zenfra.utils.CommonFunctions;
 import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.sftp.SFTPClient;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
+
 @Component
 public class FTPClientConfiguration extends CommonEntityManager {
 
 	@Autowired
 	CommonFunctions functions;
 
-	public static FTPClient loginClient(FTPServerModel server) {
+	public static ChannelSftp loginClient(FTPServerModel server) {
 
 		try {
 			FTPClient ftpClient = new FTPClient();
 			int port = Integer.parseInt(server.getPort());
-			ftpClient.connect(server.getIpAddress(), port);
+//			ftpClient.connect(server.getIpAddress(), port);
 
 			// System.out.println(ftpClient.getReplyString());
 
-			ftpClient.sendCommand(FTPCommand.USER, server.getServerUsername());
+//		ftpClient.sendCommand(FTPCommand.USER, server.getServerUsername());
 
 			// System.out.println(ftpClient.getReplyString());
 			AESEncryptionDecryption encryption = new AESEncryptionDecryption();
 
-			ftpClient.sendCommand(FTPCommand.PASS, encryption.decrypt(server.getServerPassword()));
+//			ftpClient.sendCommand(FTPCommand.PASS, encryption.decrypt(server.getServerPassword()));
 			// System.out.println(ftpClient.getReplyString());
 
-			return ftpClient;
+			JSch jsch = new JSch();
+
+			Session session = jsch.getSession(server.getServerUsername(), server.getIpAddress(),
+					Integer.parseInt(server.getPort()));
+			session.setConfig("StrictHostKeyChecking", "no");
+			session.setPassword(encryption.decrypt(server.getServerPassword()));
+			System.out.println("ip: " + server.getIpAddress() + " pass: " + server.getServerPassword());
+			session.connect();
+			System.out.println("Connection established.");
+			System.out.println("Creating SFTP Channel.");
+//			Channel sftp = session.openChannel("sftp");
+//			sftp.connect();
+			return (ChannelSftp) session.openChannel("sftp");
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -68,21 +90,46 @@ public class FTPClientConfiguration extends CommonEntityManager {
 	public static String testConenction(FTPServerModel server) {
 		try {
 			System.out.println(server.getIpAddress() + ":" + Integer.parseInt(server.getPort()));
-			FTPClient ftpClient = new FTPClient();
-			ftpClient.connect(server.getIpAddress(), Integer.parseInt(server.getPort()));
+//			FTPClient ftpClient = new FTPClient();
+//			FTPSClient ftpClient = new FTPSClient();
+//			ftpClient.connect(server.getIpAddress(), Integer.parseInt(server.getPort()));
 
-			boolean ftpChk = ftpClient.login(server.getServerUsername(), server.getServerPassword());
-
-			System.out.println("FTP client Code:: " + ftpChk);
-			if (!ftpChk) {
-				return "Test Connection Failed!";
-			}
-			if (!ftpClient.changeWorkingDirectory(server.getServerPath())) {
+			JSch jsch = new JSch();
+			ChannelSftp sftp = null;
+			Session session = jsch.getSession(server.getServerUsername(), server.getIpAddress(),
+					Integer.parseInt(server.getPort()));
+			session.setConfig("StrictHostKeyChecking", "no");
+			session.setPassword(server.getServerPassword());
+			session.connect();
+			if (session.isConnected()) {
+				System.out.println("Connection established.");
+				System.out.println("Creatiftng SFTP Channel.");
+				sftp = (ChannelSftp) session.openChannel("sftp");
+				System.out.println("-----sftp-----"+sftp);
+				sftp.connect();
+				System.out.println("sftp connected "+ sftp.isConnected());
+			}  
+			if (sftp.isConnected()) {
+				sftp.cd(server.getServerPath());
+				System.out.println("--sftp-ls-"+sftp.ls(server.getServerPath()));
+			}else {
 				return "The given path is invalid!";
 			}
-			ftpClient.logout();
-			ftpClient.disconnect();
-			return "Test Connection Success!";
+				
+			sftp.disconnect();
+			session.disconnect();
+			return "Test Connection Successfull!";	
+//			boolean ftpChk = ftpClient.login(server.getServerUsername(), server.getServerPassword());
+
+//			System.out.println("FTP client Code:: " + ftpChk);
+//			if (!ftpChk) {
+//				return "Test Connection Failed!";
+//			}
+//			if (!ftpClient.changeWorkingDirectory(server.getServerPath())) {
+//				return "The given path is invalid!";
+//			}
+//			ftpClient.logout();
+//			ftpClient.disconnect();
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
@@ -93,7 +140,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		}
 	}
 
-	public static FTPClient getConnection(FTPServerModel server) {
+	public static ChannelSftp getConnection(FTPServerModel server) {
 		try {
 
 			return loginClient(server);
@@ -117,11 +164,12 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			Map<String, List<String>> existCheckSums = getCheckSumDetails(server.getSiteKey());
 
 			System.out.println("Start iStream FTP" + path);
-			FTPClient ftpClient = getConnection(server);
+			System.out.println("ip: " + server.getIpAddress() + "pass: " + server.getServerPassword());
+			Channel sftpChannel = getConnection(server);
 			fileList = getAllFilesFromPath(server, path, existCheckSums);
 			System.out.println("file read END");
-			ftpClient.logout();
-			ftpClient.disconnect();
+//			sshClient.logout();
+			sftpChannel.disconnect();
 			System.out.println("End iStream FTP" + path);
 			return fileList;
 		} catch (Exception e) {
@@ -134,41 +182,54 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public static String getFileFromFtp(FTPServerModel server, String path, String toPath, String fileName) {
 
+		int grabCount = 0;
 		try {
 
 			System.out.println("path::" + path);
 			System.out.println("toPath::" + toPath);
 			System.out.println("fileName::" + fileName);
 
-			FTPClient ftpClient = getConnection(server);
-			ftpClient.changeWorkingDirectory(path);
-			ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-			ftpClient.enterLocalPassiveMode();
 			File f = new File(toPath);
 			if (!(f.exists() && f.isDirectory())) {
 				f.mkdir();
 			}
 
-			toPath = toPath + "/" + fileName;
-			System.out.println("toPath::" + toPath);
-			try (FileOutputStream fos = new FileOutputStream(toPath)) {
-				ftpClient.retrieveFile(fileName, fos);
-			} catch (IOException e) {
-				e.printStackTrace();
-				StringWriter errors = new StringWriter();
-				e.printStackTrace(new PrintWriter(errors));
-				String ex = errors.toString();
-				ExceptionHandlerMail.errorTriggerMail(ex);
-				getFileFromFtp(server, path, toPath, fileName);
-				return e.getMessage().toString();
+			ChannelSftp sftpChannel = getConnection(server);
+			sftpChannel.connect();
+			sftpChannel.cd(path);
+			System.out.println("!!!!! lcd: " + sftpChannel.lpwd());
+			Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(".");
+			System.out.println("---ls ----"+sftpChannel.ls(".")+"-----"+list);
+			for (ChannelSftp.LsEntry oListItem : list) {
+				// output each item from directory listing for logs
+				System.out.println("--oListItem--"+oListItem.toString());
+//				sftpChannel.put(path+ "/" +fileName, toPath+ "/" +fileName);
+				// If it is a file (not a directory)
+				if (!oListItem.getAttrs().isDir()) {
+					// Grab the remote file ([remote filename], [local path/filename to write file
+					// to])
+					
+					System.out.println("get " + oListItem.getFilename());
+//					sftpChannel.put(path+"/" + fileName, toPath  + "/" + fileName);
+					sftpChannel.get(oListItem.getFilename(), toPath + "/" + fileName); // while testing, disable this or																						// all of your test files will																			
+					grabCount++;
+					System.out.println("--listed files--"+sftpChannel.ls(toPath));
+					// Delete remote file
+					// c.rm(oListItem.getFilename()); // Note for SFTP grabs from this remote host,
+					// deleting the file is unnecessary,
+					// as their system automatically moves an item to the 'downloaded' subfolder
+					// after it has been grabbed. For other target hosts, un comment this line to
+					// remove any downloaded files from the inbox.
+				}
 			}
+			
+			String str = sftpChannel.getHome();
+			sftpChannel.exit();
+			sftpChannel.disconnect();
 
-			String str = ftpClient.getReplyString();
-			ftpClient.logout();
-
-			ftpClient.disconnect();
 			return str;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -184,7 +245,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 	public static List<FileUploadStatus> getFileFromFtpChange(FTPServerModel server, String fromPath, String toPath) {
 		List<FileUploadStatus> statusList = new ArrayList<FileUploadStatus>();
 		try {
-			FTPClient ftpClient = getConnection(server);
+			ChannelSftp sftpChannel = (ChannelSftp) getConnection(server);
 			String[] files = fromPath.split(",");
 
 			for (String s : files) {
@@ -193,13 +254,13 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				String fileName = file[file.length - 1];
 				String path = s.replace(fileName, "");
 				FileUploadStatus status = new FileUploadStatus();
-				ftpClient.changeWorkingDirectory(path);
-				ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-				ftpClient.enterLocalPassiveMode();
+				sftpChannel.cd(path);
+//				sftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+//				sftpClient.enterLocalPassiveMode();
 
 				String copyPath = toPath + "/" + fileName;
 				try (FileOutputStream fos = new FileOutputStream(copyPath)) {
-					ftpClient.retrieveFile(fileName, fos);
+					sftpChannel.get(fileName, fos);
 				} catch (IOException e) {
 					e.printStackTrace();
 					StringWriter errors = new StringWriter();
@@ -209,16 +270,16 @@ public class FTPClientConfiguration extends CommonEntityManager {
 					return null;
 				}
 
-				String str = ftpClient.getReplyString();
+				String str = sftpChannel.getHome();
 
 				status.setStatus(str);
 				status.setFileName(s);
 				statusList.add(status);
 
 			}
-			ftpClient.logout();
+//			sftpClient.logout();
 
-			ftpClient.disconnect();
+			sftpChannel.disconnect();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -236,12 +297,12 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 		List<FileWithPath> files = new ArrayList<FileWithPath>();
 		try {
-			FTPClient ftpClient = getConnection(server);
-
-			ftpClient.enterLocalPassiveMode();
-			files.addAll(getAllFilesFromPath(ftpClient, parentDir, "", 0, server, files, existChecksums, false));
-			ftpClient.logout();
-			ftpClient.disconnect();
+			ChannelSftp sftpChannel = getConnection(server);
+			sftpChannel.connect();
+//			ftpClient.enterLocalPassiveMode();
+			files.addAll(getAllFilesFromPath(sftpChannel, parentDir, "", 0, server, files, existChecksums, false));
+//			ftpClient.logout();
+			sftpChannel.disconnect();
 			return files;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -253,8 +314,8 @@ public class FTPClientConfiguration extends CommonEntityManager {
 		}
 	}
 
-	public List<FileWithPath> getAllFilesFromPath(FTPClient ftpClient, String parentDir, String currentDir, int level,
-			FTPServerModel server, List<FileWithPath> fileList, Map<String, List<String>> existChecksums,
+	public List<FileWithPath> getAllFilesFromPath(ChannelSftp sftpChanel, String parentDir, String currentDir,
+			int level, FTPServerModel server, List<FileWithPath> fileList, Map<String, List<String>> existChecksums,
 			boolean subFolder) throws IOException {
 
 		try {
@@ -262,11 +323,11 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			if (!currentDir.equals("")) {
 				dirToList += "/" + currentDir;
 			}
-			ftpClient.changeWorkingDirectory(dirToList);
-			FTPFile[] files = ftpClient.listFiles();
+			sftpChanel.cd(dirToList);
+			Vector<ChannelSftp.LsEntry> files = sftpChanel.ls(dirToList);
 
-			for (FTPFile aFile : files) {
-				String currentFileName = aFile.getName();
+			for (ChannelSftp.LsEntry entry : files) {
+				String currentFileName = entry.getFilename();
 				if (currentFileName.equals(".") || currentFileName.equals("..")) {
 					// skip parent directory and directory itself
 					continue;
@@ -274,30 +335,30 @@ public class FTPClientConfiguration extends CommonEntityManager {
 				for (int i = 0; i < level; i++) {
 					System.out.print("\t");
 				}
-				if (aFile.isDirectory()) {
+				if (entry.getAttrs().isDir()) {
 					subFolder = true;
 					System.out.println("[" + currentFileName + "]");
-					getAllFilesFromPath(ftpClient, parentDir, currentFileName, level, server, fileList, existChecksums,
+					getAllFilesFromPath(sftpChanel, parentDir, currentFileName, level, server, fileList, existChecksums,
 							subFolder);
 					subFolder = false;
 				} else {
 
 					System.out.println(currentFileName);
 
-					if (aFile.getName().equalsIgnoreCase(".") || aFile.getName().equalsIgnoreCase("..")) {
+					if (entry.getFilename().equalsIgnoreCase(".") || entry.getFilename().equalsIgnoreCase("..")) {
 						continue;
 					}
-					String details = aFile.getName();
-					System.out.println("Stream path::" + dirToList + "/" + aFile.getName());
+					String details = entry.getFilename();
+					System.out.println("Stream path::" + dirToList + "/" + entry.getFilename());
 					// InputStream iStream = ftpClient.retrieveFileStream(dirToList + "/" +
 					// aFile.getName());
 					// if (iStream != null) {
 					Map<String, Object> map = new HashMap<String, Object>();
 					map.put("serverId", server.getServerId());
-					map.put("fileName", aFile.getName());
+					map.put("fileName", entry.getFilename());
 					map.put("siteKey", server.getSiteKey());
-					map.put("fileSize", String.valueOf(aFile.getSize()));
-					map.put("createDate", aFile.getTimestamp().getTime());
+					map.put("fileSize", String.valueOf(entry.getAttrs().getSize()));
+					map.put("createDate", entry.getAttrs().getATime());
 					System.out.println("map::" + map);
 					// File file1 = File.createTempFile("tmp", null);
 					// FileUtils.copyInputStreamToFile(iStream, file1);
@@ -313,8 +374,8 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 					// }
 					FileWithPath path1 = new FileWithPath();
-					path1.setPath(dirToList + "/" + aFile.getName());
-					path1.setName(aFile.getName());
+					path1.setPath(dirToList + "/" + entry.getFilename());
+					path1.setName(entry.getFilename());
 					if (subFolder) {
 						path1.setSubFolderPath(dirToList);
 					}
@@ -324,7 +385,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 				}
 			}
-
+			sftpChanel.exit();
 			return fileList;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -378,8 +439,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 			System.out.println("start check sum function");
 			CommonFunctions functions = new CommonFunctions();
 			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))
-					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize"))
-							&& existMap.get(currentMap.get("fileName")).contains(currentMap.get("createDate")))) {
+					&& (existMap.get(currentMap.get("fileName")).contains(currentMap.get("fileSize")))) {
 				System.out.println("check test");
 				return true;
 			}
@@ -414,7 +474,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 			System.out.println("start check sum function");
 			CommonFunctions functions = new CommonFunctions();
-			System.out.println("--file map size--"+currentMap.get("fileSize").toString());
+			System.out.println("--file map size--" + currentMap.get("fileSize").toString());
 			if (currentMap != null && existMap.containsKey(currentMap.get("fileName"))) {
 				System.out.println("Nas check test");
 				return true;
@@ -423,8 +483,7 @@ public class FTPClientConfiguration extends CommonEntityManager {
 
 				String query = "INSERT INTO check_sum_details(check_sum_id, create_date, client_ftp_server_id, file_name, site_key,file_size) VALUES (':check_sum_id', ':create_date', ':client_ftp_server_id', ':file_name', ':site_key',':file_size');";
 				query = query.replace(":check_sum_id", functions.generateRandomId())
-						.replace(":file_size", currentMap.get("fileSize").toString())
-						.replace(":create_date", "")
+						.replace(":file_size", currentMap.get("fileSize").toString()).replace(":create_date", "")
 						.replace(":client_ftp_server_id", currentMap.get("serverId").toString())
 						.replace(":file_name", currentMap.get("fileName").toString())
 						.replace(":site_key", currentMap.get("siteKey").toString());
