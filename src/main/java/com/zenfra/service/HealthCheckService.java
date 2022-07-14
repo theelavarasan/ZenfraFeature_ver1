@@ -479,7 +479,7 @@ public class HealthCheckService {
 		boolean isActive = false;
 		try(Connection connection = DriverManager.getConnection(dbConnection.get("url"), dbConnection.get("userName"), dbConnection.get("password"));
 				Statement statement = connection.createStatement();) {
-			String query = "select * from health_check where site_key = '" + siteKey + "' and health_check_name = '" + healthCheckName + "'";
+			String query = "select * from health_check where site_key = '" + siteKey + "' and lower(health_check_name) = '" + healthCheckName.toLowerCase() + "'";
 			ResultSet resultSet = statement.executeQuery(query);
 			while(resultSet.next()) {
 				if(resultSet.getString("health_check_name").equalsIgnoreCase(healthCheckName)) {
