@@ -197,10 +197,8 @@ public class FileNameSettingsService extends CommonEntityManager {
 					System.out.println("patternVal::" + patternVal);
 					System.out.println("logType::" + logType);
 					// patternVal=".*sun.*";logType="";
-					
-					//  || isValidMatch(logType, f.getName()---->condition removed
 					if (!addedFileNames.contains(f.getName())
-							&& (isValidMatch(patternVal, f.getName()))) {
+							&& (isValidMatch(patternVal, f.getName()) || isValidMatch(logType, f.getName()))) {
 						// if (f.getName().contains(patternVal) || f.getName().contains(logType) ) {
 						System.out.println("Find Match");
 						addedFileNames.add(f.getName());
