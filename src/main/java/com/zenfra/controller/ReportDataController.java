@@ -706,7 +706,7 @@ public class ReportDataController {
 			if (reportCategory.trim().equalsIgnoreCase("discovery")
 					|| reportCategory.trim().equalsIgnoreCase("compatability")
 					|| reportCategory.trim().equalsIgnoreCase("project")
-					|| reportCategory.trim().equalsIgnoreCase("Compatibility")) {
+					|| reportCategory.trim().equalsIgnoreCase("migrationmethod")) {
 
 				String serverName = "";
 				String vCenter = "";
