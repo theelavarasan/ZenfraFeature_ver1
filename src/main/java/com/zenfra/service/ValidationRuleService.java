@@ -59,7 +59,7 @@ public class ValidationRuleService {
 	private JSONParser parser = new JSONParser();
 
 	public Map<String, List<Object>> getDiscoveryReportValues(String siteKey, String reportBy, String columnName,
-			String category, String deviceType, String reportList) {
+			String category, String deviceType, String reportList, String analyticsType) {
 
 		Dataset<Row> dataset = sparkSession.emptyDataFrame();
 		Map<String, List<Object>> resutData = new HashMap<>();
@@ -79,13 +79,13 @@ public class ValidationRuleService {
 
 		System.out.println("------category---------" + category);
 
-		if (reportBy != null && ((reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server"))
+		/*if (reportBy != null && ((reportBy.trim().equalsIgnoreCase("Server") && category.equalsIgnoreCase("Server"))
 				|| ((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host"))
 						&& deviceType.equalsIgnoreCase("Nutanix"))
 				|| ((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host"))
 						&& deviceType.equalsIgnoreCase("Hyper-V"))
 				|| ((reportBy.trim().equalsIgnoreCase("VM") || reportBy.trim().equalsIgnoreCase("Host"))
-						&& deviceType.equalsIgnoreCase("vmware")))) {
+						&& deviceType.equalsIgnoreCase("vmware")))) {*/
 			try {
 				deviceType = deviceType.toLowerCase();
 				if (deviceType != null && !deviceType.trim().isEmpty() && deviceType.contains("hyper")) {
@@ -101,8 +101,12 @@ public class ValidationRuleService {
 					deviceType = deviceType + "-" + "guest";
 				}
 
-				String viewName = siteKey + "_" + deviceType;
-				viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
+				/*String viewName = siteKey + "_" + deviceType;
+				viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");*/
+				
+				String viewNameWithHypen = siteKey + "_" + analyticsType.toLowerCase() + "_"
+						+ category + "_" + deviceType + "_" + reportList + "_" + reportBy;
+				String viewName = viewNameWithHypen.replaceAll("-", "").replaceAll("\\s+", "");
 				dataset = sparkSession.sql("select * from global_temp." + viewName);
 
 				String dataArray = dataset.toJSON().collectAsList().toString();
@@ -146,11 +150,10 @@ public class ValidationRuleService {
 				String ex = errors.toString();
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
-		} else {
+		/*} else {
 			String actualDfFolderPath = null;
 			String actualDfFilePath = null;
-			String dataframePath = commonPath + "Dataframe" + File.separator + "migrationReport" + File.separator
-					+ siteKey + File.separator;
+			String dataframePath = commonPath + "Dataframe" + File.separator + siteKey + File.separator;
 
 			File dir = new File(dataframePath);
 
@@ -233,7 +236,7 @@ public class ValidationRuleService {
 				ExceptionHandlerMail.errorTriggerMail(ex);
 			}
 
-		}
+		}*/
 
 		// dirPath+siteKey+"_"+reportType+"_"+category+"_"+providers+"_"+reportList+"_"+reportBy+".json";
 
@@ -775,84 +778,7 @@ public class ValidationRuleService {
 
 		return resultArray;
 
-	}
-
-	public JSONArray getCloudCostReportValues(String siteKey, String columnName, String category, String deviceType,
-			String report_by) {
-		JSONArray resultData = new JSONArray();
-		try {
-			String inputDeviceType = deviceType;
-			Dataset<Row> dataset = sparkSession.emptyDataFrame();
-			String viewName = siteKey.replaceAll("-", "").replaceAll("\\s+", "") + "_cloudcost";
-
-			if (deviceType.equalsIgnoreCase("All")) {
-				deviceType = " lcase(`Server Type`) in ('windows','linux', 'vmware')";
-			} else {
-				deviceType = "lcase(`Server Type`)='" + deviceType.toLowerCase() + "'";
-			}
-
-			if (category.toLowerCase().equalsIgnoreCase("AWS Instances")) {
-				if (deviceType.equalsIgnoreCase("All")) {
-					deviceType = " lcase(`Server Type`)='ec2'  and lcase(`OS Name`) in ('windows','linux', 'vmware')";
-				} else {
-					deviceType = "lcase(`Server Type`)='ec2'  and lcase(`OS Name`) = '" + inputDeviceType.toLowerCase()
-							+ "'";
-				}
-
-			}
-
-			if (report_by.equalsIgnoreCase("All")) {
-				report_by = "report_by in ('Physical Servers','AWS Instances','Custom Excel Data')";
-			} else {
-				report_by = "report_by='" + report_by + "'";
-			}
-
-			try {
-				dataset = sparkSession.sql("select `" + columnName + "` from global_temp." + viewName + " where "
-						+ deviceType + " and " + report_by + "").distinct();
-			} catch (Exception e) {
-				ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
-				request.setSiteKey(siteKey);
-				request.setReportType("optimization");
-				request.setDeviceType("All");
-				request.setCategoryOpt("All");
-				request.setSource("All");
-				request.setCategory("price");
-				dataframeService.getCloudCostData(request);
-
-				dataset = sparkSession.sql("select `" + columnName + "` from global_temp." + viewName + " where "
-						+ deviceType + " and " + report_by + "").distinct();
-			}
-
-			List<String> data = dataset.as(Encoders.STRING()).collectAsList();
-
-			boolean isPriceColumn = false;
-			if (columnName.toLowerCase().contains("price")) {
-				isPriceColumn = true;
-			}
-			if (data != null && !data.isEmpty()) {
-				for (String str : data) {
-					if (str != null && !str.isEmpty()) {
-						if (!isPriceColumn) {
-							resultData.add(str);
-						} else {
-							resultData.add("$" + str);
-						}
-					}
-
-				}
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String ex = errors.toString();
-			ExceptionHandlerMail.errorTriggerMail(ex);
-		}
-
-		return resultData;
-	}
+	} 
 	
 	
 	public JSONArray getCloudCostReportValuesPostgres(String siteKey, String columnName, String category, String deviceType,

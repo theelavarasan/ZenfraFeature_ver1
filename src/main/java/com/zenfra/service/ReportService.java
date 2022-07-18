@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +27,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.zenfra.dao.FavouriteDao_v2;
 import com.zenfra.dao.ReportDao;
@@ -36,6 +42,7 @@ import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
 import com.zenfra.model.ZenfraJSONObject;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @Component
@@ -63,8 +70,8 @@ public class ReportService {
 	@Autowired
 	private FavouriteDao_v2 favouriteDao_v2;
 
-	public String getReportHeader(String reportName, String deviceType, String reportBy, String siteKey,
-			String reportList, String category, String actualDeviceType, String reportCategory) {
+	public String getReportHeader(ServerSideGetRowsRequest request,String reportName, String deviceType, String reportBy, String siteKey,
+			String reportList, String category, String actualDeviceType, String reportCategory, String analyticsType, boolean isHeader) {
 		JSONArray result = new JSONArray();
 		if (reportName.equalsIgnoreCase("migrationautomation")) { // get headers from dataframe
 
@@ -72,6 +79,15 @@ public class ReportService {
 
 		} else {
 			result = reportDao.getReportHeader(reportName, deviceType, reportBy);
+		}
+		
+		// for some reports we need to get column headers from report data
+		if(result.isEmpty()) {
+			result = dataframeService.getReportHeaderFromData(siteKey, category, reportList, deviceType, reportBy, analyticsType);
+			if(result.isEmpty()) {
+				dataframeService.getReportDataFromDF(request, isHeader);
+				result = dataframeService.getReportHeaderFromData(siteKey, category, reportList, deviceType, reportBy, analyticsType);
+			}
 		}
 
 		// String report_label = reportList + " " + deviceType + " by "+ reportBy;
@@ -86,12 +102,18 @@ public class ReportService {
 		resultObject.put("headerInfo", result);
 		resultObject.put("report_label", report_label);
 		resultObject.put("report_name", report_name);
+		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax")) {
+			resultObject.put("subLinkDetails", getDSRConfigData(request, deviceType));
+		}
+		
 
 		JSONObject metrics = dataframeService.getUnitConvertDetails(reportName, deviceType);
 		resultObject.put("unit_conv_details", metrics);
 
 		return resultObject.toString();
 	}
+
+	
 
 	private String getReportLabelName(String category, String reportList, String deviceType, String reportBy) {
 		try {
@@ -589,5 +611,33 @@ public class ReportService {
 		
 		return resultObject;
 	}
+	
+	private JSONObject getDSRConfigData(ServerSideGetRowsRequest request, String deviceType) {
+		
+		JSONObject resultObject = new JSONObject();
+		
+		try {
+			String protocol = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL);
+	    	String appServerIp = ZKModel.getProperty(ZKConstants.APP_SERVER_IP);
+	    	String port = ZKModel.getProperty(ZKConstants.APP_SERVER_PORT);
+	        String uri = protocol + "://" + appServerIp + ":" + port + "/ZenfraV2/auth/dsr-config";
+	        uri = uri+"?category="+request.getCategory()
+	    	+"&reportList="+request.getReportList()
+	    	+"&reportBy="+request.getReportBy()
+	    	+"&reportName="+request.getReportType()
+	    	+"&deviceType="+deviceType;
+	        uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+	        RestTemplate restTemplate = new RestTemplate();
+	        resultObject = restTemplate.getForObject(uri, JSONObject.class);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultObject;
+		
+	}
+
+	 
+
 
 }

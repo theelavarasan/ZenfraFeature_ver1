@@ -8,20 +8,13 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPCommand;
-import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.ftp.FTPSClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,12 +27,7 @@ import com.zenfra.model.ftp.FTPServerModel;
 import com.zenfra.model.ftp.FileUploadStatus;
 import com.zenfra.model.ftp.FileWithPath;
 import com.zenfra.utils.CommonFunctions;
-import com.zenfra.utils.DBUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
-
-import net.schmizz.sshj.SSHClient;
-import net.schmizz.sshj.sftp.SFTPClient;
-import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 
 @Component
 public class FTPClientConfiguration extends CommonEntityManager {
