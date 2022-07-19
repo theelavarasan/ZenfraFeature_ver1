@@ -123,7 +123,7 @@ public class ReportDataController {
 			} else  {  // orient db reports
 				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
 						request.getReportBy().equalsIgnoreCase("Privileged Access")) {
-					String result = restTemplate.getForObject("https://mettest.zenfra.co/UserManagement/auth/privillege-access-report", String.class, request);
+					String result = restTemplate.postForObject("https://mettest.zenfra.co/UserManagement/auth/privillege-access-report", request, String.class);
 					JSONParser parser = new JSONParser();
 					JSONObject resultObject = (JSONObject) parser.parse(result);
 					return new ResponseEntity<>(resultObject, HttpStatus.OK);
