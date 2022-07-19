@@ -22,6 +22,8 @@ public class ReportQueries {
 	private String reportUserCustomDataBySiteKey;
 	
 	private String headerForCompatibility;
+	
+	private String securityAddSourceHeader;
 
 	public String getHeader() {
 		return header;
@@ -80,8 +82,12 @@ public class ReportQueries {
 		this.headerForCompatibility = headerForCompatibility;
 	}
 
-	
-	
-	
+	public String getSecurityAddSourceHeader() {
+		return securityAddSourceHeader;
+	}
+
+	public void setSecurityAddSourceHeader(String securityAddSourceHeader) {
+		this.securityAddSourceHeader = securityAddSourceHeader;
+	}
 	
 }
