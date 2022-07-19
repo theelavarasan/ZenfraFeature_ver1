@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.clickhouse.jdbc.ClickHouseDataSource;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
@@ -82,7 +83,10 @@ public class ReportDataController {
 
 	@Autowired
 	EolService eolService;
-
+	
+	@Autowired
+	RestTemplate restTemplate;
+	
 	@GetMapping("createLocalDiscoveryDF")
 	public ResponseEntity<String> createDataframe(@RequestParam("tableName") String tableName) {
 		String result = dataframeService.createDataframeForLocalDiscovery(tableName);
@@ -117,11 +121,19 @@ public class ReportDataController {
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
 			} else  {  // orient db reports
-				
-				DataResult data = dataframeService.getReportDataFromDF(request, false);
-				if (data != null) {
-					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
+						request.getReportBy().equalsIgnoreCase("Privileged Access")) {
+					String result = restTemplate.getForObject("https://mettest.zenfra.co/UserManagement/auth/privillege-access-report", String.class, request);
+					JSONParser parser = new JSONParser();
+					JSONObject resultObject = (JSONObject) parser.parse(result);
+					return new ResponseEntity<>(resultObject, HttpStatus.OK);
+				} else {
+					DataResult data = dataframeService.getReportDataFromDF(request, false);
+					if (data != null) {
+						return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+					}
 				}
+				
 			}
 			
 
