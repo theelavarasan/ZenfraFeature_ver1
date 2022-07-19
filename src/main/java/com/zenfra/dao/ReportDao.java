@@ -47,7 +47,7 @@ public class ReportDao {
 			System.out.println("------columns query--------- " + reportQueries.getHeader());
 			List<Map<String, Object>> result; 
 			if(reportBy.equalsIgnoreCase("securityAddSource")) {
-				result = namedJdbc.queryForList(reportQueries.getSecurityAddSourceHeader());
+				result = namedJdbc.queryForList(reportQueries.getSecurityAddSourceHeader(), params);
 			} else {
 				result = namedJdbc.queryForList(reportQueries.getHeader(), params);
 			}
