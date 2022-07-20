@@ -150,7 +150,7 @@ public class ReportDataController {
 		            
 		            ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestBody, String.class);
 		            JSONObject result = new JSONObject();
-					result.put("data", mapping.convertValue(response.getBody(), JSONArray.class));
+					result.put("data", mapping.readTree(response.getBody()));
 					return new ResponseEntity<>(result, HttpStatus.OK);
 					
 				} else {
