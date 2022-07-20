@@ -280,7 +280,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				
     				if(columnFilter instanceof TextColumnFilter) {
     					
-    					if(!column.contains("~")) {
+    					if(column.contains("Server Data~")) {
     						if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
         						if(column.equalsIgnoreCase("Server Name")) {
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " server_name = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
@@ -412,7 +412,7 @@ public class PrivillegeAccessReportQueryBuilder {
     					
     				} else if(columnFilter instanceof NumberColumnFilter) {
     					
-    					if(!column.contains("~")) {
+    					if(column.contains("Server Data~")) {
     						if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '' and (case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + "" + (columnArray.size() > 1 ? ")": ""));
