@@ -34,6 +34,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -54,6 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.clickhouse.jdbc.ClickHouseDataSource;
+import com.zenfra.dao.PrivillegeAccessReportDAO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -93,6 +95,13 @@ public class ReportDataController {
 	@Autowired
 	RestTemplate restTemplate;
 	
+	private PrivillegeAccessReportDAO privillegeAccessReportDAO;
+	
+	@Autowired
+    public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO) {
+        this.privillegeAccessReportDAO = privillegeAccessReportDAO;
+    }
+	
 	@GetMapping("createLocalDiscoveryDF")
 	public ResponseEntity<String> createDataframe(@RequestParam("tableName") String tableName) {
 		String result = dataframeService.createDataframeForLocalDiscovery(tableName);
@@ -129,29 +138,8 @@ public class ReportDataController {
 			} else  {  // orient db reports
 				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
 						request.getReportBy().equalsIgnoreCase("Privileged Access")) {
-					ObjectMapper mapping = new ObjectMapper();
-					String uri = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL) + "://" + ZKModel.getProperty(ZKConstants.APP_SERVER_IP) + "/UserManagement/auth/privillege-access-report";  
-					RestTemplate restTemplate = new RestTemplate();
-		            System.out.println("Enter Parsing.....");
-		            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-		            body.add("startRow", request.getStartRow());
-		            body.add("endRow", request.getEndRow());
-		            body.add("rowGroupCols", request.getRowGroupCols());
-		            body.add("valueCols", request.getValueCols());
-		            body.add("pivotCols", request.getPivotCols());
-		            body.add("pivotMode", false);
-		            body.add("groupKeys", request.getGroupKeys());
-		            body.add("filterModel", request.getFilterModel());
-		            body.add("sortModel", request.getSortModel());
-		            body.add("siteKey", request.getSiteKey());
-		            
-		            HttpEntity<Object> requestBody = new HttpEntity<>(body);
-		            uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
-		            
-		            ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestBody, String.class);
-		            JSONObject result = new JSONObject();
-					result.put("data", mapping.readTree(response.getBody()));
-					return new ResponseEntity<>(result, HttpStatus.OK);
+					
+					return new ResponseEntity<>(privillegeAccessReportDAO.getData(request), HttpStatus.OK);
 					
 				} else {
 					DataResult data = dataframeService.getReportDataFromDF(request, false);

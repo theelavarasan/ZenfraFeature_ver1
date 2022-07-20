@@ -32,6 +32,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -41,7 +42,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.zenfra.model.FavouriteModel;
 import com.zenfra.model.ftp.FtpScheduler;
 
@@ -744,6 +744,62 @@ public class CommonFunctions {
 		}
 
 		return list;
+	}
+	
+	public static String convertToUtc(String dateString) {
+		String utcTime = dateString;
+		try {
+			// for(String df : dateFormats) {
+			try {
+				String df = "yyyy/MM/dd HH:mm:ss";
+				if (dateString.contains("-")) {
+					df = "yyyy-MM-dd HH:mm:ss";
+				}
+				DateFormat formatterIST = new SimpleDateFormat(df);
+				formatterIST.setTimeZone(TimeZone.getDefault()); // better than using IST
+				if (dateString != null && !dateString.isEmpty()) {
+					Date date = formatterIST.parse(dateString);
+
+					DateFormat formatterUTC = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+					formatterUTC.setTimeZone(TimeZone.getTimeZone("UTC")); // UTC timezone
+					return formatterUTC.format(date);
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();				
+			}
+			// }
+
+		} catch (Exception e) {
+			e.printStackTrace();			
+		}
+		return utcTime;
+
+	}
+	
+	public List<Map<String, Object>> getDBDatafromJdbcTemplate(String query) {
+		List<Map<String, Object>> obj1 = new ArrayList<>();
+		JdbcTemplate jdbc = new JdbcTemplate();
+		try {
+			jdbc.setDataSource(DataSourceConnection.dataSource);
+			obj1 = jdbc.queryForList(query);
+			jdbc.getDataSource().getConnection().close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		} finally {
+			try {
+				jdbc.getDataSource().getConnection().close();
+			} catch(Exception e) {
+				
+			}
+			
+		}
+		return obj1;
 	}
 	
 }
