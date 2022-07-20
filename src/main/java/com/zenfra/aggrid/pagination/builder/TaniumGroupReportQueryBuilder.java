@@ -240,9 +240,9 @@ public class TaniumGroupReportQueryBuilder {
 				+ "left join linux_user_sudo_info usi on ugi.server_name = usi.server_name and ugi.site_key = usi.site_key\r\n"
 				+ "and ugi.group_name = usi.user_name and usi.is_group_user = 'true'\r\n"
 				+ "join linux_host_details hd on hd.server_name = ugi.server_name and ugi.site_key = hd.site_key\r\n"
-				+ "where ugi.site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey) + " " + getOrderBy(sortModel) + " limit " + ((endRow - startRow) + 1) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
+				+ "where ugi.site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
 				+ ") as d) as e\r\n"
-				+ "group by r.row_count, e.serverName,e.groupName";
+				+ "group by e.row_count, e.serverName,e.groupName";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
