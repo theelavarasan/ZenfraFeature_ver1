@@ -1682,6 +1682,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	private void createDataframeFromJsonFile(String viewName, String filePath) {
 		if (filePath.endsWith(".json")) {
 			try {
+				viewName = viewName.replaceAll("-", "").replaceAll("\\s+", "");
 				Dataset<Row> dataset = sparkSession.read().json(filePath);//option("multiline", true)
 				dataset.createOrReplaceGlobalTempView(viewName);
 				
@@ -1815,14 +1816,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				String reportCategory = (String) reportInput.get("category");
 				String deviceType = (String) reportInput.get("device");			
 				
-				
-				if(reportCategory.equalsIgnoreCase("server") && reportList.equalsIgnoreCase("Local") && reportBy.equalsIgnoreCase("server")) { //dataframe created from postgres db				
+				 
+				if(reportCategory.equalsIgnoreCase("server") && reportList.equalsIgnoreCase("local") && (reportBy.equalsIgnoreCase("server") || reportBy.equalsIgnoreCase("vm") || reportBy.equalsIgnoreCase("host"))) { //dataframe created from postgres db				
 					recreateLocalDiscovery(siteKey, sourceType);	
 					//write server_server dataframe into common path /opt/ZENfra/Dataframe/siteKey/{logType}/jsonFile
 					writeServerDataframeToCommonPath(siteKey, sourceType, reportBy);
 					
-				} 
-				if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") 
+				} else if(reportCategory.equalsIgnoreCase("server") || reportCategory.equalsIgnoreCase("switch") 
 						|| reportCategory.equalsIgnoreCase("Storage")) { //dataframe created from V2 repo /migrationReport API call... mostly report created from orient DB
 					ServerSideGetRowsRequest request = new ServerSideGetRowsRequest();
 						if(reportCategory.equalsIgnoreCase("server")) { //server
