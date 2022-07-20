@@ -228,7 +228,7 @@ public class TaniumGroupReportQueryBuilder {
 				+ "(select row_count, serverName, groupName,json_build_object('Server Name', serverName, 'Group Name', groupName, 'Member Of Group', memberOfGroup,\r\n"
 				+ "'Sudoers Access', sudoPrivileges, 'Is Sudoers', isSudoers, 'Group Id', groupId, 'Os Version', osVersion) as data from\r\n"
 				+ "(\r\n"
-				+ "select count(1) as row_count,\r\n"
+				+ "select count(1) over() as row_count,\r\n"
 				+ "ugi.server_name serverName\r\n"
 				+ ",ugi.group_name groupName\r\n"
 				+ ",ugi.gid groupId\r\n"
@@ -240,7 +240,7 @@ public class TaniumGroupReportQueryBuilder {
 				+ "left join linux_user_sudo_info usi on ugi.server_name = usi.server_name and ugi.site_key = usi.site_key\r\n"
 				+ "and ugi.group_name = usi.user_name and usi.is_group_user = 'true'\r\n"
 				+ "join linux_host_details hd on hd.server_name = ugi.server_name and ugi.site_key = hd.site_key\r\n"
-				+ "where ugi.site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey) + " " + getOrderBy(sortModel) + " limit " + ((endRow - startRow) + 1) + " offset " + (startRow -1) + "\r\n"
+				+ "where ugi.site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey) + " " + getOrderBy(sortModel) + " limit " + ((endRow - startRow) + 1) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
 				+ ") as d) as e\r\n"
 				+ "group by r.row_count, e.serverName,e.groupName";
 

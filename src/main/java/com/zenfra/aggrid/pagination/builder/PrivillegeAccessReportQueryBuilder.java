@@ -228,7 +228,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "select row_count, a.source_id, server_name, a.data as privillege_data, (case when s1.source_name is null then null else json_build_object(s1.source_name,sd.data::json) end) as source_data1, \r\n"
 				+ "(case when s2.source_name is null then null else json_build_object(s2.source_name, sd1.data::json) end) as source_data2 from (\r\n"
 				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",') as data from privillege_data\r\n"
-				+ "where site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + ((endRow - startRow) + 1) + " offset " + (startRow - 1) + "\r\n"
+				+ "where site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + ((endRow - startRow) + 1) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
 				+ ") a\r\n"
 				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = a.source_id \r\n"
 				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
