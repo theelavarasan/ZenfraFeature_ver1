@@ -7,7 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
 import java.net.URLConnection;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -56,6 +61,7 @@ import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.service.ChartService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
@@ -123,10 +129,32 @@ public class ReportDataController {
 			} else  {  // orient db reports
 				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
 						request.getReportBy().equalsIgnoreCase("Privileged Access")) {
-					String result = restTemplate.postForObject("https://mettest.zenfra.co/UserManagement/auth/privillege-access-report", request, String.class);
-					JSONParser parser = new JSONParser();
-					JSONObject resultObject = (JSONObject) parser.parse(result);
-					return new ResponseEntity<>(resultObject, HttpStatus.OK);
+					
+					String callURL = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL) + "://" + ZKModel.getProperty(ZKConstants.APP_SERVER_IP) + "/UserManagement/auth/privillege-access-report";  
+					Map<String, Object> values = new HashMap<String, Object>() {{
+			            put("startRow", request.getStartRow());
+			            put ("endRow", request.getEndRow());
+			            put ("rowGroupCols", request.getRowGroupCols());
+			            put ("valueCols", request.getValueCols());
+			            put ("pivotCols", request.getPivotCols());
+			            put ("pivotMode", false);
+			            put ("groupKeys", request.getGroupKeys());
+			            put ("filterModel", request.getFilterModel());
+			            put ("sortModel", request.getSortModel());
+			            put ("projectId", "");
+			            put ("siteKey", request.getSiteKey());
+			            put ("migrationCategory", "");
+			        }};
+			        
+			        ObjectMapper mapping = new ObjectMapper();
+			        
+			        String requestBody = mapping.writeValueAsString(values);
+			        
+			        HttpClient client = HttpClient.newHttpClient();
+			        HttpRequest httpRequest = HttpRequest.newBuilder()
+			                .uri(URI.create(callURL)).POST(HttpRequest.BodyPublishers.ofString(requestBody)).build();
+			        HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+					
 				} else {
 					DataResult data = dataframeService.getReportDataFromDF(request, false);
 					if (data != null) {
