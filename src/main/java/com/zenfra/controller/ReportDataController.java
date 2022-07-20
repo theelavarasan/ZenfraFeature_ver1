@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
 import java.net.URLConnection;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -29,15 +28,20 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -56,9 +60,11 @@ import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.service.ChartService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @CrossOrigin(origins = "*")
@@ -123,10 +129,29 @@ public class ReportDataController {
 			} else  {  // orient db reports
 				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
 						request.getReportBy().equalsIgnoreCase("Privileged Access")) {
-					
-					
-			        
-			        
+					ObjectMapper mapping = new ObjectMapper();
+					String uri = ZKModel.getProperty(ZKConstants.APP_SERVER_PROTOCOL) + "://" + ZKModel.getProperty(ZKConstants.APP_SERVER_IP) + "/UserManagement/auth/privillege-access-report";  
+					RestTemplate restTemplate = new RestTemplate();
+		            System.out.println("Enter Parsing.....");
+		            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+		            body.add("startRow", request.getStartRow());
+		            body.add("endRow", request.getEndRow());
+		            body.add("rowGroupCols", request.getRowGroupCols());
+		            body.add("valueCols", request.getValueCols());
+		            body.add("pivotCols", request.getPivotCols());
+		            body.add("pivotMode", false);
+		            body.add("groupKeys", request.getGroupKeys());
+		            body.add("filterModel", request.getFilterModel());
+		            body.add("sortModel", request.getSortModel());
+		            body.add("siteKey", request.getSiteKey());
+		            
+		            HttpEntity<Object> requestBody = new HttpEntity<>(body);
+		            uri = CommonUtils.checkPortNumberForWildCardCertificate(uri);
+		            
+		            ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestBody, String.class);
+		            JSONObject result = new JSONObject();
+					result.put("data", mapping.convertValue(response.getBody(), JSONArray.class));
+					return new ResponseEntity<>(result, HttpStatus.OK);
 					
 				} else {
 					DataResult data = dataframeService.getReportDataFromDF(request, false);
