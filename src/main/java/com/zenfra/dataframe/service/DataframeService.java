@@ -1035,7 +1035,7 @@ public class DataframeService {
 		String reportName = request.getReportType();
 		String deviceTypeHeder = "All";
 		String reportBy = request.getReportType();
-		JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+		JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy, request.getSiteKey(), request.getUserId());
 		String discoveryFilterqry = "";
 
 		List<String> columnHeaders = new ArrayList<>();
@@ -2355,7 +2355,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
             String exportType = request.getExportType();
 			
 						
-			JSONArray reportColumns = reportDao.getReportHeader(request.getReportType(), componentName, request.getReportBy());
+			JSONArray reportColumns = reportDao.getReportHeader(request.getReportType(), componentName, request.getReportBy(), request.getSiteKey(), request.getUserId());
 			List<String> reportCols = new ArrayList<String>();
 			for(int i=0; i<reportColumns.size(); i++) {
 				JSONObject colObj = (JSONObject) reportColumns.get(i);
