@@ -77,7 +77,7 @@ public class ReportDao {
 			
 			List<Map<String, Object>> result; 
 			String headerQuery = reportQueries.getTaniumHeader();
-			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":userId", userId);
+			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
 			System.out.println("!!!!! headerQuery: " + headerQuery);
 			result = jdbc.queryForList(reportQueries.getTaniumHeader());
 			
