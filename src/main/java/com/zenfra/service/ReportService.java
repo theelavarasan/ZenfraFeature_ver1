@@ -79,12 +79,16 @@ public class ReportService {
 			result = dataframeService.getReportHeaderForMigrationMethod(siteKey, deviceType);
 
 		} else {
-			result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
+			
 			if(reportBy.equalsIgnoreCase("Privileged Access")) {
+				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
 				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
+			} else {
+				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 			}
 		}
 		
+		System.out.println("!!!!! reportHeade: " + result.size());
 		// for some reports we need to get column headers from report data
 		if(result.isEmpty()) {
 			result = dataframeService.getReportHeaderFromData(siteKey, category, reportList, deviceType, reportBy, analyticsType);

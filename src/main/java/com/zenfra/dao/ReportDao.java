@@ -49,12 +49,6 @@ public class ReportDao {
 			System.out.println("!!!!! Header reportBy: " + reportBy);
 			if(reportBy.equalsIgnoreCase("securityAddSource")) {
 				result = namedJdbc.queryForList(reportQueries.getSecurityAddSourceHeader(), params);
-			} else if(reportBy.equalsIgnoreCase("Privileged Access")) {
-				params = new HashMap<String, Object>();
-				params.put("site_key", siteKey);
-				params.put("user_id", userId);
-				System.out.println("!!!!! Tanium Header: " + reportQueries.getTaniumHeader());
-				result = namedJdbc.queryForList(reportQueries.getTaniumHeader(), params);
 			} else {
 				System.out.println("!!!!! not Tanium Header: ");
 				result = namedJdbc.queryForList(reportQueries.getHeader(), params);
@@ -71,6 +65,29 @@ public class ReportDao {
 		}
 		return reportHeaders;
 	} 
+	
+	public JSONArray getPrivillegeReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+		JSONArray reportHeaders = new JSONArray();
+		try {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("site_key", siteKey);
+			params.put("user_id", userId);
+			System.out.println("------params--------- " + params);
+			
+			List<Map<String, Object>> result; 
+			result = namedJdbc.queryForList(reportQueries.getTaniumHeader(), params);
+			
+			System.out.println("!!!!! result: " + result);
+			reportHeaders = parseResultSetForHeaderInfo(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return reportHeaders;
+	}
 	
 	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
 		JSONObject reportGroup = new JSONObject();
@@ -100,6 +117,7 @@ public class ReportDao {
 		}
 		return reportGroup;
 	}
+	
 
 	private JSONArray parseResultSetForHeaderInfo(List<Map<String, Object>> resultList) {
 		resultList = resultList.stream().distinct().collect(Collectors.toList());
