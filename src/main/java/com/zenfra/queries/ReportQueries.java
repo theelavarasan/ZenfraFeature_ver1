@@ -22,6 +22,12 @@ public class ReportQueries {
 	private String reportUserCustomDataBySiteKey;
 	
 	private String headerForCompatibility;
+	
+	private String securityAddSourceHeader;
+	
+	private String taniumHeader;
+	
+	private String taniumGroup;
 
 	public String getHeader() {
 		return header;
@@ -80,7 +86,29 @@ public class ReportQueries {
 		this.headerForCompatibility = headerForCompatibility;
 	}
 
-	
+	public String getSecurityAddSourceHeader() {
+		return securityAddSourceHeader;
+	}
+
+	public void setSecurityAddSourceHeader(String securityAddSourceHeader) {
+		this.securityAddSourceHeader = securityAddSourceHeader;
+	}
+
+	public String getTaniumHeader() {
+		return taniumHeader;
+	}
+
+	public void setTaniumHeader(String taniumHeader) {
+		this.taniumHeader = taniumHeader;
+	}
+
+	public String getTaniumGroup() {
+		return taniumGroup;
+	}
+
+	public void setTaniumGroup(String taniumGroup) {
+		this.taniumGroup = taniumGroup;
+	}
 	
 	
 	

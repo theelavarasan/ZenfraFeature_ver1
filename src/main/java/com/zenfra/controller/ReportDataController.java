@@ -16,7 +16,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -29,15 +28,21 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -47,17 +52,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.clickhouse.jdbc.ClickHouseDataSource;
+import com.zenfra.dao.PrivillegeAccessReportDAO;
+import com.zenfra.dao.TaniumGroupReportDAO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.ZKConstants;
+import com.zenfra.model.ZKModel;
 import com.zenfra.service.ChartService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
+import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @CrossOrigin(origins = "*")
@@ -82,7 +92,20 @@ public class ReportDataController {
 
 	@Autowired
 	EolService eolService;
-
+	
+	@Autowired
+	RestTemplate restTemplate;
+	
+	private PrivillegeAccessReportDAO privillegeAccessReportDAO;
+	
+	private TaniumGroupReportDAO taniumGroupReportDAO;
+	
+	@Autowired
+    public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO, @Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO) {
+        this.privillegeAccessReportDAO = privillegeAccessReportDAO;
+        this.taniumGroupReportDAO = taniumGroupReportDAO;
+    }
+	
 	@GetMapping("createLocalDiscoveryDF")
 	public ResponseEntity<String> createDataframe(@RequestParam("tableName") String tableName) {
 		String result = dataframeService.createDataframeForLocalDiscovery(tableName);
@@ -117,11 +140,21 @@ public class ReportDataController {
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
 			} else  {  // orient db reports
-				
-				DataResult data = dataframeService.getReportDataFromDF(request, false);
-				if (data != null) {
-					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
+						request.getReportBy().equalsIgnoreCase("Privileged Access")) {
+					
+					return new ResponseEntity<>(privillegeAccessReportDAO.getData(request), HttpStatus.OK);
+					
+				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
+						request.getReportBy().equalsIgnoreCase("Group")) {
+					return new ResponseEntity<>(taniumGroupReportDAO.getData(request), HttpStatus.OK);
+				} else {
+					DataResult data = dataframeService.getReportDataFromDF(request, false);
+					if (data != null) {
+						return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+					}
 				}
+				
 			}
 			
 
@@ -271,11 +304,11 @@ public class ReportDataController {
 				reportBy = request.getReportType();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else if(request.getOstype() != null && request.getOstype().equalsIgnoreCase("Tanium") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
+			} /*else if(request.getOstype() != null && request.getOstype().equalsIgnoreCase("Tanium") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
 				
 				JSONObject columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK); 
-			} else if ((request.getCategory().equalsIgnoreCase("Server")) &&
+			}*/ else if ((request.getCategory().equalsIgnoreCase("Server")) &&
 					request.getAnalyticstype() != null 
 					&& request.getAnalyticstype().equalsIgnoreCase("Discovery") 
 					&& request.getReportList().equalsIgnoreCase("Local") ) {
@@ -331,7 +364,7 @@ public class ReportDataController {
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()
 					&& reportBy != null && !reportBy.isEmpty()) {
 				String columnHeaders = reportService.getReportHeader(request, reportName, deviceType, reportBy, siteKey,
-						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype(), true);
+						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype(), request.getUserId(), true);
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 			} else {
 				return new ResponseEntity<>(ZKConstants.PARAMETER_MISSING, HttpStatus.OK);

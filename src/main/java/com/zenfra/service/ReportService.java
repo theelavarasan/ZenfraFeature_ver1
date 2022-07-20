@@ -71,16 +71,24 @@ public class ReportService {
 	private FavouriteDao_v2 favouriteDao_v2;
 
 	public String getReportHeader(ServerSideGetRowsRequest request,String reportName, String deviceType, String reportBy, String siteKey,
-			String reportList, String category, String actualDeviceType, String reportCategory, String analyticsType, boolean isHeader) {
+			String reportList, String category, String actualDeviceType, String reportCategory, String analyticsType, String userId, boolean isHeader) {
 		JSONArray result = new JSONArray();
+		JSONObject groupResult = new JSONObject();
 		if (reportName.equalsIgnoreCase("migrationautomation")) { // get headers from dataframe
 
 			result = dataframeService.getReportHeaderForMigrationMethod(siteKey, deviceType);
 
 		} else {
-			result = reportDao.getReportHeader(reportName, deviceType, reportBy);
+			
+			if(reportBy.equalsIgnoreCase("Privileged Access")) {
+				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
+				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
+			} else {
+				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
+			}
 		}
 		
+		System.out.println("!!!!! reportHeade: " + result.size());
 		// for some reports we need to get column headers from report data
 		if(result.isEmpty()) {
 			result = dataframeService.getReportHeaderFromData(siteKey, category, reportList, deviceType, reportBy, analyticsType);
@@ -100,6 +108,7 @@ public class ReportService {
 
 		JSONObject resultObject = new JSONObject();
 		resultObject.put("headerInfo", result);
+		resultObject.put("columnGroupInfo", groupResult);
 		resultObject.put("report_label", report_label);
 		resultObject.put("report_name", report_name);
 		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax")) {
@@ -415,7 +424,7 @@ public class ReportService {
 			String reportName = request.getReportType();
 			String deviceTypeHeder = "All";
 			String reportBy = request.getReportType();
-			JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+			JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy, request.getSiteKey(), request.getUserId());
 
 			List<String> columnHeaders = new ArrayList<>();
 			if (headers != null && headers.size() > 0) {
