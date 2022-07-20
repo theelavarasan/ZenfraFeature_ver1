@@ -283,11 +283,11 @@ public class ReportDataController {
 				reportBy = request.getReportType();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else if(request.getOstype() != null && request.getOstype().equalsIgnoreCase("Tanium") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
+			} /*else if(request.getOstype() != null && request.getOstype().equalsIgnoreCase("Tanium") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
 				
 				JSONObject columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK); 
-			} else if ((request.getCategory().equalsIgnoreCase("Server")) &&
+			}*/ else if ((request.getCategory().equalsIgnoreCase("Server")) &&
 					request.getAnalyticstype() != null 
 					&& request.getAnalyticstype().equalsIgnoreCase("Discovery") 
 					&& request.getReportList().equalsIgnoreCase("Local") ) {
@@ -343,7 +343,7 @@ public class ReportDataController {
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()
 					&& reportBy != null && !reportBy.isEmpty()) {
 				String columnHeaders = reportService.getReportHeader(request, reportName, deviceType, reportBy, siteKey,
-						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype(), true);
+						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype(), request.getUserId(), true);
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 			} else {
 				return new ResponseEntity<>(ZKConstants.PARAMETER_MISSING, HttpStatus.OK);

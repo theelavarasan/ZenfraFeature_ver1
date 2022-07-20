@@ -36,7 +36,7 @@ public class ReportDao {
 	@Autowired
 	CommonFunctions commonFunctions;
 
-	public JSONArray getReportHeader(String reportName, String deviceType, String reportBy) {
+	public JSONArray getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
 		JSONArray reportHeaders = new JSONArray();
 		try {
 			Map<String, Object> params = new HashMap<String, Object>();
@@ -48,6 +48,11 @@ public class ReportDao {
 			List<Map<String, Object>> result; 
 			if(reportBy.equalsIgnoreCase("securityAddSource")) {
 				result = namedJdbc.queryForList(reportQueries.getSecurityAddSourceHeader(), params);
+			} else if(reportBy.equalsIgnoreCase("Privileged Access")) {
+				params = new HashMap<String, Object>();
+				params.put("site_key", siteKey);
+				params.put("user_id", userId);
+				result = namedJdbc.queryForList(reportQueries.getTaniumHeader(), params);
 			} else {
 				result = namedJdbc.queryForList(reportQueries.getHeader(), params);
 			}

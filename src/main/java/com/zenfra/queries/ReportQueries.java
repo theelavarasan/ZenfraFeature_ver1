@@ -24,6 +24,8 @@ public class ReportQueries {
 	private String headerForCompatibility;
 	
 	private String securityAddSourceHeader;
+	
+	private String taniumHeader;
 
 	public String getHeader() {
 		return header;
@@ -88,6 +90,14 @@ public class ReportQueries {
 
 	public void setSecurityAddSourceHeader(String securityAddSourceHeader) {
 		this.securityAddSourceHeader = securityAddSourceHeader;
+	}
+
+	public String getTaniumHeader() {
+		return taniumHeader;
+	}
+
+	public void setTaniumHeader(String taniumHeader) {
+		this.taniumHeader = taniumHeader;
 	}
 	
 }

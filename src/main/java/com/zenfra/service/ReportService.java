@@ -71,14 +71,14 @@ public class ReportService {
 	private FavouriteDao_v2 favouriteDao_v2;
 
 	public String getReportHeader(ServerSideGetRowsRequest request,String reportName, String deviceType, String reportBy, String siteKey,
-			String reportList, String category, String actualDeviceType, String reportCategory, String analyticsType, boolean isHeader) {
+			String reportList, String category, String actualDeviceType, String reportCategory, String analyticsType, String userId, boolean isHeader) {
 		JSONArray result = new JSONArray();
 		if (reportName.equalsIgnoreCase("migrationautomation")) { // get headers from dataframe
 
 			result = dataframeService.getReportHeaderForMigrationMethod(siteKey, deviceType);
 
 		} else {
-			result = reportDao.getReportHeader(reportName, deviceType, reportBy);
+			result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 		}
 		
 		// for some reports we need to get column headers from report data
@@ -415,7 +415,7 @@ public class ReportService {
 			String reportName = request.getReportType();
 			String deviceTypeHeder = "All";
 			String reportBy = request.getReportType();
-			JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy);
+			JSONArray headers = reportDao.getReportHeader(reportName, deviceTypeHeder, reportBy, request.getSiteKey(), request.getUserId());
 
 			List<String> columnHeaders = new ArrayList<>();
 			if (headers != null && headers.size() > 0) {
