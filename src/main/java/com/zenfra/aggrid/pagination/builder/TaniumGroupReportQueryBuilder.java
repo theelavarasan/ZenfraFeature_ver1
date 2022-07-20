@@ -224,11 +224,11 @@ public class TaniumGroupReportQueryBuilder {
 		JSONParser parser = new JSONParser();
 		
 
-		String tasklistQuery = "select serverName,groupName, json_agg(data) as data from\r\n"
-				+ "(select serverName, groupName,json_build_object('Server Name', serverName, 'Group Name', groupName, 'Member Of Group', memberOfGroup,\r\n"
+		String tasklistQuery = "select row_count, serverName,groupName, json_agg(data) as data from\r\n"
+				+ "(select row_count, serverName, groupName,json_build_object('Server Name', serverName, 'Group Name', groupName, 'Member Of Group', memberOfGroup,\r\n"
 				+ "'Sudoers Access', sudoPrivileges, 'Is Sudoers', isSudoers, 'Group Id', groupId, 'Os Version', osVersion) as data from\r\n"
 				+ "(\r\n"
-				+ "select\r\n"
+				+ "select count(1) as row_count,\r\n"
 				+ "ugi.server_name serverName\r\n"
 				+ ",ugi.group_name groupName\r\n"
 				+ ",ugi.gid groupId\r\n"
@@ -242,7 +242,7 @@ public class TaniumGroupReportQueryBuilder {
 				+ "join linux_host_details hd on hd.server_name = ugi.server_name and ugi.site_key = hd.site_key\r\n"
 				+ "where ugi.site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey) + " " + getOrderBy(sortModel) + " limit " + ((endRow - startRow) + 1) + " offset " + (startRow -1) + "\r\n"
 				+ ") as d) as e\r\n"
-				+ "group by e.serverName,e.groupName";
+				+ "group by r.row_count, e.serverName,e.groupName";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
