@@ -101,12 +101,8 @@ public class ReportDataController {
 	private TaniumGroupReportDAO taniumGroupReportDAO;
 	
 	@Autowired
-    public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO) {
+    public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO, @Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO) {
         this.privillegeAccessReportDAO = privillegeAccessReportDAO;
-    }
-	
-	@Autowired
-    public ReportDataController(@Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO) {
         this.taniumGroupReportDAO = taniumGroupReportDAO;
     }
 	
