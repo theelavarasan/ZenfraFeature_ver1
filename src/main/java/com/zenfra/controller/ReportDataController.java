@@ -56,6 +56,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.clickhouse.jdbc.ClickHouseDataSource;
 import com.zenfra.dao.PrivillegeAccessReportDAO;
+import com.zenfra.dao.TaniumGroupReportDAO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -97,9 +98,16 @@ public class ReportDataController {
 	
 	private PrivillegeAccessReportDAO privillegeAccessReportDAO;
 	
+	private TaniumGroupReportDAO taniumGroupReportDAO;
+	
 	@Autowired
     public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO) {
         this.privillegeAccessReportDAO = privillegeAccessReportDAO;
+    }
+	
+	@Autowired
+    public ReportDataController(@Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO) {
+        this.taniumGroupReportDAO = taniumGroupReportDAO;
     }
 	
 	@GetMapping("createLocalDiscoveryDF")
@@ -141,6 +149,9 @@ public class ReportDataController {
 					
 					return new ResponseEntity<>(privillegeAccessReportDAO.getData(request), HttpStatus.OK);
 					
+				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
+						request.getReportBy().equalsIgnoreCase("Group")) {
+					return new ResponseEntity<>(taniumGroupReportDAO.getData(request), HttpStatus.OK);
 				} else {
 					DataResult data = dataframeService.getReportDataFromDF(request, false);
 					if (data != null) {
