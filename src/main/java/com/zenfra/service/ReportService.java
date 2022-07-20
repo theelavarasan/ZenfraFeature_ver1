@@ -81,7 +81,7 @@ public class ReportService {
 		} else {
 			result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 			if(reportBy.equalsIgnoreCase("Privileged Access")) {
-				groupResult = reportDao.getReportGroup(reportName, actualDeviceType, reportBy, siteKey, userId);
+				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
 			}
 		}
 		
