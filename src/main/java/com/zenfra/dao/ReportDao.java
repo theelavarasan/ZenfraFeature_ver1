@@ -76,7 +76,10 @@ public class ReportDao {
 			System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
 			
 			List<Map<String, Object>> result; 
-			result = namedJdbc.queryForList(reportQueries.getTaniumHeader(), params);
+			String headerQuery = reportQueries.getTaniumHeader();
+			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":userId", userId);
+			System.out.println("!!!!! headerQuery: " + headerQuery);
+			result = jdbc.queryForList(reportQueries.getTaniumHeader());
 			
 			System.out.println("!!!!! result: " + result);
 			reportHeaders = parseResultSetForHeaderInfo(result);
