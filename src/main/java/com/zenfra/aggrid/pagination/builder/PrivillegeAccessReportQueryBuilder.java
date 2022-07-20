@@ -225,9 +225,9 @@ public class PrivillegeAccessReportQueryBuilder {
 		
 
 		String tasklistQuery = "select source_id, server_name, privillege_data, json_agg(source_data1) as source_data1, json_agg(source_data2) as source_data2 from ( \r\n"
-				+ "select a.source_id, server_name, a.data as privillege_data, json_build_object(s1.source_name,sd.data::json) as source_data1, \r\n"
-				+ "json_build_object(s2.source_name, sd1.data::json) as source_data2 from (\r\n"
-				+ "select source_id, server_name, replace(replace(data, '.0\"', '\"'),'null', '') as data from privillege_data\r\n"
+				+ "select a.source_id, server_name, a.data as privillege_data, (case when s1.source_name is null then null else json_build_object(s1.source_name,sd.data::json) end) as source_data1, \r\n"
+				+ "(case when s2.source_name is null then null else json_build_object(s2.source_name, sd1.data::json) end) as source_data2 from (\r\n"
+				+ "select source_id, server_name, replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",') as data from privillege_data\r\n"
 				+ "where site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + endRow + " offset " + startRow + "\r\n"
 				+ ") a\r\n"
 				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = a.source_id \r\n"
@@ -700,25 +700,21 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	try {
     		for(SortModel s: sortModel) {
-    			if(!s.getColId().contains("~")) {
-    				if(s.getColId().equalsIgnoreCase("Server Name")) {
+    			if(s.getColId().contains("Server Data~")) {
+    				String column_name = s.getColId().substring(s.getColId().indexOf("~") + 1, s.getColId().length());
+    				if(column_name.equalsIgnoreCase("Server Name")) {
     					orderBy = " order by server_name " + s.getSort();
-    				} else if(s.getColId().equalsIgnoreCase("User Name")) {
+    				} else if(column_name.equalsIgnoreCase("User Name")) {
     					orderBy = " order by source_id " + s.getSort();
-    				} else if(s.getColId().equalsIgnoreCase("Server & User Name")) {
-    					orderBy = " order by concat(tl.server_name, '~', tl.share_name) " + s.getSort();
+    				} else if(column_name.equalsIgnoreCase("Server & User Name")) {
+    					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
     				} else {
-    					orderBy = " order by (tl.column_values::json ->> '" + s.getColId() + "') " + s.getSort();
+    					orderBy = " order by (select json_array_elements(data::json) ->> '" + column_name + "') " + s.getSort();
     				}
     			} else {
-    				if(s.getColId().startsWith("server~")) {
-    					String column_name = s.getColId().substring(s.getColId().indexOf("~") + 1, s.getColId().length());
-    					orderBy = "order by (select json_array_elements(tl.server_data::json) ->> '" + column_name + "') " + s.getSort();
-    				} else {
     					String column_name = s.getColId().substring(s.getColId().indexOf("~") + 1, s.getColId().length());
     					String column_alias = s.getColId().substring(0, s.getColId().indexOf("~"));
     					orderBy = "order by \"sd~" + column_alias + "_data\".data::json ->> '" + column_name + "') " + s.getSort() ;
-    				}
     			}
     		}
     	} catch(Exception e) {
