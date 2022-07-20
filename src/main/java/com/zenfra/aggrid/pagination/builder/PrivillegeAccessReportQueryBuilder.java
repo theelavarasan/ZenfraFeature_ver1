@@ -227,7 +227,7 @@ public class PrivillegeAccessReportQueryBuilder {
 		String tasklistQuery = "select source_id, server_name, privillege_data, json_agg(source_data1) as source_data1, json_agg(source_data2) as source_data2 from ( \r\n"
 				+ "select a.source_id, server_name, a.data as privillege_data, json_build_object(s1.source_name,sd.data::json) as source_data1, \r\n"
 				+ "json_build_object(s2.source_name, sd1.data::json) as source_data2 from (\r\n"
-				+ "select source_id, server_name, replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",') as data from privillege_data\r\n"
+				+ "select source_id, server_name, replace(replace(data, '.0\"', '\"'),'null', '') as data from privillege_data\r\n"
 				+ "where site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + endRow + " offset " + startRow + "\r\n"
 				+ ") a\r\n"
 				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = a.source_id \r\n"
