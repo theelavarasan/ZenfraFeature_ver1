@@ -281,6 +281,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				if(columnFilter instanceof TextColumnFilter) {
     					
     					if(column.contains("Server Data~")) {
+    						column = column.substring(column.indexOf("~") + 1, column.length());
     						if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
         						if(column.equalsIgnoreCase("Server Name")) {
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " server_name = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
