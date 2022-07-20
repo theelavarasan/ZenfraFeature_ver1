@@ -104,6 +104,7 @@ public class ReportService {
 
 		JSONObject resultObject = new JSONObject();
 		resultObject.put("headerInfo", result);
+		resultObject.put("columnGroupInfo", groupResult);
 		resultObject.put("report_label", report_label);
 		resultObject.put("report_name", report_name);
 		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax")) {
