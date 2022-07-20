@@ -106,7 +106,9 @@ public class ReportDao {
 			params = new HashMap<String, Object>();
 			params.put("site_key", siteKey);
 			params.put("user_id", userId);
-			result = namedJdbc.queryForList(reportQueries.getTaniumGroup(), params);
+			String query = reportQueries.getTaniumGroup();
+			query = query.replace(":site_key", siteKey).replace(":user_id", userId);
+			result = jdbc.queryForList(query);
 			
 			
 			System.out.println("!!!!! result: " + result);
