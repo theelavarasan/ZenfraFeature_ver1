@@ -46,14 +46,17 @@ public class ReportDao {
 			System.out.println("------params--------- " + params);
 			System.out.println("------columns query--------- " + reportQueries.getHeader());
 			List<Map<String, Object>> result; 
+			System.out.println("!!!!! Header reportBy: " + reportBy);
 			if(reportBy.equalsIgnoreCase("securityAddSource")) {
 				result = namedJdbc.queryForList(reportQueries.getSecurityAddSourceHeader(), params);
 			} else if(reportBy.equalsIgnoreCase("Privileged Access")) {
 				params = new HashMap<String, Object>();
 				params.put("site_key", siteKey);
 				params.put("user_id", userId);
+				System.out.println("!!!!! Tanium Header: " + reportQueries.getTaniumHeader());
 				result = namedJdbc.queryForList(reportQueries.getTaniumHeader(), params);
 			} else {
+				System.out.println("!!!!! not Tanium Header: ");
 				result = namedJdbc.queryForList(reportQueries.getHeader(), params);
 			}
 			
