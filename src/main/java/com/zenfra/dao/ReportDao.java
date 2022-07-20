@@ -73,6 +73,7 @@ public class ReportDao {
 			params.put("site_key", siteKey);
 			params.put("user_id", userId);
 			System.out.println("------params--------- " + params);
+			System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
 			
 			List<Map<String, Object>> result; 
 			result = namedJdbc.queryForList(reportQueries.getTaniumHeader(), params);
