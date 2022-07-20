@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,7 +96,7 @@ public class PrivillegeAccessReportDAO {
     					JSONArray sourceDataArray = (JSONArray) parser.parse(row.get(keys.get(i)) == null ? "[]" : row.get(keys.get(i)).toString());
     					for(int j = 0; j < sourceDataArray.size(); j++) {
     						JSONObject sourceDataObject = (JSONObject) sourceDataArray.get(j);
-    						Set<String> keySet = sourceDataObject.keySet();
+    						Set<String> keySet = sourceDataObject == null ? new HashSet<>() : sourceDataObject.keySet();
     						for(String key : keySet) {
     							JSONObject jsonObject1 = (JSONObject) sourceDataObject.get(key);
     							Set<String> innerKeySet = jsonObject1.keySet();
