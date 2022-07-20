@@ -88,7 +88,7 @@ public class PrivillegeAccessReportDAO {
     						List<String> dataKeys = new ArrayList<>(dataObject.keySet());
         					for(int j = 0; j < dataObject.size(); j++) {
         						
-        						resultObject.put(dataKeys.get(j), dataObject.get(dataKeys.get(j)));
+        						resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
         					}
     					}
     					
@@ -117,7 +117,7 @@ public class PrivillegeAccessReportDAO {
     					
     				} else {
     					if(!keys.get(i).equalsIgnoreCase("row_count")) {
-    						resultObject.put(keys.get(i), row.get(keys.get(i)));
+    						resultObject.put("Server Data~" + keys.get(i), row.get(keys.get(i)));
     					} 
     				}
     			}
