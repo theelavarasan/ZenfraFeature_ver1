@@ -67,6 +67,35 @@ public class ReportDao {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return reportHeaders;
+	} 
+	
+	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+		JSONObject reportGroup = new JSONObject();
+		try {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("report_name", reportName.toLowerCase());
+			params.put("device_type", deviceType.toLowerCase());
+			params.put("report_by", reportBy.toLowerCase());
+			System.out.println("------params--------- " + params);
+			System.out.println("------columns query--------- " + reportQueries.getHeader());
+			List<Map<String, Object>> result; 
+			
+			params = new HashMap<String, Object>();
+			params.put("site_key", siteKey);
+			params.put("user_id", userId);
+			result = namedJdbc.queryForList(reportQueries.getTaniumGroup(), params);
+			
+			
+			System.out.println("!!!!! result: " + result);
+			reportGroup = parseResultSetForHeaderGroup(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return reportGroup;
 	}
 
 	private JSONArray parseResultSetForHeaderInfo(List<Map<String, Object>> resultList) {
@@ -99,6 +128,26 @@ public class ReportDao {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return reportHeaders;
+	}
+	
+	private JSONObject parseResultSetForHeaderGroup(List<Map<String, Object>> resultList) {
+		resultList = resultList.stream().distinct().collect(Collectors.toList());
+		JSONObject jsonObj = new JSONObject();
+		try {
+			
+			for (Map<String, Object> rowData : resultList) {
+				jsonObj.put(rowData.get("category"), rowData.get("grouped_columns"));
+				
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return jsonObj;
 	}
 
 	public List<String> getReportNumericalHeaders(String reportName, String deviceType, String reportBy,

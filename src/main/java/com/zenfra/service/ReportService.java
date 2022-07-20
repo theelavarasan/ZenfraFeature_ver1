@@ -73,12 +73,16 @@ public class ReportService {
 	public String getReportHeader(ServerSideGetRowsRequest request,String reportName, String deviceType, String reportBy, String siteKey,
 			String reportList, String category, String actualDeviceType, String reportCategory, String analyticsType, String userId, boolean isHeader) {
 		JSONArray result = new JSONArray();
+		JSONObject groupResult = new JSONObject();
 		if (reportName.equalsIgnoreCase("migrationautomation")) { // get headers from dataframe
 
 			result = dataframeService.getReportHeaderForMigrationMethod(siteKey, deviceType);
 
 		} else {
 			result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
+			if(reportBy.equalsIgnoreCase("Privileged Access")) {
+				groupResult = reportDao.getReportGroup(reportName, actualDeviceType, reportBy, siteKey, userId);
+			}
 		}
 		
 		// for some reports we need to get column headers from report data

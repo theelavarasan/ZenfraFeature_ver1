@@ -26,6 +26,8 @@ public class ReportQueries {
 	private String securityAddSourceHeader;
 	
 	private String taniumHeader;
+	
+	private String taniumGroup;
 
 	public String getHeader() {
 		return header;
@@ -99,5 +101,15 @@ public class ReportQueries {
 	public void setTaniumHeader(String taniumHeader) {
 		this.taniumHeader = taniumHeader;
 	}
+
+	public String getTaniumGroup() {
+		return taniumGroup;
+	}
+
+	public void setTaniumGroup(String taniumGroup) {
+		this.taniumGroup = taniumGroup;
+	}
+	
+	
 	
 }
