@@ -79,7 +79,7 @@ public class ReportDao {
 			String headerQuery = reportQueries.getTaniumHeader();
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
 			System.out.println("!!!!! headerQuery: " + headerQuery);
-			result = jdbc.queryForList(reportQueries.getTaniumHeader());
+			result = jdbc.queryForList(headerQuery);
 			
 			System.out.println("!!!!! result: " + result);
 			reportHeaders = parseResultSetForHeaderInfo(result);
@@ -100,8 +100,7 @@ public class ReportDao {
 			params.put("report_name", reportName.toLowerCase());
 			params.put("device_type", deviceType.toLowerCase());
 			params.put("report_by", reportBy.toLowerCase());
-			System.out.println("------params--------- " + params);
-			System.out.println("------columns query--------- " + reportQueries.getHeader());
+			
 			List<Map<String, Object>> result; 
 			
 			params = new HashMap<String, Object>();
