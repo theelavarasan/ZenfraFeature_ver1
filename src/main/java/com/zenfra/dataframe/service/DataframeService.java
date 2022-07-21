@@ -3180,20 +3180,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								}
 							}
 						}
+						System.out.println("xaxisColumnName : " + xaxisColumnName);
+						System.out.println("yaxisNames :  " + yaxisNames);
+
+						System.out.println("valueArray : " + valueArray);
+						System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);
 //						System.out.println("finalBreakDownValue : " + finalBreakDownValue);
-//						JSONArray array = new JSONArray();
-//						for (int i = 0; i < yaxisNames.size(); i++) {
-//							JSONObject jsonObject = new JSONObject();
-//							jsonObject.put("name", yaxisNames.get(i));
-//							jsonObject.put("x", xaxisCloumnValues);
-//							jsonObject.put("y", valueArray);
-//							if (!finalBreakDownValue.isEmpty()) {
-//								jsonObject.put("breakDown", finalBreakDownValue);
-//							}
-//							array.add(jsonObject);
-//
-//							System.out.println("-------resultLsit -------- " + resultData);
-//						}
+						for (int i = 0; i < yaxisNames.size(); i++) {
+							
+						}
 //
 //						System.out.println("----- array" + array);
 //
