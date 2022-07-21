@@ -3098,15 +3098,17 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String yaxisColumnName = "";
 						JSONArray yaxisNames = new JSONArray();
 						String className = "";
+						JSONArray classNameArray = new JSONArray();
 
 						for (int i = 0; i < yaxisColumnAry.size(); i++) {
 							yaxisColumn = (JSONObject) yaxisColumnAry.get(i);
 							yaxisColumnName = (String) yaxisColumn.get("value");
 							className = (String) yaxisColumn.get("className");
 							yaxisNames.add(yaxisColumnName);
+							classNameArray.add(className);
 						}
-						System.out.println("className : " + className);
-						System.out.println("jsonArray : " + yaxisNames);
+						System.out.println("classNameArray : " + classNameArray);
+						System.out.println("yaxisNames : " + yaxisNames);
 
 						// xaxis column names
 						JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
@@ -3121,7 +3123,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						System.out.println(" breakDownName : " + breakDownName);
 						System.out.println("------- chart 3-------- " + xaxisColumnName + " : " + yaxisNames);
 
-						String operater = className.split("-")[1];
 						Dataset<Row> dataSet = sparkSession.emptyDataFrame();
 
 						String query = "select `" + xaxisColumnName + "` as `colName`";
@@ -3130,6 +3131,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							query = query.concat(", `" + breakDownName + "` as `colBreakdown`");
 						}
 						for (int i = 0; i < yaxisNames.size(); i++) {
+							String operater = (String) classNameArray.get(i);
+							System.out.println("operater : " + operater);
 							if (operater.contains("count")) {
 								query = query.concat(", count(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
 							} else if (operater.contains("sum")) {
@@ -3229,15 +3232,17 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String yaxisColumnName = "";
 						JSONArray yaxisNames = new JSONArray();
 						String className = "";
-
+						JSONArray classNameArray = new JSONArray();
+						
 						for (int i = 0; i < yaxisColumnAry.size(); i++) {
 							yaxisColumn = (JSONObject) yaxisColumnAry.get(i);
 							yaxisColumnName = (String) yaxisColumn.get("value");
 							className = (String) yaxisColumn.get("className");
+							classNameArray.add(className);
 							yaxisNames.add(yaxisColumnName);
 						}
-						System.out.println("className : " + className);
-						System.out.println("jsonArray : " + yaxisNames);
+						System.out.println("classNameArray : " + classNameArray);
+						System.out.println("yaxisNames : " + yaxisNames);
 
 						// xaxis column names
 						JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
@@ -3252,7 +3257,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						System.out.println(" breakDownName : " + breakDownName);
 						System.out.println("------- chart 3-------- " + xaxisColumnName + " : " + yaxisNames);
 
-						String operater = className.split("-")[1];
+						
 						Dataset<Row> dataSet = sparkSession.emptyDataFrame();
 
 						String query = "select `" + xaxisColumnName + "` as `colName`";
@@ -3261,6 +3266,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							query = query.concat(", `" + breakDownName + "` as `colBreakdown`");
 						}
 						for (int i = 0; i < yaxisNames.size(); i++) {
+							String operater = (String) classNameArray.get(i);
+							System.out.println("operater : " + operater);
 							if (operater.contains("count")) {
 								query = query.concat(", count(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
 							} else if (operater.contains("sum")) {
