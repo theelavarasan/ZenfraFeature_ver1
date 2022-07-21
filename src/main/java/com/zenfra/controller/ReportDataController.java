@@ -252,7 +252,7 @@ public class ReportDataController {
 			
 			//recreate Reports after completed parsing			
 			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
-				 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
+				 //dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
 			} else {
 				 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 			}
