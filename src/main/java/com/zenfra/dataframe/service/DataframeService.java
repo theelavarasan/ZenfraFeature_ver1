@@ -3130,9 +3130,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							query = query.concat(", `" + breakDownName + "` as `colBreakdown`");
 						}
 						for (int i = 0; i < yaxisNames.size(); i++) {
-							if (operater.equalsIgnoreCase("count")) {
+							if (operater.contains("count")) {
 								query = query.concat(", count(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
-							} else if (operater.equalsIgnoreCase("sum")) {
+							} else if (operater.contains("sum")) {
 								query = query.concat(", sum(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
 							}
 						}
@@ -3261,9 +3261,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							query = query.concat(", `" + breakDownName + "` as `colBreakdown`");
 						}
 						for (int i = 0; i < yaxisNames.size(); i++) {
-							if (operater.equalsIgnoreCase("count")) {
+							if (operater.contains("count")) {
 								query = query.concat(", count(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
-							} else if (operater.equalsIgnoreCase("sum")) {
+							} else if (operater.contains("sum")) {
 								query = query.concat(", sum(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
 							}
 						}
