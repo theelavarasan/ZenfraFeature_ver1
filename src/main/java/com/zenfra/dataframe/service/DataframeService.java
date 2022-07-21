@@ -2622,6 +2622,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					columnObj.put("lockPinned", false);
 					columnObj.put("lockPosition", false);
 					columnObj.put("pinned", "");				
+					if (dfColumnArray[i].equalsIgnoreCase("Server Name") || dfColumnArray[i].contains("_Server Name") || dfColumnArray[i].contains("~Server Name")) {
+						columnObj.put("lockPinned", true);
+						columnObj.put("lockPosition", true);
+						columnObj.put("pinned", "left");	
+					}
 					columnArray.add(columnObj);
 					System.out.println("-----------------------------------columnArray--------------------------------------"+columnArray);
 				}
