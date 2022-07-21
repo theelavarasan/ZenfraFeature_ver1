@@ -3161,24 +3161,23 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						for (int i = 0; i < resultLsit.size(); i++) {
 							System.out.println("resultLsit 1 : " + resultLsit.get(i));
 							JSONObject jsonObj = (JSONObject) parser.parse(resultLsit.get(i));
+							JSONArray jsonArray = new JSONArray();
 							Iterator iterator = jsonObj.keySet().iterator();
 							while (iterator.hasNext()) {
 								String key = (String) iterator.next();
 								System.out.println();
-								if (key.contains("colValue")) {
+								if (key.contains("colValue" + i)) {
 									// values
-									System.out.println("-------values------" + jsonObj.get(key));
-
 									valueArray.add(jsonObj.get(key));
 								} else if (key.contains("colName")) {
 //									name
-									System.out.println("---------xaxis name--------" + jsonObj.get(key));
 									xaxisCloumnValues.add(jsonObj.get(key));
 								} else if (key.contains("colBreakdown")) {
 									System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
 									finalBreakDownValue.add(jsonObj.get(key));
 								}
 							}
+							
 						}
 						System.out.println("xaxisColumnName : " + xaxisColumnName);
 						System.out.println("yaxisNames :  " + yaxisNames);
