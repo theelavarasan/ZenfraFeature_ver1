@@ -3171,6 +3171,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								if (key.contains("colValue")) {
 									// values
 									valueArray.add(jsonObj.get(key));
+									finalJsonArray.add(valueArray);
 								} else if (key.contains("colName")) {
 //									name
 									xaxisCloumnValues.add(jsonObj.get(key));
@@ -3178,7 +3179,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 									System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
 									finalBreakDownValue.add(jsonObj.get(key));
 								}
-								finalJsonArray.add(valueArray);
+								
 							}
 							
 						}
