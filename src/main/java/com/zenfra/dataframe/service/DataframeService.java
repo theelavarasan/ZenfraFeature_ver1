@@ -3144,17 +3144,31 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						query = query.concat(" from global_temp." + viewName);
 
-//						for filtering 
-//						if(!filterColumnValues.isempty()) {
-//							query = query.concat(" where");
-//							for(int i = 0; i < filterColumnName.size(); i++) {
-//								query = query.concat(" `" + filterColumnName + "` = `" + filterColumnValues + "`");
-//								if(query.contains("where")) {
-//									query = query.concat(", ");
+						JSONObject filterModel = new JSONObject();
+						System.out.println("filterModel : " + filterModel);
+						
+						Set<String> filterKeys = new HashSet<>();
+						for(int i=0; i< filterModel.size() ; i++) {
+							JSONObject jsonObj = (JSONObject) filterModel.get(i);
+							filterKeys.addAll(jsonObj.keySet());
+						}
+						System.out.println("filterKeys : " + filterKeys);
+						
+						for(String key : filterKeys) {
+							JSONObject filterColumnName = (JSONObject) filterModel.get(key);
+							System.out.println("filterColumnName : " + filterColumnName);
+							
+//							if(!filterColumnValues.isempty()) {
+//								query = query.concat(" where");
+//								for(int j = 0; j < filterColumnName.size(); j++) {
+//									query = query.concat(" `" + filterColumnName + "` = `" + filterColumnValues + "`");
+//									if(query.contains("where")) {
+//										query = query.concat(", ");
+//									}
 //								}
 //							}
-//							
-//						}
+						}
+						
 						query = query.concat(" group by `" + xaxisColumnName + "`");
 						
 						if (breakDownName != null && !breakDownName.isEmpty()) {
@@ -3354,14 +3368,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								System.out.println();
 								if (key.contains("colValue")) {
 									// values
-									System.out.println("-------values------" + jsonObj.get(key));
 									valueArray.add(jsonObj.get(key));
 								} else if (key.contains("colName")) {
 //									name
-									System.out.println("---------xaxis name--------" + jsonObj.get(key));
 									xaxisCloumnValues.add(jsonObj.get(key));
 								} else if (key.contains("colBreakdown")) {
-									System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
 									finalBreakDownValue.add(jsonObj.get(key));
 								}
 								
@@ -3369,9 +3380,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							}
 						}
 						
+						System.out.println("valueArray : " + valueArray);
+						System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);
+						System.out.println("yaxisNames : " + yaxisNames);
+
 						System.out.println("finalBreakDownValue : " + finalBreakDownValue);
 						JSONArray array = new JSONArray();
-						for (int i = 0; i < yaxisNames.size(); i++) {
+						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 							JSONObject jsonObject = new JSONObject();
 							jsonObject.put("name", yaxisNames.get(i));
 							jsonObject.put("x", xaxisCloumnValues.get(i));
