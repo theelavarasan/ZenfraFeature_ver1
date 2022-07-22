@@ -3206,24 +3206,22 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray xValuesArray = new JSONArray();
 						JSONArray yValuesArray = new JSONArray();
 						
-						for (int i = 0; i < resultObject.size(); i++) {
-							System.out.println("resultLsit 1 : " + resultObject.get(i));
-							JSONObject jsonObj = (JSONObject) resultObject.get(i);
+							System.out.println("resultLsit 1 : " + resultObject);
 							Iterator iterator = resultObject.keySet().iterator();
 							while (iterator.hasNext()) {
 								String key = (String) iterator.next();
 								System.out.println();
 								if (key.contains("colValue")) {
-									yValuesArray.add(jsonObj.get(key));
+									yValuesArray.add(resultObject.get(key));
 								} else if (key.contains("colName")) {
-									System.out.println("---------xaxis name--------" + jsonObj.get(key));
-									xValuesArray.add(jsonObj.get(key));
+									System.out.println("---------xaxis name--------" + resultObject.get(key));
+									xValuesArray.add(resultObject.get(key));
 								} else if (key.contains("colBreakdown")) {
-									System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
-									finalBreakDownValue.add(jsonObj.get(key));
+									System.out.println("---------colBreakdown values--------" + resultObject.get(key));
+									finalBreakDownValue.add(resultObject.get(key));
 								}
 							}
-						}
+						
 						
 						System.out.println("xValuesArray : " + xValuesArray);
 						System.out.println("yValuesArray : " + yValuesArray);
