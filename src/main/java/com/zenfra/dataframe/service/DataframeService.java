@@ -3159,51 +3159,48 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray xaxisCloumnValues = new JSONArray();
 						System.out.println("resultLsit : " + resultLsit);
 
-						JSONArray finalJsonArray = new JSONArray();
-						JSONArray jsonArray = new JSONArray();
-						for (int i = 0; i < resultLsit.size(); i++) {
-							System.out.println("resultLsit 1 : " + resultLsit.get(i));
-							JSONObject jsonObj = (JSONObject) parser.parse(resultLsit.get(i));
-							Iterator iterator = jsonObj.keySet().iterator();
-							while (iterator.hasNext()) {
-								String key = (String) iterator.next();
-								System.out.println();
-								if (key.contains("colValue")) {
-									// values
-									valueArray.add(jsonObj.get(key));
-									finalJsonArray.add(valueArray);
-								} else if (key.contains("colName")) {
-//									name
-									xaxisCloumnValues.add(jsonObj.get(key));
-								} else if (key.contains("colBreakdown")) {
-									System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
-									finalBreakDownValue.add(jsonObj.get(key));
-								}
-								
+						
+
+						JSONObject resultObject = new JSONObject();
+						JSONParser jsonParser = new JSONParser();
+						JSONArray dataArray = (JSONArray) jsonParser.parse(resultLsit.toString());
+						
+						System.out.println("dataArray : " + dataArray);
+						Set<String> keys = new HashSet<>();
+						for(int i=0; i< dataArray.size() ; i++) {
+							JSONObject jsonObj = (JSONObject) dataArray.get(i);
+							keys.addAll(jsonObj.keySet());
+						}
+						
+						System.out.println("keys : " +  keys);
+						
+						Map<String, JSONArray> resultMap = new HashMap<>();
+						
+						for(String key : keys) {
+							JSONArray valuesArray = new JSONArray();
+							
+							for(int i = 0; i < dataArray.size(); i++) {
+								JSONObject valueObject = dataArray.get(i) == null ? new JSONObject() : (JSONObject) dataArray.get(i);
+								valuesArray.add(valueObject.get(key));
+							}
+							if(!valueArray.isEmpty()) {
+								resultMap.put(key, valuesArray);
 							}
 							
 						}
 						
+						if(!resultMap.isEmpty()) {
+							List<String> keyList = new ArrayList<>(resultMap.keySet());
+							
+							for(int i = 0; i < keyList.size(); i++) {
+								resultObject.put(keyList.get(i), resultMap.get(keyList.get(i)));
+							}
+							
+						}
 						
-						System.out.println("finalJsonArray : " + finalJsonArray);
-						System.out.println("xaxisColumnName : " + xaxisColumnName);
-						System.out.println("yaxisNames :  " + yaxisNames);
-
-						System.out.println("valueArray : " + valueArray);
-						System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);
-//						System.out.println("finalBreakDownValue : " + finalBreakDownValue);
-//
-//						System.out.println("----- array" + array);
-//
-//						resultData.put("data", array);
-//
-////						System.out.println("y axis name : " + yaxisNames);
-////						System.out.println("y axis values : " + valueArray);
-////						System.out.println("xaxisCloumnNames : " + xaxisColumnName);
-////						System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);							
-//
-//						System.out.println("-------final resultLsit::-------- " + resultData);
-
+						System.out.println("resultdataMap : " + resultObject);
+					
+						
 					}
 
 				} catch (Exception e) {
