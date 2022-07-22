@@ -3203,6 +3203,36 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						
 						System.out.println("resultdataMap : " + resultObject);
 					
+						JSONArray xValuesArray = new JSONArray();
+						JSONArray yValuesArray = new JSONArray();
+						for(int i = 0; i < resultObject.size(); i++) {
+							if(resultObject.containsKey("colName")) {
+								xValuesArray.add(resultObject.get("colName"));
+							}else if(resultObject.containsKey("colValue" + i)) {
+								yValuesArray.add(resultObject.get("colValue" + i));
+							}
+						}
+						System.out.println("xValuesArray : " + xValuesArray);
+						System.out.println("yValuesArray : " + yValuesArray);
+
+						JSONArray combinedValuesArray = new JSONArray();
+						combinedValuesArray.add(xValuesArray);
+						combinedValuesArray.add(yValuesArray);
+						System.out.println("combinedValuesArray : " + combinedValuesArray);
+						
+						JSONObject cellsObject = new JSONObject();
+						cellsObject.put("values", combinedValuesArray);
+						
+						JSONArray combinedHeaderArray = new JSONArray();
+						combinedHeaderArray.add(xaxisColumnName);
+						combinedHeaderArray.add(yaxisNames);
+						System.out.println("combinedHeaderArray : " + combinedHeaderArray);
+						
+						JSONObject headerObject = new JSONObject();
+						headerObject.put("values", combinedHeaderArray);
+						
+						resultData.put("cells", cellsObject);
+						resultData.put("header", headerObject);
 					}
 
 				} catch (Exception e) {
