@@ -2991,6 +2991,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	}
 
 	public JSONObject prepareChart(String siteKey, String chartConfiguration, String chartType, String reportLabel,
+			
 			String reportName, String analyticstype, String category) {
 		String[] reportNameAry = reportName.split("_");
 		String reportList = reportNameAry[0];
@@ -3141,8 +3142,21 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							}
 						}
 
-						query = query.concat(" from global_temp." + viewName + " group by `" + xaxisColumnName + "`");
+						query = query.concat(" from global_temp." + viewName);
 
+//						for filtering 
+//						if(!filterColumnValues.isempty()) {
+//							query = query.concat(" where");
+//							for(int i = 0; i < filterColumnName.size(); i++) {
+//								query = query.concat(" `" + filterColumnName + "` = `" + filterColumnValues + "`");
+//								if(query.contains("where")) {
+//									query = query.concat(", ");
+//								}
+//							}
+//							
+//						}
+						query = query.concat(" group by `" + xaxisColumnName + "`");
+						
 						if (breakDownName != null && !breakDownName.isEmpty()) {
 							query = query.concat(", `" + breakDownName + "`");
 						}
@@ -3249,7 +3263,144 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			} else if (chartType != null && (chartType.equalsIgnoreCase("bar") || chartType.equalsIgnoreCase("line"))) {
+			} else if(chartType.equalsIgnoreCase("bar")) {
+				try {
+
+					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
+					System.out.println("------- chart 1-------- " + chartConfigObj);
+
+					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
+					System.out.println("------- chart 2-------- " + chartConfig);
+
+					if (chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
+						JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
+						JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
+						JSONArray breakDownAry = (JSONArray) chartConfig.get("breakdown");
+
+						System.out.println("---- breakDownAry : " + breakDownAry);
+
+						// yaxis column names
+						JSONObject yaxisColumn = new JSONObject();
+						String yaxisColumnName = "";
+						JSONArray yaxisNames = new JSONArray();
+						String className = "";
+						JSONArray classNameArray = new JSONArray();
+						
+						for (int i = 0; i < yaxisColumnAry.size(); i++) {
+							yaxisColumn = (JSONObject) yaxisColumnAry.get(i);
+							yaxisColumnName = (String) yaxisColumn.get("value");
+							className = (String) yaxisColumn.get("className");
+							classNameArray.add(className);
+							yaxisNames.add(yaxisColumnName);
+						}
+						System.out.println("classNameArray : " + classNameArray);
+						System.out.println("yaxisNames : " + yaxisNames);
+
+						// xaxis column names
+						JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
+						String xaxisColumnName = (String) xaxisColumn.get("value");
+
+						// breakdown names
+						JSONObject breakDown = breakDownAry.isEmpty() ? new JSONObject()
+								: (JSONObject) breakDownAry.get(0);
+						String breakDownName = (String) breakDown.get("value");
+						JSONArray finalBreakDownValue = new JSONArray();
+
+						System.out.println(" breakDownName : " + breakDownName);
+						System.out.println("------- chart 3-------- " + xaxisColumnName + " : " + yaxisNames);
+
+						
+						Dataset<Row> dataSet = sparkSession.emptyDataFrame();
+
+						String query = "select `" + xaxisColumnName + "` as `colName`";
+
+						if (breakDownName != null && !breakDownName.isEmpty()) {
+							query = query.concat(", `" + breakDownName + "` as `colBreakdown`");
+						}
+						for (int i = 0; i < yaxisNames.size(); i++) {
+							String operater = (String) classNameArray.get(i);
+							System.out.println("operater : " + operater);
+							if (operater.contains("count")) {
+								query = query.concat(", count(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
+							} else if (operater.contains("sum")) {
+								query = query.concat(", sum(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
+							}
+						}
+
+						query = query.concat(" from global_temp." + viewName + " group by `" + xaxisColumnName + "`");
+
+						if (breakDownName != null && !breakDownName.isEmpty()) {
+							query = query.concat(", `" + breakDownName + "`");
+						}
+						System.out.println(" final query : " + query);
+
+						try {
+							dataSet = sparkSession.sql(query).toDF();
+						} catch (Exception e) {
+							createDataframeFromJsonFile(viewName, dataframeFilePath);
+							dataSet = sparkSession.sql(query).toDF();
+						}
+						System.out.println("dataSet : " + dataSet);
+						List<String> resultLsit = dataSet.toJSON().collectAsList();
+						JSONArray xaxisCloumnValues = new JSONArray();
+						System.out.println("resultLsit : " + resultLsit);
+
+						for (int i = 0; i < resultLsit.size(); i++) {
+							System.out.println("resultLsit 1 : " + resultLsit.get(i));
+							JSONObject jsonObj = (JSONObject) parser.parse(resultLsit.get(i));
+							Iterator iterator = jsonObj.keySet().iterator();
+							while (iterator.hasNext()) {
+								String key = (String) iterator.next();
+								System.out.println();
+								if (key.contains("colValue")) {
+									// values
+									System.out.println("-------values------" + jsonObj.get(key));
+									valueArray.add(jsonObj.get(key));
+								} else if (key.contains("colName")) {
+//									name
+									System.out.println("---------xaxis name--------" + jsonObj.get(key));
+									xaxisCloumnValues.add(jsonObj.get(key));
+								} else if (key.contains("colBreakdown")) {
+									System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
+									finalBreakDownValue.add(jsonObj.get(key));
+								}
+								
+								
+							}
+						}
+						
+						System.out.println("finalBreakDownValue : " + finalBreakDownValue);
+						JSONArray array = new JSONArray();
+						for (int i = 0; i < yaxisNames.size(); i++) {
+							JSONObject jsonObject = new JSONObject();
+							jsonObject.put("name", yaxisNames.get(i));
+							jsonObject.put("x", xaxisCloumnValues.get(i));
+							jsonObject.put("y", valueArray.get(i));
+							if (!finalBreakDownValue.isEmpty()) {
+								jsonObject.put("name", finalBreakDownValue.get(i));
+							}
+							array.add(jsonObject);
+
+							System.out.println("-------resultLsit -------- " + resultData);
+						}
+
+						System.out.println("----- array" + array);
+
+						resultData.put("data", array);
+
+//						System.out.println("y axis name : " + yaxisNames);
+//						System.out.println("y axis values : " + valueArray);
+//						System.out.println("xaxisCloumnNames : " + xaxisColumnName);
+//						System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);							
+
+						System.out.println("-------final resultLsit::-------- " + resultData);
+
+					}
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}else if (chartType != null && chartType.equalsIgnoreCase("line")) {
 				try {
 
 					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
