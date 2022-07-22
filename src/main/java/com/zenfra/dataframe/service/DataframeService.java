@@ -3184,7 +3184,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								valuesArray.add(valueObject.get(key));
 								
 							}
-							if(!valueArray.isEmpty()) {
+							if(!valuesArray.isEmpty()) {
 								resultMap.put(key, valuesArray);
 							}
 							System.out.println("valuesArray : " + valuesArray);
