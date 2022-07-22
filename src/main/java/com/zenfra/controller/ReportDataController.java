@@ -205,52 +205,36 @@ public class ReportDataController {
 				+ siteKey + " : " + userId);
 		
 		sourceType = sourceType.toLowerCase();
-		System.out.println("----------------------------------sourceType-----------------------"+sourceType.toLowerCase());
 		try {		
-			System.out.println("----------------------------------Try Block 2-----------------------");
 
 			try { // remove orient db dataframe
-				System.out.println("----------------------------------Try Block 2-----------------------");
 
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
 						+ File.separator + siteKey + File.separator; // +
-				System.out.println("----------------------------------dataframePath-----------------------"+dataframePath);
 																											// sourceType
 																											// +
 																											// File.separator;
 				File[] directories = new File(dataframePath).listFiles(File::isDirectory);
-				System.out.println("-----------------------directories-----------------"+directories.toString());
 				if(directories != null)  {
-					System.out.println("-----------------------directories if-----------------"+directories.toString());
 					for (File dir : directories) {
-						System.out.println("-----------------------directories for-----------------"+directories.toString()+"------------------"+dir.toString());
-						System.out.println("-----------------------directories get name-----------------"+dir.getName());
 						if (dir.getName().equalsIgnoreCase(sourceType)) {
-							System.out.println("-----------------------directories if using sourceType-----------------"+directories.toString());
 							FileSystemUtils.deleteRecursively(dir);
 						}
 					}
 				}
 				
-				System.out.println("-----------------------------End of try 1");
-				
 				try { // delete end to end df file for all log folders
-					System.out.println("-----------------------------try block 2");
 					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
-					System.out.println("------------------------configFilePath"+configFilePath);
 
 				    List<Path> fileWithName = Files.walk(configFilePath)
-				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());
-				    System.out.println("-------------------------------------------------fileWithName"+fileWithName);      
+				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());  
 
-				    for (Path name : fileWithName) {
-				    	System.out.println("-------------------------------------------------fileWithName for "+fileWithName.toString()+"----------------"+name.toString());  
+				    for (Path name : fileWithName) { 
 				    	FileSystemUtils.deleteRecursively(name);
 				    }
 				
 				} catch (Exception e) {
 					// TODO: handle exception
-					System.out.println("-------------------------catch block");
 					e.printStackTrace();
 				} 
 				
@@ -264,7 +248,6 @@ public class ReportDataController {
 			}
 			
 			sourceType = sourceType.toLowerCase();
-			System.out.println("-----------------------sourceType last-----------------------------------"+sourceType);
 			
 			//recreate Reports after completed parsing			
 			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
