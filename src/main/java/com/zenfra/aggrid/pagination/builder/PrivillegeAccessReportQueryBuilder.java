@@ -234,7 +234,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
 				+ "LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and sd1.primary_key_value = a.server_name\r\n"
 				+ "LEFT JOIN source s2 on s2.source_id = sd1.source_id \r\n"
-				+ ") b group by row_count, source_id, server_name, privillege_data\r\n";
+				+ ") b group by row_count, source_id, server_name, privillege_data \r\n";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
@@ -701,9 +701,9 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	try {
     		for(SortModel s: sortModel) {
-    			System.out.println("!!!!! colId: " + s.getColId());
-    			if(s.getColId().startsWith("Server Data~")) {
-    				String column_name = s.getColId().substring(s.getColId().indexOf("~") + 1, s.getColId().length());
+    			System.out.println("!!!!! colId: " + s.getActualColId());
+    			if(s.getActualColId().startsWith("Server Data~")) {
+    				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     				System.out.println("!!!!! column_name: " + column_name);
     				if(column_name.equalsIgnoreCase("Server Name")) {
     					orderBy = " order by server_name " + s.getSort();
@@ -714,11 +714,11 @@ public class PrivillegeAccessReportQueryBuilder {
     				} else {
     					orderBy = " order by (select json_array_elements(data::json) ->> '" + column_name + "') " + s.getSort();
     				}
-    			} else {
-    					String column_name = s.getColId().substring(s.getColId().indexOf("~") + 1, s.getColId().length());
-    					String column_alias = s.getColId().substring(0, s.getColId().indexOf("~"));
+    			} /*else {
+    					String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
+    					String column_alias = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     					orderBy = "order by \"sd~" + column_alias + "_data\".data::json ->> '" + column_name + "') " + s.getSort() ;
-    			}
+    			}*/
     		}
     	} catch(Exception e) {
     		e.printStackTrace();
@@ -733,7 +733,7 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	try {
     		for(SortModel s: sortModel) {
-    			if(!s.getColId().contains("~")) {
+    			if(!s.getActualColId().contains("~")) {
     				if(s.getColId().equalsIgnoreCase("Server Name")) {
     					orderBy = " order by server_name " + s.getSort();
     				} else if(s.getColId().equalsIgnoreCase("User Name")) {
