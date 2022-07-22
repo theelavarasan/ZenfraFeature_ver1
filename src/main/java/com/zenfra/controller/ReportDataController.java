@@ -224,6 +224,7 @@ public class ReportDataController {
 					System.out.println("-----------------------directories if-----------------"+directories.toString());
 					for (File dir : directories) {
 						System.out.println("-----------------------directories for-----------------"+directories.toString()+"------------------"+dir.toString());
+						System.out.println("-----------------------directories get name-----------------"+dir.getName());
 						if (dir.getName().equalsIgnoreCase(sourceType)) {
 							System.out.println("-----------------------directories if using sourceType-----------------"+directories.toString());
 							FileSystemUtils.deleteRecursively(dir);

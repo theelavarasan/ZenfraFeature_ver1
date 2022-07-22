@@ -1842,6 +1842,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						request.setReportType("discovery");						
 						
 						deviceType = deviceType.toLowerCase();
+						System.out.println("-----------------------------------deviceType"+deviceType.toLowerCase().replace(" ", ""));
 						
 						String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
 								+ request.getCategory() + "_" + deviceType + "_" + request.getReportList() + "_"
