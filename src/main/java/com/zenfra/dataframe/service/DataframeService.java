@@ -3164,20 +3164,24 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						for (int i = 0; i < resultLsit.size(); i++) {
 							System.out.println("resultLsit 1 : " + resultLsit.get(i));
 							JSONObject jsonObj = (JSONObject) parser.parse(resultLsit.get(i));
-							System.out.println("jsonObj : " + jsonObj);
-											
-							if(jsonObj.containsKey("colValue" + i)) {
-								for(int j=0 ; j < jsonObj.size() ; j++) {
-									jsonArray.add("colValue"+i);
+							Iterator iterator = jsonObj.keySet().iterator();
+							while (iterator.hasNext()) {
+								String key = (String) iterator.next();
+								System.out.println();
+								if (key.contains("colValue")) {
+									// values
+									valueArray.add(jsonObj.get(key));
+								} else if (key.contains("colName")) {
+//									name
+									xaxisCloumnValues.add(jsonObj.get(key));
+								} else if (key.contains("colBreakdown")) {
+									System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
+									finalBreakDownValue.add(jsonObj.get(key));
 								}
-								finalJsonArray.add(jsonArray);
-							}else if(jsonObj.containsKey("colName")) {
-								xaxisCloumnValues.add(jsonObj.containsKey("colName"));
-							}else if(jsonObj.containsKey("colBreakdown")) {
-								finalBreakDownValue.add(jsonObj.containsKey("colBreakdown"));
 							}
-							
 						}
+						
+						
 						System.out.println("finalJsonArray : " + finalJsonArray);
 						System.out.println("xaxisColumnName : " + xaxisColumnName);
 						System.out.println("yaxisNames :  " + yaxisNames);
