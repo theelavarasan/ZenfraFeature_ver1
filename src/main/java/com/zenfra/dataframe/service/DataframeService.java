@@ -3386,17 +3386,28 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						System.out.println("finalBreakDownValue : " + finalBreakDownValue);
 						JSONArray array = new JSONArray();
-						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
-							JSONObject jsonObject = new JSONObject();
-							jsonObject.put("name", yaxisNames.get(i));
-							jsonObject.put("x", xaxisCloumnValues.get(i));
-							jsonObject.put("y", valueArray.get(i));
-							if (!finalBreakDownValue.isEmpty()) {
-								jsonObject.put("name", finalBreakDownValue.get(i));
+						
+						if (!finalBreakDownValue.isEmpty()) {
+							for (int i = 0; i < xaxisCloumnValues.size(); i++) {
+								JSONObject jsonObject = new JSONObject();
+								jsonObject.put("x", xaxisCloumnValues.get(i));
+								jsonObject.put("y", valueArray.get(i));
+								if (!finalBreakDownValue.isEmpty()) {
+									jsonObject.put("name", finalBreakDownValue.get(i));
+								}
+								array.add(jsonObject);
 							}
-							array.add(jsonObject);
-
-							System.out.println("-------resultLsit -------- " + resultData);
+						}else {
+							for (int i = 0; i < yaxisNames.size(); i++) {
+								JSONObject jsonObject = new JSONObject();
+								jsonObject.put("name", yaxisNames);
+								jsonObject.put("x", xaxisCloumnValues.get(i));
+								jsonObject.put("y", valueArray.get(i));
+								if (!finalBreakDownValue.isEmpty()) {
+									jsonObject.put("name", finalBreakDownValue.get(i));
+								}
+								array.add(jsonObject);
+							}
 						}
 
 						System.out.println("----- array" + array);
