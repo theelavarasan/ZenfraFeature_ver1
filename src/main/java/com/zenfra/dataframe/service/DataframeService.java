@@ -3178,8 +3178,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 									System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
 									finalBreakDownValue.add(jsonObj.get(key));
 								}
+								finalJsonArray.add(valueArray);
 							}
-							finalJsonArray.add(valueArray);
+							
 						}
 						
 						
