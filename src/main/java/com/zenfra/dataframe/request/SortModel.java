@@ -13,8 +13,8 @@ public class SortModel implements Serializable {
     public SortModel() {}
 
     public SortModel(String colId, String sort) {
+    	this.actualColId = colId;
         this.colId = colId.replace("\\s+", "_").toLowerCase();
-        this.actualColId = colId;
         this.sort = sort;
     }
 
@@ -23,6 +23,7 @@ public class SortModel implements Serializable {
     }
 
     public void setColId(String colId) {
+    	this.actualColId = colId;
         this.colId = colId.replace("\\s+", "_").toLowerCase();
     }
 
@@ -38,10 +39,6 @@ public class SortModel implements Serializable {
 
     public String getActualColId() {
 		return actualColId;
-	}
-
-	public void setActualColId(String actualColId) {
-		this.actualColId = actualColId;
 	}
 
 	@Override
