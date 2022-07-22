@@ -3182,25 +3182,27 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							for(int i = 0; i < dataArray.size(); i++) {
 								JSONObject valueObject = dataArray.get(i) == null ? new JSONObject() : (JSONObject) dataArray.get(i);
 								valuesArray.add(valueObject.get(key));
+								
 							}
 							if(!valueArray.isEmpty()) {
 								resultMap.put(key, valuesArray);
 							}
-							
+							System.out.println("valuesArray : " + valuesArray);
+
 						}
-						
+						System.out.println("resultMap : " + resultMap);
 						if(!resultMap.isEmpty()) {
 							List<String> keyList = new ArrayList<>(resultMap.keySet());
-							
+
 							for(int i = 0; i < keyList.size(); i++) {
 								resultObject.put(keyList.get(i), resultMap.get(keyList.get(i)));
 							}
-							
+							System.out.println("keyList : " + keyList);
+
 						}
 						
 						System.out.println("resultdataMap : " + resultObject);
 					
-						
 					}
 
 				} catch (Exception e) {
