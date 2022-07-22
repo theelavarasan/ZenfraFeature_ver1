@@ -701,8 +701,10 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	try {
     		for(SortModel s: sortModel) {
+    			System.out.println("!!!!! colId: " + s.getColId());
     			if(s.getColId().startsWith("Server Data~")) {
     				String column_name = s.getColId().substring(s.getColId().indexOf("~") + 1, s.getColId().length());
+    				System.out.println("!!!!! column_name: " + column_name);
     				if(column_name.equalsIgnoreCase("Server Name")) {
     					orderBy = " order by server_name " + s.getSort();
     				} else if(column_name.equalsIgnoreCase("User Name")) {
