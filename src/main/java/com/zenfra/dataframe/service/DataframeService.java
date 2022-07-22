@@ -3179,6 +3179,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 									finalBreakDownValue.add(jsonObj.get(key));
 								}
 							}
+							finalJsonArray.add(valueArray);
 						}
 						
 						
