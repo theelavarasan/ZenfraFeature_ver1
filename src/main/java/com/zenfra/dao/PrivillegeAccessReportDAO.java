@@ -82,10 +82,9 @@ public class PrivillegeAccessReportDAO {
     			List<String> keys = new ArrayList<>(row.keySet());
     			for(int i = 0; i < keys.size(); i++) {
     				if(keys.get(i).equalsIgnoreCase("privillege_data")) {
-    					JSONArray dataArray = (JSONArray) parser.parse(row.get(keys.get(i)) == null ? "[]" : row.get(keys.get(i)).toString());
-    					if(!dataArray.isEmpty()) {
-    						JSONObject dataObject = (JSONObject) dataArray.get(0);
-    						List<String> dataKeys = new ArrayList<>(dataObject.keySet());
+    					JSONObject dataObject = (JSONObject) parser.parse(row.get(keys.get(i)) == null ? "{}" : row.get(keys.get(i)).toString());
+    					if(!dataObject.isEmpty()) {
+    						List<String> dataKeys = new ArrayList<>(dataObject == null ? new HashSet<>() : dataObject.keySet());
         					for(int j = 0; j < dataObject.size(); j++) {
         						
         						resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
