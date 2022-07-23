@@ -88,6 +88,8 @@ import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.univocity.parsers.annotations.Convert;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.AwsInstanceCcrDataRepository;
 import com.zenfra.dao.FavouriteDao_v2;
@@ -3399,10 +3401,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							}
 						}else {
 							for (int i = 0; i < yaxisNames.size(); i++) {
+								JsonMapper jsonMapper = new JsonMapper();
 								JSONObject jsonObject = new JSONObject();
 								jsonObject.put("name", yaxisNames.get(i));
-								jsonObject.put("x",(JSONArray) parser.parse((String) xaxisCloumnValues.get(i)));
-								jsonObject.put("y",(JSONArray) parser.parse((String) valueArray.get(i)));
+								jsonObject.put("x", jsonMapper.convertValue(xaxisCloumnValues.get(i), JSONArray.class));
+								jsonObject.put("y", jsonMapper.convertValue(valueArray.get(i), JSONArray.class));
 								if (!finalBreakDownValue.isEmpty()) {
 									jsonObject.put("name", finalBreakDownValue.get(i));
 								}
