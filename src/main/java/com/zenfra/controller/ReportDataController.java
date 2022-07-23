@@ -28,6 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -692,10 +694,12 @@ public class ReportDataController {
 	
 	@PostMapping("getChartDetails")
 	public JSONObject prepareChart(
-			@RequestBody JSONObject chartParams,
-			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+			@RequestBody String chartParams,
+			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws JsonParseException, JsonMappingException, IOException {
 		
-		     JSONObject jsonObject = dataframeService.prepareChart(chartParams);
+		JSONObject json = new ObjectMapper().readValue(chartParams, JSONObject.class);
+		
+		     JSONObject jsonObject = dataframeService.prepareChart(json);
 		return jsonObject;
 	}
 	
