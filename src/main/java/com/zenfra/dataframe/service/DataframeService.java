@@ -2994,7 +2994,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 	public JSONObject prepareChart(JSONObject chartParams) {
 		
-		String chartConfiguration = chartParams.get("chartConfiguration").toString().isEmpty() ? "" : chartParams.get("chartConfiguration").toString();
+		JSONObject chartConfig = chartParams.get("chartConfiguration").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("chartConfiguration");
 		String chartType = chartParams.get("chartType").toString().isEmpty() ? "" : chartParams.get("chartType").toString();
 		String reportLabel = chartParams.get("reportLabel").toString().isEmpty() ? "" : chartParams.get("reportLabel").toString();
 		String reportName = chartParams.get("reportName").toString().isEmpty() ? "" : chartParams.get("reportName").toString();
@@ -3003,7 +3003,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String category = chartParams.get("category").toString().isEmpty() ? "" : chartParams.get("category").toString();
 		String filterModel = chartParams.get("filterModel").toString().isEmpty() ? "" : chartParams.get("filterModel").toString();
 		
-		System.out.println("-----------chartConfiguration : " + chartConfiguration);
+		System.out.println("-----------chartConfiguration : " + chartConfig);
 		System.out.println("-----------chartType : " + chartType);
 		System.out.println("-----------reportLabel : " + reportLabel);
 		System.out.println("-----------reportName : " + reportName);
@@ -3035,10 +3035,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			System.out.println("-------chartType::7-------- " + chartType);
 			if (chartType != null && chartType.equalsIgnoreCase("pie")) {
 				try {
-					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
-					System.out.println("-------chartConfig::7-------- " + chartConfigObj);
-
-					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
 
 					System.out.println("-------chartConfig::8-------- " + chartConfig);
 
@@ -3101,11 +3097,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			} else if (chartType != null && chartType.equalsIgnoreCase("table")) {
 				try {
 
-					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
-					System.out.println("------- chart 1-------- " + chartConfigObj);
-
-					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
-					System.out.println("------- chart 2-------- " + chartConfig);
+					System.out.println("------- chart 1-------- " + chartConfig);
 
 					if (chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
 						JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
@@ -3309,11 +3301,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			} else if(chartType.equalsIgnoreCase("bar")) {
 				try {
 
-					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
-					System.out.println("------- chart 1-------- " + chartConfigObj);
-
-					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
-					System.out.println("------- chart 2-------- " + chartConfig);
+					System.out.println("------- chart 1-------- " + chartConfig);
 
 					if (chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
 						JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
@@ -3506,11 +3494,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			}else if (chartType != null && chartType.equalsIgnoreCase("line")) {
 				try {
 
-					JSONObject chartConfigObj = (JSONObject) parser.parse(chartConfiguration);
-					System.out.println("------- chart 1-------- " + chartConfigObj);
-
-					JSONObject chartConfig = (JSONObject) chartConfigObj.get("chartConfiguration");
-					System.out.println("------- chart 2-------- " + chartConfig);
+					System.out.println("------- chart 1-------- " + chartConfig);
 
 					if (chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
 						JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
