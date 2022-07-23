@@ -692,16 +692,10 @@ public class ReportDataController {
 	
 	@PostMapping("getChartDetails")
 	public JSONObject prepareChart(
-			@RequestParam("chartConfiguration") String chartConfiguration,
-			@RequestParam("chartType") String chartType, 
-			@RequestParam("reportLabel") String reportLabel,
-			@RequestParam("reportName") String reportName,
-			@RequestParam("analyticstype") String analyticstype,
-			@RequestParam("siteKey") String siteKey,
-			@RequestParam("category") String category,			
+			@RequestBody JSONObject chartParams,
 			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 		
-		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, chartConfiguration, chartType, reportLabel, reportName, analyticstype, category);
+		     JSONObject jsonObject = dataframeService.prepareChart(chartParams);
 		return jsonObject;
 	}
 	
