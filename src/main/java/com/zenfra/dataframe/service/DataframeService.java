@@ -2992,9 +2992,26 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 	}
 
-	public JSONObject prepareChart(String siteKey, String chartConfiguration, String chartType, String reportLabel,
-			
-			String reportName, String analyticstype, String category) {
+	public JSONObject prepareChart(JSONObject chartParams) {
+		
+		String chartConfiguration = chartParams.get("chartConfiguration").toString().isEmpty() ? "" : chartParams.get("chartConfiguration").toString();
+		String chartType = chartParams.get("chartType").toString().isEmpty() ? "" : chartParams.get("chartType").toString();
+		String reportLabel = chartParams.get("reportLabel").toString().isEmpty() ? "" : chartParams.get("reportLabel").toString();
+		String reportName = chartParams.get("reportName").toString().isEmpty() ? "" : chartParams.get("reportName").toString();
+		String analyticstype = chartParams.get("analyticstype").toString().isEmpty() ? "" : chartParams.get("analyticstype").toString();
+		String siteKey = chartParams.get("siteKey").toString().isEmpty() ? "" : chartParams.get("siteKey").toString();
+		String category = chartParams.get("category").toString().isEmpty() ? "" : chartParams.get("category").toString();
+		String filterModel = chartParams.get("filterModel").toString().isEmpty() ? "" : chartParams.get("filterModel").toString();
+		
+		System.out.println("-----------chartConfiguration : " + chartConfiguration);
+		System.out.println("-----------chartType : " + chartType);
+		System.out.println("-----------reportLabel : " + reportLabel);
+		System.out.println("-----------reportName : " + reportName);
+		System.out.println("-----------analyticstype : " + analyticstype);
+		System.out.println("-----------siteKey : " + siteKey);
+		System.out.println("-----------category : " + category);
+		System.out.println("-----------filterModel : " + filterModel);
+
 		String[] reportNameAry = reportName.split("_");
 		String reportList = reportNameAry[0];
 		String logType = reportNameAry[1];
@@ -3146,30 +3163,40 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						query = query.concat(" from global_temp." + viewName);
 
-						JSONObject filterModel = new JSONObject();
+// conditions for filtering
 						System.out.println("filterModel : " + filterModel);
-						
-						Set<String> filterKeys = new HashSet<>();
-						for(int i=0; i< filterModel.size() ; i++) {
-							JSONObject jsonObj = (JSONObject) filterModel.get(i);
-							filterKeys.addAll(jsonObj.keySet());
-						}
-						System.out.println("filterKeys : " + filterKeys);
-						
-						for(String key : filterKeys) {
-							JSONObject filterColumnName = (JSONObject) filterModel.get(key);
-							System.out.println("filterColumnName : " + filterColumnName);
+						if(!filterModel.isEmpty() && filterModel != null) {
+							JSONObject filterModelObject = (JSONObject) parser.parse(filterModel);
+							System.out.println("filterModelArray : " + filterModelObject);
+							Set<String> filterKeys = new HashSet<>();
+							for (int i = 0; i < filterModelObject.size(); i++) {
+								JSONObject jsonObj = filterModelObject;
+								filterKeys.addAll(jsonObj.keySet());
+							}
+							System.out.println("filterKeys : " + filterKeys);
+
+							query = query.concat(" where");
 							
-//							if(!filterColumnValues.isempty()) {
-//								query = query.concat(" where");
-//								for(int j = 0; j < filterColumnName.size(); j++) {
-//									query = query.concat(" `" + filterColumnName + "` = `" + filterColumnValues + "`");
-//									if(query.contains("where")) {
-//										query = query.concat(", ");
-//									}
-//								}
-//							}
+
+							for (String key : filterKeys) {
+								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
+								System.out.println(key + " : " + filterColumnName);
+								query = query.concat("`" + key + "`");
+								for(int i = 1; i < filterModelObject.size()/2; i++) {
+									if (filterColumnName.containsKey("type")) {
+										query = query.concat(" ilike ");
+									}
+									if (filterColumnName.containsKey("filter")) {
+										query = query.concat("`" + filterColumnName.get("filter") + "`");
+									}
+											query = query.concat(", ");
+								}
+								
+							}
+							 
+							query = query.substring(0, query.length()-2);
 						}
+// conditions for filtering
 						
 						query = query.concat(" group by `" + xaxisColumnName + "`");
 						
@@ -3343,8 +3370,44 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							}
 						}
 
-						query = query.concat(" from global_temp." + viewName + " group by `" + xaxisColumnName + "`");
+						query = query.concat(" from global_temp." + viewName);
 
+// conditions for filtering
+						System.out.println("filterModel : " + filterModel);
+						if(!filterModel.isEmpty() && filterModel != null) {
+							JSONObject filterModelObject = (JSONObject) parser.parse(filterModel);
+							System.out.println("filterModelArray : " + filterModelObject);
+							Set<String> filterKeys = new HashSet<>();
+							for (int i = 0; i < filterModelObject.size(); i++) {
+								JSONObject jsonObj = filterModelObject;
+								filterKeys.addAll(jsonObj.keySet());
+							}
+							System.out.println("filterKeys : " + filterKeys);
+
+							query = query.concat(" where");
+							
+
+							for (String key : filterKeys) {
+								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
+								System.out.println(key + " : " + filterColumnName);
+								query = query.concat("`" + key + "`");
+								for(int i = 1; i < filterModelObject.size()/2; i++) {
+									if (filterColumnName.containsKey("type")) {
+										query = query.concat(" ilike ");
+									}
+									if (filterColumnName.containsKey("filter")) {
+										query = query.concat("`" + filterColumnName.get("filter") + "`");
+									}
+											query = query.concat(", ");
+								}
+								
+							}
+							 
+							query = query.substring(0, query.length()-2);
+						}
+// conditions for filtering
+						
+						query = query.concat(" group by `" + xaxisColumnName + "`");
 						if (breakDownName != null && !breakDownName.isEmpty()) {
 							query = query.concat(", `" + breakDownName + "`");
 						}
@@ -3504,8 +3567,44 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							}
 						}
 
-						query = query.concat(" from global_temp." + viewName + " group by `" + xaxisColumnName + "`");
+						query = query.concat(" from global_temp." + viewName);
 
+// conditions for filtering
+						System.out.println("filterModel : " + filterModel);
+						if(!filterModel.isEmpty() && filterModel != null) {
+							JSONObject filterModelObject = (JSONObject) parser.parse(filterModel);
+							System.out.println("filterModelArray : " + filterModelObject);
+							Set<String> filterKeys = new HashSet<>();
+							for (int i = 0; i < filterModelObject.size(); i++) {
+								JSONObject jsonObj = filterModelObject;
+								filterKeys.addAll(jsonObj.keySet());
+							}
+							System.out.println("filterKeys : " + filterKeys);
+
+							query = query.concat(" where");
+							
+
+							for (String key : filterKeys) {
+								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
+								System.out.println(key + " : " + filterColumnName);
+								query = query.concat("`" + key + "`");
+								for(int i = 1; i < filterModelObject.size()/2; i++) {
+									if (filterColumnName.containsKey("type")) {
+										query = query.concat(" ilike ");
+									}
+									if (filterColumnName.containsKey("filter")) {
+										query = query.concat("`" + filterColumnName.get("filter") + "`");
+									}
+											query = query.concat(", ");
+								}
+								
+							}
+							 
+							query = query.substring(0, query.length()-2);
+						}
+// conditions for filtering
+						
+						query = query.concat(" group by `" + xaxisColumnName + "`");
 						if (breakDownName != null && !breakDownName.isEmpty()) {
 							query = query.concat(", `" + breakDownName + "`");
 						}
