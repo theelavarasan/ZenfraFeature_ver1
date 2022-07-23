@@ -3394,9 +3394,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								JSONObject jsonObject = new JSONObject();
 								jsonObject.put("x", xaxisCloumnValues.get(i));
 								jsonObject.put("y", valueArray.get(i));
-								if (!finalBreakDownValue.isEmpty()) {
-									jsonObject.put("name", finalBreakDownValue.get(i));
-								}
+								jsonObject.put("name", finalBreakDownValue.get(i));
+								
+								System.out.println("jsonObject : " + jsonObject);
+
 								array.add(jsonObject);
 							}
 						}else {
@@ -3404,17 +3405,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								JsonMapper jsonMapper = new JsonMapper();
 								JSONObject jsonObject = new JSONObject();
 								jsonObject.put("name", yaxisNames.get(i));
-								JSONArray xarray = new JSONArray();
-								xarray.add(xaxisCloumnValues.get(i));
-								jsonObject.put("x", xarray);
-								JSONArray yarray = new JSONArray();
-								yarray.add(valueArray.get(i));
-								jsonObject.put("y", yarray);
-								xarray.clear();
-								yarray.clear();
-								if (!finalBreakDownValue.isEmpty()) {
-									jsonObject.put("name", finalBreakDownValue.get(i));
-								}
+								jsonObject.put("x", xaxisCloumnValues.get(i));
+								jsonObject.put("y", valueArray.get(i));
+								System.out.println("jsonObject : " + jsonObject);
+
 								array.add(jsonObject);
 							}
 						}
