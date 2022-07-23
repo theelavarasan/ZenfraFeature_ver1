@@ -3394,7 +3394,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								JSONObject jsonObject = new JSONObject();
 								JSONArray xarray = new JSONArray();
 								xarray.add(xaxisCloumnValues.get(i));
-								jsonObject.put("x", xarray.get(i));
+								jsonObject.put("x", xarray);
 								JSONArray yarray = new JSONArray();
 								yarray.add(valueArray.get(i));
 								jsonObject.put("y", yarray);
@@ -3414,7 +3414,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								jsonObject.put("name", nameArray);
 								JSONArray xarray = new JSONArray();
 								xarray.add(xaxisCloumnValues.get(i));
-								jsonObject.put("x", xarray.get(i));
+								jsonObject.put("x", xarray);
 								JSONArray yarray = new JSONArray();
 								yarray.add(valueArray.get(i));
 								jsonObject.put("y", yarray);
