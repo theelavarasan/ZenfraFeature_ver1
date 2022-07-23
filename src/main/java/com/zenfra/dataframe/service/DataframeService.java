@@ -3400,9 +3400,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						}else {
 							for (int i = 0; i < yaxisNames.size(); i++) {
 								JSONObject jsonObject = new JSONObject();
-								jsonObject.put("name", yaxisNames);
-								jsonObject.put("x", xaxisCloumnValues.get(i));
-								jsonObject.put("y", valueArray.get(i));
+								jsonObject.put("name", yaxisNames.get(i));
+								jsonObject.put("x",(JSONArray) parser.parse((String) xaxisCloumnValues.get(i)));
+								jsonObject.put("y",(JSONArray) parser.parse((String) valueArray.get(i)));
 								if (!finalBreakDownValue.isEmpty()) {
 									jsonObject.put("name", finalBreakDownValue.get(i));
 								}
