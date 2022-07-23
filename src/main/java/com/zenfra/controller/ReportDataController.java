@@ -23,11 +23,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import javax.json.stream.JsonParser;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -35,14 +38,10 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.FileSystemUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -63,11 +62,9 @@ import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.ZKConstants;
-import com.zenfra.model.ZKModel;
 import com.zenfra.service.ChartService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
-import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @CrossOrigin(origins = "*")
@@ -692,10 +689,15 @@ public class ReportDataController {
 	
 	@PostMapping("getChartDetails")
 	public JSONObject prepareChart(
-			@RequestBody JSONObject chartParams,
-			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-		
-		     JSONObject jsonObject = dataframeService.prepareChart(chartParams);
+			@RequestBody String chartParams,
+			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ParseException {
+
+		JSONParser jsonParser = new JSONParser();
+
+		JSONObject Object = (JSONObject) jsonParser.parse(chartParams.toString());
+		System.out.println("log 1 : " + Object);
+
+		JSONObject jsonObject = dataframeService.prepareChart(Object);
 		return jsonObject;
 	}
 	
