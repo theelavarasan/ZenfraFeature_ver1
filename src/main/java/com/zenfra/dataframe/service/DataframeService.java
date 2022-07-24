@@ -263,7 +263,7 @@ public class DataframeService {
 	 
 
 	private String formNumberQuery(String columnName, NumberColumnFilter filter) {
-		Integer filterValue = filter.getFilter();
+		double filterValue = filter.getFilter();
 		String filerType = filter.getType();		 
 		
 		String filterQuery = formatNumberFilterType(columnName, filerType, filterValue, 0);
@@ -309,7 +309,7 @@ public class DataframeService {
 		return query;
 	}
 
-	private String formatNumberFilterType(String columnName, String expression, int filter, int filterTo) {
+	private String formatNumberFilterType(String columnName, String expression, double filter, double filterTo) {
 		String query = "";
 		if (expression.equalsIgnoreCase("equals")) {
 			query = columnName + "=" + filter;
