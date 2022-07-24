@@ -701,7 +701,7 @@ public class ReportDataController {
 		
 		JSONObject jsonObject = new JSONObject();
 		if(reportLabel.contains("Privileged")) {
-			jsonObject =  dataframeService.prepareChartForTanium(Object);;
+			jsonObject =  dataframeService.prepareChartForTanium(Object);
 		}else {
 			jsonObject = dataframeService.prepareChart(Object);
 		}
