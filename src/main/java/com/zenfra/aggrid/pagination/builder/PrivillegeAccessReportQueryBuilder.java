@@ -24,6 +24,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -40,6 +41,8 @@ public class PrivillegeAccessReportQueryBuilder {
 	
 	@Autowired
 	CommonFunctions utilities;
+	
+	private JdbcTemplate template;
 
     private List<String> groupKeys;
     private List<String> rowGroups;
@@ -246,7 +249,6 @@ public class PrivillegeAccessReportQueryBuilder {
     private String getTasklistFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId) {
     	
     	StringBuilder filterQuery = new StringBuilder();
-    	filterQuery.append("");
     	ObjectMapper mapper = new ObjectMapper();
     	try {
     		if(!filters.isEmpty()) {
