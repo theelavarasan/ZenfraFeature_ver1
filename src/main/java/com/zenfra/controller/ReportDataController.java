@@ -700,7 +700,7 @@ public class ReportDataController {
 		String reportLabel = Object.get("reportLabel").toString();
 		
 		JSONObject jsonObject = new JSONObject();
-		if(reportLabel.contains("privilege")) {
+		if(reportLabel.contains("Privileged")) {
 			jsonObject =  dataframeService.prepareChartForTanium(Object);;
 		}else {
 			jsonObject = dataframeService.prepareChart(Object);
