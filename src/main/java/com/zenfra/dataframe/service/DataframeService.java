@@ -2994,14 +2994,14 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 public JSONObject prepareChartForTanium(JSONObject chartParams) {
 		
-		JSONObject chartConfig = chartParams.get("chartConfiguration").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("chartConfiguration");
-		String chartType = chartParams.get("chartType").toString().isEmpty() ? "" : chartParams.get("chartType").toString();
-		String reportLabel = chartParams.get("reportLabel").toString().isEmpty() ? "" : chartParams.get("reportLabel").toString();
-		String reportName = chartParams.get("reportName").toString().isEmpty() ? "" : chartParams.get("reportName").toString();
-		String analyticstype = chartParams.get("analyticstype").toString().isEmpty() ? "" : chartParams.get("analyticstype").toString();
-		String siteKey = chartParams.get("siteKey").toString().isEmpty() ? "" : chartParams.get("siteKey").toString();
-		String category = chartParams.get("category").toString().isEmpty() ? "" : chartParams.get("category").toString();
-		JSONObject filterModel = chartParams.get("filterModel").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("filterModel");
+		JSONObject chartConfig = chartParams.get("chartConfiguration") != null && chartParams.get("chartConfiguration").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("chartConfiguration");
+		String chartType = chartParams.get("chartType") != null && chartParams.get("chartType").toString().isEmpty() ? "" : chartParams.get("chartType").toString();
+		String reportLabel = chartParams.get("reportLabel") != null && chartParams.get("reportLabel").toString().isEmpty() ? "" : chartParams.get("reportLabel").toString();
+		String reportName = chartParams.get("reportName") != null && chartParams.get("reportName").toString().isEmpty() ? "" : chartParams.get("reportName").toString();
+		String analyticstype = chartParams.get("analyticstype") != null && chartParams.get("analyticstype").toString().isEmpty() ? "" : chartParams.get("analyticstype").toString();
+		String siteKey = chartParams.get("siteKey") != null && chartParams.get("siteKey").toString().isEmpty() ? "" : chartParams.get("siteKey").toString();
+		String category = chartParams.get("category") != null && chartParams.get("category").toString().isEmpty() ? "" : chartParams.get("category").toString();
+		JSONObject filterModel = chartParams.get("filterModel") != null && chartParams.get("filterModel").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("filterModel");
 		
 		System.out.println("-----------chartConfiguration : " + chartConfig);
 		System.out.println("-----------chartType : " + chartType);
@@ -3652,14 +3652,14 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 	
 	public JSONObject prepareChart(JSONObject chartParams) {
 		
-		JSONObject chartConfig = chartParams.get("chartConfiguration").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("chartConfiguration");
-		String chartType = chartParams.get("chartType").toString().isEmpty() ? "" : chartParams.get("chartType").toString();
-		String reportLabel = chartParams.get("reportLabel").toString().isEmpty() ? "" : chartParams.get("reportLabel").toString();
-		String reportName = chartParams.get("reportName").toString().isEmpty() ? "" : chartParams.get("reportName").toString();
-		String analyticstype = chartParams.get("analyticstype").toString().isEmpty() ? "" : chartParams.get("analyticstype").toString();
-		String siteKey = chartParams.get("siteKey").toString().isEmpty() ? "" : chartParams.get("siteKey").toString();
-		String category = chartParams.get("category").toString().isEmpty() ? "" : chartParams.get("category").toString();
-		JSONObject filterModel = chartParams.get("filterModel").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("filterModel");
+		JSONObject chartConfig = chartParams.get("chartConfiguration") != null && chartParams.get("chartConfiguration").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("chartConfiguration");
+		String chartType = chartParams.get("chartType") != null && chartParams.get("chartType").toString().isEmpty() ? "" : chartParams.get("chartType").toString();
+		String reportLabel = chartParams.get("reportLabel") != null && chartParams.get("reportLabel").toString().isEmpty() ? "" : chartParams.get("reportLabel").toString();
+		String reportName = chartParams.get("reportName") != null && chartParams.get("reportName").toString().isEmpty() ? "" : chartParams.get("reportName").toString();
+		String analyticstype = chartParams.get("analyticstype") != null && chartParams.get("analyticstype").toString().isEmpty() ? "" : chartParams.get("analyticstype").toString();
+		String siteKey = chartParams.get("siteKey") != null && chartParams.get("siteKey").toString().isEmpty() ? "" : chartParams.get("siteKey").toString();
+		String category = chartParams.get("category") != null && chartParams.get("category").toString().isEmpty() ? "" : chartParams.get("category").toString();
+		JSONObject filterModel = chartParams.get("filterModel") != null && chartParams.get("filterModel").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("filterModel");
 		
 		System.out.println("-----------chartConfiguration : " + chartConfig);
 		System.out.println("-----------chartType : " + chartType);
