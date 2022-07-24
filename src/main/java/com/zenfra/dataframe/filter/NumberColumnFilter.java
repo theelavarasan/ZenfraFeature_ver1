@@ -4,11 +4,11 @@ import org.json.simple.JSONObject;
 
 public class NumberColumnFilter extends ColumnFilter {
     private String type;
-    private Integer filter;
-    private Integer filterTo;
+    private double filter;
+    private double filterTo;
    
 
-    public NumberColumnFilter(String type, Integer filter, Integer filterTo) {
+    public NumberColumnFilter(String type, double filter, double filterTo) {
         this.type = type;
         this.filter = filter;
         this.filterTo = filterTo;
@@ -20,11 +20,11 @@ public class NumberColumnFilter extends ColumnFilter {
         return type;
     }
 
-    public Integer getFilter() {
+    public double getFilter() {
         return filter;
     }
 
-    public Integer getFilterTo() {
+    public double getFilterTo() {
         return filterTo;
     } 
 	
@@ -73,14 +73,14 @@ public class NumberColumnFilter extends ColumnFilter {
 
 	 @Override
 	    public String toString() {
-		 String str = "";
-		 if(condition1 != null) {
-    		 str =   "condition1" + " : " + condition1.toJSONString() + " : " + condition2.toJSONString() + " : " + operator;
-    	 }else {
-    		 str =  "defaultFilter" + ":"+ getFilterType();
+    	 String str = "";
+    	 if(condition1 != null) {
+    		 str =  "condition1" + " : " +condition1.toJSONString() + " : " + condition2.toJSONString() + " : " + operator;
+    	 } else {
+    		 str =  "defaultFilter" + " : " +getFilterType() + " : " + type + " : " + filter;
     	 }
     	 
       return str;
-	    } 
+    } 
 	    
 } 
