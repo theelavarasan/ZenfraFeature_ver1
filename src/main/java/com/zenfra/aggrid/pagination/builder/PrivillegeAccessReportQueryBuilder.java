@@ -53,6 +53,7 @@ public class PrivillegeAccessReportQueryBuilder {
     private List<ColumnVO> rowGroupCols;
     private Map<String, List<String>> pivotValues;
     private boolean isPivotMode;
+    private List<String> ruleList;
 
     public String createSql(ServerSideGetRowsRequest request, String tableName, Map<String, List<String>> pivotValues) {
         this.valueColumns = request.getValueCols();
@@ -229,7 +230,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "select row_count, a.source_id, server_name, a.data as privillege_data, (case when s1.source_name is null then null else json_build_object(s1.source_name,sd.data::json) end) as source_data1, \r\n"
 				+ "(case when s2.source_name is null then null else json_build_object(s2.source_name, sd1.data::json) end) as source_data2 from (\r\n"
 				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",'),': ,',':\"\",') as data from privillege_data\r\n"
-				+ "where site_key = '" + siteKey + "' " + getValidationRuleCondition(healthCheckId, ruleList) + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
+				+ "where site_key = '" + siteKey + "' " + ((healthCheckId != null && !healthCheckId.isEmpty()) ? getValidationRuleCondition(healthCheckId, ruleList) : "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
 				+ ") a\r\n"
 				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = a.source_id \r\n"
 				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
@@ -702,9 +703,12 @@ public class PrivillegeAccessReportQueryBuilder {
     				+ ") g group by rule_id\r\n"
     				+ ") f";
     		
+    		System.out.println("!!!!! validation query: " + validationRuleQuery);
+    		
     		List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(validationRuleQuery);
     		
     		for(Map<String, Object> row : rows) {
+    			System.out.println("!!!!! condition_value: " + row.get("condition_value"));
     			validationFilterQuery = validationFilterQuery.append(row.get("condition_value"));
     		}
     		
