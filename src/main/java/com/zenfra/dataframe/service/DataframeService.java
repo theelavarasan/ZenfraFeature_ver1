@@ -3288,12 +3288,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 									if (filterColumnName.containsKey("filter")) {
 										query = query.concat("pd.data::json ->> '" + filterColumnName.get("filter") + "'");
 									}
-											query = query.concat(", ");
+											query = query.concat(" and ");
 								}
 								
 							}
 							 
-							query = query.substring(0, query.length()-2);
+							query = query.substring(0, query.length()-5);
 						}
 // conditions for filtering
 						query = query.concat(" group by pd.data::json ->> '" + xaxisColumnName + "'");
@@ -3476,12 +3476,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 									if (filterColumnName.containsKey("filter")) {
 										query = query.concat("pd.data::json ->> '" + filterColumnName.get("filter") + "'");
 									}
-											query = query.concat(", ");
+											query = query.concat(" and ");
 								}
 								
 							}
 							 
-							query = query.substring(0, query.length()-2);
+							query = query.substring(0, query.length()-5);
 							
 						}
 // conditions for filtering
@@ -3749,12 +3749,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 									if (filterColumnName.containsKey("filter")) {
 										query = query.concat("`" + filterColumnName.get("filter") + "`");
 									}
-											query = query.concat(", ");
+											query = query.concat(" and ");
 								}
 								
 							}
 							 
-							query = query.substring(0, query.length()-2);
+							query = query.substring(0, query.length()-5);
 						}
 // conditions for filtering
 						
@@ -3955,12 +3955,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 									if (filterColumnName.containsKey("filter")) {
 										query = query.concat("`" + filterColumnName.get("filter") + "`");
 									}
-											query = query.concat(", ");
+											query = query.concat(" and ");
 								}
 								
 							}
 							 
-							query = query.substring(0, query.length()-2);
+							query = query.substring(0, query.length()-5);
 						}
 // conditions for filtering
 						
@@ -4149,12 +4149,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 									if (filterColumnName.containsKey("filter")) {
 										query = query.concat("`" + filterColumnName.get("filter") + "`");
 									}
-											query = query.concat(", ");
+											query = query.concat(" and ");
 								}
 								
 							}
 							 
-							query = query.substring(0, query.length()-2);
+							query = query.substring(0, query.length()-5);
 						}
 // conditions for filtering
 						
