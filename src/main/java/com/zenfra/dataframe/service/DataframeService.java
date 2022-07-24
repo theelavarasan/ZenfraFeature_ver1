@@ -3167,14 +3167,14 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							}
 							System.out.println("filterKeys : " + filterKeys);
 
-							query = query.concat(" where");
+							query = query.concat(" where ");
 							
 
 							for (String key : filterKeys) {
 								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
 								System.out.println(key + " : " + filterColumnName);
 								query = query.concat("`" + key + "`");
-								for(int i = 1; i < filterModelObject.size()/2; i++) {
+								for(int i = 1; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
 									if (filterColumnName.containsKey("type")) {
 										query = query.concat(" ilike ");
 									}
@@ -3372,14 +3372,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							}
 							System.out.println("filterKeys : " + filterKeys);
 
-							query = query.concat(" where");
+							query = query.concat(" where ");
 							
 
 							for (String key : filterKeys) {
 								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
-								System.out.println(key + " : " + filterColumnName);
+								System.out.println("Key " + key + " : " + filterColumnName);
 								query = query.concat("`" + key + "`");
-								for(int i = 1; i < filterModelObject.size()/2; i++) {
+								
+								for(int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
 									if (filterColumnName.containsKey("type")) {
 										query = query.concat(" ilike ");
 									}
@@ -3407,6 +3408,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							createDataframeFromJsonFile(viewName, dataframeFilePath);
 							dataSet = sparkSession.sql(query).toDF();
 						}
+						
 						System.out.println("dataSet : " + dataSet);
 						List<String> resultLsit = dataSet.toJSON().collectAsList();
 						JSONArray xaxisCloumnValues = new JSONArray();
@@ -3565,14 +3567,14 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							}
 							System.out.println("filterKeys : " + filterKeys);
 
-							query = query.concat(" where");
+							query = query.concat(" where ");
 							
 
 							for (String key : filterKeys) {
 								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
 								System.out.println(key + " : " + filterColumnName);
 								query = query.concat("`" + key + "`");
-								for(int i = 1; i < filterModelObject.size()/2; i++) {
+								for(int i = 1; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
 									if (filterColumnName.containsKey("type")) {
 										query = query.concat(" ilike ");
 									}
