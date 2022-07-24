@@ -3421,10 +3421,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							if (key.contains("colValue")) {
 								// values
 								valueArray.add(jsonObj.get(key));
-							} else if (key.contains("colName")) {
+							} 
+							if (key.contains("colName")) {
 //								name
 								xaxisCloumnValues.add(jsonObj.get(key));
-							} else if (key.contains("colBreakdown")) {
+							} 
+							if (key.contains("colBreakdown")) {
 								finalBreakDownValue.add(jsonObj.get(key));
 							} 
 						}
@@ -3437,7 +3439,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					System.out.println("finalBreakDownValue : " + finalBreakDownValue);
 					JSONArray array = new JSONArray();
 					
-					if (!finalBreakDownValue.isEmpty()) {
+					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 							JSONObject jsonObject = new JSONObject();
 							JSONArray xarray = new JSONArray();
