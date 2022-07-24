@@ -3400,7 +3400,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						}
 					} 
 					 
-					query = query.concat(") pd2 where pd2.colName is not null");
+					query = query.concat(") pd2 where pd2.\"colName\" is not null");
 					
 					System.out.println("------Tanium bar chart Query------ " + query); 
 					List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);	
