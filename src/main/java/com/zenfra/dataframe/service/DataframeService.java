@@ -3287,17 +3287,17 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					
 					if(xaxisColumnNameField.startsWith("Server Data~")) {
 						query =query.concat("select * from\r\n"
-								+ "(select pd.server_data::json->>'" + xaxisColumnName + "' as colName");
+								+ "(select pd.server_data::json->>'" + xaxisColumnName + "' as \"colName\"");
 					} else {
 						query =query.concat("select * from\r\n"
-								+ "(select json_array_elements(pd.source_data::json)->>'" + xaxisColumnNameField + "' as colName");
+								+ "(select json_array_elements(pd.source_data::json)->>'" + xaxisColumnNameField + "' as \"colName\"");
 					}
 					 
 					if (breakDownName != null && !breakDownName.isEmpty()) {
 						if(xaxisColumnNameField.startsWith("Server Data~")) {
 							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as colBreakdown");
 						} else {
-							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownName + "' as colBreakdown");
+							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownName + "' as \"colBreakdown\"");
 						}
 					}
 					
