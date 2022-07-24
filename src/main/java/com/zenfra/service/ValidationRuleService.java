@@ -742,9 +742,9 @@ public class ValidationRuleService {
 
 			String query = "select keys, json_agg(column_values) as column_values from (\r\n"
 					+ "select distinct keys, column_values from (\r\n"
-					+ "select concat('Server Data~', keys) as keys, json_array_elements(data::json) ->> keys as column_values from ( \r\n"
-					+ "select data, json_object_keys(data_object) as keys from (\r\n"
-					+ "select data, json_array_elements(data::json) as data_object from privillege_data  \r\n"
+					+ "select concat('Server Data~', keys) as keys, data::json ->> keys as column_values from ( \r\n"
+					+ "select data, json_object_keys(data::json) as keys from (\r\n"
+					+ "select data from privillege_data  \r\n"
 					+ "where site_key = '" + siteKey + "'  \r\n" + ") a \r\n" + ") b\r\n" + "union all \r\n"
 					+ "select concat(source_name, '~', keys) as keys, data::json ->> keys as column_values from ( \r\n"
 					+ "select source_name, data, json_object_keys(data::json) as keys from (  \r\n"
@@ -756,7 +756,7 @@ public class ValidationRuleService {
 					+ "select source_id, json_array_elements(fields::json) ->> 'primary' as is_primary,  \r\n"
 					+ "json_array_elements(fields::json) ->> 'primaryKey' as primary_key from source  \r\n"
 					+ "where site_key = '" + siteKey + "'  \r\n"
-					+ ") a where is_primary::boolean = true and primary_key = 'userName' ) \r\n" + ") b  \r\n"
+					+ ") a where is_primary::boolean = true and (primary_key = 'User Name' or primary_key = 'Server Name')  ) \r\n" + ") b  \r\n"
 					+ "where row_num = 1  \r\n" + ") c \r\n" + ") d where keys <> 'sourceId' and keys <> 'siteKey'\r\n"
 					+ ") e where keys = '" + columnName + "' \r\n" + "group by keys ";
 
