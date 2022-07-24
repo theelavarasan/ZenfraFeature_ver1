@@ -246,6 +246,7 @@ public class PrivillegeAccessReportQueryBuilder {
     private String getTasklistFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId) {
     	
     	StringBuilder filterQuery = new StringBuilder();
+    	filterQuery.append("");
     	ObjectMapper mapper = new ObjectMapper();
     	try {
     		if(!filters.isEmpty()) {
