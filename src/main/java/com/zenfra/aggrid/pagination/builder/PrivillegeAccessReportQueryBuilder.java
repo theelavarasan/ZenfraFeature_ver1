@@ -70,7 +70,8 @@ public class PrivillegeAccessReportQueryBuilder {
         this.endRow = request.getEndRow();
 
         //return selectSql() + fromSql(tableName) + whereSql() + groupBySql() + orderBySql() + limitSql();
-        return getPrivillegeAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel());
+        return getPrivillegeAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel(),
+        		request.getHealthCheckId(), request.getRuleList());
     }
 
     private String selectSql() {
@@ -219,7 +220,8 @@ public class PrivillegeAccessReportQueryBuilder {
         put("greaterThanOrEqual", ">=");
     }};
     
-    private String getPrivillegeAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel) {
+    private String getPrivillegeAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel,
+    		String healthCheckId, List<String> ruleList) {
 		
 		JSONParser parser = new JSONParser();
 		
@@ -228,7 +230,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "select row_count, a.source_id, server_name, a.data as privillege_data, (case when s1.source_name is null then null else json_build_object(s1.source_name,sd.data::json) end) as source_data1, \r\n"
 				+ "(case when s2.source_name is null then null else json_build_object(s2.source_name, sd1.data::json) end) as source_data2 from (\r\n"
 				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",'),': ,',':\"\",') as data from privillege_data\r\n"
-				+ "where site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
+				+ "where site_key = '" + siteKey + "' " + (getValidationRuleCondition(healthCheckId, ruleList)) + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
 				+ ") a\r\n"
 				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = a.source_id \r\n"
 				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
@@ -651,12 +653,18 @@ public class PrivillegeAccessReportQueryBuilder {
     	return orderBy;
     }
     
-    private void getValidationRuleCondition(String healthCheckId, String ruleId) {
+    private String  getValidationRuleCondition(String healthCheckId, List<String> ruleList) {
     	
+    	StringBuilder validationFilterQuery = new StringBuilder();
     	try {
-    		String validationRuleQuery = "select string_agg(condition_value, ' ') as condition_value from ( "
+    		JSONArray ruleArray = new JSONArray();
+    		if(!ruleList.isEmpty()) {
+    			ruleArray.addAll(ruleList);
+    		}
+    		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
+    				+ "select rule_id, concat('(', string_agg(condition_value, ' '), ')') as condition_value from ( \r\n"
     				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, \r\n"
-    				+ "(case when con_id = 0 then concat(' and ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
+    				+ "(case when con_id = 0 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
     				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' or ') as condition_value from (\r\n"
     				+ "select report_by, rule_id, con_field_id, con_id, con_operator, \r\n"
     				+ " con_field_id as condition_field, \r\n"
@@ -682,7 +690,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				+ "json_array_elements(report_condition::json) ->> 'conditions' as conditions, \r\n"
     				+ "json_array_elements((json_array_elements(report_condition::json) ->> 'conditions')::json) ->>'condition' as con_condition\r\n"
     				+ "from health_check where health_check_id = '" + healthCheckId + "' \r\n"
-    				+ ") a where rule_id = '" + ruleId + "'\r\n"
+    				+ ") a where rule_id in (select json_array_elements_text('" + ruleArray + "')) \r\n"
     				+ ") a1 where row_number = 1 \r\n"
     				+ ") a2\r\n"
     				+ ") a3\r\n"
@@ -691,13 +699,21 @@ public class PrivillegeAccessReportQueryBuilder {
     				+ ") d  \r\n"
     				+ ") e \r\n"
     				+ ") f group by report_by, rule_id, con_field_id, con_id, con_operator, condition_field order by con_id \r\n"
-    				+ ") d ) g";
+    				+ ") d\r\n"
+    				+ ") g group by rule_id\r\n"
+    				+ ") f";
     		
     		List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(validationRuleQuery);
+    		
+    		for(Map<String, Object> row : rows) {
+    			validationFilterQuery = validationFilterQuery.append(row.get("condition_value"));
+    		}
     		
     	} catch(Exception e) {
     		e.printStackTrace();
     	}
+    	
+    	return validationFilterQuery.toString().trim();
     }
 
 
