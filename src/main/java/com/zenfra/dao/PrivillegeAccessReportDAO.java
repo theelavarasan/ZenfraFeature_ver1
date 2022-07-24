@@ -50,9 +50,14 @@ public class PrivillegeAccessReportDAO {
         Map<String, List<String>> pivotValues = new HashMap<String, List<String>>();
 
         // generate sql
-        String validationFilterQuery = getValidationRuleCondition(request.getHealthCheckId(), request.getRuleList());
-        List<Map<String, Object>> validationRows = utilities.getDBDatafromJdbcTemplate(validationFilterQuery);
-        String validationFilter = getValidationFilter(validationRows);
+        
+        String validationFilter = "";
+        if(request.getHealthCheckId() != null && !request.getHealthCheckId().isEmpty()) {
+        	String validationFilterQuery = getValidationRuleCondition(request.getHealthCheckId(), request.getRuleList());
+            List<Map<String, Object>> validationRows = utilities.getDBDatafromJdbcTemplate(validationFilterQuery);
+            validationFilter = getValidationFilter(validationRows);
+        }
+        
         String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter);
         
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
