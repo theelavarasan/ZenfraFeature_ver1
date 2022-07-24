@@ -697,7 +697,15 @@ public class ReportDataController {
 		JSONObject Object = (JSONObject) jsonParser.parse(chartParams.toString());
 		System.out.println("log 1 : " + Object);
 
-		JSONObject jsonObject = dataframeService.prepareChart(Object);
+		String reportLabel = Object.get("reportLabel").toString();
+		
+		JSONObject jsonObject = new JSONObject();
+		if(reportLabel.contains("Privileged")) {
+			jsonObject =  dataframeService.prepareChartForTanium(Object);
+		}else {
+			jsonObject = dataframeService.prepareChart(Object);
+		}
+		
 		return jsonObject;
 	}
 	
