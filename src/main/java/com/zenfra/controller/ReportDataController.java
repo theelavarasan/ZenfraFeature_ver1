@@ -697,7 +697,7 @@ public class ReportDataController {
 		JSONObject Object = (JSONObject) jsonParser.parse(chartParams.toString());
 		System.out.println("log 1 : " + Object);
 
-		String reportLabel = Object.get("reportLabel").toString();
+		String reportLabel = Object.get("reportLabel") != null && Object.get("reportLabel").toString().isEmpty() ? "" : Object.get("reportLabel").toString();
 		
 		JSONObject jsonObject = new JSONObject();
 		if(reportLabel.contains("Privileged")) {
