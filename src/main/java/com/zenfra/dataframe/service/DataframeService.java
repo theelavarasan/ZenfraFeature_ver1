@@ -3001,7 +3001,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 		String analyticstype = chartParams.get("analyticstype").toString().isEmpty() ? "" : chartParams.get("analyticstype").toString();
 		String siteKey = chartParams.get("siteKey").toString().isEmpty() ? "" : chartParams.get("siteKey").toString();
 		String category = chartParams.get("category").toString().isEmpty() ? "" : chartParams.get("category").toString();
-		String filterModel = chartParams.get("filterModel").toString().isEmpty() ? "" : chartParams.get("filterModel").toString();
+		JSONObject filterModel = chartParams.get("filterModel").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("filterModel");
 		
 		System.out.println("-----------chartConfiguration : " + chartConfig);
 		System.out.println("-----------chartType : " + chartType);
@@ -3111,8 +3111,43 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							}
 						}
 
-						query = query.concat(" from ( Select pd.source_id,pd.server_name,pd.data,sd.data source_data1,sd1.data source_data2 from privillege_data pd LEFT JOIN source_data sd on sd.site_key = '"+siteKey+"' and sd.primary_key_value = pd.source_id LEFT JOIN source s1 on s1.source_id = sd.source_id LEFT JOIN source_data sd1 on sd1.site_key = '"+siteKey+"' and sd1.primary_key_value = pd.server_name LEFT JOIN source s2 on s2.source_id = sd1.source_id Where pd.site_key = '"+siteKey+"' ) pd group by pd.data::json ->> '"+xaxisColumnName+"'");
+						query = query.concat(" from ( Select pd.source_id,pd.server_name,pd.data,sd.data source_data1,sd1.data source_data2 from privillege_data pd LEFT JOIN source_data sd on sd.site_key = '"+siteKey+"' and sd.primary_key_value = pd.source_id LEFT JOIN source s1 on s1.source_id = sd.source_id LEFT JOIN source_data sd1 on sd1.site_key = '"+siteKey+"' and sd1.primary_key_value = pd.server_name LEFT JOIN source s2 on s2.source_id = sd1.source_id Where pd.site_key = '"+siteKey+"' ) pd");
 
+//conditions for filtering
+						if(!filterModel.isEmpty() && filterModel != null) {
+							
+							JSONObject filterModelObject = filterModel;
+							System.out.println("filterModelArray : " + filterModelObject);
+							Set<String> filterKeys = new HashSet<>();
+							for (int i = 0; i < filterModelObject.size(); i++) {
+								JSONObject jsonObj = filterModelObject;
+								filterKeys.addAll(jsonObj.keySet());
+							}
+							System.out.println("filterKeys : " + filterKeys);
+
+							query = query.concat(" where ");
+							for (String key : filterKeys) {
+								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
+								System.out.println("Key " + key + " : " + filterColumnName);
+								query = query.concat("pd.data::json ->> '" + key + "'");
+								
+								for(int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
+									if (filterColumnName.containsKey("type")) {
+										query = query.concat(" ilike ");
+									}
+									if (filterColumnName.containsKey("filter")) {
+										query = query.concat("pd.data::json ->> '" + filterColumnName.get("filter") + "'");
+									}
+											query = query.concat(" and ");
+								}
+								
+							}
+							query = query.substring(0, query.length()-5);
+						}
+						
+// conditions for filtering
+						
+						query = query.concat("group by pd.data::json ->> '" + xaxisColumnName + "'");
 												
 						if (breakDownName != null && !breakDownName.isEmpty()) {
 							query = query.concat(", pd.data::json ->>'" + breakDownName + "'");
@@ -3247,7 +3282,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						String query = "select pd.data::json ->> '"+xaxisColumnName+"'  as \"colName\"";
 
 						if (breakDownName != null && !breakDownName.isEmpty()) {
-							query = query.concat(", pd.data::json ->> '"+breakDownName+"' as `colBreakdown`");
+							query = query.concat(", pd.data::json ->> '"+breakDownName+"' as \"colBreakdown\"");
 						}
 						for (int i = 0; i < yaxisNames.size(); i++) {
 							String operater = (String) classNameArray.get(i);
@@ -3259,12 +3294,15 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							}
 						}
 
-						query = query.concat(" from ( Select pd.source_id,pd.server_name,pd.data,sd.data source_data1,sd1.data source_data2 from privillege_data pd LEFT JOIN source_data sd on sd.site_key = '"+siteKey+"' and sd.primary_key_value = pd.source_id LEFT JOIN source s1 on s1.source_id = sd.source_id LEFT JOIN source_data sd1 on sd1.site_key = '"+siteKey+"' and sd1.primary_key_value = pd.server_name LEFT JOIN source s2 on s2.source_id = sd1.source_id Where pd.site_key = '"+siteKey+"' ) "); // pd group by pd.data::json ->> '"+xaxisColumnName+"'
+						query = query.concat(" from ( Select pd.source_id,pd.server_name,pd.data,sd.data source_data1,sd1.data source_data2 from privillege_data pd LEFT JOIN source_data sd on sd.site_key = '"+siteKey+"' and sd.primary_key_value = pd.source_id LEFT JOIN source s1 on s1.source_id = sd.source_id LEFT JOIN source_data sd1 on sd1.site_key = '"+siteKey+"' and sd1.primary_key_value = pd.server_name LEFT JOIN source s2 on s2.source_id = sd1.source_id Where pd.site_key = '"+siteKey+"' )pd"); // pd group by pd.data::json ->> '"+xaxisColumnName+"'
 
 
 						System.out.println("filterModel : " + filterModel);
+
+//conditions for filtering
 						if(!filterModel.isEmpty() && filterModel != null) {
-							JSONObject filterModelObject = (JSONObject) parser.parse(filterModel);
+							
+							JSONObject filterModelObject = filterModel;
 							System.out.println("filterModelArray : " + filterModelObject);
 							Set<String> filterKeys = new HashSet<>();
 							for (int i = 0; i < filterModelObject.size(); i++) {
@@ -3274,8 +3312,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							System.out.println("filterKeys : " + filterKeys);
 
 							query = query.concat(" where ");
-							
-
 							for (String key : filterKeys) {
 								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
 								System.out.println("Key " + key + " : " + filterColumnName);
@@ -3292,9 +3328,9 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 								}
 								
 							}
-							 
 							query = query.substring(0, query.length()-5);
 						}
+						
 // conditions for filtering
 						query = query.concat(" group by pd.data::json ->> '" + xaxisColumnName + "'");
 						if (breakDownName != null && !breakDownName.isEmpty()) {
@@ -3447,12 +3483,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							}
 						}
 						
-						query = query.concat(" from ( Select pd.source_id,pd.server_name,pd.data,sd.data source_data1,sd1.data source_data2 from privillege_data pd LEFT JOIN source_data sd on sd.site_key = '"+siteKey+"' and sd.primary_key_value = pd.source_id LEFT JOIN source s1 on s1.source_id = sd.source_id LEFT JOIN source_data sd1 on sd1.site_key = '"+siteKey+"' and sd1.primary_key_value = pd.server_name LEFT JOIN source s2 on s2.source_id = sd1.source_id Where pd.site_key = '"+siteKey+"' ) "); // pd group by pd.data::json ->> '"+xaxisColumnName+"'
+						query = query.concat(" from ( Select pd.source_id,pd.server_name,pd.data,sd.data source_data1,sd1.data source_data2 from privillege_data pd LEFT JOIN source_data sd on sd.site_key = '"+siteKey+"' and sd.primary_key_value = pd.source_id LEFT JOIN source s1 on s1.source_id = sd.source_id LEFT JOIN source_data sd1 on sd1.site_key = '"+siteKey+"' and sd1.primary_key_value = pd.server_name LEFT JOIN source s2 on s2.source_id = sd1.source_id Where pd.site_key = '"+siteKey+"' )pd"); // pd group by pd.data::json ->> '"+xaxisColumnName+"'
 
 // conditions for filtering
 						System.out.println("filterModel : " + filterModel);
 						if(!filterModel.isEmpty() && filterModel != null) {
-							JSONObject filterModelObject = (JSONObject) parser.parse(filterModel);
+							JSONObject filterModelObject = filterModel;
 							System.out.println("filterModelArray : " + filterModelObject);
 							Set<String> filterKeys = new HashSet<>();
 							for (int i = 0; i < filterModelObject.size(); i++) {
@@ -3569,7 +3605,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 		String analyticstype = chartParams.get("analyticstype").toString().isEmpty() ? "" : chartParams.get("analyticstype").toString();
 		String siteKey = chartParams.get("siteKey").toString().isEmpty() ? "" : chartParams.get("siteKey").toString();
 		String category = chartParams.get("category").toString().isEmpty() ? "" : chartParams.get("category").toString();
-		String filterModel = chartParams.get("filterModel").toString().isEmpty() ? "" : chartParams.get("filterModel").toString();
+		JSONObject filterModel = chartParams.get("filterModel").toString().isEmpty() ? new JSONObject() : (JSONObject) chartParams.get("filterModel");
 		
 		System.out.println("-----------chartConfiguration : " + chartConfig);
 		System.out.println("-----------chartType : " + chartType);
@@ -3726,7 +3762,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 // conditions for filtering
 						System.out.println("filterModel : " + filterModel);
 						if(!filterModel.isEmpty() && filterModel != null) {
-							JSONObject filterModelObject = (JSONObject) parser.parse(filterModel);
+							JSONObject filterModelObject = filterModel;
 							System.out.println("filterModelArray : " + filterModelObject);
 							Set<String> filterKeys = new HashSet<>();
 							for (int i = 0; i < filterModelObject.size(); i++) {
@@ -3931,7 +3967,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 // conditions for filtering
 						System.out.println("filterModel : " + filterModel);
 						if(!filterModel.isEmpty() && filterModel != null) {
-							JSONObject filterModelObject = (JSONObject) parser.parse(filterModel);
+							JSONObject filterModelObject = filterModel;
 							System.out.println("filterModelArray : " + filterModelObject);
 							Set<String> filterKeys = new HashSet<>();
 							for (int i = 0; i < filterModelObject.size(); i++) {
@@ -4126,7 +4162,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 // conditions for filtering
 						System.out.println("filterModel : " + filterModel);
 						if(!filterModel.isEmpty() && filterModel != null) {
-							JSONObject filterModelObject = (JSONObject) parser.parse(filterModel);
+							JSONObject filterModelObject = filterModel;
 							System.out.println("filterModelArray : " + filterModelObject);
 							Set<String> filterKeys = new HashSet<>();
 							for (int i = 0; i < filterModelObject.size(); i++) {
