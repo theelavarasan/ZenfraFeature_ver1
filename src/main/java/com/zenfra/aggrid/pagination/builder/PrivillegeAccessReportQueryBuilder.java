@@ -712,7 +712,7 @@ public class PrivillegeAccessReportQueryBuilder {
     		e.printStackTrace();
     	}
     	
-    	return validationFilterQuery.isEmpty() ? "" : (" and " + validationFilterQuery.toString().trim());
+    	return validationFilterQuery.toString().isEmpty() ? "" : (" and " + validationFilterQuery.toString().trim());
     }
 
 
