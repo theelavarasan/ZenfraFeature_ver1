@@ -3247,7 +3247,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						String query = "select pd.data::json ->> '"+xaxisColumnName+"'  as \"colName\"";
 
 						if (breakDownName != null && !breakDownName.isEmpty()) {
-							query = query.concat(", pd.data::json ->> '"+breakDownName+"' as `colBreakdown`");
+							query = query.concat(", pd.data::json ->> '"+breakDownName+"' as \"colBreakdown\"");
 						}
 						for (int i = 0; i < yaxisNames.size(); i++) {
 							String operater = (String) classNameArray.get(i);
