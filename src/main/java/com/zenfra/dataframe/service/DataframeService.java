@@ -1824,19 +1824,22 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						request.setReportBy(reportBy);
 						request.setReportType("discovery");						
 						
-						deviceType = deviceType.toLowerCase();
+						deviceType = deviceType.toLowerCase().replace(" ", "");
 						
 						String viewNameWithHypen = siteKey + "_" + request.getAnalyticstype().toLowerCase() + "_"
 								+ request.getCategory() + "_" + deviceType + "_" + request.getReportList() + "_"
 								+ request.getReportBy();
-						 
+						System.out.println("------------------------------------------------viewNameWithHypen"+viewNameWithHypen);
 						
 						File verifyDataframePath = new File(commonPath + File.separator + "Dataframe" + File.separator
 								+ siteKey + File.separator + deviceType
 								+ File.separator + viewNameWithHypen + ".json");
+						//System.out.println("------------------------------------------------verifyDataframePath"+verifyDataframePath.toString());
 						
 						File verifyDataframeParentPath = new File(commonPath + File.separator + "Dataframe" + File.separator
 								+ siteKey + File.separator + deviceType + File.separator );
+						//System.out.println("------------------------------------------------verifyDataframeParentPath"+verifyDataframeParentPath.toString());
+						
 						
 						createDataframeFromOdb(request, verifyDataframePath, verifyDataframeParentPath, viewNameWithHypen);
 						
