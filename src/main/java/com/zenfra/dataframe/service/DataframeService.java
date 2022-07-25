@@ -3114,7 +3114,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						}
 					}
 
-					query = query.concat(" from ( Select pd.source_id,pd.server_name,pd.data,sd.data source_data1,sd1.data source_data2 from privillege_data pd LEFT JOIN source_data sd on sd.site_key = '"+siteKey+"' and sd.primary_key_value = pd.source_id LEFT JOIN source s1 on s1.source_id = sd.source_id LEFT JOIN source_data sd1 on sd1.site_key = '"+siteKey+"' and sd1.primary_key_value = pd.server_name LEFT JOIN source s2 on s2.source_id = sd1.source_id Where pd.site_key = '"+siteKey+"' ) pd");
+					query = query.concat(" from ( Select pd.source_id,pd.server_name,pd.data,sd.data source_data1,sd1.data source_data2 from privillege_data pd LEFT JOIN source_data sd on sd.site_key = '"+siteKey+"' and sd.primary_key_value = pd.source_id LEFT JOIN source s1 on s1.source_id = sd.source_id LEFT JOIN source_data sd1 on sd1.site_key = '"+siteKey+"' and sd1.primary_key_value = pd.server_name LEFT JOIN source s2 on s2.source_id = sd1.source_id Where pd.site_key = '"+siteKey+"' ) pd ");
 
 //conditions for filtering
 					if(!filterModel.isEmpty() && filterModel != null) {
@@ -3150,7 +3150,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					
 //conditions for filtering
 					
-					query = query.concat("group by pd.data::json ->> '" + xaxisColumnName + "'");
+					query = query.concat(" group by pd.data::json ->> '" + xaxisColumnName + "'");
 											
 					if (breakDownName != null && !breakDownName.isEmpty()) {
 						query = query.concat(", pd.data::json ->>'" + breakDownName + "'");
@@ -3344,7 +3344,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							+ "Where pd.site_key = '" + siteKey + "'\r\n"
 							+ "group by pd.server_name, pd.data,sd1.source_data1,sd2.source_data2\r\n"
 							+ ") a\r\n"
-							+ ") pd");
+							+ ") pd ");
 
 
 					System.out.println("filterModel : " + filterModel);
@@ -3384,7 +3384,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 //conditions for filtering
 					
 					
-					query = query.concat(" group by");
+					query = query.concat(" group by ");
 					if(xaxisColumnNameField.startsWith("Server Data~")) {
 						query = query.concat(" pd.server_data::json ->> '" + xaxisColumnName + "'");
 
@@ -3439,46 +3439,43 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);
 					System.out.println("yaxisNames : " + yaxisNames);
 
-					System.out.println("finalBreakDownValue : " + finalBreakDownValue);
+					System.out.println("breakDownName : " + breakDownName);
 					JSONArray array = new JSONArray();
 					
 					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
+						System.out.println("1");
+						JSONObject jsonObject = new JSONObject();
+						JSONArray xarray = new JSONArray();
+						JSONArray yarray = new JSONArray();
+						JSONArray nameArray = new JSONArray();
+
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
-
-							JSONObject jsonObject = new JSONObject();
-							JSONArray xarray = new JSONArray();
 							xarray.add(xaxisCloumnValues.get(i));
-							jsonObject.put("x", xarray);
-							JSONArray yarray = new JSONArray();
 							yarray.add(valueArray.get(i));
-							jsonObject.put("y", yarray);
-							JSONArray nameArray = new JSONArray();
-							nameArray.add(breakDownName);
-							jsonObject.put("name", nameArray);
-							System.out.println("jsonObject : " + jsonObject);
-
-							array.add(jsonObject);
-							
 						}
+						nameArray.add(finalBreakDownValue);
+
+						jsonObject.put("x", xarray);
+						jsonObject.put("y", yarray);
+						jsonObject.put("name", nameArray);
+						array.add(jsonObject);
+
 					}else {
+						JSONObject jsonObject = new JSONObject();
+						JSONArray xarray = new JSONArray();
+						JSONArray yarray = new JSONArray();
+
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 							JsonMapper jsonMapper = new JsonMapper();
-								JSONObject jsonObject = new JSONObject();
-								JSONArray nameArray = new JSONArray();
-								nameArray.add(xaxisColumnName);
-								jsonObject.put("name", nameArray);
-								JSONArray xarray = new JSONArray();
 								xarray.add(xaxisCloumnValues.get(i));
-								jsonObject.put("x", xarray);
-								JSONArray yarray = new JSONArray();
 								yarray.add(valueArray.get(i));
-								jsonObject.put("y", yarray);
-								System.out.println("jsonObject : " + jsonObject);
-
-								array.add(jsonObject);
-							
-							
+								
 						}
+						jsonObject.put("name", xaxisColumnName);
+						jsonObject.put("x", xarray);
+						jsonObject.put("y", yarray);
+						array.add(jsonObject);
+
 					}
 
 					System.out.println("----- array" + array);
@@ -3603,7 +3600,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							+ "Where pd.site_key = '" + siteKey + "'\r\n"
 							+ "group by pd.server_name, pd.data,sd1.source_data1,sd2.source_data2\r\n"
 							+ ") a\r\n"
-							+ ") pd");
+							+ ") pd ");
 
 
 					System.out.println("filterModel : " + filterModel);
@@ -3643,7 +3640,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 //conditions for filtering
 					
 					
-					query = query.concat(" group by");
+					query = query.concat(" group by ");
 					if(xaxisColumnNameField.startsWith("Server Data~")) {
 						query = query.concat(" pd.server_data::json ->> '" + xaxisColumnName + "'");
 
