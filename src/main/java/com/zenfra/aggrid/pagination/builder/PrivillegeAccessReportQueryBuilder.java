@@ -644,7 +644,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (source_data1::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
-    						+ "else (source_data2::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) desc";
+    						+ "else (source_data2::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
