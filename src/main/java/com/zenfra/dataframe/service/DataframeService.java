@@ -3054,7 +3054,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					System.out.println("------pie query------ " + chartQuery);
 					
 					List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(chartQuery);		
-					System.out.println("-----resultSet---- " + resultSet);
 					
 					for(Map<String, Object> resultMap : resultSet) {						
 						lableArray.add(resultMap.get("colName"));
@@ -3114,7 +3113,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}
 					for (int i = 0; i < yaxisNames.size(); i++) {
 						String operater = (String) classNameArray.get(i);
-						System.out.println("operater : " + operater);
 						if (operater.contains("count")) {
 							query = query.concat(", count(pd.data::json ->> '" + yaxisNames.get(i) + "') as \"colValue" + i+"\"");
 						} else if (operater.contains("sum")) {
@@ -3134,12 +3132,10 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							JSONObject jsonObj = filterModelObject;
 							filterKeys.addAll(jsonObj.keySet());
 						}
-						System.out.println("filterKeys : " + filterKeys);
 
 						query = query.concat(" where ");
 						for (String key : filterKeys) {
 							JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
-							System.out.println("Key " + key + " : " + filterColumnName);
 							query = query.concat("pd.data::json ->> '" + key + "'");
 							
 							for(int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
@@ -3169,7 +3165,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);	
 					JSONObject resultObject = new JSONObject(); 
 					
-					System.out.println("------table query------ " + resultSet.size());
 					
 					JSONArray dataArray = new JSONArray();
 					 Set<String> keys = new HashSet<>(); 
@@ -3212,7 +3207,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					  Iterator iterator = resultObject.keySet().iterator();
 					  while (iterator.hasNext()) { 
 						  String key = (String) iterator.next();
-					  System.out.println(); 
 					  if (key.contains("colValue")) {
 						  yValuesArray.add(resultObject.get(key)); } 
 					  else if (key.contains("colName")) { 
@@ -3248,7 +3242,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 		}else if(chartType.equalsIgnoreCase("bar")) {
 			try {
 
-				System.out.println("------- chart 1-------- " + chartConfig);
+				System.out.println("------- chart bar-------- " + chartConfig);
 
 				if (chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
 					JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
@@ -3316,7 +3310,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					
 					for (int i = 0; i < yaxisColumnField.size(); i++) {
 						String operater = (String) classNameArray.get(i);
-						System.out.println("operater : " + operater);
 						
 						String yFieldCheck = (String) yaxisColumnField.get(i);
 						if(yFieldCheck.startsWith("Server Data~")) {
@@ -3368,12 +3361,10 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							JSONObject jsonObj = filterModelObject;
 							filterKeys.addAll(jsonObj.keySet());
 						}
-						System.out.println("filterKeys : " + filterKeys);
 
 						query = query.concat(" where ");
 						for (String key : filterKeys) {
 							JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
-							System.out.println("Key " + key + " : " + filterColumnName);
 							query = query.concat("pd.data::json ->> '" + key + "'");
 							
 							for(int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
@@ -3417,7 +3408,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					System.out.println("------Tanium bar chart Query------ " + query); 
 					List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);	
 					
-					System.out.println("---Tanium bar chart Query--- : " + resultSet);
+					System.out.println("---Tanium bar chart Query--- : " + resultSet.size());
 					
 					JSONObject resultObject = new JSONObject(); 
 					JSONArray xaxisCloumnValues = new JSONArray();
@@ -3429,7 +3420,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						Iterator iterator = jsonObj.keySet().iterator();
 						while (iterator.hasNext()) {
 							String key = (String) iterator.next();
-							System.out.println();
 							if (key.contains("colValue")) {
 								// values
 								valueArray.add(jsonObj.get(key));
@@ -3487,16 +3477,14 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 
 					}
 
-					System.out.println("----- array" + array);
-
 					resultData.put("data", array);
-
+					
 //					System.out.println("y axis name : " + yaxisNames);
 //					System.out.println("y axis values : " + valueArray);
 //					System.out.println("xaxisCloumnNames : " + xaxisColumnName);
 //					System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);							
 
-					System.out.println("-------final resultLsit::-------- " + resultData);
+					System.out.println("-------final resultLsit::-------- " + resultData.size());
 
 				}
 
@@ -3572,7 +3560,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					
 					for (int i = 0; i < yaxisColumnField.size(); i++) {
 						String operater = (String) classNameArray.get(i);
-						System.out.println("operater : " + operater);
 						
 						String yFieldCheck = (String) yaxisColumnField.get(i);
 						if(yFieldCheck.startsWith("Server Data~")) {
@@ -3624,12 +3611,10 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							JSONObject jsonObj = filterModelObject;
 							filterKeys.addAll(jsonObj.keySet());
 						}
-						System.out.println("filterKeys : " + filterKeys);
 
 						query = query.concat(" where ");
 						for (String key : filterKeys) {
 							JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
-							System.out.println("Key " + key + " : " + filterColumnName);
 							query = query.concat("pd.data::json ->> '" + key + "'");
 							
 							for(int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
@@ -3685,18 +3670,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							String key = (String) iterator.next();
 							System.out.println();
 							if (key.contains("colValue")) {
-								// values
-								System.out.println("-------values------" + jsonObj.get(key));
-
 								valueArray.add(jsonObj.get(key));
 							}
 							if (key.contains("colName")) {
-//								name
-								System.out.println("---------xaxis name--------" + jsonObj.get(key));
 								xaxisCloumnValues.add(jsonObj.get(key));
 							} 
 							if (key.contains("colBreakdown")) {
-								System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
 								finalBreakDownValue.add(jsonObj.get(key));
 							}
 						}
@@ -3713,10 +3692,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						}
 						array.add(jsonObject);
 
-						System.out.println("-------resultLsit -------- " + resultData);
 					}
-
-					System.out.println("----- array" + array);
 
 					resultData.put("data", array);
 
@@ -3724,8 +3700,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 //					System.out.println("y axis values : " + valueArray);
 //					System.out.println("xaxisCloumnNames : " + xaxisColumnName);
 //					System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);							
-
-					System.out.println("-------final resultLsit::-------- " + resultData);
 
 				}
 
