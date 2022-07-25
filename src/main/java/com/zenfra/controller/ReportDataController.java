@@ -202,10 +202,10 @@ public class ReportDataController {
 				+ siteKey + " : " + userId);
 		
 		sourceType = sourceType.toLowerCase();
-
-		try {			 
+		try {		
 
 			try { // remove orient db dataframe
+
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
 						+ File.separator + siteKey + File.separator; // +
 																											// sourceType
@@ -220,20 +220,19 @@ public class ReportDataController {
 					}
 				}
 				
-				
 				try { // delete end to end df file for all log folders
 					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
 
 				    List<Path> fileWithName = Files.walk(configFilePath)
-				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());
-				          
+				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());  
 
-				    for (Path name : fileWithName) {
+				    for (Path name : fileWithName) { 
 				    	FileSystemUtils.deleteRecursively(name);
 				    }
 				
 				} catch (Exception e) {
 					// TODO: handle exception
+					e.printStackTrace();
 				} 
 				
 
