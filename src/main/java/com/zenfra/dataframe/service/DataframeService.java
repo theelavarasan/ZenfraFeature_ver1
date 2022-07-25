@@ -3282,6 +3282,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					JSONObject breakDown = breakDownAry.isEmpty() ? new JSONObject()
 							: (JSONObject) breakDownAry.get(0);
 					String breakDownName = (String) breakDown.get("value");
+					String breakDownField = (String) breakDown.get("field");
 					JSONArray finalBreakDownValue = new JSONArray();
 
 					System.out.println(" breakDownName : " + breakDownName);
@@ -3297,7 +3298,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}
 					 
 					if (breakDownName != null && !breakDownName.isEmpty()) {
-						if(xaxisColumnNameField.startsWith("Server Data~")) {
+						if(breakDownField.startsWith("Server Data~")) {
 							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
 						} else {
 							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownName + "' as \"colBreakdown\"");
@@ -3394,7 +3395,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}
 							
 					if (breakDownName != null && !breakDownName.isEmpty()) {
-						if(xaxisColumnNameField.startsWith("Server Data~")) {
+						if(breakDownField.startsWith("Server Data~")) {
 							query = query.concat(", pd.server_data::json ->> '" + breakDownName + "'");
 
 						} else {
