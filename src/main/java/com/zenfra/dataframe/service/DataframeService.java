@@ -2287,7 +2287,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String outputFilePath = "";
 		System.out.println("----request------" + request.getAnalyticstype());
 		
-		System.out.println("--------- request.getReportBy : " + request.getReportBy());
 		try {
 			String siteKey = request.getSiteKey();
 			String userId = request.getUserId();
