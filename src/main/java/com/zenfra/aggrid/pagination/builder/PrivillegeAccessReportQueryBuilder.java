@@ -619,7 +619,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				} else if(column_name.equalsIgnoreCase("Server & User Name")) {
     					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
     				} else {
-    					orderBy = " order by (select json_array_elements(data::json) ->> '" + column_name + "') " + s.getSort();
+    					orderBy = " order by data::json ->> '" + column_name + "' " + s.getSort();
     				}
     			} /*else {
     					String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
