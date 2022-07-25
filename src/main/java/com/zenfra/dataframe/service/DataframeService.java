@@ -3295,7 +3295,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					 
 					if (breakDownName != null && !breakDownName.isEmpty()) {
 						if(xaxisColumnNameField.startsWith("Server Data~")) {
-							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as colBreakdown");
+							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
 						} else {
 							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownName + "' as \"colBreakdown\"");
 						}
@@ -3458,19 +3458,23 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}else {
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 							JsonMapper jsonMapper = new JsonMapper();
-							JSONObject jsonObject = new JSONObject();
-							JSONArray nameArray = new JSONArray();
-							nameArray.add(valueArray.get(i));
-							jsonObject.put("name", nameArray);
-							JSONArray xarray = new JSONArray();
-							xarray.add(xaxisCloumnValues.get(i));
-							jsonObject.put("x", xarray);
-							JSONArray yarray = new JSONArray();
-							yarray.add(valueArray.get(i));
-							jsonObject.put("y", yarray);
-							System.out.println("jsonObject : " + jsonObject);
+							for(int j=0; j < yaxisNames.size(); j++) {
+								JSONObject jsonObject = new JSONObject();
 
-							array.add(jsonObject);
+								JSONArray nameArray = new JSONArray();
+								nameArray.add(yaxisNames.get(i));
+								jsonObject.put("name", nameArray);
+								JSONArray xarray = new JSONArray();
+								xarray.add(xaxisCloumnValues.get(i));
+								jsonObject.put("x", xarray);
+								JSONArray yarray = new JSONArray();
+								yarray.add(valueArray.get(i));
+								jsonObject.put("y", yarray);
+								System.out.println("jsonObject : " + jsonObject);
+
+								array.add(jsonObject);
+							}
+							
 						}
 					}
 
