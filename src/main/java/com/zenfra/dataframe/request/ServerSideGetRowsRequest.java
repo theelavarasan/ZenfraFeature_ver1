@@ -69,6 +69,9 @@ public class ServerSideGetRowsRequest implements Serializable {
     
     private String exportType;
     
+    private String healthCheckId;
+    private List<String> ruleList;
+    
 
 
 	/*public ServerSideGetRowsRequest() {
@@ -313,6 +316,24 @@ public class ServerSideGetRowsRequest implements Serializable {
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
+
+	public String getHealthCheckId() {
+		return healthCheckId;
+	}
+
+	public void setHealthCheckId(String healthCheckId) {
+		this.healthCheckId = healthCheckId;
+	}
+
+	public List<String> getRuleList() {
+		return ruleList;
+	}
+
+	public void setRuleList(List<String> ruleList) {
+		this.ruleList = ruleList;
+	}
+	
+	
 	
 	
 
