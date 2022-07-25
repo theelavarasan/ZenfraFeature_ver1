@@ -23,11 +23,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import javax.json.stream.JsonParser;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -35,14 +38,10 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.FileSystemUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -63,11 +62,9 @@ import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.dataframe.service.EolService;
 import com.zenfra.dataframe.util.DataframeUtil;
 import com.zenfra.model.ZKConstants;
-import com.zenfra.model.ZKModel;
 import com.zenfra.service.ChartService;
 import com.zenfra.service.FavouriteApiService_v2;
 import com.zenfra.service.ReportService;
-import com.zenfra.utils.CommonUtils;
 import com.zenfra.utils.ExceptionHandlerMail;
 
 @CrossOrigin(origins = "*")
@@ -205,10 +202,10 @@ public class ReportDataController {
 				+ siteKey + " : " + userId);
 		
 		sourceType = sourceType.toLowerCase();
-
-		try {			 
+		try {		
 
 			try { // remove orient db dataframe
+
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
 						+ File.separator + siteKey + File.separator; // +
 																											// sourceType
@@ -223,20 +220,19 @@ public class ReportDataController {
 					}
 				}
 				
-				
 				try { // delete end to end df file for all log folders
 					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
 
 				    List<Path> fileWithName = Files.walk(configFilePath)
-				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());
-				          
+				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());  
 
-				    for (Path name : fileWithName) {
+				    for (Path name : fileWithName) { 
 				    	FileSystemUtils.deleteRecursively(name);
 				    }
 				
 				} catch (Exception e) {
 					// TODO: handle exception
+					e.printStackTrace();
 				} 
 				
 
@@ -252,7 +248,7 @@ public class ReportDataController {
 			
 			//recreate Reports after completed parsing			
 			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
-				 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
+				 //dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
 			} else {
 				 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 			}
@@ -692,16 +688,23 @@ public class ReportDataController {
 	
 	@PostMapping("getChartDetails")
 	public JSONObject prepareChart(
-			@RequestParam("chartConfiguration") String chartConfiguration,
-			@RequestParam("chartType") String chartType, 
-			@RequestParam("reportLabel") String reportLabel,
-			@RequestParam("reportName") String reportName,
-			@RequestParam("analyticstype") String analyticstype,
-			@RequestParam("siteKey") String siteKey,
-			@RequestParam("category") String category,			
-			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+			@RequestBody String chartParams,
+			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ParseException {
+
+		JSONParser jsonParser = new JSONParser();
+
+		JSONObject Object = (JSONObject) jsonParser.parse(chartParams.toString());
+		System.out.println("log 1 : " + Object);
+
+		String reportLabel = Object.get("reportLabel") != null && Object.get("reportLabel").toString().isEmpty() ? "" : Object.get("reportLabel").toString();
 		
-		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, chartConfiguration, chartType, reportLabel, reportName, analyticstype, category);
+		JSONObject jsonObject = new JSONObject();
+		if(reportLabel.contains("Privileged")) {
+			jsonObject =  dataframeService.prepareChartForTanium(Object);
+		}else {
+			jsonObject = dataframeService.prepareChart(Object);
+		}
+		
 		return jsonObject;
 	}
 	

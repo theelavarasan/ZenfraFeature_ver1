@@ -50,7 +50,15 @@ public class PrivillegeAccessReportDAO {
         Map<String, List<String>> pivotValues = new HashMap<String, List<String>>();
 
         // generate sql
-        String sql = queryBuilder.createSql(request, tableName, pivotValues);
+        
+        String validationFilter = "";
+        if(request.getHealthCheckId() != null && !request.getHealthCheckId().isEmpty()) {
+        	String validationFilterQuery = getValidationRuleCondition(request.getHealthCheckId(), request.getRuleList());
+            List<Map<String, Object>> validationRows = utilities.getDBDatafromJdbcTemplate(validationFilterQuery);
+            validationFilter = getValidationFilter(validationRows);
+        }
+        
+        String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter);
         
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
         JSONArray resultArray = dataNormalize(rows);
@@ -82,10 +90,9 @@ public class PrivillegeAccessReportDAO {
     			List<String> keys = new ArrayList<>(row.keySet());
     			for(int i = 0; i < keys.size(); i++) {
     				if(keys.get(i).equalsIgnoreCase("privillege_data")) {
-    					JSONArray dataArray = (JSONArray) parser.parse(row.get(keys.get(i)) == null ? "[]" : row.get(keys.get(i)).toString());
-    					if(!dataArray.isEmpty()) {
-    						JSONObject dataObject = (JSONObject) dataArray.get(0);
-    						List<String> dataKeys = new ArrayList<>(dataObject.keySet());
+    					JSONObject dataObject = (JSONObject) parser.parse(row.get(keys.get(i)) == null ? "{}" : row.get(keys.get(i)).toString());
+    					if(!dataObject.isEmpty()) {
+    						List<String> dataKeys = new ArrayList<>(dataObject == null ? new HashSet<>() : dataObject.keySet());
         					for(int j = 0; j < dataObject.size(); j++) {
         						
         						resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
@@ -163,5 +170,73 @@ public class PrivillegeAccessReportDAO {
 		}
 		return value;
 	}
+    
+    private String  getValidationRuleCondition(String healthCheckId, List<String> ruleList) {
+    	
+    	JSONArray ruleArray = new JSONArray();
+		if(!ruleList.isEmpty()) {
+			ruleArray.addAll(ruleList);
+		}
+		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
+				+ "select rule_id, concat('(', string_agg(condition_value, ' '), ')') as condition_value from ( \r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, \r\n"
+				+ "(case when con_id = 0 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' or ') as condition_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, \r\n"
+				+ " con_field_id as condition_field, \r\n"
+				+ "concat(con_operator, ' data::json ->> ''',  substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), ''' ', (select con_value from tasklist_validation_conditions where con_name = con_condition), \r\n"
+				+ "(case when con_condition = 'startsWith' then concat(' ''%(',con_value, ')''') else (case when con_condition = 'endsWith' then concat(' ''(',con_value, ')%''') \r\n"
+				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')  \r\n"
+				+ "else concat(' ''',con_value, '''') end) end) end) end)) as condition_value from ( \r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value from ( \r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, coalesce(con_operator, '') as con_operator, con_condition, con_value from ( \r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value as con_value from ( \r\n"
+				+ "select report_by, rule_id, con_field_id, (case when con_operator is null then 0 else 1 end) as con_id, \r\n"
+				+ "con_operator, \r\n"
+				+ "con_condition, \r\n"
+				+ "(case when con_condition = 'notBlank' or con_condition = 'blank' then '' \r\n"
+				+ "else conditions::json ->> 'value' end) as con_value  from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, json_array_elements(conditions::json) as conditions, con_condition from (\r\n"
+				+ "select report_by, rule_id, json_array_elements(conditions::json) ->> 'field' as con_field_id,\r\n"
+				+ "json_array_elements(conditions::json) ->> 'conditionId' as con_id, \r\n"
+				+ "json_array_elements(conditions::json) ->> 'operator' as con_operator, \r\n"
+				+ "json_array_elements(conditions::json) ->> 'value' as conditions, con_condition  from (\r\n"
+				+ "select *, row_number() over(partition by rule_id) as row_number from (\r\n"
+				+ "select report_by, json_array_elements(report_condition::json) ->> 'id' as rule_id, \r\n"
+				+ "json_array_elements(report_condition::json) ->> 'conditions' as conditions, \r\n"
+				+ "json_array_elements((json_array_elements(report_condition::json) ->> 'conditions')::json) ->>'condition' as con_condition\r\n"
+				+ "from health_check where health_check_id = '" + healthCheckId + "' \r\n"
+				+ ") a where rule_id in (select json_array_elements_text('" + ruleArray + "')) \r\n"
+				+ ") a1 where row_number = 1 \r\n"
+				+ ") a2\r\n"
+				+ ") a3\r\n"
+				+ ") b order by con_id\r\n"
+				+ ") c \r\n"
+				+ ") d  \r\n"
+				+ ") e \r\n"
+				+ ") f group by report_by, rule_id, con_field_id, con_id, con_operator, condition_field order by con_id \r\n"
+				+ ") d\r\n"
+				+ ") g group by rule_id\r\n"
+				+ ") f";
+		
+		System.out.println("!!!!! validation query: " + validationRuleQuery);
+    	
+    	return validationRuleQuery;
+    }
+    
+    private String getValidationFilter(List<Map<String, Object>> rows) {
+    	
+    	String validationFilterQuery = "";
+    	try {
+    		for(Map<String, Object> row : rows) {
+    			validationFilterQuery = row.get("condition_value") == null ? "" : row.get("condition_value").toString();
+    		}
+    	} catch(Exception e) {
+    		e.printStackTrace();
+    	}
+    	
+    	return validationFilterQuery.isEmpty() ? "" : (" and " + validationFilterQuery.trim());
+    	
+    }
 
 }

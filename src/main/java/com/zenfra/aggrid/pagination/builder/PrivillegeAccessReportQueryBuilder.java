@@ -24,6 +24,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -40,6 +41,9 @@ public class PrivillegeAccessReportQueryBuilder {
 	
 	@Autowired
 	CommonFunctions utilities;
+	
+	@Autowired
+	JdbcTemplate jdbc;
 
     private List<String> groupKeys;
     private List<String> rowGroups;
@@ -53,8 +57,9 @@ public class PrivillegeAccessReportQueryBuilder {
     private List<ColumnVO> rowGroupCols;
     private Map<String, List<String>> pivotValues;
     private boolean isPivotMode;
+    private List<String> ruleList;
 
-    public String createSql(ServerSideGetRowsRequest request, String tableName, Map<String, List<String>> pivotValues) {
+    public String createSql(ServerSideGetRowsRequest request, String tableName, Map<String, List<String>> pivotValues, String validationFilterQuery) {
         this.valueColumns = request.getValueCols();
         this.pivotColumns = request.getPivotCols();
         this.groupKeys = request.getGroupKeys();
@@ -70,7 +75,8 @@ public class PrivillegeAccessReportQueryBuilder {
         this.endRow = request.getEndRow();
 
         //return selectSql() + fromSql(tableName) + whereSql() + groupBySql() + orderBySql() + limitSql();
-        return getPrivillegeAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel());
+        return getPrivillegeAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel(),
+        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery);
     }
 
     private String selectSql() {
@@ -148,7 +154,7 @@ public class PrivillegeAccessReportQueryBuilder {
 
     private BiFunction<String, NumberColumnFilter, String> numberFilter() {
         return (String columnName, NumberColumnFilter filter) -> {
-            Integer filterValue = filter.getFilter();
+            double filterValue = filter.getFilter();
             String filerType = filter.getType();
             String operator = operatorMap.get(filerType);
 
@@ -219,22 +225,24 @@ public class PrivillegeAccessReportQueryBuilder {
         put("greaterThanOrEqual", ">=");
     }};
     
-    private String getPrivillegeAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel) {
+    private String getPrivillegeAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel,
+    		String healthCheckId, List<String> ruleList, String validationFilterQuery) {
 		
 		JSONParser parser = new JSONParser();
 		
-
-		String tasklistQuery = "select row_count, source_id, server_name, privillege_data, json_agg(source_data1) as source_data1, json_agg(source_data2) as source_data2 from ( \r\n"
+		String tasklistQuery = "select row_count, source_id, server_name, privillege_data, json_agg(source_data1) as source_data1, json_agg(source_data2) as source_data2 from ( \r\n" 
+				+ "select * from ( \r\n"
 				+ "select row_count, a.source_id, server_name, a.data as privillege_data, (case when s1.source_name is null then null else json_build_object(s1.source_name,sd.data::json) end) as source_data1, \r\n"
 				+ "(case when s2.source_name is null then null else json_build_object(s2.source_name, sd1.data::json) end) as source_data2 from (\r\n"
-				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",') as data from privillege_data\r\n"
-				+ "where site_key = '" + siteKey + "' " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
+				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",'),': ,',':\"\",') as data from privillege_data\r\n"
+				+ "where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
 				+ ") a\r\n"
 				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = a.source_id \r\n"
 				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
 				+ "LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and sd1.primary_key_value = a.server_name\r\n"
-				+ "LEFT JOIN source s2 on s2.source_id = sd1.source_id \r\n"
-				+ ") b group by row_count, source_id, server_name, privillege_data\r\n";
+				+ "LEFT JOIN source s2 on s2.source_id = sd1.source_id \r\n" 
+				+ ") a1 " + getOrderBy1(sortModel) + "\r\n"
+				+ ") b group by row_count, source_id, server_name, privillege_data \r\n";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
@@ -284,127 +292,127 @@ public class PrivillegeAccessReportQueryBuilder {
     						column = column.substring(column.indexOf("~") + 1, column.length());
     						if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
         						if(column.equalsIgnoreCase("Server Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " server_name = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " server_name = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " source_id = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " source_id = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " concat(server_name, '~', source_id) = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
         						if(column.equalsIgnoreCase("Server Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " server_name ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " server_name ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " source_id ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " source_id ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") +  " concat(server_name,'~',source_id) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  " concat(server_name,'~',source_id) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
         						if(column.equalsIgnoreCase("Server Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") +  " server_name = ''" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  " server_name = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " source_id = ''" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " source_id = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " concat(server_name, '~', source_id) = ''" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') = ''" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
         						if(column.equalsIgnoreCase("Server Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " server_name <> ''" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " server_name <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " and source_id <> ''" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " and source_id <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " concat(server_name, '~', source_id) <> ''" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> ''" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("startsWith")) {
         						if(column.equalsIgnoreCase("Server Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " server_name ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " server_name ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " source_id ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " source_id ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " concat(server_name,'~',source_id) ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name,'~',source_id) ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
         						if(column.equalsIgnoreCase("Server Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " server_name ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " server_name ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " source_id ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " source_id ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " concat(server_name, '~', source_id) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
         						if(column.equalsIgnoreCase("Server Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " server_name <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " server_name <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " source_id <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " source_id <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " concat(server_name, '~', source_id) <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notContains")) {
         						if(column.equalsIgnoreCase("Server Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " server_name not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " server_name not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("User Name")) {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " source_id not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " source_id not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " concat(server_name, '~', source_id) not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + (columnArray.size() > 1 ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					}
     					} else {
     						
-							column = column.substring(column.indexOf("~") + 1, column.length());
+							String column1 = column.substring(column.indexOf("~") + 1, column.length());
 							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' = '" + ((TextColumnFilter) columnFilter).getFilter() + "' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' = '" + ((TextColumnFilter) columnFilter).getFilter() + "'  and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' = '" + ((TextColumnFilter) columnFilter).getFilter() + "')");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' = '" + ((TextColumnFilter) columnFilter).getFilter() + "' ))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	        				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%')");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	        				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' = '' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' = '' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' = '')");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' = ''))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	 	    				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' )");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> ''))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	      				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("startsWith")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%')");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	    					
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "')");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	      				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '" + ((TextColumnFilter) columnFilter).getFilter() + "' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '" + ((TextColumnFilter) columnFilter).getFilter() + "' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '" + ((TextColumnFilter) columnFilter).getFilter() + "')");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     		    				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notContains")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%')");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     		    				
         					}
     					
@@ -416,91 +424,91 @@ public class PrivillegeAccessReportQueryBuilder {
     					if(column.contains("Server Data~")) {
     						if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '' and (case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + "" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	  				
     						} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') = ''" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	 	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> ''" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	 	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '' and (case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numerics end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + "" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numerics end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	      				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '' and (case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) > " + ((NumberColumnFilter) columnFilter).getFilter() + "" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) > " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	    					        					
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '' and (case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) < " + ((NumberColumnFilter) columnFilter).getFilter() + "" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) < " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	    					
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '' and (case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + "" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	   					
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '' and (case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	  				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '' and ((case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "");
-        						filterQuery = filterQuery.append(" and (case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilterTo() + ")" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (select json_array_elements(data::json) ->> '" + column + "') <> '' and ((case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "");
+        						filterQuery = filterQuery.append(" and (case when (select json_array_elements(data::json) ->> '" + column + "') = '' then 0 else (select json_array_elements(data::json) ->> '" + column + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilterTo() + ")" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	  				
         					}
     					} else {
     						
-							column = column.substring(column.indexOf("~") + 1, column.length());
+							String column1 = column.substring(column.indexOf("~") + 1, column.length());
 							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + ")");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + " ))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' = '' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' = '' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' = '')");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' = ''))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '')");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> ''))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + ")");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + "))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) > " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) > " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) > " + ((NumberColumnFilter) columnFilter).getFilter() + ")");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) > " + ((NumberColumnFilter) columnFilter).getFilter() + "))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) < " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) < " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) < " + ((NumberColumnFilter) columnFilter).getFilter() + ")");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) < " + ((NumberColumnFilter) columnFilter).getFilter() + "))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ")");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + "))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         						
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ")");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         					
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " ((source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "')))" + (columnArray.size() > 1 ? ")": ""));
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + (columnArray.size() > 1 ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))");
-        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else (data::json ->> '" + column + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + " and source_id in (select json_array_elements_text(third_party_list::json) from project where project_id = '" + projectId + "'))))" + (columnArray.size() > 1 ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " ((source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ")");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (source_id in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ")");
+        	    				filterQuery = filterQuery.append(" or server_name in (select primary_key_value from source_data where data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "')::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ")))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         					
         					}
     					}
@@ -516,7 +524,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						valueArray.remove("null");
     						valueArray.add("");
     					}
-	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + " (select json_array_elements(data::json) ->> '" + column + "') in (select json_array_elements_text('" + valueArray + "'::json))" + (columnArray.size() > 1 ? ")": ""));
+	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + " data::json ->> '" + column + "' in (select json_array_elements_text('" + valueArray + "'::json))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
 	    				
     					
     				}
@@ -524,107 +532,6 @@ public class PrivillegeAccessReportQueryBuilder {
     				
     			}
     			
-    		}
-    	} catch(Exception e) {
-    		e.printStackTrace();
-    	}
-    	
-    	return filterQuery.toString();
-    	
-    } 
-    
-    private String getServerFilters(Map<String, ColumnFilter> filters) {
-    	
-    	StringBuilder filterQuery = new StringBuilder();
-    	
-    	try {
-    		if(!filters.isEmpty()) {
-    			
-    			Set<String> columnsSet = filters.keySet();
-    			
-    			for(String column : columnsSet) {
-    				ColumnFilter columnFilter = filters.get(column);
-    				if(columnFilter instanceof TextColumnFilter) {
-    					
-    					if(column.startsWith("server~")) {
-    						column = column.substring(column.indexOf("~") + 1, column.length());
-    						if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
-    							if(column.equalsIgnoreCase("Server Name")) {
-    								filterQuery = filterQuery.append(" and server_name = '" + ((TextColumnFilter) columnFilter).getFilter() + "'");
-    							} else if(column.equalsIgnoreCase("User Name")) {
-    								filterQuery = filterQuery.append(" and source_id = '" + ((TextColumnFilter) columnFilter).getFilter() + "'");
-    							} else {
-    								filterQuery = filterQuery.append(" and (select json_array_elements(data::json) ->> '" + column + "') = '" + ((TextColumnFilter) columnFilter).getFilter() + "'");
-    							}
-        	    				  
-        	    				
-        					} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
-        						if(column.equalsIgnoreCase("Server Name")) {
-    								filterQuery = filterQuery.append(" and server_name ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'");
-    							} else if(column.equalsIgnoreCase("User Name")) {
-    								filterQuery = filterQuery.append(" and source_id ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'");
-    							} else {
-    								filterQuery = filterQuery.append(" and (select json_array_elements(data::json) ->> '" + column + "') ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'");
-    							}
-        					} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
-        						if(column.equalsIgnoreCase("Server Name")) {
-    								filterQuery = filterQuery.append(" and server_name = ''");
-    							} else if(column.equalsIgnoreCase("User Name")) {
-    								filterQuery = filterQuery.append(" and source_id = ''");
-    							} else {
-    								filterQuery = filterQuery.append(" and (select json_array_elements(data::json) ->> '" + column + "') = ''");
-    							}
-        	    				
-        	    				
-        					} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
-        						if(column.equalsIgnoreCase("Server Name")) {
-    								filterQuery = filterQuery.append(" and server_name <> ''");
-    							} else if(column.equalsIgnoreCase("User Name")) {
-    								filterQuery = filterQuery.append(" and source_id <> ''");
-    							} else {
-    								filterQuery = filterQuery.append(" and (select json_array_elements(data::json) ->> '" + column + "') <> ''");
-    							}
-        	    				
-        	    				
-        					} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("startsWith")) {
-        						if(column.equalsIgnoreCase("Server Name")) {
-    								filterQuery = filterQuery.append(" and server_name ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'");
-    							} else if(column.equalsIgnoreCase("User Name")) {
-    								filterQuery = filterQuery.append(" and source_id ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'");
-    							} else {
-    								filterQuery = filterQuery.append(" and (select json_array_elements(data::json) ->> '" + column + "') ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'");
-    							}
-        	    				
-        	    				
-        					} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
-        						
-        						if(column.equalsIgnoreCase("Server Name")) {
-    								filterQuery = filterQuery.append(" and server_name ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'");
-    							} else if(column.equalsIgnoreCase("User Name")) {
-    								filterQuery = filterQuery.append(" and source_id ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'");
-    							} else {
-    								filterQuery = filterQuery.append(" and (select json_array_elements(data::json) ->> '" + column + "') ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'");
-    							}
-        					} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
-        						if(column.equalsIgnoreCase("Server Name")) {
-    								filterQuery = filterQuery.append(" and server_name <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'");
-    							} else if(column.equalsIgnoreCase("User Name")) {
-    								filterQuery = filterQuery.append(" and source_id <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'");
-    							} else {
-    								filterQuery = filterQuery.append(" and (select json_array_elements(data::json) ->> '" + column + "') <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'");
-    							}
-        					} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notContains")) {
-        						if(column.equalsIgnoreCase("Server Name")) {
-    								filterQuery = filterQuery.append(" and server_name not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'");
-    							} else if(column.equalsIgnoreCase("User Name")) {
-    								filterQuery = filterQuery.append(" and source_id not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'");
-    							} else {
-    								filterQuery = filterQuery.append(" and (select json_array_elements(data::json) ->> '" + column + "') not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'");
-    							}
-        					}
-    					}
-    				}
-    			}
     		}
     	} catch(Exception e) {
     		e.printStackTrace();
@@ -701,8 +608,10 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	try {
     		for(SortModel s: sortModel) {
-    			if(s.getColId().contains("Server Data~")) {
-    				String column_name = s.getColId().substring(s.getColId().indexOf("~") + 1, s.getColId().length());
+    			System.out.println("!!!!! colId: " + s.getActualColId());
+    			if(s.getActualColId().startsWith("Server Data~")) {
+    				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
+    				System.out.println("!!!!! column_name: " + column_name);
     				if(column_name.equalsIgnoreCase("Server Name")) {
     					orderBy = " order by server_name " + s.getSort();
     				} else if(column_name.equalsIgnoreCase("User Name")) {
@@ -710,13 +619,13 @@ public class PrivillegeAccessReportQueryBuilder {
     				} else if(column_name.equalsIgnoreCase("Server & User Name")) {
     					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
     				} else {
-    					orderBy = " order by (select json_array_elements(data::json) ->> '" + column_name + "') " + s.getSort();
+    					orderBy = " order by data::json ->> '" + column_name + "' " + s.getSort();
     				}
-    			} else {
-    					String column_name = s.getColId().substring(s.getColId().indexOf("~") + 1, s.getColId().length());
-    					String column_alias = s.getColId().substring(0, s.getColId().indexOf("~"));
+    			} /*else {
+    					String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
+    					String column_alias = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     					orderBy = "order by \"sd~" + column_alias + "_data\".data::json ->> '" + column_name + "') " + s.getSort() ;
-    			}
+    			}*/
     		}
     	} catch(Exception e) {
     		e.printStackTrace();
@@ -731,16 +640,11 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	try {
     		for(SortModel s: sortModel) {
-    			if(!s.getColId().contains("~")) {
-    				if(s.getColId().equalsIgnoreCase("Server Name")) {
-    					orderBy = " order by server_name " + s.getSort();
-    				} else if(s.getColId().equalsIgnoreCase("User Name")) {
-    					orderBy = " order by source_id " + s.getSort();
-    				} else if(s.getColId().equalsIgnoreCase("Server & User Name")) {
-    					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
-    				} else {
-    					orderBy = " order by (select json_array_elements(data::json) ->> '" + s.getColId() + "') " + s.getSort();
-    				}
+    			if(!s.getActualColId().contains("Server Data~")) {
+    				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
+    				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
+    				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (source_data1::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
+    						+ "else (source_data2::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
@@ -749,6 +653,8 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	return orderBy;
     }
+    
+    
 
 
 }

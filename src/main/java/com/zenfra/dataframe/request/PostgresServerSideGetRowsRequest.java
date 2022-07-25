@@ -1,15 +1,11 @@
 package com.zenfra.dataframe.request;
 
-import com.zenfra.dataframe.filter.ColumnFilter;
-
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
+import com.zenfra.dataframe.filter.ColumnFilter;
 
-public class ServerSideGetRowsRequest implements Serializable {
+public class PostgresServerSideGetRowsRequest {
 
     private int startRow, endRow;
 
@@ -32,7 +28,7 @@ public class ServerSideGetRowsRequest implements Serializable {
     private Map<String, ColumnFilter> filterModel;
 
     // if sorting, what the sort model is
-    private List<SortModel> sortModel;
+    private List<PostgresSortModel> sortModel;
     
     
     private String siteKey;
@@ -68,9 +64,6 @@ public class ServerSideGetRowsRequest implements Serializable {
     private String userId;
     
     private String exportType;
-    
-    private String healthCheckId;
-    private List<String> ruleList;
     
 
 
@@ -155,11 +148,11 @@ public class ServerSideGetRowsRequest implements Serializable {
         this.filterModel = filterModel;
     }
 
-    public List<SortModel> getSortModel() {
+    public List<PostgresSortModel> getSortModel() {
         return sortModel;
     }
 
-    public void setSortModel(List<SortModel> sortModel) {
+    public void setSortModel(List<PostgresSortModel> sortModel) {
         this.sortModel = sortModel;
     }
 
@@ -317,26 +310,4 @@ public class ServerSideGetRowsRequest implements Serializable {
 		this.userId = userId;
 	}
 
-	public String getHealthCheckId() {
-		return healthCheckId;
-	}
-
-	public void setHealthCheckId(String healthCheckId) {
-		this.healthCheckId = healthCheckId;
-	}
-
-	public List<String> getRuleList() {
-		return ruleList;
-	}
-
-	public void setRuleList(List<String> ruleList) {
-		this.ruleList = ruleList;
-	}
-	
-	
-	
-	
-
-    
-    
 }
