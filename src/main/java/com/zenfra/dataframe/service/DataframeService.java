@@ -3548,9 +3548,13 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 								+ "(select json_array_elements(pd.source_data::json)->>'" + xaxisColumnNameField + "' as \"colName\"");
 					}
 					 
-//					if (breakDownName != null && !breakDownName.isEmpty()) {
-//						query = query.concat(", pd.data::json ->> '"+breakDownName+"' as \"colBreakdown\"");
-//					}
+					if (breakDownName != null && !breakDownName.isEmpty()) {
+						if(xaxisColumnNameField.startsWith("Server Data~")) {
+							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
+						} else {
+							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownName + "' as \"colBreakdown\"");
+						}
+					}
 					
 					
 					for (int i = 0; i < yaxisColumnField.size(); i++) {
@@ -3641,10 +3645,16 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 
 					}
 					
-//					if (breakDownName != null && !breakDownName.isEmpty()) {
-//						query = query.concat(", pd.data::json ->> '" + breakDownName + "'");
-//					} 
-					 
+					if (breakDownName != null && !breakDownName.isEmpty()) {
+						if(xaxisColumnNameField.startsWith("Server Data~")) {
+							query = query.concat(", pd.server_data::json ->> '" + breakDownName + "'");
+
+						} else {
+							query = query.concat(", json_array_elements(pd.source_data::json) ->> '" + breakDownName + "'");
+
+						}
+					} 
+					
 					query = query.concat(") pd2 where pd2.\"colName\" is not null");
 					
 					System.out.println(" --------- Tanium line chart Query----------- : " + query);
