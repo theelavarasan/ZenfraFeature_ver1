@@ -3464,11 +3464,9 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}else {
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 							JsonMapper jsonMapper = new JsonMapper();
-							for(int j=0; j < yaxisNames.size(); j++) {
 								JSONObject jsonObject = new JSONObject();
-
 								JSONArray nameArray = new JSONArray();
-								nameArray.add(yaxisNames.get(j));
+								nameArray.add(xaxisColumnName);
 								jsonObject.put("name", nameArray);
 								JSONArray xarray = new JSONArray();
 								xarray.add(xaxisCloumnValues.get(i));
@@ -3479,7 +3477,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 								System.out.println("jsonObject : " + jsonObject);
 
 								array.add(jsonObject);
-							}
+							
 							
 						}
 					}
