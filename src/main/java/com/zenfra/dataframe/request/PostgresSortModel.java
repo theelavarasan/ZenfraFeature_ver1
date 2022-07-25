@@ -1,30 +1,25 @@
 package com.zenfra.dataframe.request;
 
-import java.io.Serializable;
 import java.util.Objects;
 
-public class SortModel implements Serializable {
+public class PostgresSortModel {
 
     private String colId;
     private String sort;
-    private String actualColId;
 
+    public PostgresSortModel() {}
 
-    public SortModel() {}
-
-    public SortModel(String colId, String sort) {
-    	this.actualColId = colId;
-        this.colId = colId.replace("\\s+", "_").toLowerCase();
+    public PostgresSortModel(String colId, String sort) {
+        this.colId = colId;
         this.sort = sort;
     }
 
     public String getColId() {
-        return colId.replace("\\s+", "_").toLowerCase();
+        return colId;
     }
 
     public void setColId(String colId) {
-    	this.actualColId = colId;
-        this.colId = colId.replace("\\s+", "_").toLowerCase();
+        this.colId = colId;
     }
 
     public String getSort() {
@@ -34,24 +29,31 @@ public class SortModel implements Serializable {
     public void setSort(String sort) {
         this.sort = sort;
     }
-    
-    
 
-    public String getActualColId() {
-		return actualColId;
-	}
-
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SortModel sortModel = (SortModel) o;
+        PostgresSortModel sortModel = (PostgresSortModel) o;
         return Objects.equals(colId, sortModel.colId) &&
                 Objects.equals(sort, sortModel.sort);
     }
 
     @Override
     public int hashCode() {
+
         return Objects.hash(colId, sort);
     }
+
+    @Override
+    public String toString() {
+        return "SortModel{" +
+                "colId='" + colId + '\'' +
+                ", sort='" + sort + '\'' +
+                '}';
+    }
+
+
+
+
 }

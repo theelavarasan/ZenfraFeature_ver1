@@ -148,7 +148,7 @@ public class TaniumGroupReportQueryBuilder {
 
     private BiFunction<String, NumberColumnFilter, String> numberFilter() {
         return (String columnName, NumberColumnFilter filter) -> {
-            Integer filterValue = filter.getFilter();
+            double filterValue = filter.getFilter();
             String filerType = filter.getType();
             String operator = operatorMap.get(filerType);
 
