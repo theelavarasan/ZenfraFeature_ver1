@@ -106,7 +106,7 @@ public class PrivillegeAccessReportDAO {
     						Set<String> keySet = sourceDataObject == null ? new HashSet<>() : sourceDataObject.keySet();
     						for(String key : keySet) {
     							JSONObject jsonObject1 = (JSONObject) sourceDataObject.get(key);
-    							Set<String> innerKeySet = jsonObject1.keySet();
+    							Set<String> innerKeySet = jsonObject1 == null ? new HashSet<>() : jsonObject1.keySet();
     							for(String key1 : innerKeySet) {
     								if(key1 != null && key1.isEmpty() && (key1.equalsIgnoreCase("Processed Date"))) {
     									String value = jsonObject1.get(key1).toString();
@@ -184,7 +184,7 @@ public class PrivillegeAccessReportDAO {
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' or ') as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
-				+ "concat(con_operator, (case when con_field_id ilike 'Server Data~%' then ' data::json ->> ''' else 'source_id in (select distinct primary_key_value from \r\n"
+				+ "concat(con_operator, (case when con_field_id ilike 'Server Data~%' then ' data::json ->> ''' else ' source_id in (select distinct primary_key_value from \r\n"
 				+ "source_data where site_key = '':site_key'' and data::json ->> ''' end),  substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), ''' ', \r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''%(',con_value, ')''') else (case when con_condition = 'endsWith' then concat(' ''(',con_value, ')%''')\r\n"
