@@ -3441,6 +3441,8 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					
 					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
+							for(int j=0; j < finalBreakDownValue.size(); j++) {
+
 							JSONObject jsonObject = new JSONObject();
 							JSONArray xarray = new JSONArray();
 							xarray.add(xaxisCloumnValues.get(i));
@@ -3449,11 +3451,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							yarray.add(valueArray.get(i));
 							jsonObject.put("y", yarray);
 							JSONArray nameArray = new JSONArray();
-							nameArray.add(finalBreakDownValue.get(i));
+							nameArray.add(finalBreakDownValue.get(j));
 							jsonObject.put("name", nameArray);
 							System.out.println("jsonObject : " + jsonObject);
 
 							array.add(jsonObject);
+							}
 						}
 					}else {
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
@@ -3462,7 +3465,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 								JSONObject jsonObject = new JSONObject();
 
 								JSONArray nameArray = new JSONArray();
-								nameArray.add(yaxisNames.get(i));
+								nameArray.add(yaxisNames.get(j));
 								jsonObject.put("name", nameArray);
 								JSONArray xarray = new JSONArray();
 								xarray.add(xaxisCloumnValues.get(i));
