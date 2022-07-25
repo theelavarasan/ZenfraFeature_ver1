@@ -3304,7 +3304,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						if(breakDownField.startsWith("Server Data~")) {
 							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
 						} else {
-							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownName + "' as \"colBreakdown\"");
+							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownField + "' as \"colBreakdown\"");
 						}
 					}
 					
@@ -3399,12 +3399,16 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							query = query.concat(", pd.server_data::json ->> '" + breakDownName + "'");
 
 						} else {
-							query = query.concat(", json_array_elements(pd.source_data::json) ->> '" + breakDownName + "'");
+							query = query.concat(", json_array_elements(pd.source_data::json) ->> '" + breakDownField + "'");
 
 						}
 					} 
 					 
 					query = query.concat(") pd2 where pd2.\"colName\" is not null");
+					
+					if(breakDownName != null && !breakDownName.isEmpty()) {
+						query = query.concat(" and pd2.\"colBreakdown\" is not null");
+					}
 					
 					System.out.println("------Tanium bar chart Query------ " + query); 
 					List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);	
@@ -3528,6 +3532,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					JSONObject breakDown = breakDownAry.isEmpty() ? new JSONObject()
 							: (JSONObject) breakDownAry.get(0);
 					String breakDownName = (String) breakDown.get("value");
+					String breakDownField = (String) breakDown.get("field");
 					JSONArray finalBreakDownValue = new JSONArray();
 
 					System.out.println(" breakDownName : " + breakDownName);
@@ -3544,10 +3549,10 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}
 					 
 					if (breakDownName != null && !breakDownName.isEmpty()) {
-						if(xaxisColumnNameField.startsWith("Server Data~")) {
+						if(breakDownField.startsWith("Server Data~")) {
 							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
 						} else {
-							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownName + "' as \"colBreakdown\"");
+							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownField + "' as \"colBreakdown\"");
 						}
 					}
 					
@@ -3638,16 +3643,20 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}
 					
 					if (breakDownName != null && !breakDownName.isEmpty()) {
-						if(xaxisColumnNameField.startsWith("Server Data~")) {
+						if(breakDownField.startsWith("Server Data~")) {
 							query = query.concat(", pd.server_data::json ->> '" + breakDownName + "'");
 
 						} else {
-							query = query.concat(", json_array_elements(pd.source_data::json) ->> '" + breakDownName + "'");
+							query = query.concat(", json_array_elements(pd.source_data::json) ->> '" + breakDownField + "'");
 
 						}
 					} 
 					
 					query = query.concat(") pd2 where pd2.\"colName\" is not null");
+					
+					if(breakDownName != null && !breakDownName.isEmpty()) {
+						query = query.concat(" and pd2.\"colBreakdown\" is not null");
+					}
 					
 					System.out.println(" --------- Tanium line chart Query----------- : " + query);
 					List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);	
