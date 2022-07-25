@@ -3295,7 +3295,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					 
 					if (breakDownName != null && !breakDownName.isEmpty()) {
 						if(xaxisColumnNameField.startsWith("Server Data~")) {
-							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as colBreakdown");
+							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
 						} else {
 							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownName + "' as \"colBreakdown\"");
 						}
@@ -3441,6 +3441,8 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					
 					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
+							for(int j=0; j < finalBreakDownValue.size(); j++) {
+
 							JSONObject jsonObject = new JSONObject();
 							JSONArray xarray = new JSONArray();
 							xarray.add(xaxisCloumnValues.get(i));
@@ -3449,28 +3451,33 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							yarray.add(valueArray.get(i));
 							jsonObject.put("y", yarray);
 							JSONArray nameArray = new JSONArray();
-							nameArray.add(finalBreakDownValue.get(i));
+							nameArray.add(finalBreakDownValue.get(j));
 							jsonObject.put("name", nameArray);
 							System.out.println("jsonObject : " + jsonObject);
 
 							array.add(jsonObject);
+							}
 						}
 					}else {
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 							JsonMapper jsonMapper = new JsonMapper();
-							JSONObject jsonObject = new JSONObject();
-							JSONArray nameArray = new JSONArray();
-							nameArray.add(valueArray.get(i));
-							jsonObject.put("name", nameArray);
-							JSONArray xarray = new JSONArray();
-							xarray.add(xaxisCloumnValues.get(i));
-							jsonObject.put("x", xarray);
-							JSONArray yarray = new JSONArray();
-							yarray.add(valueArray.get(i));
-							jsonObject.put("y", yarray);
-							System.out.println("jsonObject : " + jsonObject);
+							for(int j=0; j < yaxisNames.size(); j++) {
+								JSONObject jsonObject = new JSONObject();
 
-							array.add(jsonObject);
+								JSONArray nameArray = new JSONArray();
+								nameArray.add(yaxisNames.get(j));
+								jsonObject.put("name", nameArray);
+								JSONArray xarray = new JSONArray();
+								xarray.add(xaxisCloumnValues.get(i));
+								jsonObject.put("x", xarray);
+								JSONArray yarray = new JSONArray();
+								yarray.add(valueArray.get(i));
+								jsonObject.put("y", yarray);
+								System.out.println("jsonObject : " + jsonObject);
+
+								array.add(jsonObject);
+							}
+							
 						}
 					}
 
@@ -3542,15 +3549,19 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					
 					if(xaxisColumnNameField.startsWith("Server Data~")) {
 						query =query.concat("select * from\r\n"
-								+ "(select pd.server_data::json->>'" + xaxisColumnName + "' as colName");
+								+ "(select pd.server_data::json->>'" + xaxisColumnName + "' as \"colName\"");
 					} else {
 						query =query.concat("select * from\r\n"
-								+ "(select json_array_elements(pd.source_data::json)->>'" + xaxisColumnNameField + "' as colName");
+								+ "(select json_array_elements(pd.source_data::json)->>'" + xaxisColumnNameField + "' as \"colName\"");
 					}
 					 
-//					if (breakDownName != null && !breakDownName.isEmpty()) {
-//						query = query.concat(", pd.data::json ->> '"+breakDownName+"' as \"colBreakdown\"");
-//					}
+					if (breakDownName != null && !breakDownName.isEmpty()) {
+						if(xaxisColumnNameField.startsWith("Server Data~")) {
+							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
+						} else {
+							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownName + "' as \"colBreakdown\"");
+						}
+					}
 					
 					
 					for (int i = 0; i < yaxisColumnField.size(); i++) {
@@ -3641,11 +3652,17 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 
 					}
 					
-//					if (breakDownName != null && !breakDownName.isEmpty()) {
-//						query = query.concat(", pd.data::json ->> '" + breakDownName + "'");
-//					} 
-					 
-					query = query.concat(") pd2 where pd2.xaxis is not null");
+					if (breakDownName != null && !breakDownName.isEmpty()) {
+						if(xaxisColumnNameField.startsWith("Server Data~")) {
+							query = query.concat(", pd.server_data::json ->> '" + breakDownName + "'");
+
+						} else {
+							query = query.concat(", json_array_elements(pd.source_data::json) ->> '" + breakDownName + "'");
+
+						}
+					} 
+					
+					query = query.concat(") pd2 where pd2.\"colName\" is not null");
 					
 					System.out.println(" --------- Tanium line chart Query----------- : " + query);
 					List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);	
@@ -3666,11 +3683,13 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 								System.out.println("-------values------" + jsonObj.get(key));
 
 								valueArray.add(jsonObj.get(key));
-							} else if (key.contains("colName")) {
+							}
+							if (key.contains("colName")) {
 //								name
 								System.out.println("---------xaxis name--------" + jsonObj.get(key));
 								xaxisCloumnValues.add(jsonObj.get(key));
-							} else if (key.contains("colBreakdown")) {
+							} 
+							if (key.contains("colBreakdown")) {
 								System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
 								finalBreakDownValue.add(jsonObj.get(key));
 							}
@@ -3987,10 +4006,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 								System.out.println();
 								if (key.contains("colValue")) {
 									yValuesArray.add(resultObject.get(key));
-								} else if (key.contains("colName")) {
+								} 
+								if (key.contains("colName")) {
 									System.out.println("---------xaxis name--------" + resultObject.get(key));
 									xValuesArray.add(resultObject.get(key));
-								} else if (key.contains("colBreakdown")) {
+								} 
+								if (key.contains("colBreakdown")) {
 									System.out.println("---------colBreakdown values--------" + resultObject.get(key));
 									finalBreakDownValue.add(resultObject.get(key));
 								}
