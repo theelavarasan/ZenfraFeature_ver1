@@ -3329,7 +3329,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}
 
 					query = query.concat("from (\r\n"
-							+ "select server_name, data as server_data, (source_data1::jsonb || source_data2::jsonb) as source_data from (\r\n"
+							+ "select server_name, data as server_data, (coalesce(source_data1,'{}')::jsonb|| coalesce(source_data2,'{}')::jsonb ) as source_data from (\r\n"
 							+ "Select pd.server_name,pd.data,sd1.source_data1,sd2.source_data2\r\n"
 							+ "from privillege_data pd\r\n"
 							+ "LEFT JOIN (select a.primary_key_value,jsonb_agg(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data1\r\n"
@@ -3577,7 +3577,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}
 
 					query = query.concat("from (\r\n"
-							+ "select server_name, data as server_data, (source_data1::jsonb || source_data2::jsonb) as source_data from (\r\n"
+							+ "select server_name, data as server_data, (coalesce(source_data1,'{}')::jsonb|| coalesce(source_data2,'{}')::jsonb ) as source_data from (\r\n"
 							+ "Select pd.server_name,pd.data,sd1.source_data1,sd2.source_data2\r\n"
 							+ "from privillege_data pd\r\n"
 							+ "LEFT JOIN (select a.primary_key_value,jsonb_agg(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data1\r\n"
