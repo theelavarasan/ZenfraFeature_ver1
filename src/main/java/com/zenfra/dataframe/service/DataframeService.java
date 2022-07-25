@@ -2287,6 +2287,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String outputFilePath = "";
 		System.out.println("----request------" + request.getAnalyticstype());
 		
+		System.out.println("--------- request.getReportBy : " + request.getReportBy());
 		try {
 			String siteKey = request.getSiteKey();
 			String userId = request.getUserId();
@@ -3441,41 +3442,34 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					System.out.println("breakDownName : " + breakDownName);
 					JSONArray array = new JSONArray();
 					
+					JSONObject jsonObject = new JSONObject();
+					JSONArray xarray = new JSONArray();
+					JSONArray yarray = new JSONArray();
+					
 					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
 						System.out.println("1");
-						JSONObject jsonObject = new JSONObject();
-						JSONArray xarray = new JSONArray();
-						JSONArray yarray = new JSONArray();
-						JSONArray nameArray = new JSONArray();
 
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 							xarray.add(xaxisCloumnValues.get(i));
 							yarray.add(valueArray.get(i));
 						}
-						nameArray.add(finalBreakDownValue);
 
 						jsonObject.put("x", xarray);
 						jsonObject.put("y", yarray);
-						jsonObject.put("name", nameArray);
-						array.add(jsonObject);
-
-					}else {
-						JSONObject jsonObject = new JSONObject();
-						JSONArray xarray = new JSONArray();
-						JSONArray yarray = new JSONArray();
-
-						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
-							JsonMapper jsonMapper = new JsonMapper();
-								xarray.add(xaxisCloumnValues.get(i));
-								yarray.add(valueArray.get(i));
-								
-						}
-						jsonObject.put("name", xaxisColumnName);
-						jsonObject.put("x", xarray);
-						jsonObject.put("y", yarray);
+						jsonObject.put("name", breakDownName);
 						array.add(jsonObject);
 
 					}
+					for (int i = 0; i < xaxisCloumnValues.size(); i++) {
+						JsonMapper jsonMapper = new JsonMapper();
+						xarray.add(xaxisCloumnValues.get(i));
+						yarray.add(valueArray.get(i));
+
+					}
+					jsonObject.put("name", xaxisColumnName);
+					jsonObject.put("x", xarray);
+					jsonObject.put("y", yarray);
+					array.add(jsonObject);
 
 					resultData.put("data", array);
 					
