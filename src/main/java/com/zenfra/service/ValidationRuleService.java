@@ -967,11 +967,11 @@ public class ValidationRuleService {
 					") e where keys = substring('" + columnName + "', position('_' in '" + columnName + "') + 1, length('" + columnName + "')) \r\n " +
 					"union all \r\n " +
 					" select keys, json_agg(data) as data from (\r\n" + 
-					"select concat(source_name,'_',keys) as keys, data from (\r\n" + 
-					"select distinct source_name, keys, data::json ->> keys as data from (\r\n" + 
-					"select source_name, data, keys from (\r\n" + 
-					"select source_name, primary_key, data, json_object_keys(data::json) as keys from (\r\n" + 
-					"select source_name, primary_key, data from source_data sd \r\n" + 
+					"select concat(source_id,'~',keys) as keys, data from (\r\n" + 
+					"select distinct source_id, keys, data::json ->> keys as data from (\r\n" + 
+					"select source_id, data, keys from (\r\n" + 
+					"select source_id, primary_key, data, json_object_keys(data::json) as keys from (\r\n" + 
+					"select sd.source_id, primary_key, data from source_data sd \r\n" + 
 					"LEFT JOIN source sc on sc.source_id = sd.source_id\r\n" + 
 					"where sd.source_id in (select json_array_elements_text((input_source::jsonb || third_party_list::jsonb)::json) from project where project_id = '" + reportBy + "') \r\n" + 
 					"and lower(primary_key_value) in (select lower(server_name) from tasklist where is_active = true and project_id = '" + reportBy + "') \r\n" +
