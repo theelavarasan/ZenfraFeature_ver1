@@ -106,7 +106,7 @@ public class PrivillegeAccessReportDAO {
     						Set<String> keySet = sourceDataObject == null ? new HashSet<>() : sourceDataObject.keySet();
     						for(String key : keySet) {
     							JSONObject jsonObject1 = (JSONObject) sourceDataObject.get(key);
-    							Set<String> innerKeySet = jsonObject1.keySet();
+    							Set<String> innerKeySet = jsonObject1 == null ? new HashSet<>() : jsonObject1.keySet();
     							for(String key1 : innerKeySet) {
     								if(key1 != null && key1.isEmpty() && (key1.equalsIgnoreCase("Processed Date"))) {
     									String value = jsonObject1.get(key1).toString();
