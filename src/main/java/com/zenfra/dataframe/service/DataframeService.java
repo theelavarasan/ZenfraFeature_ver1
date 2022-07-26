@@ -3449,22 +3449,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					JSONArray xarray = new JSONArray();
 					JSONArray yarray = new JSONArray();
 					
-					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
-						System.out.println("1");
-
-						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
-							xarray.add(xaxisCloumnValues.get(i));
-							yarray.add(valueArray.get(i));
-						}
-
-						jsonObject.put("x", xarray);
-						jsonObject.put("y", yarray);
-						jsonObject.put("name", breakDownName);
-						array.add(jsonObject);
-
-					}
 					for (int i = 0; i < xaxisCloumnValues.size(); i++) {
-						JsonMapper jsonMapper = new JsonMapper();
 						xarray.add(xaxisCloumnValues.get(i));
 						yarray.add(valueArray.get(i));
 
@@ -3473,6 +3458,24 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					jsonObject.put("x", xarray);
 					jsonObject.put("y", yarray);
 					array.add(jsonObject);
+					
+					System.out.println(array);
+
+					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
+						System.out.println("1");
+						JSONObject jsonObject2 = new JSONObject();
+
+						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
+							xarray.add(xaxisCloumnValues.get(i));
+							yarray.add(valueArray.get(i));
+						}
+
+						jsonObject2.put("x", xarray);
+						jsonObject2.put("y", yarray);
+						jsonObject2.put("name", breakDownName);
+						array.add(jsonObject2);
+
+					}
 
 					resultData.put("data", array);
 					
@@ -3488,7 +3491,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}else if (chartType != null && chartType.equalsIgnoreCase("line")) {
+		}else if (chartType != null && (chartType.equalsIgnoreCase("line") || chartType.equalsIgnoreCase("scatter"))) {
 			try {
 
 				System.out.println("------- chart 1-------- " + chartConfig);
