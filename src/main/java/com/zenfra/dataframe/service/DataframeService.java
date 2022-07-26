@@ -3126,7 +3126,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					if(!filterModel.isEmpty() && filterModel != null) {
 						
 						JSONObject filterModelObject = filterModel;
-						System.out.println("filterModelArray : " + filterModelObject);
 						Set<String> filterKeys = new HashSet<>();
 						for (int i = 0; i < filterModelObject.size(); i++) {
 							JSONObject jsonObj = filterModelObject;
@@ -3242,14 +3241,12 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 		}else if(chartType.equalsIgnoreCase("bar")) {
 			try {
 
-				System.out.println("------- chart bar-------- " + chartConfig);
 
 				if (chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
 					JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
 					JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
 					JSONArray breakDownAry = (JSONArray) chartConfig.get("breakdown");
 
-					System.out.println("---- breakDownAry : " + breakDownAry);
 
 					// yaxis column names
 					JSONObject yaxisColumn = new JSONObject();
@@ -3271,10 +3268,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						yaxisColumnField.add(yaxisColumnFieldName);
 					}
 					
-					System.out.println("classNameArray : " + classNameArray);
-					System.out.println("yaxisNames : " + yaxisNames);
-					System.out.println("yaxisColumnField : " + yaxisColumnField);
-
 					// xaxis column names
 					JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
 					String xaxisColumnNameField =  (String) xaxisColumn.get("field");
@@ -3287,7 +3280,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					String breakDownField = (String) breakDown.get("field");
 					JSONArray finalBreakDownValue = new JSONArray();
 
-					System.out.println(" breakDownName : " + breakDownName);
 				
 					String query = "";
 					
@@ -3349,13 +3341,11 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							+ ") pd ");
 
 
-					System.out.println("filterModel : " + filterModel);
 
 //conditions for filtering
 					if(!filterModel.isEmpty() && filterModel != null) {
 						
 						JSONObject filterModelObject = filterModel;
-						System.out.println("filterModelArray : " + filterModelObject);
 						Set<String> filterKeys = new HashSet<>();
 						for (int i = 0; i < filterModelObject.size(); i++) {
 							JSONObject jsonObj = filterModelObject;
@@ -3438,67 +3428,53 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						}
 					}
 					
-					System.out.println("valueArray : " + valueArray);
-					System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);
-					System.out.println("yaxisNames : " + yaxisNames);
-
-					System.out.println("breakDownName : " + breakDownName);
 					JSONArray array = new JSONArray();
-					
-					JSONObject jsonObject = new JSONObject();
-					JSONArray xarray = new JSONArray();
-					JSONArray yarray = new JSONArray();
-					
-					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
-						System.out.println("1");
+	
 
+					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
+						
+						for (int i = 0; i < finalBreakDownValue.size(); i++) {
+							JSONObject jsonObject2 = new JSONObject();
+							JSONArray breakdownXArray = new JSONArray();
+							JSONArray breakdownYArray = new JSONArray();
+							breakdownXArray.add(xaxisCloumnValues.get(i));
+							jsonObject2.put("x", breakdownXArray);
+							breakdownYArray.add(valueArray.get(i));
+							jsonObject2.put("y", breakdownYArray);
+							jsonObject2.put("name", finalBreakDownValue.get(i));
+							array.add(jsonObject2);
+						}
+					} else {
+						JSONObject jsonObject = new JSONObject();
+						JSONArray xarray = new JSONArray();
+						JSONArray yarray = new JSONArray();
+						
 						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 							xarray.add(xaxisCloumnValues.get(i));
 							yarray.add(valueArray.get(i));
-						}
 
+						}
+						jsonObject.put("name", xaxisColumnName);
 						jsonObject.put("x", xarray);
 						jsonObject.put("y", yarray);
-						jsonObject.put("name", breakDownName);
 						array.add(jsonObject);
-
 					}
-					for (int i = 0; i < xaxisCloumnValues.size(); i++) {
-						JsonMapper jsonMapper = new JsonMapper();
-						xarray.add(xaxisCloumnValues.get(i));
-						yarray.add(valueArray.get(i));
-
-					}
-					jsonObject.put("name", xaxisColumnName);
-					jsonObject.put("x", xarray);
-					jsonObject.put("y", yarray);
-					array.add(jsonObject);
 
 					resultData.put("data", array);
 					
-//					System.out.println("y axis name : " + yaxisNames);
-//					System.out.println("y axis values : " + valueArray);
-//					System.out.println("xaxisCloumnNames : " + xaxisColumnName);
-//					System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);							
-
-					System.out.println("-------final resultLsit::-------- " + resultData.size());
-
 				}
 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}else if (chartType != null && chartType.equalsIgnoreCase("line")) {
+		}else if (chartType != null && (chartType.equalsIgnoreCase("line") || chartType.equalsIgnoreCase("scatter"))) {
+			
 			try {
-
-				System.out.println("------- chart 1-------- " + chartConfig);
 
 				if (chartConfig.containsKey("xaxis") && chartConfig.containsKey("yaxis")) {
 					JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
 					JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
 					JSONArray breakDownAry = (JSONArray) chartConfig.get("breakdown");
-
-					System.out.println("---- breakDownAry : " + breakDownAry);
 
 					// yaxis column names
 					JSONObject yaxisColumn = new JSONObject();
@@ -3519,8 +3495,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						yaxisColumnField.add(yaxisColumnFieldName);
 
 					}
-					System.out.println("classNameArray : " + classNameArray);
-					System.out.println("yaxisNames : " + yaxisNames);
 
 					// xaxis column names
 					JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
@@ -3533,9 +3507,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					String breakDownName = (String) breakDown.get("value");
 					String breakDownField = (String) breakDown.get("field");
 					JSONArray finalBreakDownValue = new JSONArray();
-
-					System.out.println(" breakDownName : " + breakDownName);
-					System.out.println("------- chart 3-------- " + xaxisColumnName + " : " + yaxisNames);
 
 					String query = "";
 					
@@ -3597,13 +3568,11 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							+ ") pd ");
 
 
-					System.out.println("filterModel : " + filterModel);
 
 //conditions for filtering
 					if(!filterModel.isEmpty() && filterModel != null) {
 						
 						JSONObject filterModelObject = filterModel;
-						System.out.println("filterModelArray : " + filterModelObject);
 						Set<String> filterKeys = new HashSet<>();
 						for (int i = 0; i < filterModelObject.size(); i++) {
 							JSONObject jsonObj = filterModelObject;
@@ -3664,13 +3633,11 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 				 
 
 					for (Map<String, Object> resultMap : resultSet) {
-						System.out.println("resultLsit 1 : " + resultMap);
 						JSONObject jsonObj = new JSONObject();
 						jsonObj.putAll(resultMap);
 						Iterator iterator = jsonObj.keySet().iterator();
 						while (iterator.hasNext()) {
 							String key = (String) iterator.next();
-							System.out.println();
 							if (key.contains("colValue")) {
 								valueArray.add(jsonObj.get(key));
 							}
@@ -3682,7 +3649,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							}
 						}
 					}
-					System.out.println("finalBreakDownValue : " + finalBreakDownValue);
 					JSONArray array = new JSONArray();
 					for (int i = 0; i < yaxisNames.size(); i++) {
 						JSONObject jsonObject = new JSONObject();
@@ -3697,11 +3663,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}
 
 					resultData.put("data", array);
-
-//					System.out.println("y axis name : " + yaxisNames);
-//					System.out.println("y axis values : " + valueArray);
-//					System.out.println("xaxisCloumnNames : " + xaxisColumnName);
-//					System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);							
 
 				}
 
@@ -3779,32 +3740,27 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 
 							lableDataset = sparkSession
 									.sql("select distinct(`" + columnName + "`) from global_temp." + viewName).toDF();
-							System.out.println("-------lableDataset::1-------- " + lableDataset);
 
 						} catch (Exception e) {
 							createDataframeFromJsonFile(viewName, dataframeFilePath);
 							lableDataset = sparkSession
 									.sql("select distinct(`" + columnName + "`) from global_temp." + viewName).toDF();
-							System.out.println("-------lableDataset::2-------- " + lableDataset);
 						}
 
 						List<String> cloumnValues = lableDataset.as(Encoders.STRING()).collectAsList();
 						String cloumnValuesStr = String.join(",", cloumnValues.stream()
 								.map(name -> ("'" + name.toLowerCase() + "'")).collect(Collectors.toList()));
 
-						System.out.println("-------cloumnValues::7-------- " + cloumnValues);
 
 						if (operater.equalsIgnoreCase("count")) {
 							dataset = sparkSession.sql("select `" + columnName
 									+ "` as `colName`, count(*) as `colValue`  from global_temp." + viewName
 									+ "  where lower(`" + columnName + "`) in (" + cloumnValuesStr + ") group by `"
 									+ columnName + "` ");
-							System.out.println("-------dataset::1-------- " + dataset);
 						} else if (operater.equalsIgnoreCase("sum")) {
 							dataset = sparkSession.sql("select `" + columnName + "`as `colName`, sum(`" + columnName
 									+ "`) as `colValue` from global_temp." + viewName + "  where `" + columnName
 									+ "` in (" + cloumnValuesStr + ") group by `" + columnName + "`");
-							System.out.println("-------dataset::2-------- " + dataset);
 						}
 
 						List<String> resultLsit = dataset.toJSON().collectAsList();
@@ -3830,7 +3786,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
 						JSONArray breakDownAry = (JSONArray) chartConfig.get("breakdown");
 
-						System.out.println("---- breakDownAry : " + breakDownAry);
 
 						// yaxis column names
 						JSONObject yaxisColumn = new JSONObject();
@@ -3846,8 +3801,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							yaxisNames.add(yaxisColumnName);
 							classNameArray.add(className);
 						}
-						System.out.println("classNameArray : " + classNameArray);
-						System.out.println("yaxisNames : " + yaxisNames);
 
 						// xaxis column names
 						JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
@@ -3859,9 +3812,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						String breakDownName = (String) breakDown.get("value");
 						JSONArray finalBreakDownValue = new JSONArray();
 
-						System.out.println(" breakDownName : " + breakDownName);
-						System.out.println("------- chart 3-------- " + xaxisColumnName + " : " + yaxisNames);
-
 						Dataset<Row> dataSet = sparkSession.emptyDataFrame();
 
 						String query = "select `" + xaxisColumnName + "` as `colName`";
@@ -3871,7 +3821,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						}
 						for (int i = 0; i < yaxisNames.size(); i++) {
 							String operater = (String) classNameArray.get(i);
-							System.out.println("operater : " + operater);
 							if (operater.contains("count")) {
 								query = query.concat(", count(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
 							} else if (operater.contains("sum")) {
@@ -3882,23 +3831,19 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						query = query.concat(" from global_temp." + viewName);
 
 // conditions for filtering
-						System.out.println("filterModel : " + filterModel);
 						if(!filterModel.isEmpty() && filterModel != null) {
 							JSONObject filterModelObject = filterModel;
-							System.out.println("filterModelArray : " + filterModelObject);
 							Set<String> filterKeys = new HashSet<>();
 							for (int i = 0; i < filterModelObject.size(); i++) {
 								JSONObject jsonObj = filterModelObject;
 								filterKeys.addAll(jsonObj.keySet());
 							}
-							System.out.println("filterKeys : " + filterKeys);
 
 							query = query.concat(" where ");
 							
 
 							for (String key : filterKeys) {
 								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
-								System.out.println(key + " : " + filterColumnName);
 								query = query.concat("`" + key + "`");
 								for(int i = 1; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
 									if (filterColumnName.containsKey("type")) {
@@ -3929,26 +3874,19 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							createDataframeFromJsonFile(viewName, dataframeFilePath);
 							dataSet = sparkSession.sql(query).toDF();
 						}
-						System.out.println("dataSet : " + dataSet);
 						List<String> resultLsit = dataSet.toJSON().collectAsList();
 						JSONArray xaxisCloumnValues = new JSONArray();
-						System.out.println("resultLsit : " + resultLsit);
-
-						
-
+	
 						JSONObject resultObject = new JSONObject();
 						JSONParser jsonParser = new JSONParser();
 						JSONArray dataArray = (JSONArray) jsonParser.parse(resultLsit.toString());
 						
-						System.out.println("dataArray : " + dataArray);
 						Set<String> keys = new HashSet<>();
 						for(int i=0; i< dataArray.size() ; i++) {
 							JSONObject jsonObj = (JSONObject) dataArray.get(i);
 							keys.addAll(jsonObj.keySet());
-						}
-						
-						System.out.println("keys : " +  keys);
-						
+						}			
+				
 						Map<String, JSONArray> resultMap = new HashMap<>();
 						
 						for(String key : keys) {
@@ -3962,51 +3900,37 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							if(!valuesArray.isEmpty()) {
 								resultMap.put(key, valuesArray);
 							}
-							System.out.println("valuesArray : " + valuesArray);
 
 						}
-						System.out.println("resultMap : " + resultMap);
 						if(!resultMap.isEmpty()) {
 							List<String> keyList = new ArrayList<>(resultMap.keySet());
 
 							for(int i = 0; i < keyList.size(); i++) {
 								resultObject.put(keyList.get(i), resultMap.get(keyList.get(i)));
 							}
-							System.out.println("keyList : " + keyList);
 
 						}
 						
-						System.out.println("resultdataMap : " + resultObject);
-					
 						JSONArray xValuesArray = new JSONArray();
 						JSONArray yValuesArray = new JSONArray();
 						
-							System.out.println("resultLsit 1 : " + resultObject);
 							Iterator iterator = resultObject.keySet().iterator();
 							while (iterator.hasNext()) {
 								String key = (String) iterator.next();
-								System.out.println();
 								if (key.contains("colValue")) {
 									yValuesArray.add(resultObject.get(key));
 								} 
 								if (key.contains("colName")) {
-									System.out.println("---------xaxis name--------" + resultObject.get(key));
 									xValuesArray.add(resultObject.get(key));
 								} 
 								if (key.contains("colBreakdown")) {
-									System.out.println("---------colBreakdown values--------" + resultObject.get(key));
 									finalBreakDownValue.add(resultObject.get(key));
 								}
 							}
-						
-						
-						System.out.println("xValuesArray : " + xValuesArray);
-						System.out.println("yValuesArray : " + yValuesArray);
 
 						JSONArray combinedValuesArray = new JSONArray();
 						combinedValuesArray.add(xValuesArray);
 						combinedValuesArray.add(yValuesArray);
-						System.out.println("combinedValuesArray : " + combinedValuesArray);
 						
 						JSONObject cellsObject = new JSONObject();
 						cellsObject.put("values", combinedValuesArray);
@@ -4014,7 +3938,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						JSONArray combinedHeaderArray = new JSONArray();
 						combinedHeaderArray.add(xaxisColumnName);
 						combinedHeaderArray.add(yaxisNames);
-						System.out.println("combinedHeaderArray : " + combinedHeaderArray);
 						
 						JSONObject headerObject = new JSONObject();
 						headerObject.put("values", combinedHeaderArray);
@@ -4036,8 +3959,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
 						JSONArray breakDownAry = (JSONArray) chartConfig.get("breakdown");
 
-						System.out.println("---- breakDownAry : " + breakDownAry);
-
 						// yaxis column names
 						JSONObject yaxisColumn = new JSONObject();
 						String yaxisColumnName = "";
@@ -4052,8 +3973,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							classNameArray.add(className);
 							yaxisNames.add(yaxisColumnName);
 						}
-						System.out.println("classNameArray : " + classNameArray);
-						System.out.println("yaxisNames : " + yaxisNames);
 
 						// xaxis column names
 						JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
@@ -4065,10 +3984,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						String breakDownName = (String) breakDown.get("value");
 						JSONArray finalBreakDownValue = new JSONArray();
 
-						System.out.println(" breakDownName : " + breakDownName);
-						System.out.println("------- chart 3-------- " + xaxisColumnName + " : " + yaxisNames);
-
-						
+					
 						Dataset<Row> dataSet = sparkSession.emptyDataFrame();
 
 						String query = "select `" + xaxisColumnName + "` as `colName`";
@@ -4078,7 +3994,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						}
 						for (int i = 0; i < yaxisNames.size(); i++) {
 							String operater = (String) classNameArray.get(i);
-							System.out.println("operater : " + operater);
 							if (operater.contains("count")) {
 								query = query.concat(", count(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
 							} else if (operater.contains("sum")) {
@@ -4089,23 +4004,19 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						query = query.concat(" from global_temp." + viewName);
 
 // conditions for filtering
-						System.out.println("filterModel : " + filterModel);
 						if(!filterModel.isEmpty() && filterModel != null) {
 							JSONObject filterModelObject = filterModel;
-							System.out.println("filterModelArray : " + filterModelObject);
 							Set<String> filterKeys = new HashSet<>();
 							for (int i = 0; i < filterModelObject.size(); i++) {
 								JSONObject jsonObj = filterModelObject;
 								filterKeys.addAll(jsonObj.keySet());
 							}
-							System.out.println("filterKeys : " + filterKeys);
 
 							query = query.concat(" where ");
 							
 
 							for (String key : filterKeys) {
 								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
-								System.out.println("Key " + key + " : " + filterColumnName);
 								query = query.concat("`" + key + "`");
 								
 								for(int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
@@ -4128,7 +4039,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						if (breakDownName != null && !breakDownName.isEmpty()) {
 							query = query.concat(", `" + breakDownName + "`");
 						}
-						System.out.println(" final query : " + query);
 
 						try {
 							dataSet = sparkSession.sql(query).toDF();
@@ -4137,18 +4047,14 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							dataSet = sparkSession.sql(query).toDF();
 						}
 						
-						System.out.println("dataSet : " + dataSet);
 						List<String> resultLsit = dataSet.toJSON().collectAsList();
 						JSONArray xaxisCloumnValues = new JSONArray();
-						System.out.println("resultLsit : " + resultLsit);
 
 						for (int i = 0; i < resultLsit.size(); i++) {
-							System.out.println("resultLsit 1 : " + resultLsit.get(i));
 							JSONObject jsonObj = (JSONObject) parser.parse(resultLsit.get(i));
 							Iterator iterator = jsonObj.keySet().iterator();
 							while (iterator.hasNext()) {
 								String key = (String) iterator.next();
-								System.out.println();
 								if (key.contains("colValue")) {
 									// values
 									valueArray.add(jsonObj.get(key));
@@ -4163,11 +4069,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							}
 						}
 						
-						System.out.println("valueArray : " + valueArray);
-						System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);
-						System.out.println("yaxisNames : " + yaxisNames);
-
-						System.out.println("finalBreakDownValue : " + finalBreakDownValue);
 						JSONArray array = new JSONArray();
 						
 				
@@ -4183,7 +4084,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 								JSONArray nameArray = new JSONArray();
 								nameArray.add(finalBreakDownValue.get(i));
 								jsonObject.put("name", nameArray);
-								System.out.println("jsonObject : " + jsonObject);
 
 								array.add(jsonObject);
 							}
@@ -4200,22 +4100,13 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 								JSONArray yarray = new JSONArray();
 								yarray.add(valueArray.get(i));
 								jsonObject.put("y", yarray);
-								System.out.println("jsonObject : " + jsonObject);
 
 								array.add(jsonObject);
 							}
 						}
 
-						System.out.println("----- array" + array);
 
 						resultData.put("data", array);
-
-//						System.out.println("y axis name : " + yaxisNames);
-//						System.out.println("y axis values : " + valueArray);
-//						System.out.println("xaxisCloumnNames : " + xaxisColumnName);
-//						System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);							
-
-						System.out.println("-------final resultLsit::-------- " + resultData);
 
 					}
 
@@ -4232,7 +4123,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
 						JSONArray breakDownAry = (JSONArray) chartConfig.get("breakdown");
 
-						System.out.println("---- breakDownAry : " + breakDownAry);
 
 						// yaxis column names
 						JSONObject yaxisColumn = new JSONObject();
@@ -4248,8 +4138,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							classNameArray.add(className);
 							yaxisNames.add(yaxisColumnName);
 						}
-						System.out.println("classNameArray : " + classNameArray);
-						System.out.println("yaxisNames : " + yaxisNames);
 
 						// xaxis column names
 						JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
@@ -4261,10 +4149,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						String breakDownName = (String) breakDown.get("value");
 						JSONArray finalBreakDownValue = new JSONArray();
 
-						System.out.println(" breakDownName : " + breakDownName);
-						System.out.println("------- chart 3-------- " + xaxisColumnName + " : " + yaxisNames);
-
-						
+					
 						Dataset<Row> dataSet = sparkSession.emptyDataFrame();
 
 						String query = "select `" + xaxisColumnName + "` as `colName`";
@@ -4274,7 +4159,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						}
 						for (int i = 0; i < yaxisNames.size(); i++) {
 							String operater = (String) classNameArray.get(i);
-							System.out.println("operater : " + operater);
 							if (operater.contains("count")) {
 								query = query.concat(", count(`" + yaxisNames.get(i) + "`) as `colValue" + i + "`");
 							} else if (operater.contains("sum")) {
@@ -4285,23 +4169,19 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						query = query.concat(" from global_temp." + viewName);
 
 // conditions for filtering
-						System.out.println("filterModel : " + filterModel);
 						if(!filterModel.isEmpty() && filterModel != null) {
 							JSONObject filterModelObject = filterModel;
-							System.out.println("filterModelArray : " + filterModelObject);
 							Set<String> filterKeys = new HashSet<>();
 							for (int i = 0; i < filterModelObject.size(); i++) {
 								JSONObject jsonObj = filterModelObject;
 								filterKeys.addAll(jsonObj.keySet());
 							}
-							System.out.println("filterKeys : " + filterKeys);
 
 							query = query.concat(" where ");
 							
 
 							for (String key : filterKeys) {
 								JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
-								System.out.println(key + " : " + filterColumnName);
 								query = query.concat("`" + key + "`");
 								for(int i = 1; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
 									if (filterColumnName.containsKey("type")) {
@@ -4323,7 +4203,6 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						if (breakDownName != null && !breakDownName.isEmpty()) {
 							query = query.concat(", `" + breakDownName + "`");
 						}
-						System.out.println(" final query : " + query);
 
 						try {
 							dataSet = sparkSession.sql(query).toDF();
@@ -4331,34 +4210,25 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							createDataframeFromJsonFile(viewName, dataframeFilePath);
 							dataSet = sparkSession.sql(query).toDF();
 						}
-						System.out.println("dataSet : " + dataSet);
 						List<String> resultLsit = dataSet.toJSON().collectAsList();
 						JSONArray xaxisCloumnValues = new JSONArray();
-						System.out.println("resultLsit : " + resultLsit);
 
 						for (int i = 0; i < resultLsit.size(); i++) {
-							System.out.println("resultLsit 1 : " + resultLsit.get(i));
 							JSONObject jsonObj = (JSONObject) parser.parse(resultLsit.get(i));
 							Iterator iterator = jsonObj.keySet().iterator();
 							while (iterator.hasNext()) {
 								String key = (String) iterator.next();
-								System.out.println();
 								if (key.contains("colValue")) {
 									// values
-									System.out.println("-------values------" + jsonObj.get(key));
-
 									valueArray.add(jsonObj.get(key));
 								} else if (key.contains("colName")) {
 //									name
-									System.out.println("---------xaxis name--------" + jsonObj.get(key));
 									xaxisCloumnValues.add(jsonObj.get(key));
 								} else if (key.contains("colBreakdown")) {
-									System.out.println("---------colBreakdown values--------" + jsonObj.get(key));
 									finalBreakDownValue.add(jsonObj.get(key));
 								}
 							}
 						}
-						System.out.println("finalBreakDownValue : " + finalBreakDownValue);
 						JSONArray array = new JSONArray();
 						for (int i = 0; i < yaxisNames.size(); i++) {
 							JSONObject jsonObject = new JSONObject();
@@ -4370,19 +4240,10 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							}
 							array.add(jsonObject);
 
-							System.out.println("-------resultLsit -------- " + resultData);
 						}
 
-						System.out.println("----- array" + array);
 
 						resultData.put("data", array);
-
-//						System.out.println("y axis name : " + yaxisNames);
-//						System.out.println("y axis values : " + valueArray);
-//						System.out.println("xaxisCloumnNames : " + xaxisColumnName);
-//						System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);							
-
-						System.out.println("-------final resultLsit::-------- " + resultData);
 
 					}
 
