@@ -187,17 +187,17 @@ public class LogFileDetailsDao extends JdbcCommonOperations implements IDao<LogF
 
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
+		
+		String selectQuery = "select *, \r\n" + "(case when log_type ilike 'zoom' then concat(file_name, '-', \r\n"
+				+ "to_char(to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss')::timestamp, 'mm-dd-yyyy hh24:mi:ss')) \r\n"
+				+ "else file_name end) as file_name2 from log_file_details \r\n" + "where is_active= " + isActive
+				+ " and  site_key= '" + siteKey + "'\r\n"
+				+ "order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') \r\n" + "desc";
+		
+		System.out.println("!!!SelectQuery: " + selectQuery);
+		
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-				data.get("password")); Statement statement = connection.createStatement();) {
-
-			String selectQuery = "select *, \r\n" + "(case when log_type ilike 'zoom' then concat(file_name, '-', \r\n"
-					+ "to_char(to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss')::timestamp, 'mm-dd-yyyy hh24:mi:ss')) \r\n"
-					+ "else file_name end) as file_name2 from log_file_details \r\n" + "where is_active= " + isActive
-					+ " and  site_key= '" + siteKey + "'\r\n"
-					+ "order by to_timestamp(updated_date_time, 'yyyy-mm-dd hh24:mi:ss') \r\n" + "desc";
-
-			System.out.println("!!!SelectQuery: " + selectQuery);
-			ResultSet rs = statement.executeQuery(selectQuery);
+				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(selectQuery);) {
 
 			while (rs.next()) {
 
