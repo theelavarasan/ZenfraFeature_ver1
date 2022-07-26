@@ -3437,7 +3437,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 							JSONObject jsonObject2 = new JSONObject();
 							JSONArray breakdownXArray = new JSONArray();
 							JSONArray breakdownYArray = new JSONArray();
-							breakdownXArray.add(xaxisColumnName);
+							breakdownXArray.add(xaxisCloumnValues.get(i));
 							jsonObject2.put("x", breakdownXArray);
 							breakdownYArray.add(valueArray.get(i));
 							jsonObject2.put("y", breakdownYArray);
