@@ -256,7 +256,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "LEFT JOIN source sdls2 on sdls2.link_to not in ('All', 'None') and sdls2.link_to = s2.source_id\r\n"
 				+ "LEFT JOIN source_data sdl2 on sdl2.site_key = '" + siteKey + "' and sdl2.source_id = sdls2.source_id \r\n"
 				+ "and sdl2.primary_key_value = (sd1.data::json ->> (select distinct primary_key from source_data where site_key = '" + siteKey + "' and source_id = sdls2.source_id)) \r\n"
-				+ ") b" + getOrderBy1(sortModel) + "\r\n"
+				+ ") b " + getOrderBy1(sortModel) + "\r\n"
 				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
 				+ ") a1 \r\n";
 
