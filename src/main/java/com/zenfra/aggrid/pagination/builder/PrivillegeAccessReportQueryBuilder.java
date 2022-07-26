@@ -237,6 +237,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "(case when s2.source_name is null then null else json_build_object(s2.source_name, sd1.data::json) end) as source_data2,"
 				+ "(case when sdls1.source_name is null then null else json_build_object(sdls1.source_name, sdl1.data::json) end) as source_data3,\r\n"
 				+ "(case when sdls2.source_name is null then null else json_build_object(sdls2.source_name, sdl2.data::json) end) as source_data4 from (\r\n"
+				+ "select * from ( \r\n"
 				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",'),': ,',':\"\",') as data from privillege_data\r\n"
 				+ "where site_key = '" + siteKey + "' and (source_id in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
 				+ "and site_key = '" + siteKey + "'\r\n"
@@ -254,9 +255,10 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "and sdl1.primary_key_value = sd.data::json ->> (select distinct primary_key from source_data where site_key = '" + siteKey + "' and source_id = sdls1.source_id)\r\n"
 				+ "LEFT JOIN source sdls2 on sdls2.link_to not in ('All', 'None') and sdls2.link_to = s2.source_id\r\n"
 				+ "LEFT JOIN source_data sdl2 on sdl2.site_key = '" + siteKey + "' and sdl2.source_id = sdls2.source_id \r\n"
-				+ "and sdl2.primary_key_value = (sd1.data::json ->> (select distinct primary_key from source_data where site_key = '" + siteKey + "' and source_id = sdls2.source_id))"
-				+ ") b group by row_count, source_id, server_name, privillege_data \r\n" 
-				+ ") a1 " + getOrderBy1(sortModel) + "\r\n";
+				+ "and sdl2.primary_key_value = (sd1.data::json ->> (select distinct primary_key from source_data where site_key = '" + siteKey + "' and source_id = sdls2.source_id)) \r\n"
+				+ ") b" + getOrderBy1(sortModel) + "\r\n"
+				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
+				+ ") a1 \r\n";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
@@ -700,8 +702,10 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().contains("Server Data~")) {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data1::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "'\r\n"
-    						+ "else (select json_array_elements(source_data2::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) " + s.getSort();
+    				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (source_data1::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "'\r\n"
+    					+ "else (case whne source_data2::text ilike '%\"" + columnPrefix + "\"%' then (source_data2::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
+    					+ " else (case when source_data3::text ilike '%\"" + columnPrefix + "\"%' then (source_data3::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
+    					+ " else (source_data4::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) end) end) " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
