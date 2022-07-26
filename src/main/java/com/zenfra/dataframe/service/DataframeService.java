@@ -3465,13 +3465,16 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 						System.out.println("1");
 						JSONObject jsonObject2 = new JSONObject();
 
-						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
-							xarray.add(xaxisCloumnValues.get(i));
-							yarray.add(valueArray.get(i));
+						JSONArray breakdownXArray = new JSONArray();
+						JSONArray breakdownYArray = new JSONArray();
+
+						for (int i = 0; i < finalBreakDownValue.size(); i++) {
+							breakdownXArray.add(finalBreakDownValue.get(i));
+							breakdownYArray.add(valueArray.get(i));
 						}
 
-						jsonObject2.put("x", xarray);
-						jsonObject2.put("y", yarray);
+						jsonObject2.put("x", breakdownXArray);
+						jsonObject2.put("y", breakdownYArray);
 						jsonObject2.put("name", breakDownName);
 						array.add(jsonObject2);
 
@@ -3492,6 +3495,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 				e.printStackTrace();
 			}
 		}else if (chartType != null && (chartType.equalsIgnoreCase("line") || chartType.equalsIgnoreCase("scatter"))) {
+			
 			try {
 
 				System.out.println("------- chart 1-------- " + chartConfig);
