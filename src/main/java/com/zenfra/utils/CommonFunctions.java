@@ -783,6 +783,7 @@ public class CommonFunctions {
 		try {
 			jdbc.setDataSource(DataSourceConnection.dataSource);
 			obj1 = jdbc.queryForList(query);
+			jdbc.getDataSource().getConnection().close();
 			
 
 		} catch (Exception e) {
@@ -791,16 +792,7 @@ public class CommonFunctions {
 			e.printStackTrace(new PrintWriter(errors));
 			String ex = errors.toString();
 			ExceptionHandlerMail.errorTriggerMail(ex);
-		} finally {
-			try {
-				if(!jdbc.getDataSource().getConnection().isClosed()) {
-					jdbc.getDataSource().getConnection().close();
-				}
-				
-			} catch(Exception e) {
-				
-			}
-		}
+		} 
 		return obj1;
 	}
 	
