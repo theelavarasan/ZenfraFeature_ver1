@@ -3429,38 +3429,35 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 					}
 					
 					JSONArray array = new JSONArray();
-					
-					JSONObject jsonObject = new JSONObject();
-					JSONArray xarray = new JSONArray();
-					JSONArray yarray = new JSONArray();
-					
-					for (int i = 0; i < xaxisCloumnValues.size(); i++) {
-						xarray.add(xaxisCloumnValues.get(i));
-						yarray.add(valueArray.get(i));
-
-					}
-					jsonObject.put("name", xaxisColumnName);
-					jsonObject.put("x", xarray);
-					jsonObject.put("y", yarray);
-					array.add(jsonObject);
-					
+	
 
 					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
 						JSONObject jsonObject2 = new JSONObject();
 
 						JSONArray breakdownXArray = new JSONArray();
 						JSONArray breakdownYArray = new JSONArray();
-
 						for (int i = 0; i < finalBreakDownValue.size(); i++) {
-							breakdownXArray.add(finalBreakDownValue.get(i));
+							breakdownXArray.add(xaxisColumnName);
+							jsonObject2.put("x", breakdownXArray);
 							breakdownYArray.add(valueArray.get(i));
+							jsonObject2.put("y", breakdownYArray);
+							jsonObject2.put("name", finalBreakDownValue.get(i));
+							array.add(jsonObject2);
 						}
+					} else {
+						JSONObject jsonObject = new JSONObject();
+						JSONArray xarray = new JSONArray();
+						JSONArray yarray = new JSONArray();
+						
+						for (int i = 0; i < xaxisCloumnValues.size(); i++) {
+							xarray.add(xaxisCloumnValues.get(i));
+							yarray.add(valueArray.get(i));
 
-						jsonObject2.put("x", breakdownXArray);
-						jsonObject2.put("y", breakdownYArray);
-						jsonObject2.put("name", breakDownName);
-						array.add(jsonObject2);
-
+						}
+						jsonObject.put("name", xaxisColumnName);
+						jsonObject.put("x", xarray);
+						jsonObject.put("y", yarray);
+						array.add(jsonObject);
 					}
 
 					resultData.put("data", array);
