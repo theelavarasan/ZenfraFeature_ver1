@@ -3488,7 +3488,7 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}else if (chartType != null && chartType.equalsIgnoreCase("line")) {
+		}else if (chartType != null && (chartType.equalsIgnoreCase("line") || chartType.equalsIgnoreCase("scatter"))) {
 			try {
 
 				System.out.println("------- chart 1-------- " + chartConfig);
