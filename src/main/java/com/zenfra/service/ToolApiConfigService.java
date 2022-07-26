@@ -154,22 +154,25 @@ public class ToolApiConfigService {
 
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
+		
+		String selectQuery = "select tac.api_config_id, trim(concat(trim(ut.first_name), ' ', coalesce(trim(ut.last_name), ''))) as created_by,\r\n"
+				+ "to_char(to_timestamp(tac.created_time, 'yyyy-mm-dd HH24:MI:SS') at \r\n"
+				+ "time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as created_time, tac.site_key, \r\n"
+				+ "trim(concat(trim(ut1.first_name), ' ', coalesce(trim(ut1.last_name), ''))) as updated_by,\r\n"
+				+ "to_char(to_timestamp(tac.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time, tac.tenant_id, device_type,\r\n"
+				+ "api_key, api_secret_key, config_name\r\n" + "from tool_api_config tac\r\n"
+				+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by\r\n"
+				+ "LEFT JOIN user_temp ut1 on ut1.user_id = tac.updated_by\r\n"
+				+ "where tac.is_active = true and site_key = '" + siteKey + "'";
+
+		System.out.println("!!! selectQuery: " + selectQuery);
+
+		
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-				data.get("password")); Statement statement = connection.createStatement();) {
+				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(selectQuery)) {
 
-			String selectQuery = "select tac.api_config_id, trim(concat(trim(ut.first_name), ' ', coalesce(trim(ut.last_name), ''))) as created_by,\r\n"
-					+ "to_char(to_timestamp(tac.created_time, 'yyyy-mm-dd HH24:MI:SS') at \r\n"
-					+ "time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as created_time, tac.site_key, \r\n"
-					+ "trim(concat(trim(ut1.first_name), ' ', coalesce(trim(ut1.last_name), ''))) as updated_by,\r\n"
-					+ "to_char(to_timestamp(tac.updated_time, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updated_time, tac.tenant_id, device_type,\r\n"
-					+ "api_key, api_secret_key, config_name\r\n" + "from tool_api_config tac\r\n"
-					+ "LEFT JOIN user_temp ut on ut.user_id = tac.created_by\r\n"
-					+ "LEFT JOIN user_temp ut1 on ut1.user_id = tac.updated_by\r\n"
-					+ "where tac.is_active = true and site_key = '" + siteKey + "'";
-
-			System.out.println("!!! selectQuery: " + selectQuery);
-
-			ResultSet rs = statement.executeQuery(selectQuery);
+			
+			
 
 			while (rs.next()) {
 				JSONObject dataObj = new JSONObject();
@@ -221,15 +224,13 @@ public class ToolApiConfigService {
 
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
+		
+		String selectQuery = "select * from tool_api_config where site_key = '" + siteKey
+				+ "' and is_active = true";
+		System.out.println("!!! selectQuery: " + selectQuery);
+		
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
-				data.get("password")); Statement statement = connection.createStatement();) {
-
-			String selectQuery = "select * from tool_api_config where site_key = '" + siteKey
-					+ "' and is_active = true";
-
-			System.out.println("!!! selectQuery: " + selectQuery);
-
-			ResultSet rs = statement.executeQuery(selectQuery);
+				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(selectQuery)) {
 
 			while (rs.next()) {
 				JSONObject dataObj = new JSONObject();
