@@ -3432,8 +3432,9 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 	
 
 					if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
-						JSONObject jsonObject2 = new JSONObject();
+						
 						for (int i = 0; i < finalBreakDownValue.size(); i++) {
+							JSONObject jsonObject2 = new JSONObject();
 							JSONArray breakdownXArray = new JSONArray();
 							JSONArray breakdownYArray = new JSONArray();
 							breakdownXArray.add(xaxisColumnName);
