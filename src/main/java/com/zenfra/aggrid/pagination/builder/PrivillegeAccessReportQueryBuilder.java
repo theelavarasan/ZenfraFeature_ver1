@@ -239,12 +239,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "(case when sdls1.source_name is null then null else json_build_object(sdls1.source_name, sdl1.data::json) end) as source_data3,\r\n"
 				+ "(case when sdls2.source_name is null then null else json_build_object(sdls2.source_name, sdl2.data::json) end) as source_data4 from (\r\n"
 				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",'),': ,',':\"\",') as data from privillege_data\r\n"
-				+ "where site_key = '" + siteKey + "' and (source_id in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + getSourceDataFilters(filters, siteKey, projectId) + ") or \r\n"
-				+ "server_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + getSourceDataFilters(filters, siteKey, projectId) + "))" + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
+				+ "where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getSourceDataFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
 				+ ") a\r\n"
 				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = a.source_id \r\n"
 				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
@@ -596,6 +591,13 @@ public class PrivillegeAccessReportQueryBuilder {
     		e.printStackTrace();
     	}
     	
+    	String CEDQUery = "and (source_id in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
+				+ "and site_key = '" + siteKey + "'\r\n"
+				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + filterQuery.toString() + ") or \r\n"
+				+ "server_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
+				+ "and site_key = '" + siteKey + "'\r\n"
+				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "')) " + filterQuery.toString() + ") ";
+    	
     	return filterQuery.toString();
     	
     } 
@@ -714,8 +716,5 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	return orderBy;
     }
-    
-    
-
 
 }
