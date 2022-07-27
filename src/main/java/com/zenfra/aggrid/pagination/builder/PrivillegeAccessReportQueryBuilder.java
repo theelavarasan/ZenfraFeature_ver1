@@ -251,9 +251,9 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "LEFT JOIN source sdls2 on sdls2.link_to not in ('All', 'None') and sdls2.link_to = s2.source_id\r\n"
 				+ "LEFT JOIN source_data sdl2 on sdl2.site_key = '" + siteKey + "' and sdl2.source_id = sdls2.source_id \r\n"
 				+ "and sdl2.primary_key_value = sd1.data::json ->> sdls2.relationship \r\n"
-				+ ") b " + getOrderBy1(sortModel) + "\r\n"
+				+ ") b \r\n"
 				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
-				+ ") a1 \r\n";
+				+ ") a1 " + getOrderBy1(sortModel) + "\r\n";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
@@ -704,10 +704,10 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().contains("Server Data~")) {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (source_data1::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "'\r\n"
-    					+ "else (case when source_data2::text ilike '%\"" + columnPrefix + "\"%' then (source_data2::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
-    					+ " else (case when source_data3::text ilike '%\"" + columnPrefix + "\"%' then (source_data3::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
-    					+ " else (source_data4::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) end) end) " + s.getSort();
+    				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data1::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "'\r\n"
+    					+ "else (case when source_data2::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data2::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
+    					+ " else (case when source_data3::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data3::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
+    					+ " else (select json_array_elements(source_data4::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) end) end) " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
