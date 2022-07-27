@@ -239,12 +239,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "(case when sdls1.source_name is null then null else json_build_object(sdls1.source_name, sdl1.data::json) end) as source_data3,\r\n"
 				+ "(case when sdls2.source_name is null then null else json_build_object(sdls2.source_name, sdl2.data::json) end) as source_data4 from (\r\n"
 				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",'),': ,',':\"\",') as data from privillege_data\r\n"
-				+ "where site_key = '" + siteKey + "' and (source_id in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + getSourceDataFilters(filters, siteKey, projectId) + ") or \r\n"
-				+ "server_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + getSourceDataFilters(filters, siteKey, projectId) + "))" + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
+				+ "where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getSourceDataFilters(filters, siteKey, projectId) + " " + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
 				+ ") a\r\n"
 				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = a.source_id \r\n"
 				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
@@ -256,9 +251,9 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "LEFT JOIN source sdls2 on sdls2.link_to not in ('All', 'None') and sdls2.link_to = s2.source_id\r\n"
 				+ "LEFT JOIN source_data sdl2 on sdl2.site_key = '" + siteKey + "' and sdl2.source_id = sdls2.source_id \r\n"
 				+ "and sdl2.primary_key_value = sd1.data::json ->> sdls2.relationship \r\n"
-				+ ") b " + getOrderBy1(sortModel) + "\r\n"
+				+ ") b \r\n"
 				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
-				+ ") a1 \r\n";
+				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
@@ -596,7 +591,15 @@ public class PrivillegeAccessReportQueryBuilder {
     		e.printStackTrace();
     	}
     	
-    	return filterQuery.toString();
+    	
+    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
+				+ "and site_key = '" + siteKey + "'\r\n"
+				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + filterQuery.toString() + ") or \r\n"
+				+ "server_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
+				+ "and site_key = '" + siteKey + "'\r\n"
+				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "')) " + filterQuery.toString() + ") ";
+    	
+    	return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
     } 
     
@@ -678,7 +681,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				} else if(column_name.equalsIgnoreCase("Server & User Name")) {
     					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
     				} else {
-    					orderBy = " order by data::json ->> '" + column_name + "' " + s.getSort();
+    					orderBy = " order by privillege_data::json ->> '" + column_name + "' " + s.getSort();
     				}
     			} /*else {
     					String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
@@ -702,10 +705,10 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().contains("Server Data~")) {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (source_data1::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "'\r\n"
-    					+ "else (case when source_data2::text ilike '%\"" + columnPrefix + "\"%' then (source_data2::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
-    					+ " else (case when source_data3::text ilike '%\"" + columnPrefix + "\"%' then (source_data3::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
-    					+ " else (source_data4::json ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) end) end) " + s.getSort();
+    				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data1::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "'\r\n"
+    					+ "else (case when source_data2::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data2::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
+    					+ " else (case when source_data3::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data3::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
+    					+ " else (select json_array_elements(source_data4::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) end) end) " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
@@ -714,8 +717,5 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	return orderBy;
     }
-    
-    
-
 
 }
