@@ -50,6 +50,9 @@ public class CommonFunctions {
 
 	@Autowired
 	RestTemplate restTemplate;
+	
+	@Autowired
+	JdbcTemplate jdbc;
 
 	private List<String> dateFormats = Arrays.asList("yyyy/MM/dd HH:mm:ss,yyyy/mm/dd HH:mm:ss".split(",")); // ,yyyy/mm/dd
 																											// hh:mm:ss,yyyy-MM-dd
@@ -779,13 +782,9 @@ public class CommonFunctions {
 	
 	public List<Map<String, Object>> getDBDatafromJdbcTemplate(String query) {
 		List<Map<String, Object>> obj1 = new ArrayList<>();
-		JdbcTemplate jdbc = new JdbcTemplate();
+		
 		try {
-			jdbc.setDataSource(DataSourceConnection.dataSource);
 			obj1 = jdbc.queryForList(query);
-			jdbc.getDataSource().getConnection().close();
-			
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();

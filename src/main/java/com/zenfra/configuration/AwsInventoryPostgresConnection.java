@@ -11,7 +11,7 @@ import com.zenfra.model.ZKModel;
 import com.zenfra.utils.DBUtils;
 
 
-@Component
+//@Component
 public class AwsInventoryPostgresConnection {	
 	public static HikariDataSource dataSource = null;	
 	static {
