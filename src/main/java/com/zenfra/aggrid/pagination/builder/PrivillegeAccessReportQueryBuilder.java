@@ -239,7 +239,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "(case when sdls1.source_name is null then null else json_build_object(sdls1.source_name, sdl1.data::json) end) as source_data3,\r\n"
 				+ "(case when sdls2.source_name is null then null else json_build_object(sdls2.source_name, sdl2.data::json) end) as source_data4 from (\r\n"
 				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",'),': ,',':\"\",') as data from privillege_data\r\n"
-				+ "where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getSourceDataFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
+				+ "where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getSourceDataFilters(filters, siteKey, projectId) + " " + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
 				+ ") a\r\n"
 				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = a.source_id \r\n"
 				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
@@ -253,7 +253,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "and sdl2.primary_key_value = sd1.data::json ->> sdls2.relationship \r\n"
 				+ ") b \r\n"
 				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
-				+ ") a1 " + getOrderBy1(sortModel) + "\r\n";
+				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
@@ -681,7 +681,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				} else if(column_name.equalsIgnoreCase("Server & User Name")) {
     					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
     				} else {
-    					orderBy = " order by data::json ->> '" + column_name + "' " + s.getSort();
+    					orderBy = " order by privillege_data::json ->> '" + column_name + "' " + s.getSort();
     				}
     			} /*else {
     					String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
