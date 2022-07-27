@@ -599,7 +599,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "and site_key = '" + siteKey + "'\r\n"
 				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "')) " + filterQuery.toString() + ") ";
     	
-    	return filterQuery.isEmpty() ? "" : cedQuery;
+    	return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
     } 
     
