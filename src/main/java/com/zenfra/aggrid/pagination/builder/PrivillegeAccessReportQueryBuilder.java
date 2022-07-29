@@ -259,7 +259,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "json_agg(sd1.data) as source_data2 from (\r\n" + 
 				"select count(1) over() as row_count, source_id, server_name, replace(data, 'null,', '\"\",') as privillege_data  from privillege_data \r\n" + 
 				"where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
-				+ getSourceDataFilters(filters, siteKey, projectId) + " limit order by server_name, source_id limit " 
+				+ getSourceDataFilters(filters, siteKey, projectId) + " order by server_name, source_id limit " 
 				+ (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n" + 
 				") pd\r\n" + 
 				"LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = pd.source_id\r\n" + 
