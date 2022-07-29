@@ -255,8 +255,8 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
 				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";*/
 		
-		String privillegeAccessReportQuery = "select * from ( select row_count, pd.source_id, pd.server_name, pd.privillege_data, json_agg(sd.data) as source_data1, "
-				+ "json_agg(sd1.data) as source_data2 from (\r\n" + 
+		String privillegeAccessReportQuery = "select * from ( select row_count, pd.source_id, pd.server_name, pd.privillege_data, json_agg(sd.data::json) as source_data1, "
+				+ "json_agg(sd1.data::json) as source_data2 from (\r\n" + 
 				"select count(1) over() as row_count, source_id, server_name, replace(data, 'null,', '\"\",') as privillege_data  from privillege_data \r\n" + 
 				"where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
 				+ getSourceDataFilters(filters, siteKey, projectId) + " order by server_name, source_id limit " 
