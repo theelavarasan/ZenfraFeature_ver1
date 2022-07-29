@@ -263,7 +263,9 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n" + 
 				") pd\r\n" + 
 				"LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = pd.source_id\r\n" + 
-				"LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and sd1.primary_key_value = pd.server_name ) a\r\n"
+				"LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and sd1.primary_key_value = pd.server_name \r\n" +
+				"group by row_count, pd.source_id, pd.server_name, pd.privillege_data \r\n" 
+				+ ") a\r\n"
 				+ getOrderBy(sortModel) + getOrderBy1(sortModel);
 
 		System.out.println("!!!!! trackerQuery: " + privillegeAccessReportQuery);
