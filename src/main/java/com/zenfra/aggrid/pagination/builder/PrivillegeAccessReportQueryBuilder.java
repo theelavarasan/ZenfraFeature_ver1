@@ -230,7 +230,7 @@ public class PrivillegeAccessReportQueryBuilder {
 		
 		JSONParser parser = new JSONParser();
 		
-		String tasklistQuery = "select * from ("
+		/*String tasklistQuery = "select * from ("
 				+ "select row_count, source_id, server_name, privillege_data, json_agg(source_data1) as source_data1, json_agg(source_data2) as source_data2,"
 				+ "json_agg(source_data3) as source_data3, json_agg(source_data4) as source_data4 from ( \r\n" 
 				+ "select * from ( \r\n"
@@ -253,7 +253,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "and lower(sdl2.primary_key_value) = lower(sd1.data::json ->> sdls2.relationship) \r\n"
 				+ ") b \r\n"
 				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
-				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";
+				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";*/
 		
 		String privillegeAccessReportQuery = "select * from ( select row_count, pd.source_id, pd.server_name, pd.privillege_data, json_agg(sd.data) as source_data1, "
 				+ "json_agg(sd1.data) as source_data2 from (\r\n" + 
@@ -266,9 +266,9 @@ public class PrivillegeAccessReportQueryBuilder {
 				"LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and sd1.primary_key_value = pd.server_name ) a\r\n"
 				+ getOrderBy(sortModel) + getOrderBy1(sortModel);
 
-		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
+		System.out.println("!!!!! trackerQuery: " + privillegeAccessReportQuery);
 
-		return tasklistQuery;
+		return privillegeAccessReportQuery;
 	} 
     
     private String getTasklistFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId) {
