@@ -755,8 +755,6 @@ public class ValidationRuleService {
 					+ "from source_data sd\r\n"
 					+ "LEFT JOIN source s on s.source_id = sd.source_id and s.site_key = '" + siteKey + "'\r\n"
 					+ "where sd.site_key = '" + siteKey + "' \r\n"
-					+ "and (sd.primary_key_value in (select server_name from privillege_data where site_key = '" + siteKey + "') \r\n"
-					+ "or sd.primary_key_value in (select source_id from privillege_data where site_key = '" + siteKey + "'))\r\n"
 					+ ") b\r\n"
 					+ "where row_num = 1\r\n"
 					+ ") c\r\n"

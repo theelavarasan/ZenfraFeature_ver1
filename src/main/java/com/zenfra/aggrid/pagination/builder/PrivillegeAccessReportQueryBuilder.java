@@ -230,7 +230,7 @@ public class PrivillegeAccessReportQueryBuilder {
 		
 		JSONParser parser = new JSONParser();
 		
-		String tasklistQuery = "select * from ("
+		/*String tasklistQuery = "select * from ("
 				+ "select row_count, source_id, server_name, privillege_data, json_agg(source_data1) as source_data1, json_agg(source_data2) as source_data2,"
 				+ "json_agg(source_data3) as source_data3, json_agg(source_data4) as source_data4 from ( \r\n" 
 				+ "select * from ( \r\n"
@@ -253,11 +253,24 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ "and lower(sdl2.primary_key_value) = lower(sd1.data::json ->> sdls2.relationship) \r\n"
 				+ ") b \r\n"
 				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
-				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";
+				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";*/
+		
+		String privillegeAccessReportQuery = "select * from ( select row_count, pd.source_id, pd.server_name, pd.privillege_data, json_agg(sd.data::json) as source_data1, "
+				+ "json_agg(sd1.data::json) as source_data2 from (\r\n" + 
+				"select count(1) over() as row_count, source_id, server_name, replace(data, 'null,', '\"\",') as privillege_data  from privillege_data \r\n" + 
+				"where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
+				+ getSourceDataFilters(filters, siteKey, projectId) + " order by server_name, source_id limit " 
+				+ (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n" + 
+				") pd\r\n" + 
+				"LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and sd.primary_key_value = pd.source_id\r\n" + 
+				"LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and sd1.primary_key_value = pd.server_name \r\n" +
+				"group by row_count, pd.source_id, pd.server_name, pd.privillege_data \r\n" 
+				+ ") a\r\n"
+				+ getOrderBy(sortModel) + getOrderBy1(sortModel);
 
-		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
+		System.out.println("!!!!! trackerQuery: " + privillegeAccessReportQuery);
 
-		return tasklistQuery;
+		return privillegeAccessReportQuery;
 	} 
     
     private String getTasklistFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId) {
@@ -309,7 +322,7 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) {
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' = '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
         						if(column.equalsIgnoreCase("Server Name")) {
@@ -319,7 +332,7 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  " concat(server_name,'~',source_id) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
         						if(column.equalsIgnoreCase("Server Name")) {
@@ -329,7 +342,7 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
         						if(column.equalsIgnoreCase("Server Name")) {
@@ -339,7 +352,7 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("startsWith")) {
         						if(column.equalsIgnoreCase("Server Name")) {
@@ -349,7 +362,7 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name,'~',source_id) ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
         						if(column.equalsIgnoreCase("Server Name")) {
@@ -359,7 +372,7 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
         						if(column.equalsIgnoreCase("Server Name")) {
@@ -369,7 +382,7 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) {
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> '" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notContains")) {
         						if(column.equalsIgnoreCase("Server Name")) {
@@ -379,7 +392,7 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				} else if(column.equalsIgnoreCase("Server & User Name")) { 
         	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " concat(server_name, '~', source_id) not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				} else {
-        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    					filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				}
         					}
     					} 
@@ -390,40 +403,40 @@ public class PrivillegeAccessReportQueryBuilder {
     					if(column.contains("Server Data~")) {
     						if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> '' and (case when replace(data,'null,','\"\",')::json ->> '" + column + "' = '' then 0 else replace(data,'null,','\"\",')::json ->> '" + column + "'::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	  				
     						} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	 	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	 	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numerics end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> '' and (case when replace(data,'null,','\"\",')::json ->> '" + column + "' = '' then 0 else replace(data,'null,','\"\",')::json ->> '" + column + "'::numerics end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	      				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) > " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> '' and (case when replace(data,'null,','\"\",')::json ->> '" + column + "' = '' then 0 else replace(data,'null,','\"\",')::json ->> '" + column + "'::numeric end) > " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	    					        					
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) < " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> '' and (case when replace(data,'null,','\"\",')::json ->> '" + column + "' = '' then 0 else replace(data,'null,','\"\",')::json ->> '" + column + "'::numeric end) < " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	    					
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> '' and (case when replace(data,'null,','\"\",')::json ->> '" + column + "' = '' then 0 else replace(data,'null,','\"\",')::json ->> '" + column + "'::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	   					
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> '' and (case when replace(data,'null,','\"\",')::json ->> '" + column + "' = '' then 0 else replace(data,'null,','\"\",')::json ->> '" + column + "'::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	  				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column + "' <> '' and ((case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "");
-        						filterQuery = filterQuery.append(" and (case when data::json ->> '" + column + "' = '' then 0 else data::json ->> '" + column + "'::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilterTo() + ")" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " replace(data,'null,','\"\",')::json ->> '" + column + "' <> '' and ((case when replace(data,'null,','\"\",')::json ->> '" + column + "' = '' then 0 else replace(data,'null,','\"\",')::json ->> '" + column + "'::numeric end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + "");
+        						filterQuery = filterQuery.append(" and (case when replace(data,'null,','\"\",')::json ->> '" + column + "' = '' then 0 else replace(data,'null,','\"\",')::json ->> '" + column + "'::numeric end) <= " + ((NumberColumnFilter) columnFilter).getFilterTo() + ")" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	  				
         					}
     					} 
@@ -497,7 +510,7 @@ public class PrivillegeAccessReportQueryBuilder {
     					
     					if(!column.contains("Server Data~")) {
     						
-							String column1 = column.substring(column.indexOf("~") + 1, column.length());
+							String column1 = column;
 							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower(data::json ->> '" + column1 + "') = lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" +  ((columnArray.size() > 1 && i == 1) ? ")": ""));
@@ -539,7 +552,7 @@ public class PrivillegeAccessReportQueryBuilder {
     					
     					if(!column.contains("Server Data~")) {
     						
-							String column1 = column.substring(column.indexOf("~") + 1, column.length());
+							String column1 = column;
 							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "'::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
@@ -592,12 +605,8 @@ public class PrivillegeAccessReportQueryBuilder {
     	}
     	
     	
-    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + filterQuery.toString() + ") or \r\n"
-				+ "server_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "')) " + filterQuery.toString() + ") ";
+    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ") or \r\n"
+				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ")) ";
     	
     	return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
@@ -705,10 +714,8 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().contains("Server Data~")) {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data1::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "'\r\n"
-    					+ "else (case when source_data2::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data2::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
-    					+ " else (case when source_data3::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data3::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' \r\n"
-    					+ " else (select json_array_elements(source_data4::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "' end) end) end) " + s.getSort();
+    				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (select distinct json_array_elements(source_data1::json) ->> '" + s.getActualColId() + "')"
+    				+ " else (select distinct json_array_elements(source_data1::json) ->> '" + s.getActualColId() + "') end) " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {

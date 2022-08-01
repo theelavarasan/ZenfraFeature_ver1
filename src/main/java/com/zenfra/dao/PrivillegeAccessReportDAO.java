@@ -105,20 +105,7 @@ public class PrivillegeAccessReportDAO {
     						JSONObject sourceDataObject = (JSONObject) sourceDataArray.get(j);
     						Set<String> keySet = sourceDataObject == null ? new HashSet<>() : sourceDataObject.keySet();
     						for(String key : keySet) {
-    							JSONObject jsonObject1 = (JSONObject) sourceDataObject.get(key);
-    							Set<String> innerKeySet = jsonObject1 == null ? new HashSet<>() : jsonObject1.keySet();
-    							for(String key1 : innerKeySet) {
-    								if(key1 != null && key1.isEmpty() && (key1.equalsIgnoreCase("Processed Date"))) {
-    									String value = jsonObject1.get(key1).toString();
-    									value = formatDateStringToUtc(value);
-    									resultObject.put(key + "~" + key1, value);
-    								} else {
-    									String value = jsonObject1.get(key1) != null && !jsonObject1.get(key1).toString().equalsIgnoreCase("null") ? jsonObject1.get(key1).toString() : "";
-    									resultObject.put(key + "~" + key1, value);
-    								}
-    								String value = jsonObject1.get(key1) != null && !jsonObject1.get(key1).toString().equalsIgnoreCase("null") ? jsonObject1.get(key1).toString() : "";
-    								resultObject.put(key + "~" + key1, value);
-    							}
+    							resultObject.put(key, sourceDataObject.get(key));
     						}
     					}
     					
@@ -185,7 +172,7 @@ public class PrivillegeAccessReportDAO {
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
 				+ "concat(con_operator, (case when con_field_id ilike 'Server Data~%' then ' replace(data,''null,'',''\"\",'')::json ->> ''' else ' source_id in (select distinct primary_key_value from \r\n"
-				+ "source_data where site_key = '':site_key'' and data::json ->> ''' end),  substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), ''' ', \r\n"
+				+ "source_data where site_key = '':site_key'' and data::json ->> ''' end),  con_field_id, ''' ', \r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''(',con_value, ')%''') else (case when con_condition = 'endsWith' then concat(' ''%(',con_value, ')''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')\r\n"
