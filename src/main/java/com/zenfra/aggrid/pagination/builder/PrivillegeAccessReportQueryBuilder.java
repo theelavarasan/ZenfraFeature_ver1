@@ -605,12 +605,8 @@ public class PrivillegeAccessReportQueryBuilder {
     	}
     	
     	
-    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + filterQuery.toString() + ") or \r\n"
-				+ "server_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "')) " + filterQuery.toString() + ") ";
+    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ") or \r\n"
+				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ")) ";
     	
     	return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
