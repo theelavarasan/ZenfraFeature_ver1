@@ -100,9 +100,8 @@ public class PrivillegeAccessReportDAO {
     					}
     					
     				} else if(keys.get(i).contains("source_data")) {
-    					JSONArray sourceDataArray = (JSONArray) parser.parse(row.get(keys.get(i)) == null ? "[]" : row.get(keys.get(i)).toString());
-    					for(int j = 0; j < sourceDataArray.size(); j++) {
-    						JSONObject sourceDataObject = (JSONObject) sourceDataArray.get(j);
+    					JSONObject sourceDataObject = (JSONObject) parser.parse(row.get(keys.get(i)) == null ? "{}" : row.get(keys.get(i)).toString());
+    					if(sourceDataObject != null & !sourceDataObject.isEmpty()) {
     						Set<String> keySet = sourceDataObject == null ? new HashSet<>() : sourceDataObject.keySet();
     						for(String key : keySet) {
     							resultObject.put(key, sourceDataObject.get(key));
