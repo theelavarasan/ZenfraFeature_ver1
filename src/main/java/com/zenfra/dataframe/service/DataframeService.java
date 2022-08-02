@@ -3011,7 +3011,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		System.out.println("-----------chartConfig : " + chartConfig);
 
 		JSONParser jsonParser = new JSONParser();
-		JSONArray chartTypes = (JSONArray) jsonParser.parse("{\"bar\",\"line\", \"table\"}");
+		JSONArray chartTypes = new JSONArray();
+		chartTypes.add("bar");
+		chartTypes.add("line");
+		chartTypes.add("table");
+		chartTypes.add("scatter");
 
 		System.out.println("ChartTypes : " + chartTypes + " : " + chartType);
 		System.out.println("ChartTypes : " + chartTypes.contains(chartType));
@@ -3147,11 +3151,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		query = query.concat("from (\r\n"
 				+ "select server_name, data as server_data, (coalesce(source_data1,'[{}]')::jsonb|| coalesce(source_data2,'[{}]')::jsonb ) as source_data from (\r\n"
 				+ "Select pd.server_name,pd.data,sd1.source_data1,sd2.source_data2\r\n" + "from privillege_data pd\r\n"
-				+ "LEFT JOIN (select a.primary_key_value,jsonb_agg(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data1\r\n"
+				+ "LEFT JOIN (select a.primary_key_value,json_collector(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data1\r\n"
 				+ "           from source_data a\r\n" + "           join source b on b.source_id = a.source_id\r\n"
 				+ "           where a.site_key = '" + siteKey + "'\r\n" + "          and a.primary_key='User Name'\r\n"
 				+ "          group by a.primary_key_value) sd1 on sd1.primary_key_value = pd.source_id\r\n"
-				+ "LEFT JOIN (select a.primary_key_value,jsonb_agg(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data2\r\n"
+				+ "LEFT JOIN (select a.primary_key_value,json_collector(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data2\r\n"
 				+ "           from source_data a\r\n" + "           join source b on b.source_id = a.source_id\r\n"
 				+ "           where a.site_key = '" + siteKey + "'\r\n"
 				+ "          and (a.primary_key='Server Name' or a.primary_key ='server_name')\r\n"
