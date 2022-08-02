@@ -3549,135 +3549,13 @@ public JSONObject prepareChartForTanium(JSONObject chartParams) {
 
 					}
 
-					// xaxis column names
-					JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
-					String xaxisColumnNameField = (String) xaxisColumn.get("field");
-					String xaxisColumnName = (String) xaxisColumn.get("value");
-
-					// breakdown names
-					JSONObject breakDown = breakDownAry.isEmpty() ? new JSONObject()
-							: (JSONObject) breakDownAry.get(0);
-					String breakDownName = (String) breakDown.get("value");
-					String breakDownField = (String) breakDown.get("field");
 					JSONArray finalBreakDownValue = new JSONArray();
 
 					String query = "";
 					
-					if(xaxisColumnNameField.startsWith("Server Data~")) {
-						query =query.concat("select * from\r\n"
-								+ "(select pd.server_data::json->>'" + xaxisColumnName + "' as \"colName\"");
-					} else {
-						query =query.concat("select * from\r\n"
-								+ "(select json_array_elements(pd.source_data::json)->>'" + xaxisColumnNameField + "' as \"colName\"");
-					}
-					 
-					if (breakDownName != null && !breakDownName.isEmpty()) {
-						if(breakDownField.startsWith("Server Data~")) {
-							query =query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
-						} else {
-							query =query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownField + "' as \"colBreakdown\"");
-						}
-					}
+					query = priviledgeChartQueries(chartConfig, siteKey, chartType);
+					System.out.println("---" + chartType + " : " + query);
 					
-					
-					for (int i = 0; i < yaxisColumnField.size(); i++) {
-						String operater = (String) classNameArray.get(i);
-						
-						String yFieldCheck = (String) yaxisColumnField.get(i);
-						if(yFieldCheck.startsWith("Server Data~")) {
-							if (operater.contains("count")) {
-								query = query.concat(", count(pd.server_data::json ->> '" + yaxisNames.get(i) + "') as \"colValue" + i+"\"");
-							} else if (operater.contains("sum")) {
-								query = query.concat(", sum((pd.server_data::json ->> '" + yaxisNames.get(i) + "')::int) as \"colValue" + i+"\"");
-							}
-						}else {
-							if (operater.contains("count")) {
-								query = query.concat(", count(json_array_elements(pd.source_data::json) ->> '" + yFieldCheck + "') as \"colValue" + i+"\"");
-							} else if (operater.contains("sum")) {
-								query = query.concat(", sum((json_array_elements(pd.source_data::json) ->> '" + yFieldCheck + "')::int) as \"colValue" + i+"\"");
-							}
-						}
-					}
-
-					query = query.concat("from (\r\n"
-							+ "select server_name, data as server_data, (coalesce(source_data1,'[{}]')::jsonb|| coalesce(source_data2,'[{}]')::jsonb ) as source_data from (\r\n"
-							+ "Select pd.server_name,pd.data,sd1.source_data1,sd2.source_data2\r\n"
-							+ "from privillege_data pd\r\n"
-							+ "LEFT JOIN (select a.primary_key_value,jsonb_agg(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data1\r\n"
-							+ "           from source_data a\r\n"
-							+ "           join source b on b.source_id = a.source_id\r\n"
-							+ "           where a.site_key = '" + siteKey + "'\r\n"
-							+ "          and a.primary_key='User Name'\r\n"
-							+ "          group by a.primary_key_value) sd1 on sd1.primary_key_value = pd.source_id\r\n"
-							+ "LEFT JOIN (select a.primary_key_value,jsonb_agg(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data2\r\n"
-							+ "           from source_data a\r\n"
-							+ "           join source b on b.source_id = a.source_id\r\n"
-							+ "           where a.site_key = '" + siteKey + "'\r\n"
-							+ "          and (a.primary_key='Server Name' or a.primary_key ='server_name')\r\n"
-							+ "          group by a.primary_key_value) sd2 on sd2.primary_key_value = pd.server_name\r\n"
-							+ "Where pd.site_key = '" + siteKey + "'\r\n"
-							+ "group by pd.server_name, pd.data,sd1.source_data1,sd2.source_data2\r\n"
-							+ ") a\r\n"
-							+ ") pd ");
-
-
-
-//conditions for filtering
-					if(!filterModel.isEmpty() && filterModel != null) {
-						
-						JSONObject filterModelObject = filterModel;
-						Set<String> filterKeys = new HashSet<>();
-						for (int i = 0; i < filterModelObject.size(); i++) {
-							JSONObject jsonObj = filterModelObject;
-							filterKeys.addAll(jsonObj.keySet());
-						}
-
-						query = query.concat(" where ");
-						for (String key : filterKeys) {
-							JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
-							query = query.concat("pd.data::json ->> '" + key + "'");
-							
-							for(int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2 : filterModelObject.size()); i++) {
-								if (filterColumnName.containsKey("type")) {
-									query = query.concat(" ilike ");
-								}
-								if (filterColumnName.containsKey("filter")) {
-									query = query.concat("pd.data::json ->> '" + filterColumnName.get("filter") + "'");
-								}
-										query = query.concat(" and ");
-							}
-							
-						}
-						query = query.substring(0, query.length()-5);
-					}
-					
-//conditions for filtering
-					
-					
-					query = query.concat(" group by ");
-					if(xaxisColumnNameField.startsWith("Server Data~")) {
-						query = query.concat(" pd.server_data::json ->> '" + xaxisColumnName + "'");
-
-					} else {
-						query = query.concat(" json_array_elements(pd.source_data::json) ->> '" + xaxisColumnNameField + "'");
-
-					}
-					
-					if (breakDownName != null && !breakDownName.isEmpty()) {
-						if(breakDownField.startsWith("Server Data~")) {
-							query = query.concat(", pd.server_data::json ->> '" + breakDownName + "'");
-
-						} else {
-							query = query.concat(", json_array_elements(pd.source_data::json) ->> '" + breakDownField + "'");
-
-						}
-					} 
-					
-					query = query.concat(") pd2 where pd2.\"colName\" is not null");
-					
-					if(breakDownName != null && !breakDownName.isEmpty()) {
-						query = query.concat(" and pd2.\"colBreakdown\" is not null");
-					}
 					
 					System.out.println(" --------- Tanium line chart Query----------- : " + query);
 					List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);	
