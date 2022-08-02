@@ -255,7 +255,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
 				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";*/
 		
-		/*String privillegeAccessReportQuery = "select * from ( select row_count, pd.source_id, pd.server_name, pd.privillege_data, json_collect(sd.data::json) as source_data1, "
+		String privillegeAccessReportQuery = "select * from ( select row_count, pd.source_id, pd.server_name, pd.privillege_data, json_collect(sd.data::json) as source_data1, "
 				+ "json_collect(sd1.data::json) as source_data2 from (\r\n" + 
 				"select count(1) over() as row_count, source_id, server_name, replace(data, 'null,', '\"\",') as privillege_data  from privillege_data \r\n" + 
 				"where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
@@ -266,9 +266,9 @@ public class PrivillegeAccessReportQueryBuilder {
 				"LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and sd1.primary_key_value = pd.server_name \r\n" +
 				"group by row_count, pd.source_id, pd.server_name, pd.privillege_data \r\n" 
 				+ ") a\r\n"
-				+ getOrderBy(sortModel) + getOrderBy1(sortModel);*/
+				+ getOrderBy(sortModel) + getOrderBy1(sortModel);
 		
-		String privillegeAccessReportQuery = "WITH PDDATA AS\r\n" + 
+		/*String privillegeAccessReportQuery = "WITH PDDATA AS\r\n" + 
 				"(\r\n" + 
 				"    SELECT COUNT(1) over() AS row_count, site_key, source_id, server_name, REPLACE(data, 'null,', '\"\",') AS privillege_data\r\n" + 
 				"    FROM privillege_data\r\n" + 
@@ -281,7 +281,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				"    WHERE site_key = '" + siteKey + "'\r\n" + 
 				"    GROUP BY site_key, primary_key_value\r\n" + 
 				")\r\n" + 
-				"SELECT pdt.row_count, pdt.source_id, pdt.server_name, pdt.privillege_data, sdt.sdjsondata as source_data1, sdt1.sdjsondata as source_data2\r\n" + 
+				"SELECT pdt.row_count, pdt.source_id, pdt.server_name, pdt.privillege_data, data as source_data1, data as source_data2\r\n" + 
 				"FROM PDDATA AS pdt\r\n" + 
 				"LEFT JOIN SDDATA AS sdt\r\n" + 
 				"ON pdt.source_id = sdt.primary_key_value\r\n" + 
@@ -290,7 +290,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				"where pdt.site_key = '" + siteKey + "' and sdt.site_key = '" + siteKey + "' \r\n" + 
 				"and sdt1.site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
 				+ getSourceDataFilters(filters, siteKey, projectId) + getOrderBy(sortModel) + getOrderBy1(sortModel) 
-				+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
+				+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";*/
 				
 
 		System.out.println("!!!!! trackerQuery: " + privillegeAccessReportQuery);
@@ -539,35 +539,35 @@ public class PrivillegeAccessReportQueryBuilder {
 							String columnPrefix = column.substring(0, column.indexOf("~"));
 							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower((case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end)) = lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" +  ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower((case when data::text ilike '%" + columnPrefix + "' then data ->> '" + column + "' else data ->> '" + column + "' end)) = lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" +  ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "' then data ->> '" + column + "' else data ->> '" + column + "' end) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     	        				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) = '' " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "' then data ->> '" + column + "' else data ->> '" + column + "' end) = '' " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) ->>  <> '' " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "' then data ->> '" + column + "' else data ->> '" + column + "' end) ->>  <> '' " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    			
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("startsWith")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "' then data ->> '" + column + "' else data ->> '" + column + "' end) ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "' then data ->> '" + column + "' else data ->> '" + column + "' end) ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    			
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower((case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end)) <> lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower((case when data::text ilike '%" + columnPrefix + "' then data ->> '" + column + "' else data ->> '" + column + "' end)) <> lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notContains")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					}
     					
@@ -582,40 +582,40 @@ public class PrivillegeAccessReportQueryBuilder {
 							String columnPrefix = column.substring(0, column.indexOf("~"));
 							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <> '' and (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) = " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> '' and (case when data::text ilike '" + columnPrefix + "' then data ->> '" + column + "' else data ->> '" + column + "' end) = " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) = ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
         						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> ''" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <> '' and (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <> '' and (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) > " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) > " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <> '' and (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) < " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) < " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <> '' and (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <> '' and (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    			
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " ((case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) '' and (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + "  (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <> '' and (case when sdt.sdjsondata::text ilike '" + columnPrefix + "' then sdt.sdjsondata ->> '" + column + "' else sdt1.sdjsondata ->> '" + column + "' end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " ((case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + "  (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    
         					
         					}
@@ -635,9 +635,9 @@ public class PrivillegeAccessReportQueryBuilder {
     	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ") or \r\n"
 				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ")) ";
     	
-    	//return filterQuery.toString().isEmpty() ? "" : cedQuery;
+    	return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
-    	return filterQuery.toString();
+    	//return filterQuery.toString();
     	
     } 
     
@@ -713,13 +713,13 @@ public class PrivillegeAccessReportQueryBuilder {
     				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     				System.out.println("!!!!! column_name: " + column_name);
     				if(column_name.equalsIgnoreCase("Server Name")) {
-    					orderBy = " order by pdt.server_name " + s.getSort();
+    					orderBy = " order by server_name " + s.getSort();
     				} else if(column_name.equalsIgnoreCase("User Name")) {
-    					orderBy = " order by pdt.source_id " + s.getSort();
+    					orderBy = " order by source_id " + s.getSort();
     				} else if(column_name.equalsIgnoreCase("Server & User Name")) {
-    					orderBy = " order by concat(pdt.server_name, '~', pdt.source_id) " + s.getSort();
+    					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
     				} else {
-    					orderBy = " order by pdt.privillege_data::json ->> '" + column_name + "' " + s.getSort();
+    					orderBy = " order by privillege_data::json ->> '" + column_name + "' " + s.getSort();
     				}
     			} /*else {
     					String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
@@ -743,8 +743,8 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().contains("Server Data~")) {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				orderBy = "order by (case when sdt.sdjsondata::text ilike '%\"" + columnPrefix + "\"%' then sdt.sdjsondata::json ->> '" + s.getActualColId() + "' "
-    				+ " else sdt1.sdjsondata::json ->> '" + s.getActualColId() + "' end) " + s.getSort();
+    				orderBy = "order by (case when data::text ilike '%\"" + columnPrefix + "\"%' then data::json ->> '" + s.getActualColId() + "' "
+    				+ " else data::json ->> '" + s.getActualColId() + "' end) " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
