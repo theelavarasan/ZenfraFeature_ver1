@@ -280,7 +280,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				"    SELECT primary_key_value, json_collect(data::json) AS sdjsondata\r\n" + 
 				"    FROM source_data\r\n" + 
 				"    WHERE site_key = '" + siteKey + "'\r\n" + 
-				"    GROUP BY site_key, primary_key_value\r\n" + 
+				"    GROUP BY primary_key_value\r\n" + 
 				")\r\n" + 
 				"SELECT pdt.row_count, source_id, server_name, pdt.privillege_data, sdt.sdjsondata as source_data1, sdt1.sdjsondata as source_data2 \r\n" + 
 				"FROM PDDATA AS pdt\r\n" + 
