@@ -3042,17 +3042,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String xaxisColumnName = (String) xaxisColumn.get("value");
 		String xaxisColumnClassName = (String) xaxisColumn.get("className");
 
-		for (int i = 0; i < yaxisColumnAry.size(); i++) {
-			yaxisColumn = (JSONObject) yaxisColumnAry.get(i);
-			yaxisColumnName = (String) yaxisColumn.get("value");
-			yaxisNames.add(yaxisColumnName);
-			className = (String) yaxisColumn.get("className");
-			classNameArray.add(className);
-
-			yaxisColumnFieldName = (String) yaxisColumn.get("field");
-			yaxisColumnField.add(yaxisColumnFieldName);
-		}
-
 		// breakdown names
 		JSONObject breakDown = breakDownAry.isEmpty() ? new JSONObject() : (JSONObject) breakDownAry.get(0);
 		String breakDownName = (String) breakDown.get("value");
@@ -3061,45 +3050,69 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String query = "";
 
 		if (chartType.equalsIgnoreCase("pie")) {
-			
+			System.out.println("1");
 			if (pieChartField.startsWith("Server Data~")) {
+				System.out.println("2");
 				query = query.concat(
 						"select * from\r\n" + "(select pd.server_data::json->>'" + pieChartColName + "' as \"colName\"");
 			} else {
+				System.out.println("3");
 				query = query.concat("select * from\r\n" + "(select json_array_elements(pd.source_data::json)->>'"
 						+ pieChartField + "' as \"colName\"");
 			}
 			
 			if (pieChartField.startsWith("Server Data~")) {
+				System.out.println("4");
 				if (xaxisColumnClassName.contains("count")) {
+					System.out.println("5");
 					query = query.concat(", count(pd.server_data::json ->> '" + pieChartColName + "') as \"colValue\"");
 				} else if (xaxisColumnClassName.contains("sum")) {
+					System.out.println("6");
 					query = query
 							.concat(", sum((pd.server_data::json ->> '" + pieChartColName + "')::int) as \"colValue\"");
 				}
 			} else {
+				System.out.println("7");
 				if (xaxisColumnClassName.contains("count")) {
+					System.out.println("8");
 					query = query.concat(", count(json_array_elements(pd.source_data::json) ->> '" + pieChartField
 							+ "') as \"colValue\"");
 				} else if (xaxisColumnClassName.contains("sum")) {
+					System.out.println("9");
 					query = query.concat(", sum((json_array_elements(pd.source_data::json) ->> '" + pieChartField
 							+ "')::int) as \"colValue\"");
 				}
 			}
 		} else if (chartTypes.contains(chartType)) {
+			System.out.println("10");
+			for (int i = 0; i < yaxisColumnAry.size(); i++) {
+				yaxisColumn = (JSONObject) yaxisColumnAry.get(i);
+				yaxisColumnName = (String) yaxisColumn.get("value");
+				yaxisNames.add(yaxisColumnName);
+				className = (String) yaxisColumn.get("className");
+				classNameArray.add(className);
+
+				yaxisColumnFieldName = (String) yaxisColumn.get("field");
+				yaxisColumnField.add(yaxisColumnFieldName);
+			}
 			
 			if (xaxisColumnNameField.startsWith("Server Data~")) {
+				System.out.println("11");
 				query = query.concat(
 						"select * from\r\n" + "(select pd.server_data::json->>'" + xaxisColumnName + "' as \"colName\"");
 			} else {
+				System.out.println("12");
 				query = query.concat("select * from\r\n" + "(select json_array_elements(pd.source_data::json)->>'"
 						+ xaxisColumnNameField + "' as \"colName\"");
 			}
 
 			if (breakDownName != null && !breakDownName.isEmpty()) {
+				System.out.println("13");
 				if (breakDownField.startsWith("Server Data~")) {
+					System.out.println("14");
 					query = query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
 				} else {
+					System.out.println("15");
 					query = query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownField
 							+ "' as \"colBreakdown\"");
 				}
@@ -3110,6 +3123,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 				String yFieldCheck = (String) yaxisColumnField.get(i);
 				if (yFieldCheck.startsWith("Server Data~")) {
+					System.out.println("16");
 					if (operater.contains("count")) {
 						query = query.concat(", count(pd.server_data::json ->> '" + yaxisNames.get(i)
 								+ "') as \"colValue" + i + "\"");
@@ -3118,6 +3132,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								+ "')::int) as \"colValue" + i + "\"");
 					}
 				} else {
+					System.out.println("17");
 					if (operater.contains("count")) {
 						query = query.concat(", count(json_array_elements(pd.source_data::json) ->> '" + yFieldCheck
 								+ "') as \"colValue" + i + "\"");
@@ -3167,19 +3182,24 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 		query = query.concat(" group by ");
 		if (xaxisColumnNameField.startsWith("Server Data~")) {
+			System.out.println("18");
 			query = query.concat(" pd.server_data::json ->> '" + xaxisColumnName + "'");
 
 		} else {
+			System.out.println("19");
 			query = query.concat(" json_array_elements(pd.source_data::json) ->> '" + xaxisColumnNameField + "'");
 
 		}
 
 		if (chartTypes.contains(chartType)) {
+			System.out.println("20");
 			if (breakDownName != null && !breakDownName.isEmpty()) {
+				System.out.println("21");
 				if (breakDownField.startsWith("Server Data~")) {
+					System.out.println("22");
 					query = query.concat(", pd.server_data::json ->> '" + breakDownName + "'");
-
 				} else {
+					System.out.println("23");
 					query = query.concat(", json_array_elements(pd.source_data::json) ->> '" + breakDownField + "'");
 
 				}
@@ -3189,6 +3209,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		query = query.concat(") pd2 where pd2.\"colName\" is not null");
 
 		if (breakDownName != null && !breakDownName.isEmpty()) {
+			System.out.println("24");
 			query = query.concat(" and pd2.\"colBreakdown\" is not null");
 		}
 
