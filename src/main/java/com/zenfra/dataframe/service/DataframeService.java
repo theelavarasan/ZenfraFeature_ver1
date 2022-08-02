@@ -3073,21 +3073,21 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			
 			if (pieChartField.startsWith("Server Data~")) {
 				System.out.println("4");
-				if (xaxisColumnClassName.contains("count")) {
+				if (pieChartClassName.contains("count")) {
 					System.out.println("5");
 					query = query.concat(", count(pd.server_data::json ->> '" + pieChartColName + "') as \"colValue\"");
-				} else if (xaxisColumnClassName.contains("sum")) {
+				} else if (pieChartClassName.contains("sum")) {
 					System.out.println("6");
 					query = query
 							.concat(", sum((pd.server_data::json ->> '" + pieChartColName + "')::int) as \"colValue\"");
 				}
 			} else {
 				System.out.println("7");
-				if (xaxisColumnClassName.contains("count")) {
+				if (pieChartClassName.contains("count")) {
 					System.out.println("8");
 					query = query.concat(", count(json_array_elements(pd.source_data::json) ->> '" + pieChartField
 							+ "') as \"colValue\"");
-				} else if (xaxisColumnClassName.contains("sum")) {
+				} else if (pieChartClassName.contains("sum")) {
 					System.out.println("9");
 					query = query.concat(", sum((json_array_elements(pd.source_data::json) ->> '" + pieChartField
 							+ "')::int) as \"colValue\"");
@@ -3144,18 +3144,22 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				if (yFieldCheck.startsWith("Server Data~")) {
 					System.out.println("16");
 					if (operater.contains("count")) {
+						System.out.println("161");
 						query = query.concat(", count(pd.server_data::json ->> '" + yaxisNames.get(i)
 								+ "') as \"colValue" + i + "\"");
 					} else if (operater.contains("sum")) {
+						System.out.println("162");
 						query = query.concat(", sum((pd.server_data::json ->> '" + yaxisNames.get(i)
 								+ "')::int) as \"colValue" + i + "\"");
 					}
 				} else {
 					System.out.println("17");
 					if (operater.contains("count")) {
+						System.out.println("171");
 						query = query.concat(", count(json_array_elements(pd.source_data::json) ->> '" + yFieldCheck
 								+ "') as \"colValue" + i + "\"");
 					} else if (operater.contains("sum")) {
+						System.out.println("172");
 						query = query.concat(", sum((json_array_elements(pd.source_data::json) ->> '" + yFieldCheck
 								+ "')::int) as \"colValue" + i + "\"");
 					}
