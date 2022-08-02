@@ -270,14 +270,14 @@ public class PrivillegeAccessReportQueryBuilder {
 		
 		String privillegeAccessReportQuery = "WITH PDDATA AS\r\n" + 
 				"(\r\n" + 
-				"    SELECT COUNT(1) over() AS row_count, site_key, source_id, server_name, REPLACE(data, 'null,', '\"\",') AS privillege_data\r\n" + 
+				"    SELECT COUNT(1) over() AS row_count, source_id, server_name, REPLACE(data, 'null,', '\"\",') AS privillege_data\r\n" + 
 				"    FROM privillege_data\r\n" + 
 				"    WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
 				+ getSourceDataFilters(filters, siteKey, projectId) + " \r\n" + 
 				"),\r\n" + 
 				"SDDATA AS\r\n" + 
 				"(\r\n" + 
-				"    SELECT primary_key_value, site_key, json_collect(data::json) AS sdjsondata\r\n" + 
+				"    SELECT primary_key_value, json_collect(data::json) AS sdjsondata\r\n" + 
 				"    FROM source_data\r\n" + 
 				"    WHERE site_key = '" + siteKey + "'\r\n" + 
 				"    GROUP BY site_key, primary_key_value\r\n" + 
@@ -287,9 +287,8 @@ public class PrivillegeAccessReportQueryBuilder {
 				"LEFT JOIN SDDATA AS sdt\r\n" + 
 				"ON source_id = sdt.primary_key_value\r\n" + 
 				"LEFT JOIN SDDATA AS sdt1\r\n" + 
-				"ON server_name = sdt1.primary_key_value\r\n" + 
-				"where pdt.site_key = '" + siteKey + "' and sdt.site_key = '" + siteKey + "' \r\n" + 
-				"and sdt1.site_key = '" + siteKey + "' " + getOrderBy(sortModel) + getOrderBy1(sortModel) 
+				"ON server_name = sdt1.primary_key_value\r\n" 
+				+ getOrderBy(sortModel) + getOrderBy1(sortModel) 
 				+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 				
 
