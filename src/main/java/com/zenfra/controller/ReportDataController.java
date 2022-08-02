@@ -16,7 +16,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -24,16 +23,21 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import javax.json.stream.JsonParser;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
@@ -47,8 +51,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.clickhouse.jdbc.ClickHouseDataSource;
+import com.zenfra.dao.PrivillegeAccessReportDAO;
+import com.zenfra.dao.TaniumGroupReportDAO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -82,7 +89,20 @@ public class ReportDataController {
 
 	@Autowired
 	EolService eolService;
-
+	
+	@Autowired
+	RestTemplate restTemplate;
+	
+	private PrivillegeAccessReportDAO privillegeAccessReportDAO;
+	
+	private TaniumGroupReportDAO taniumGroupReportDAO;
+	
+	@Autowired
+    public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO, @Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO) {
+        this.privillegeAccessReportDAO = privillegeAccessReportDAO;
+        this.taniumGroupReportDAO = taniumGroupReportDAO;
+    }
+	
 	@GetMapping("createLocalDiscoveryDF")
 	public ResponseEntity<String> createDataframe(@RequestParam("tableName") String tableName) {
 		String result = dataframeService.createDataframeForLocalDiscovery(tableName);
@@ -117,11 +137,21 @@ public class ReportDataController {
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
 			} else  {  // orient db reports
-				
-				DataResult data = dataframeService.getReportDataFromDF(request, false);
-				if (data != null) {
-					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
+						request.getReportBy().equalsIgnoreCase("Privileged Access")) {
+					
+					return new ResponseEntity<>(privillegeAccessReportDAO.getData(request), HttpStatus.OK);
+					
+				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
+						request.getReportBy().equalsIgnoreCase("Group")) {
+					return new ResponseEntity<>(taniumGroupReportDAO.getData(request), HttpStatus.OK);
+				} else {
+					DataResult data = dataframeService.getReportDataFromDF(request, false);
+					if (data != null) {
+						return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+					}
 				}
+				
 			}
 			
 
@@ -172,10 +202,10 @@ public class ReportDataController {
 				+ siteKey + " : " + userId);
 		
 		sourceType = sourceType.toLowerCase();
-
-		try {			 
+		try {		
 
 			try { // remove orient db dataframe
+
 				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
 						+ File.separator + siteKey + File.separator; // +
 																											// sourceType
@@ -190,20 +220,19 @@ public class ReportDataController {
 					}
 				}
 				
-				
 				try { // delete end to end df file for all log folders
 					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
 
 				    List<Path> fileWithName = Files.walk(configFilePath)
-				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());
-				          
+				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());  
 
-				    for (Path name : fileWithName) {
+				    for (Path name : fileWithName) { 
 				    	FileSystemUtils.deleteRecursively(name);
 				    }
 				
 				} catch (Exception e) {
 					// TODO: handle exception
+					e.printStackTrace();
 				} 
 				
 
@@ -219,7 +248,7 @@ public class ReportDataController {
 			
 			//recreate Reports after completed parsing			
 			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
-				 dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
+				 //dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
 			} else {
 				 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 			}
@@ -271,11 +300,11 @@ public class ReportDataController {
 				reportBy = request.getReportType();
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
-			} else if(request.getOstype() != null && request.getOstype().equalsIgnoreCase("Tanium") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
+			} /*else if(request.getOstype() != null && request.getOstype().equalsIgnoreCase("Tanium") && request.getReportBy().equalsIgnoreCase("Privileged Access")) {			
 				
 				JSONObject columnHeaders = dataframeService.getReportHeaderForLinuxTanium(request);						
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK); 
-			} else if ((request.getCategory().equalsIgnoreCase("Server")) &&
+			}*/ else if ((request.getCategory().equalsIgnoreCase("Server")) &&
 					request.getAnalyticstype() != null 
 					&& request.getAnalyticstype().equalsIgnoreCase("Discovery") 
 					&& request.getReportList().equalsIgnoreCase("Local") ) {
@@ -331,7 +360,7 @@ public class ReportDataController {
 			if (reportName != null && !reportName.isEmpty() && deviceType != null && !deviceType.isEmpty()
 					&& reportBy != null && !reportBy.isEmpty()) {
 				String columnHeaders = reportService.getReportHeader(request, reportName, deviceType, reportBy, siteKey,
-						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype(), true);
+						reportList, request.getCategory(), request.getDeviceType(), request.getCategoryOpt(), request.getAnalyticstype(), request.getUserId(), true);
 				return new ResponseEntity<>(columnHeaders, HttpStatus.OK);
 			} else {
 				return new ResponseEntity<>(ZKConstants.PARAMETER_MISSING, HttpStatus.OK);
@@ -659,16 +688,23 @@ public class ReportDataController {
 	
 	@PostMapping("getChartDetails")
 	public JSONObject prepareChart(
-			@RequestParam("chartConfiguration") String chartConfiguration,
-			@RequestParam("chartType") String chartType, 
-			@RequestParam("reportLabel") String reportLabel,
-			@RequestParam("reportName") String reportName,
-			@RequestParam("analyticstype") String analyticstype,
-			@RequestParam("siteKey") String siteKey,
-			@RequestParam("category") String category,			
-			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+			@RequestBody String chartParams,
+			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ParseException {
+
+		JSONParser jsonParser = new JSONParser();
+
+		JSONObject Object = (JSONObject) jsonParser.parse(chartParams.toString());
+		System.out.println("log 1 : " + Object);
+
+		String reportLabel = Object.get("reportLabel") != null && Object.get("reportLabel").toString().isEmpty() ? "" : Object.get("reportLabel").toString();
 		
-		     JSONObject jsonObject = dataframeService.prepareChart(siteKey, chartConfiguration, chartType, reportLabel, reportName, analyticstype, category);
+		JSONObject jsonObject = new JSONObject();
+		if(reportLabel.contains("Privileged")) {
+			jsonObject =  dataframeService.prepareChartForTanium(Object);
+		}else {
+			jsonObject = dataframeService.prepareChart(Object);
+		}
+		
 		return jsonObject;
 	}
 	

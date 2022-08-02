@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,7 +23,6 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.zenfra.dao.HealthCheckDao;
 import com.zenfra.dao.HealthCheckDisplayDao;
 import com.zenfra.model.HealthCheck;
@@ -474,16 +474,18 @@ public class HealthCheckService {
 		return resultArray;
 	}
 
-	public JSONArray getHealthCheckNames(String siteKey) {
-		JSONArray resultArray = new JSONArray();
-		try {
-			List<Object> resultList = healthCheckDao.getEntityListByColumn(
-					"select * from health_check where site_key='" + siteKey + "'", HealthCheck.class);
-			if (resultList != null && !resultList.isEmpty()) {
-				for (Object obj : resultList) {
-					if (obj instanceof HealthCheck) {
-						resultArray.add(((HealthCheck) obj).getHealthCheckName());
-					}
+	public boolean getHealthCheckNames(String siteKey, String healthCheckName) {
+		Map<String, String> dbConnection = DBUtils.getPostgres();
+		boolean isActive = false;
+		try(Connection connection = DriverManager.getConnection(dbConnection.get("url"), dbConnection.get("userName"), dbConnection.get("password"));
+				Statement statement = connection.createStatement();) {
+			String query = "select * from health_check where site_key = '" + siteKey + "' and lower(health_check_name) = '" + healthCheckName.toLowerCase() + "'";
+			ResultSet resultSet = statement.executeQuery(query);
+			while(resultSet.next()) {
+				if(resultSet.getString("health_check_name").equalsIgnoreCase(healthCheckName)) {
+					isActive = true;
+				} else {
+					isActive = false;
 				}
 			}
 		} catch (Exception e) {
@@ -493,7 +495,7 @@ public class HealthCheckService {
 			String ex = errors.toString();
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
-		return resultArray;
+		return isActive;
 	}
 
 	public JSONArray getHeaderListFromV2(String siteKey, String userId, String token) {
@@ -862,6 +864,285 @@ public class HealthCheckService {
 		}
 
 		return jSONArray;
+	}
+	
+	public com.zenfra.model.GridDataFormat getHealthCheckDataByFilters(String siteKey, String userId,
+			String reportBy, String componentType, String analyticsType, String reportName) {
+		com.zenfra.model.GridDataFormat gridDataFormat = new com.zenfra.model.GridDataFormat();
+		gridDataFormat.setColumnOrder(new ArrayList<>());
+
+		JSONObject headerLabelJson = new JSONObject();
+		if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {
+			String headerLabel = com.zenfra.model.ZKModel.getProperty(ZKConstants.HEADER_LABEL);
+
+			JSONParser parser = new JSONParser();
+			try {
+				headerLabelJson = (JSONObject) parser.parse(headerLabel);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+		if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEALTHCHECK_COLUMN_ORDER)) {
+			String siteOrder = com.zenfra.model.ZKModel.getProperty(ZKConstants.HEALTHCHECK_COLUMN_ORDER);
+			gridDataFormat.setColumnOrder(Arrays.asList(siteOrder.split(",")));
+
+		}
+		List<com.zenfra.model.GridHeader> gridHeaderList = new ArrayList<>();
+		gridDataFormat.setHeaderInfo(gridHeaderList);
+		List<Object> gridData = new ArrayList<>();
+
+		Map<String, com.zenfra.model.GridHeader> headerKeys = new HashMap<>();
+
+		try {
+
+			Map<String, JSONObject> userMap = getUserList(new JSONArray(), true);
+			boolean isTenantAdmin = false;
+			if (userMap.containsKey(userId)) {
+				JSONObject userObj = userMap.get(userId);
+				if (userObj.containsKey("is_tenant_admin")) {
+					isTenantAdmin = (boolean) userObj.get("is_tenant_admin");
+				}
+
+			}
+
+			JSONArray siteQueryArray = getSiteList();
+			HashMap<String, String> siteMap = new HashMap<>();
+			for (int i = 0; i < siteQueryArray.size(); i++) {
+				JSONObject siteObj = (JSONObject) siteQueryArray.get(i);
+				if (siteObj.containsKey("site_key") && siteObj.containsKey("site_name")) {
+					siteMap.put(siteObj.get("site_key").toString(), siteObj.get("site_name").toString());
+				}
+			}
+
+			JSONArray healthCheckList = getAllHealthCheckByFilters(siteKey, isTenantAdmin, userId, reportBy, componentType, analyticsType, reportName);
+			JSONParser parser = new JSONParser();
+			for (int i = 0; i < healthCheckList.size(); i++) {
+				JSONObject jObj = (JSONObject) healthCheckList.get(i);
+				boolean isWriteAccess = false;
+				Set<String> keys = jObj.keySet();
+				for (String key : keys) {
+
+					if (!headerKeys.containsKey(key)) {
+						headerKeys.put(key,
+								generateGridHeader(key, jObj.get(key), null, siteKey, "user", headerLabelJson));
+					}
+				}
+				
+				
+				if (jObj.size() > 0) {
+					
+					// Share Access updated.
+					if (isTenantAdmin || jObj.get("createdById").toString().equalsIgnoreCase(userId)) {
+						isWriteAccess = true;
+					}
+					jObj.put("isWriteAccess", isWriteAccess);
+
+					if (jObj.containsKey("siteAccessList")) {
+						JSONArray siteAccessList = new JSONArray();
+						siteAccessList = (JSONArray) parser.parse((String) jObj.get("siteAccessList"));
+												
+//						JSONArray siteAccessList = new ObjectMapper().convertValue(jObj.get("siteAccessList"),
+//								JSONArray.class);
+						if (!(siteAccessList == null) && !siteAccessList.isEmpty()) {
+							JSONArray siteList = new JSONArray();
+							for (int j = 0; j < siteAccessList.size(); j++) {
+								JSONObject siteObjList = new JSONObject();
+								if(siteAccessList.get(j) != null) {
+									String siteKey1 = (String) siteAccessList.get(j);
+									if (!(siteKey1 == null) && siteKey1.equalsIgnoreCase("all")) {
+										siteObjList.put("value", "allSites");
+										siteObjList.put("label", "All Sites");
+									} else if (siteMap.containsKey(siteKey1)) {
+										String siteName = siteMap.get(siteKey1);
+										siteObjList.put("value", siteKey1);
+										siteObjList.put("label", siteName);
+									}
+									siteList.add(siteObjList);
+								}
+							}
+							jObj.put("siteList", siteList);
+						}
+					}
+					
+					
+					if (jObj.containsKey("userAccessList")) {
+						JSONArray userAccessList = new JSONArray();
+						userAccessList = (JSONArray) parser.parse((String) jObj.get("userAccessList"));
+//						JSONArray userAccessList = new ObjectMapper().convertValue(jObj.get("userAccessList"),
+//								JSONArray.class);
+						if (!(userAccessList == null) && !userAccessList.isEmpty()) {
+							JSONArray userList = new JSONArray();
+							for (int j = 0; j < userAccessList.size(); j++) {
+								JSONObject userListObj = new JSONObject();
+								if(userAccessList.get(j) != null) {
+									String accessUserId = (String) userAccessList.get(j);
+									if (!(accessUserId == null) && accessUserId.equalsIgnoreCase("all")) {
+										userListObj.put("value", "allUsers");
+										userListObj.put("label", "All Users");
+									} else if (userMap.containsKey(accessUserId)) {
+										JSONObject userObj = userMap.get(accessUserId);
+										if (userObj != null && userObj.containsKey("first_name")
+												&& userObj.containsKey("last_name")) {
+											userListObj.put("label",
+													userObj.get("first_name") + " " + userObj.get("last_name"));
+											userListObj.put("value", accessUserId);
+										}
+									}
+									userList.add(userListObj);
+								}
+								}
+							jObj.put("userList", userList);
+						}
+					}
+
+					
+					gridData.add(jObj);
+				}
+			}
+			for (int i = 0; i < gridData.size(); i++) {
+				JSONObject site = (JSONObject) gridData.get(i);
+				if (userMap.containsKey(site.get("createdBy"))) {
+					JSONObject user = userMap.get(site.get("createdBy"));
+					if (user.containsKey("first_name") && user.containsKey("last_name")) {
+						site.remove("createdBy");
+						site.put("createdBy", user.get("first_name") + " " + user.get("last_name"));
+					}
+				}
+
+				if (userMap.containsKey(site.get("updatedBy"))) {
+					JSONObject user = userMap.get(site.get("updatedBy"));
+					if (user.containsKey("first_name") && user.containsKey("last_name")) {
+						site.remove("updatedBy");
+						site.put("updatedBy", user.get("first_name") + " " + user.get("last_name"));
+					}
+				}
+
+			}
+			gridHeaderList.addAll(headerKeys.values());
+			
+			gridDataFormat.setData(gridData);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return gridDataFormat;
+	}
+	
+	public JSONArray getAllHealthCheckByFilters(String siteKey, boolean isTenantAdmin, String userId,
+			String reportBy, String componentType, String analyticsType, String reportName) {
+		JSONArray resultArray = new JSONArray();
+		String query = null;
+		try {
+
+			query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName, "
+					+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList, "
+					+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
+					+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
+					+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
+					+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList, "
+					+ "create_by as createdById, update_by as updatedById FROM health_check h "
+					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
+					+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
+					+ "where is_active = true and site_key = '" + siteKey + "' and component_type = '" + componentType + "' and report_by = '" + reportBy + "' and "
+					+ "analytics_type = '" + analyticsType + "' and report_name = '" + reportName + "' and"
+					+ " report_by not in (select project_id from project) order by health_check_name ASC";
+
+			if (!isTenantAdmin) {
+				query = "SELECT health_check_id as healthCheckId, component_type as componentType, health_check_name as healthCheckName, "
+						+ "report_by as reportBy, report_condition as reportCondition, report_name as reportName, coalesce(site_access_list , '') as siteAccessList, "
+						+ "site_key as siteKey, coalesce(user_access_list , '') as userAccessList, "
+						+ "to_char(to_timestamp(created_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as createdTime, "
+						+ "to_char(to_timestamp(update_date::text, 'yyyy-mm-dd HH24:MI:SS') at time zone 'utc'::text, 'MM-dd-yyyy HH24:MI:SS') as updatedTime, "
+						+ "user_id as userId, analytics_type as analyticsType, a.createBy, c.updateBy, overall_status_rule_list as overallStatusRuleList, "
+						+ "create_by as createdById, update_by as updatedById FROM health_check h "
+						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as createBy, user_id as userId from user_temp)a on a.userId = h.user_id "
+						+ "LEFT JOIN(select concat(first_name, '', trim(coalesce(last_name,''))) as updateBy, user_id as userId from user_temp)c on c.userId = h.user_id "
+						+ "where is_active = true and ((create_by = '" + userId + "' " + "and site_key = '" + siteKey
+						+ "') or " + "((site_access_list like '%" + siteKey
+						+ "%' or site_access_list like '%All%') and " + "(user_access_list like '%" + userId
+						+ "%' or user_access_list  like '%All%'))) and component_type = '" + componentType
+						+ "' and report_by = '" + reportBy + "' " + "and analytics_type = '" + analyticsType
+						+ "' and report_name = '" + reportName + "'"
+						+ " and report_by not in (select project_id from project) order by health_check_name ASC";
+			}
+			System.out.println("--------------query--------------" + query);
+
+			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
+			resultArray = healthCheckListToArray(resultList);
+			System.out.println("resultArray : " + resultArray);
+
+			} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+	}
+	
+	public JSONArray healthCheckListToArray(List<Map<String, Object>> resultList) {
+		JSONArray resultArray = new JSONArray();
+		JSONParser jsonParser = new JSONParser();
+
+		try {
+			if (resultList != null && !resultList.isEmpty()) {
+				for (Map<String, Object> mapObject : resultList) {
+						JSONObject healthCheckModel = new JSONObject();
+						healthCheckModel.put("healthCheckId", mapObject.get("healthcheckid"));
+						healthCheckModel.put("componentType", mapObject.get("componenttype"));
+						healthCheckModel.put("healthCheckName", mapObject.get("healthcheckname"));
+						healthCheckModel.put("reportBy", mapObject.get("reportby"));
+						healthCheckModel.put("reportCondition", jsonParser.parse(mapObject.get("reportcondition").toString()));
+						healthCheckModel.put("reportName", mapObject.get("reportname"));
+						healthCheckModel.put("siteAccessList", mapObject.get("siteaccesslist"));
+						healthCheckModel.put("siteKey", mapObject.get("sitekey"));
+						healthCheckModel.put("userAccessList", mapObject.get("useraccesslist"));
+						healthCheckModel.put("createdTime", mapObject.get("createdtime"));
+						healthCheckModel.put("updatedTime", mapObject.get("updatedtime"));
+						healthCheckModel.put("userId", mapObject.get("userid"));
+						healthCheckModel.put("analyticsType", mapObject.get("analyticstype"));
+						healthCheckModel.put("createdById", mapObject.get("createdbyid"));
+						healthCheckModel.put("updatedById", mapObject.get("updatedbyid"));
+						healthCheckModel.put("createdBy", mapObject.get("createby"));
+						healthCheckModel.put("updatedBy", mapObject.get("updateby"));
+						
+						if(mapObject.containsKey("isActive")) {
+							healthCheckModel.put("isActive", mapObject.get("isActive"));
+						} else {
+							healthCheckModel.put("isActive", true);
+						}
+						healthCheckModel.put("overallStatusRuleList", jsonParser.parse(mapObject.get("overallstatusrulelist") != null ? mapObject.get("overallstatusrulelist").toString() : "[]"));
+							
+						boolean isWriteAccess = false;
+						if (mapObject.get("userid") != null) {
+							boolean isTenantAdmin1 = false;
+
+						Users loginUser = userCreateService.getUserByUserId(mapObject.get("userid").toString());
+						if (loginUser != null && loginUser.isIs_tenant_admin()) {
+							isTenantAdmin1 = true;
+						}
+
+						if (isTenantAdmin1 || mapObject.get("createby") != null) {
+							isWriteAccess = true;
+						}
+					}
+
+					healthCheckModel.put("isWriteAccess", isWriteAccess);
+
+					resultArray.add(healthCheckModel);
+
+			}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return resultArray;
 	}
 
 }

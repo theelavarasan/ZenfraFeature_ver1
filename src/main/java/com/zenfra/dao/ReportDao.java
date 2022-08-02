@@ -36,7 +36,7 @@ public class ReportDao {
 	@Autowired
 	CommonFunctions commonFunctions;
 
-	public JSONArray getReportHeader(String reportName, String deviceType, String reportBy) {
+	public JSONArray getReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
 		JSONArray reportHeaders = new JSONArray();
 		try {
 			Map<String, Object> params = new HashMap<String, Object>();
@@ -45,7 +45,42 @@ public class ReportDao {
 			params.put("report_by", reportBy.toLowerCase());
 			System.out.println("------params--------- " + params);
 			System.out.println("------columns query--------- " + reportQueries.getHeader());
-			List<Map<String, Object>> result = namedJdbc.queryForList(reportQueries.getHeader(), params);
+			List<Map<String, Object>> result; 
+			System.out.println("!!!!! Header reportBy: " + reportBy);
+			if(reportBy.equalsIgnoreCase("securityAddSource")) {
+				result = namedJdbc.queryForList(reportQueries.getSecurityAddSourceHeader(), params);
+			} else {
+				System.out.println("!!!!! not Tanium Header: ");
+				result = namedJdbc.queryForList(reportQueries.getHeader(), params);
+			}
+			
+			System.out.println("!!!!! result: " + result);
+			reportHeaders = parseResultSetForHeaderInfo(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return reportHeaders;
+	} 
+	
+	public JSONArray getPrivillegeReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+		JSONArray reportHeaders = new JSONArray();
+		try {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("site_key", siteKey);
+			params.put("user_id", userId);
+			System.out.println("------params--------- " + params);
+			System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
+			
+			List<Map<String, Object>> result; 
+			String headerQuery = reportQueries.getTaniumHeader();
+			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
+			System.out.println("!!!!! headerQuery: " + headerQuery);
+			result = jdbc.queryForList(headerQuery);
+			
 			System.out.println("!!!!! result: " + result);
 			reportHeaders = parseResultSetForHeaderInfo(result);
 		} catch (Exception e) {
@@ -57,6 +92,37 @@ public class ReportDao {
 		}
 		return reportHeaders;
 	}
+	
+	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+		JSONObject reportGroup = new JSONObject();
+		try {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("report_name", reportName.toLowerCase());
+			params.put("device_type", deviceType.toLowerCase());
+			params.put("report_by", reportBy.toLowerCase());
+			
+			List<Map<String, Object>> result; 
+			
+			params = new HashMap<String, Object>();
+			params.put("site_key", siteKey);
+			params.put("user_id", userId);
+			String query = reportQueries.getTaniumGroup();
+			query = query.replace(":site_key", siteKey).replace(":user_id", userId);
+			result = jdbc.queryForList(query);
+			
+			
+			System.out.println("!!!!! result: " + result);
+			reportGroup = parseResultSetForHeaderGroup(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return reportGroup;
+	}
+	
 
 	private JSONArray parseResultSetForHeaderInfo(List<Map<String, Object>> resultList) {
 		resultList = resultList.stream().distinct().collect(Collectors.toList());
@@ -88,6 +154,26 @@ public class ReportDao {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 		return reportHeaders;
+	}
+	
+	private JSONObject parseResultSetForHeaderGroup(List<Map<String, Object>> resultList) {
+		resultList = resultList.stream().distinct().collect(Collectors.toList());
+		JSONObject jsonObj = new JSONObject();
+		try {
+			
+			for (Map<String, Object> rowData : resultList) {
+				jsonObj.put(rowData.get("category"), rowData.get("grouped_columns"));
+				
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return jsonObj;
 	}
 
 	public List<String> getReportNumericalHeaders(String reportName, String deviceType, String reportBy,
