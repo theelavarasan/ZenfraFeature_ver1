@@ -3024,11 +3024,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
 		JSONArray breakDownAry = (JSONArray) chartConfig.get("breakdown");
 
-		JSONArray pieChartCols = (JSONArray) chartConfig.get("column");
-		JSONObject pieChartObject = (JSONObject)  pieChartCols.get(0);
-		String pieChartColName = (String) pieChartObject.get("value");
-		String pieChartClassName = (String) pieChartObject.get("className");
-		String pieChartField = (String) pieChartObject.get("field");
+		JSONArray pieChartCols = new JSONArray();
+		JSONObject pieChartObject = new JSONObject();
+		String pieChartColName = "";
+		String pieChartClassName = "";
+		String pieChartField = "";
 
 		// yaxis column names
 		JSONObject yaxisColumn = new JSONObject();
@@ -3041,19 +3041,25 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String yaxisColumnFieldName = "";
 
 		// xaxis column names
-		JSONObject xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
-		String xaxisColumnNameField = (String) xaxisColumn.get("field");
-		String xaxisColumnName = (String) xaxisColumn.get("value");
-		String xaxisColumnClassName = (String) xaxisColumn.get("className");
+		JSONObject xaxisColumn = new JSONObject();
+		String xaxisColumnNameField = "";
+		String xaxisColumnName = "";
+		String xaxisColumnClassName = "";
 
 		// breakdown names
-		JSONObject breakDown = breakDownAry.isEmpty() ? new JSONObject() : (JSONObject) breakDownAry.get(0);
-		String breakDownName = (String) breakDown.get("value");
-		String breakDownField = (String) breakDown.get("field");
+		JSONObject breakDown = new JSONObject();
+		String breakDownName = "";
+		String breakDownField = "";
 
 		String query = "";
 
 		if (chartType.equalsIgnoreCase("pie")) {
+			
+			pieChartCols = (JSONArray) chartConfig.get("column");
+			pieChartObject = (JSONObject)  pieChartCols.get(0);
+			pieChartColName = (String) pieChartObject.get("value");
+			pieChartClassName = (String) pieChartObject.get("className");
+			pieChartField = (String) pieChartObject.get("field");
 			System.out.println("1");
 			if (pieChartField.startsWith("Server Data~")) {
 				System.out.println("2");
@@ -3088,6 +3094,15 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				}
 			}
 		} else if (chartTypes.contains(chartType)) {
+			xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
+			xaxisColumnNameField = (String) xaxisColumn.get("field");
+			xaxisColumnName = (String) xaxisColumn.get("value");
+			xaxisColumnClassName = (String) xaxisColumn.get("className");
+			
+			breakDown = breakDownAry.isEmpty() ? new JSONObject() : (JSONObject) breakDownAry.get(0);
+			breakDownName = (String) breakDown.get("value");
+			breakDownField = (String) breakDown.get("field");
+			
 			System.out.println("10");
 			for (int i = 0; i < yaxisColumnAry.size(); i++) {
 				yaxisColumn = (JSONObject) yaxisColumnAry.get(i);
