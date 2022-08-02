@@ -270,7 +270,7 @@ public class PrivillegeAccessReportQueryBuilder {
 		
 		String privillegeAccessReportQuery = "WITH PDDATA AS\r\n" + 
 				"(\r\n" + 
-				"    SELECT COUNT(1) over() AS rowcount, site_key, source_id, server_name, REPLACE(data, 'null,', '\"\",') AS privillege_data\r\n" + 
+				"    SELECT COUNT(1) over() AS row_count, site_key, source_id, server_name, REPLACE(data, 'null,', '\"\",') AS privillege_data\r\n" + 
 				"    FROM privillege_data\r\n" + 
 				"    WHERE site_key = '" + siteKey + "'\r\n" + 
 				"),\r\n" + 
@@ -281,7 +281,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				"    WHERE site_key = '" + siteKey + "'\r\n" + 
 				"    GROUP BY site_key, primary_key_value\r\n" + 
 				")\r\n" + 
-				"SELECT pdt.rowcount, pdt.source_id, pdt.server_name, pdt.privillege_data, sdt.sdjsondata as source_data1, sdt1.sdjsondata as source_data2\r\n" + 
+				"SELECT pdt.row_count, pdt.source_id, pdt.server_name, pdt.privillege_data, sdt.sdjsondata as source_data1, sdt1.sdjsondata as source_data2\r\n" + 
 				"FROM PDDATA AS pdt\r\n" + 
 				"LEFT JOIN SDDATA AS sdt\r\n" + 
 				"ON pdt.source_id = sdt.primary_key_value\r\n" + 
