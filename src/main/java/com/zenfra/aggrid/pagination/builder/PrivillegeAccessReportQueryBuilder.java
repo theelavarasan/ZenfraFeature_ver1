@@ -255,7 +255,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
 				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";*/
 		
-		String privillegeAccessReportQuery = "select * from ( select row_count, pd.source_id, pd.server_name, pd.privillege_data, json_collect(sd.data::json) as source_data1, "
+		/*String privillegeAccessReportQuery = "select * from ( select row_count, pd.source_id, pd.server_name, pd.privillege_data, json_collect(sd.data::json) as source_data1, "
 				+ "json_collect(sd1.data::json) as source_data2 from (\r\n" + 
 				"select count(1) over() as row_count, source_id, server_name, replace(data, 'null,', '\"\",') as privillege_data  from privillege_data \r\n" + 
 				"where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
@@ -266,13 +266,14 @@ public class PrivillegeAccessReportQueryBuilder {
 				"LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and sd1.primary_key_value = pd.server_name \r\n" +
 				"group by row_count, pd.source_id, pd.server_name, pd.privillege_data \r\n" 
 				+ ") a\r\n"
-				+ getOrderBy(sortModel) + getOrderBy1(sortModel);
+				+ getOrderBy(sortModel) + getOrderBy1(sortModel);*/
 		
-		/*String privillegeAccessReportQuery = "WITH PDDATA AS\r\n" + 
+		String privillegeAccessReportQuery = "WITH PDDATA AS\r\n" + 
 				"(\r\n" + 
 				"    SELECT COUNT(1) over() AS row_count, site_key, source_id, server_name, REPLACE(data, 'null,', '\"\",') AS privillege_data\r\n" + 
 				"    FROM privillege_data\r\n" + 
-				"    WHERE site_key = '" + siteKey + "'\r\n" + 
+				"    WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
+				+ getSourceDataFilters(filters, siteKey, projectId) + " \r\n" + 
 				"),\r\n" + 
 				"SDDATA AS\r\n" + 
 				"(\r\n" + 
@@ -288,9 +289,8 @@ public class PrivillegeAccessReportQueryBuilder {
 				"LEFT JOIN SDDATA AS sdt1\r\n" + 
 				"ON server_name = sdt1.primary_key_value\r\n" + 
 				"where pdt.site_key = '" + siteKey + "' and sdt.site_key = '" + siteKey + "' \r\n" + 
-				"and sdt1.site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
-				+ getSourceDataFilters(filters, siteKey, projectId) + getOrderBy(sortModel) + getOrderBy1(sortModel) 
-				+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";*/
+				"and sdt1.site_key = '" + siteKey + "' " + getOrderBy(sortModel) + getOrderBy1(sortModel) 
+				+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 				
 
 		System.out.println("!!!!! trackerQuery: " + privillegeAccessReportQuery);
@@ -582,7 +582,7 @@ public class PrivillegeAccessReportQueryBuilder {
 							String columnPrefix = column.substring(0, column.indexOf("~"));
 							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '" + columnPrefix + "' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) = " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '" + columnPrefix + "' then data ->> '" + column + "' else data ->> '" + column + "' end) = " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
         						
@@ -594,28 +594,28 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
     							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <> " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) > " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) > " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThan")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) < " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) < " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("lessThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("greaterThanOrEqual")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    			
         					} else if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
         						
-        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " ((case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) '' and (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + "  (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " ((case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) >= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + "  (case when data::text ilike '%" + columnPrefix + "%' then data::json ->> '" + column + "' else data::json ->> '" + column + "' end) <> '' and (case when data::text ilike '%" + columnPrefix + "%' then data ->> '" + column + "' else data ->> '" + column + "' end) <= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    
         					
         					}
