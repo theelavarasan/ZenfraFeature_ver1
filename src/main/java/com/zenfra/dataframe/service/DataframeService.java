@@ -3054,23 +3054,23 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String query = "";
 
 		if (chartType.equalsIgnoreCase("pie")) {
-			
+
 			pieChartCols = (JSONArray) chartConfig.get("column");
-			pieChartObject = (JSONObject)  pieChartCols.get(0);
+			pieChartObject = (JSONObject) pieChartCols.get(0);
 			pieChartColName = (String) pieChartObject.get("value");
 			pieChartClassName = (String) pieChartObject.get("className");
 			pieChartField = (String) pieChartObject.get("field");
 			System.out.println("1");
 			if (pieChartField.startsWith("Server Data~")) {
 				System.out.println("2");
-				query = query.concat(
-						"select * from\r\n" + "(select pd.server_data::json->>'" + pieChartColName + "' as \"colName\"");
+				query = query.concat("select * from\r\n" + "(select pd.server_data::json->>'" + pieChartColName
+						+ "' as \"colName\"");
 			} else {
 				System.out.println("3");
 				query = query.concat("select * from\r\n" + "(select json_array_elements(pd.source_data::json)->>'"
 						+ pieChartField + "' as \"colName\"");
 			}
-			
+
 			if (pieChartField.startsWith("Server Data~")) {
 				System.out.println("4");
 				if (pieChartClassName.contains("count")) {
@@ -3098,11 +3098,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			xaxisColumnNameField = (String) xaxisColumn.get("field");
 			xaxisColumnName = (String) xaxisColumn.get("value");
 			xaxisColumnClassName = (String) xaxisColumn.get("className");
-			
+
 			breakDown = breakDownAry.isEmpty() ? new JSONObject() : (JSONObject) breakDownAry.get(0);
 			breakDownName = (String) breakDown.get("value");
 			breakDownField = (String) breakDown.get("field");
-			
+
 			System.out.println("10");
 			for (int i = 0; i < yaxisColumnAry.size(); i++) {
 				yaxisColumn = (JSONObject) yaxisColumnAry.get(i);
@@ -3114,11 +3114,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				yaxisColumnFieldName = (String) yaxisColumn.get("field");
 				yaxisColumnField.add(yaxisColumnFieldName);
 			}
-			
+
 			if (xaxisColumnNameField.startsWith("Server Data~")) {
 				System.out.println("11");
-				query = query.concat(
-						"select * from\r\n" + "(select pd.server_data::json->>'" + xaxisColumnName + "' as \"colName\"");
+				query = query.concat("select * from\r\n" + "(select pd.server_data::json->>'" + xaxisColumnName
+						+ "' as \"colName\"");
 			} else {
 				System.out.println("12");
 				query = query.concat("select * from\r\n" + "(select json_array_elements(pd.source_data::json)->>'"
@@ -3204,17 +3204,26 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		 */
 
 		query = query.concat(" group by ");
-		if (xaxisColumnNameField.startsWith("Server Data~")) {
-			System.out.println("18");
-			query = query.concat(" pd.server_data::json ->> '" + xaxisColumnName + "'");
+		if (chartType.equalsIgnoreCase("pie")) {
+			if (pieChartField.startsWith("Server Data~")) {
+				System.out.println("18");
+				query = query.concat(" pd.server_data::json ->> '" + pieChartColName + "'");
 
-		} else {
-			System.out.println("19");
-			query = query.concat(" json_array_elements(pd.source_data::json) ->> '" + xaxisColumnNameField + "'");
+			} else {
+				System.out.println("19");
+				query = query.concat(" json_array_elements(pd.source_data::json) ->> '" + pieChartField + "'");
 
-		}
+			}
+		} else if (chartTypes.contains(chartType)) {
+			if (xaxisColumnNameField.startsWith("Server Data~")) {
+				System.out.println("18");
+				query = query.concat(" pd.server_data::json ->> '" + xaxisColumnName + "'");
 
-		if (chartTypes.contains(chartType)) {
+			} else {
+				System.out.println("19");
+				query = query.concat(" json_array_elements(pd.source_data::json) ->> '" + xaxisColumnNameField + "'");
+
+			}
 			System.out.println("20");
 			if (breakDownName != null && !breakDownName.isEmpty()) {
 				System.out.println("21");
