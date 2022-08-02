@@ -171,7 +171,7 @@ public class PrivillegeAccessReportDAO {
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
 				+ "concat(con_operator, (case when con_field_id ilike 'Server Data~%' then ' replace(data,''null,'',''\"\",'')::json ->> ''' else ' source_id in (select distinct primary_key_value from \r\n"
-				+ "source_data where site_key = '':site_key'' and data::json ->> ''' end),  con_field_id, ''' ', \r\n"
+				+ "source_data where site_key = '':site_key'' and data::json ->> ''' end),  replace(con_field_id,'Server Data~',''), ''' ', \r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''(',con_value, ')%''') else (case when con_condition = 'endsWith' then concat(' ''%(',con_value, ')''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')\r\n"
