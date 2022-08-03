@@ -83,10 +83,12 @@ public class ReportService {
 			if(reportBy.equalsIgnoreCase("Privileged Access")) {
 				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
 				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
-			} else if (reportBy.equalsIgnoreCase("Group By Username")) { 
+			} else if (reportBy.equalsIgnoreCase("User Name")) { 
+				System.out.println("log 1");
 				System.out.println(reportName + " : "+ actualDeviceType + " : "+ reportBy + " : "+ siteKey + " : "+ userId);
 				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
 			} else {
+				System.out.println("log 2");
 				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 			}
 		}

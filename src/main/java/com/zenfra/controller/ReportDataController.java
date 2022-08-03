@@ -151,11 +151,11 @@ public class ReportDataController {
 						request.getReportBy().equalsIgnoreCase("Group")) {
 					return new ResponseEntity<>(taniumGroupReportDAO.getData(request), HttpStatus.OK);
 				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
-						request.getReportBy().equalsIgnoreCase("Group By Username")) {
-					System.out.println("request" + request);
-					System.out.println("request" + request.getCategory());
+						request.getReportBy().equalsIgnoreCase("User Name")) {
+					System.out.println("log 1: ");
 					return new ResponseEntity<>(taniumUserNameReportDao.getData(request), HttpStatus.OK);
 				} else {
+					System.out.println("log 2");
 					DataResult data = dataframeService.getReportDataFromDF(request, false);
 					if (data != null) {
 						return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
