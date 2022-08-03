@@ -150,6 +150,8 @@ public class ReportDataController {
 					return new ResponseEntity<>(taniumGroupReportDAO.getData(request), HttpStatus.OK);
 				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
 						request.getReportBy().equalsIgnoreCase("Group By Username")) {
+					System.out.println("request" + request);
+					System.out.println("request" + request.getCategory());
 					return new ResponseEntity<>(taniumUserNameReportDao.getData(request), HttpStatus.OK);
 				} else {
 					DataResult data = dataframeService.getReportDataFromDF(request, false);
