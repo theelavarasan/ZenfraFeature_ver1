@@ -744,10 +744,10 @@ public class ValidationRuleService {
 			
 			if(columnName.startsWith("Server Data~")) {
 				
-				query = "select json_agg(distinct replace(data,'null,','\"\"')::json ->> '" + columnName.replace("Server Data~", "")+ "') as column_values from privillege_data "
+				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName.replace("Server Data~", "")+ "') as column_values from privillege_data "
 						+ "where site_key = '" + siteKey + "'";
 			} else {
-				query = "select json_agg(distinct replace(data,'null,','\"\"')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
 						" and data::json ->> '" + columnName + "' is not null";
 			}
 
