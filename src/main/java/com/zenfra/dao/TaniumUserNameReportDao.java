@@ -44,6 +44,7 @@ public class TaniumUserNameReportDao {
     }
 
     public EnterpriseGetRowsResponse getData(ServerSideGetRowsRequest request) {
+    	System.out.println("test log 1");
         String tableName = "privillege_data"; // could be supplied in request as a lookup key?
         
         // first obtain the pivot values from the DB for the requested pivot columns
@@ -54,13 +55,16 @@ public class TaniumUserNameReportDao {
         
         String validationFilter = "";
         if(request.getHealthCheckId() != null && !request.getHealthCheckId().isEmpty()) {
+        	System.out.println("test log 2");
         	String validationFilterQuery = getValidationRuleCondition(request.getSiteKey(), request.getHealthCheckId(), request.getRuleList());
             List<Map<String, Object>> validationRows = utilities.getDBDatafromJdbcTemplate(validationFilterQuery);
             validationFilter = getValidationFilter(validationRows);
         }
         
+        System.out.println("test log 3");
         String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter);
         
+        System.out.println("test log " + sql);
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
         JSONArray resultArray = dataNormalize(rows);
         //System.out.println("!!!!! pagination data: " + rows);
