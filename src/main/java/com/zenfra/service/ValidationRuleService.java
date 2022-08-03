@@ -1,12 +1,10 @@
 package com.zenfra.service;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,7 +12,6 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
@@ -26,7 +23,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
@@ -776,8 +772,7 @@ public class ValidationRuleService {
 
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
-			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
