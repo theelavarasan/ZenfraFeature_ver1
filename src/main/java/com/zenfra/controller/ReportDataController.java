@@ -56,6 +56,7 @@ import org.springframework.web.client.RestTemplate;
 import com.clickhouse.jdbc.ClickHouseDataSource;
 import com.zenfra.dao.PrivillegeAccessReportDAO;
 import com.zenfra.dao.TaniumGroupReportDAO;
+import com.zenfra.dao.TaniumUserNameReportDao;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -96,6 +97,8 @@ public class ReportDataController {
 	private PrivillegeAccessReportDAO privillegeAccessReportDAO;
 	
 	private TaniumGroupReportDAO taniumGroupReportDAO;
+	
+	private TaniumUserNameReportDao taniumUserNameReportDao;
 	
 	@Autowired
     public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO, @Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO) {
@@ -145,6 +148,9 @@ public class ReportDataController {
 				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
 						request.getReportBy().equalsIgnoreCase("Group")) {
 					return new ResponseEntity<>(taniumGroupReportDAO.getData(request), HttpStatus.OK);
+				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
+						request.getReportBy().equalsIgnoreCase("Group By Username")) {
+					return new ResponseEntity<>(taniumUserNameReportDao.getData(request), HttpStatus.OK);
 				} else {
 					DataResult data = dataframeService.getReportDataFromDF(request, false);
 					if (data != null) {
