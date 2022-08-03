@@ -101,9 +101,11 @@ public class ReportDataController {
 	private TaniumUserNameReportDao taniumUserNameReportDao;
 	
 	@Autowired
-    public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO, @Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO) {
+    public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO, @Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO,
+    		@Qualifier("taniumUserNameReportDao") TaniumUserNameReportDao taniumUserNameReportDao) {
         this.privillegeAccessReportDAO = privillegeAccessReportDAO;
         this.taniumGroupReportDAO = taniumGroupReportDAO;
+        this.taniumUserNameReportDao = taniumUserNameReportDao;
     }
 	
 	@GetMapping("createLocalDiscoveryDF")
