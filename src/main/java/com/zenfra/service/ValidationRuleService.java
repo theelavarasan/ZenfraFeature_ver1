@@ -749,7 +749,7 @@ public class ValidationRuleService {
 					+ ") a\r\n"
 					+ ") b\r\n"
 					+ "union all\r\n"
-					+ "select concat(source_name, '~', keys) as keys, data::json ->> keys as column_values from (\r\n"
+					+ "select concat(keys) as keys, data::json ->> keys as column_values from (\r\n"
 					+ "select source_name, data, json_object_keys(data::json) as keys from (\r\n"
 					+ "select sd.source_id, s.source_name, primary_key_value, replace(data, '.0\"', '\"') as data, row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num\r\n"
 					+ "from source_data sd\r\n"
