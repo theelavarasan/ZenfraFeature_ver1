@@ -74,9 +74,10 @@ public class TaniumUserNameReportQueryBuilder {
         this.startRow = request.getStartRow();
         this.endRow = request.getEndRow();
 
+        System.out.println("creating sql query");
         //return selectSql() + fromSql(tableName) + whereSql() + groupBySql() + orderBySql() + limitSql();
-        return getPrivillegeAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel(),
-        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery);
+        return getPrivillegeAccessReport(request.getSiteKey());
+        
     }
 
     private String selectSql() {
@@ -225,35 +226,11 @@ public class TaniumUserNameReportQueryBuilder {
         put("greaterThanOrEqual", ">=");
     }};
     
-    private String getPrivillegeAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel,
-    		String healthCheckId, List<String> ruleList, String validationFilterQuery) {
+    private String getPrivillegeAccessReport(String siteKey) {
 		
 		JSONParser parser = new JSONParser();
 		
-		String tasklistQuery = "select * from ("
-				+ "select row_count, source_id, server_name, privillege_data, json_agg(source_data1) as source_data1, json_agg(source_data2) as source_data2,"
-				+ "json_agg(source_data3) as source_data3, json_agg(source_data4) as source_data4 from ( \r\n" 
-				+ "select * from ( \r\n"
-				+ "select row_count, a.source_id, server_name, a.data as privillege_data, (case when s1.source_name is null then null else json_build_object(s1.source_name,sd.data::json) end) as source_data1, \r\n"
-				+ "(case when s2.source_name is null then null else json_build_object(s2.source_name, sd1.data::json) end) as source_data2,"
-				+ "(case when sdls1.source_name is null then null else json_build_object(sdls1.source_name, sdl1.data::json) end) as source_data3,\r\n"
-				+ "(case when sdls2.source_name is null then null else json_build_object(sdls2.source_name, sdl2.data::json) end) as source_data4 from (\r\n"
-				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",'),': ,',':\"\",') as data from privillege_data\r\n"
-				+ "where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getSourceDataFilters(filters, siteKey, projectId) + " " + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
-				+ ") a\r\n"
-				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and lower(sd.primary_key_value) = lower(a.source_id) \r\n"
-				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
-				+ "LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and lower(sd1.primary_key_value) = lower(a.server_name)\r\n"
-				+ "LEFT JOIN source s2 on s2.source_id = sd1.source_id \r\n" 
-				+ "LEFT JOIN source sdls1 on sdls1.link_to not in ('All', 'None') and sdls1.link_to = s1.source_id\r\n"
-				+ "LEFT JOIN source_data sdl1 on sdl1.site_key = '" + siteKey + "' and sdl1.source_id = sdls1.source_id \r\n"
-				+ "and lower(sdl1.primary_key_value) = lower(sd.data::json ->> sdls1.relationship) \r\n"
-				+ "LEFT JOIN source sdls2 on sdls2.link_to not in ('All', 'None') and sdls2.link_to = s2.source_id\r\n"
-				+ "LEFT JOIN source_data sdl2 on sdl2.site_key = '" + siteKey + "' and sdl2.source_id = sdls2.source_id \r\n"
-				+ "and lower(sdl2.primary_key_value) = lower(sd1.data::json ->> sdls2.relationship) \r\n"
-				+ ") b \r\n"
-				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
-				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";
+		String tasklistQuery = "select * from privillege_data where site_key = '" + siteKey + "'";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
