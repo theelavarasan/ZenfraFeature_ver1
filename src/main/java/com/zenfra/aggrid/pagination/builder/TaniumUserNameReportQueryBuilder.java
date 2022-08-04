@@ -236,16 +236,16 @@ public class TaniumUserNameReportQueryBuilder {
 				+ "       STRING_AGG(DISTINCT USER_ID, ', ') AS USER_ID,\r\n"
 				+ "       STRING_AGG(DISTINCT GROUP_ID, ', ') AS GROUP_ID,\r\n"
 				+ "       COUNT(SERVER_NAME) AS SERVERS_COUNT,\r\n"
-				+ "       STRING_AGG(DISTINCT PRIMARY_GRP_NAME, ', ') AS PRIMARY_GROUP_NAME,\r\n"
-				+ "       STRING_AGG(DISTINCT GROUP_MEMBER, ', ') AS SECONDARY_GROUP_NAME,\r\n"
-				+ "       STRING_AGG(DISTINCT SUDOERS_ACCESS_USER, ', ') AS SUDO_PRIVILEGES_BY_USER,\r\n"
-				+ "       STRING_AGG(DISTINCT SUDO_PRIVILEGES, ', ') AS SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
-				+ "       STRING_AGG(DISTINCT SUDO_PRIVILEGES_BY_GROUP, ', ') AS SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
-				+ "       STRING_AGG(DISTINCT USER_ALIAS, ', ') AS MEMBER_OF_USER_ALIAS,\r\n"
-				+ "       STRING_AGG(DISTINCT USER_ALIAS_SUDOERS_ACCESS, ', ') AS SUDO_PRIVILEGES_BY_USER_ALIAS\r\n"
+				+ "       STRING_AGG(DISTINCT PRIMARY_GRP_NAME, ', ') AS PRIMARY_GRP_NAME,\r\n"
+				+ "       STRING_AGG(DISTINCT GROUP_MEMBER, ', ') AS GROUP_MEMBER,\r\n"
+				+ "       STRING_AGG(DISTINCT SUDOERS_ACCESS_USER, ', ') AS SUDOERS_ACCESS_USER,\r\n"
+				+ "       STRING_AGG(DISTINCT SUDO_PRIVILEGES, ', ') AS SUDO_PRIVILEGES,\r\n"
+				+ "       STRING_AGG(DISTINCT SUDO_PRIVILEGES_BY_GROUP, ', ') AS SUDO_PRIVILEGES_BY_GROUP,\r\n"
+				+ "       STRING_AGG(DISTINCT USER_ALIAS, ', ') AS USER_ALIAS,\r\n"
+				+ "       STRING_AGG(DISTINCT USER_ALIAS_SUDOERS_ACCESS, ', ') AS USER_ALIAS_SUDOERS_ACCESS\r\n"
 				+ "FROM PRIVILLEGE_DATA_DETAILS WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
 				+ "GROUP BY USER_NAME " + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ""
-				+ " )a where 1 = 1 ";
+				+ " )a where 1 = 1 " + getOrderBy(sortModel);
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
@@ -609,23 +609,9 @@ public class TaniumUserNameReportQueryBuilder {
     	try {
     		for(SortModel s: sortModel) {
     			System.out.println("!!!!! colId: " + s.getActualColId());
-    			if(s.getActualColId().startsWith("Server Data~")) {
-    				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				System.out.println("!!!!! column_name: " + column_name);
-    				if(column_name.equalsIgnoreCase("Server Name")) {
-    					orderBy = " order by server_name " + s.getSort();
-    				} else if(column_name.equalsIgnoreCase("User Name")) {
-    					orderBy = " order by source_id " + s.getSort();
-    				} else if(column_name.equalsIgnoreCase("Server & User Name")) {
-    					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
-    				} else {
-    					orderBy = " order by privillege_data::json ->> '" + column_name + "' " + s.getSort();
-    				}
-    			} /*else {
-    					String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    					String column_alias = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
-    					orderBy = "order by \"sd~" + column_alias + "_data\".data::json ->> '" + column_name + "') " + s.getSort() ;
-    			}*/
+    			
+    			orderBy = " order by " + s.getActualColId() +  " " + s.getSort();
+    			
     		}
     	} catch(Exception e) {
     		e.printStackTrace();
