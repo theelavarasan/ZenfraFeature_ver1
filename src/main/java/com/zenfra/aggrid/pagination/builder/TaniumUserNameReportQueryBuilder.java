@@ -59,7 +59,7 @@ public class TaniumUserNameReportQueryBuilder {
     private boolean isPivotMode;
     private List<String> ruleList;
 
-    public String createSql(ServerSideGetRowsRequest request, String tableName, Map<String, List<String>> pivotValues, String validationFilterQuery) {
+    public String createSql(ServerSideGetRowsRequest request) {
         this.valueColumns = request.getValueCols();
         this.pivotColumns = request.getPivotCols();
         this.groupKeys = request.getGroupKeys();
@@ -76,8 +76,7 @@ public class TaniumUserNameReportQueryBuilder {
 
         System.out.println("creating sql query");
         //return selectSql() + fromSql(tableName) + whereSql() + groupBySql() + orderBySql() + limitSql();
-        return getPrivillegeAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel(),
-        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery);
+        return getPrivillegeAccessReport(request.getSiteKey());
         
     }
 
@@ -227,35 +226,48 @@ public class TaniumUserNameReportQueryBuilder {
         put("greaterThanOrEqual", ">=");
     }};
     
-    private String getPrivillegeAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel,
-    		String healthCheckId, List<String> ruleList, String validationFilterQuery) {
+    private String getPrivillegeAccessReport(String siteKey) {
 		
 		JSONParser parser = new JSONParser();
 		
-		String tasklistQuery = "select * from ("
-				+ "select row_count, source_id, server_name, privillege_data, json_agg(source_data1) as source_data1, json_agg(source_data2) as source_data2,"
-				+ "json_agg(source_data3) as source_data3, json_agg(source_data4) as source_data4 from ( \r\n" 
-				+ "select * from ( \r\n"
-				+ "select row_count, a.source_id, server_name, a.data as privillege_data, (case when s1.source_name is null then null else json_build_object(s1.source_name,sd.data::json) end) as source_data1, \r\n"
-				+ "(case when s2.source_name is null then null else json_build_object(s2.source_name, sd1.data::json) end) as source_data2,"
-				+ "(case when sdls1.source_name is null then null else json_build_object(sdls1.source_name, sdl1.data::json) end) as source_data3,\r\n"
-				+ "(case when sdls2.source_name is null then null else json_build_object(sdls2.source_name, sdl2.data::json) end) as source_data4 from (\r\n"
-				+ "select count(1) over() as row_count,source_id, server_name, replace(replace(replace(replace(data, '.0\"', '\"'),'null', ''),':,',':\"\",'),': ,',':\"\",') as data from privillege_data\r\n"
-				+ "where site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + getSourceDataFilters(filters, siteKey, projectId) + " " + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "\r\n"
-				+ ") a\r\n"
-				+ "LEFT JOIN source_data sd on sd.site_key = '" + siteKey + "' and lower(sd.primary_key_value) = lower(a.source_id) \r\n"
-				+ "LEFT JOIN source s1 on s1.source_id = sd.source_id\r\n"
-				+ "LEFT JOIN source_data sd1 on sd1.site_key = '" + siteKey + "' and lower(sd1.primary_key_value) = lower(a.server_name)\r\n"
-				+ "LEFT JOIN source s2 on s2.source_id = sd1.source_id \r\n" 
-				+ "LEFT JOIN source sdls1 on sdls1.link_to not in ('All', 'None') and sdls1.link_to = s1.source_id\r\n"
-				+ "LEFT JOIN source_data sdl1 on sdl1.site_key = '" + siteKey + "' and sdl1.source_id = sdls1.source_id \r\n"
-				+ "and lower(sdl1.primary_key_value) = lower(sd.data::json ->> sdls1.relationship) \r\n"
-				+ "LEFT JOIN source sdls2 on sdls2.link_to not in ('All', 'None') and sdls2.link_to = s2.source_id\r\n"
-				+ "LEFT JOIN source_data sdl2 on sdl2.site_key = '" + siteKey + "' and sdl2.source_id = sdls2.source_id \r\n"
-				+ "and lower(sdl2.primary_key_value) = lower(sd1.data::json ->> sdls2.relationship) \r\n"
-				+ ") b \r\n"
-				+ ") b1 group by row_count, source_id, server_name, privillege_data \r\n" 
-				+ ") a1 " + getOrderBy(sortModel) + getOrderBy1(sortModel) + "\r\n";
+		String tasklistQuery = "select up.server_name\r\n"
+				+ ", up.user_name\r\n"
+				+ ", up.uid as user_id\r\n"
+				+ ",coalesce(up.gid, '') as group_id\r\n"
+				+ ",coalesce(ugi.group_name, '') as Primary_Group_Name\r\n"
+				+ ",coalesce(mg.member_of_groups,'') as  Secondary_Group_Name\r\n"
+				+ ",coalesce(si.sudo_privileges, '') as sudo_privileges_by_user\r\n"
+				+ ",concat(case when length(coalesce(sgi.sudo_privileges, '')) > 0\r\n"
+				+ "then concat(coalesce(sgi.sudo_privileges, ''), ', ',mg.sudo_privileges_by_group) else\r\n"
+				+ "mg.sudo_privileges_by_group end) as sudo_privileges_by_group\r\n"
+				+ ",coalesce(ua.user_alias,'') as member_of_user_alias\r\n"
+				+ ",coalesce(ua.user_alias_sudo_privileges,'') as sudo_privileges_by_user_alias\r\n"
+				+ ",ud.log_date as processeddate\r\n"
+				+ ",hd.operating_system as os from (\r\n"
+				+ "select site_key, server_name, user_name, uid, coalesce(gid, '') as gid, coalesce(default_login_shell, '') as default_login_shell,\r\n"
+				+ "coalesce(home_dir, '') as home_dir\r\n"
+				+ "from linux_user_profile where site_key = '" + siteKey + "' ) up\r\n"
+				+ "left join linux_user_pwdsettings pwd on pwd.server_name = up.server_name and up.user_name = pwd.user_name and up.site_key = pwd.site_key\r\n"
+				+ "LEFT JOIN linux_user_details ud on up.server_name = ud.server_name and up.user_name = ud.user_name and ud.site_key = up.site_key\r\n"
+				+ "LEFT JOIN linux_user_sudo_info si on si.server_name = up.server_name and si.user_name = up.user_name and ud.site_key = si.site_key and si.is_group_user = 'false'\r\n"
+				+ "LEFT JOIN linux_users_group_info ugi on ugi.server_name = up.server_name and ugi.gid = up.gid and ugi.site_key = ud.site_key\r\n"
+				+ "LEFT JOIN linux_user_sudo_info sgi on sgi.server_name = up.server_name and sgi.user_name = up.user_name and ud.site_key = sgi.site_key and sgi.is_group_user = 'true'\r\n"
+				+ "LEFT JOIN linux_host_details hd on hd.server_name = up.server_name and hd.site_key = up.site_key\r\n"
+				+ "left join view_linux_user_alias ua on ua.server_name = up.server_name and ua.user_name = up.user_name and ua.site_key = up.site_key\r\n"
+				+ "LEFT JOIN (\r\n"
+				+ "SELECT ud2.site_key,ud2.server_name,ud2.user_name\r\n"
+				+ ",string_agg(ugmi.group_name::text, ',') member_of_groups\r\n"
+				+ ",string_agg(CASE when si2.user_name is not null then si2.sudo_privileges::text else null END, ',') sudo_privileges_by_group\r\n"
+				+ ",sum(case when length(coalesce(si2.sudo_privileges, '')) > 0 then 1 else 0 end) as is_sudoers_by_group\r\n"
+				+ "FROM linux_user_profile ud2\r\n"
+				+ "JOIN linux_user_group_member_info ugmi on ugmi.server_name = ud2.server_name\r\n"
+				+ "and ugmi.member = ud2.user_name and ugmi.site_key = '" + siteKey + "'\r\n"
+				+ "LEFT JOIN linux_user_sudo_info si2 on si2.server_name = ud2.server_name and si2.site_key ='" + siteKey + "'\r\n"
+				+ "and si2.user_name = ugmi.group_name and ud2.site_key = si2.site_key and si2.is_group_user ='true'\r\n"
+				+ "where ud2.site_key ='" + siteKey + "' \r\n"
+				+ "and ugmi.group_name is not null\r\n"
+				+ "group by ud2.server_name,ud2.user_name ,ud2.site_key\r\n"
+				+ ") mg on mg.site_key = up.site_key and mg.server_name = up.server_name and mg.user_name = up.user_name";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
