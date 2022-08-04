@@ -151,7 +151,7 @@ public class ReportDataController {
 						request.getReportBy().equalsIgnoreCase("Group")) {
 					return new ResponseEntity<>(taniumGroupReportDAO.getData(request), HttpStatus.OK);
 				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
-						request.getReportBy().equalsIgnoreCase("User Name")) {
+						request.getReportBy().equalsIgnoreCase("User")) {
 					System.out.println("log 1: ");
 					return new ResponseEntity<>(taniumUserNameReportDao.getData(request), HttpStatus.OK);
 				} else {
