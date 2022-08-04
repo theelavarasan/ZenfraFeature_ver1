@@ -93,6 +93,33 @@ public class ReportDao {
 		return reportHeaders;
 	}
 	
+	public JSONArray getUserReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+		JSONArray reportHeaders = new JSONArray();
+		try {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("site_key", siteKey);
+			params.put("user_id", userId);
+			System.out.println("------params--------- " + params);
+			System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
+			
+			List<Map<String, Object>> result; 
+			String headerQuery = reportQueries.getTaniumHeader();
+			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
+			System.out.println("!!!!! headerQuery: " + headerQuery);
+			result = jdbc.queryForList(headerQuery);
+			
+			System.out.println("!!!!! result: " + result);
+			reportHeaders = parseResultSetForHeaderInfo(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return reportHeaders;
+	}
+	
 	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
 		JSONObject reportGroup = new JSONObject();
 		try {
