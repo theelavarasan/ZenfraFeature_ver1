@@ -374,7 +374,7 @@ public class TaniumUserNameReportQueryBuilder {
     						valueArray.remove("null");
     						valueArray.add("");
     					}
-	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + " data::json ->> '" + column + "' in (select json_array_elements_text('" + valueArray + "'::json))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + " " + column + " in (select json_array_elements_text('" + valueArray + "'::json))" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
 	    				
     					
     				}
