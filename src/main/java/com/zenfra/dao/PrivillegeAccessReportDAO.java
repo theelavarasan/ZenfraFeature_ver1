@@ -230,7 +230,7 @@ public class PrivillegeAccessReportDAO {
     		e.printStackTrace();
     	}
     	
-    	return validationFilterQuery.isEmpty() ? "" : (" and " + validationFilterQuery.trim());
+    	return validationFilterQuery.isEmpty() ? "" : (" and (" + validationFilterQuery.trim() + ")");
     	
     }
 

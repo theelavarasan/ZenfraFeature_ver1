@@ -272,7 +272,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				"(\r\n" + 
 				"    SELECT COUNT(1) over() AS row_count, source_id, server_name, REPLACE(data, 'null,', '\"\",') AS privillege_data\r\n" + 
 				"    FROM privillege_data\r\n" + 
-				"    WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? ("(" + validationFilterQuery + ")"): "") + getTasklistFilters(filters, siteKey, projectId) 
+				"    WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
 				+ getSourceDataFilters(filters, siteKey, projectId) + " \r\n" + 
 				"),\r\n" + 
 				"SDDATA AS\r\n" + 
