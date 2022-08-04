@@ -243,8 +243,9 @@ public class TaniumUserNameReportQueryBuilder {
 				+ "       STRING_AGG(DISTINCT SUDO_PRIVILEGES_BY_GROUP, ', ') AS SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
 				+ "       STRING_AGG(DISTINCT USER_ALIAS, ', ') AS MEMBER_OF_USER_ALIAS,\r\n"
 				+ "       STRING_AGG(DISTINCT USER_ALIAS_SUDOERS_ACCESS, ', ') AS SUDO_PRIVILEGES_BY_USER_ALIAS\r\n"
-				+ "FROM PRIVILLEGE_DATA_DETAILS WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ""
-				+ " GROUP BY USER_NAME) where 1 = 1 ";
+				+ "FROM PRIVILLEGE_DATA_DETAILS WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
+				+ "GROUP BY USER_NAME " + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ""
+				+ " ) where 1 = 1 ";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
