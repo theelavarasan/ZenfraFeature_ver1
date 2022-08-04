@@ -98,7 +98,7 @@ public class ReportDataController {
 			if (request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery")) {
 				DataResult data = dataframeService.getReportData(request);
 				if (data != null) {
-					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data).replace("<%pathslash%>", "\\"), HttpStatus.OK);
+					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data).replace("slashpathslash", "\\"), HttpStatus.OK);
 				}
 			} else if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
