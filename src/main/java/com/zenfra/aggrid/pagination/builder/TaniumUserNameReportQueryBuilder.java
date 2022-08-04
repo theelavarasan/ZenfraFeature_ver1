@@ -59,7 +59,7 @@ public class TaniumUserNameReportQueryBuilder {
     private boolean isPivotMode;
     private List<String> ruleList;
 
-    public String createSql(ServerSideGetRowsRequest request) {
+    public String createSql(ServerSideGetRowsRequest request, String tableName, Map<String, List<String>> pivotValues, String validationFilterQuery) {
         this.valueColumns = request.getValueCols();
         this.pivotColumns = request.getPivotCols();
         this.groupKeys = request.getGroupKeys();
@@ -76,7 +76,8 @@ public class TaniumUserNameReportQueryBuilder {
 
         System.out.println("creating sql query");
         //return selectSql() + fromSql(tableName) + whereSql() + groupBySql() + orderBySql() + limitSql();
-        return getPrivillegeAccessReport(request.getSiteKey());
+        return getUserAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel(),
+        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery);
         
     }
 
@@ -226,7 +227,8 @@ public class TaniumUserNameReportQueryBuilder {
         put("greaterThanOrEqual", ">=");
     }};
     
-    private String getPrivillegeAccessReport(String siteKey) {
+    private String getUserAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel,
+    		String healthCheckId, List<String> ruleList, String validationFilterQuery) {
 		
 		JSONParser parser = new JSONParser();
 		
@@ -241,7 +243,7 @@ public class TaniumUserNameReportQueryBuilder {
 				+ "       STRING_AGG(DISTINCT SUDO_PRIVILEGES_BY_GROUP, ', ') AS SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
 				+ "       STRING_AGG(DISTINCT USER_ALIAS, ', ') AS MEMBER_OF_USER_ALIAS,\r\n"
 				+ "       STRING_AGG(DISTINCT USER_ALIAS_SUDOERS_ACCESS, ', ') AS SUDO_PRIVILEGES_BY_USER_ALIAS\r\n"
-				+ "FROM PRIVILLEGE_DATA_DETAILS WHERE site_key = '" + siteKey + "'"
+				+ "FROM PRIVILLEGE_DATA_DETAILS WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " " + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ""
 				+ " GROUP BY USER_NAME) where 1 = 1 ";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);

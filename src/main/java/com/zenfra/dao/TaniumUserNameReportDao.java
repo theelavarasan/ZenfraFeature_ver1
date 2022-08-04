@@ -62,7 +62,7 @@ public class TaniumUserNameReportDao {
         }
         
         System.out.println("test log 3");
-        String sql = queryBuilder.createSql(request);
+        String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter);
         
         System.out.println("test log " + sql);
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
