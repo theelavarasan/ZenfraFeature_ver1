@@ -146,11 +146,11 @@ public class DataframeUtil {
 		try {
 			Path path = Paths.get(filePath);
 			Stream<String> lines = Files.lines(path);  //.replaceAll("\\\\\\\\\\\\\\\"","")  //.replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")
-		List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "repalcepathreplace")
+		List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "")
 					.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
 					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "")).collect(Collectors.toList());
 			
-			System.out.println("!!!!! replaced: " + replaced);
+			//System.out.println("!!!!! replaced: " + replaced);
 			Files.write(path, replaced);
 			lines.close();
 			
