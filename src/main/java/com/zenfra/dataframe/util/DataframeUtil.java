@@ -146,7 +146,7 @@ public class DataframeUtil {
 		try {
 			Path path = Paths.get(filePath);
 			Stream<String> lines = Files.lines(path);  //.replaceAll("\\\\\\\\\\\\\\\"","")  //.replaceAll("\"(-?\\d+(?:[\\.,]\\d+)?)\"", "$1")
-		List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "slash_path_slash")
+		List<String> replaced = lines.map(line -> line.replaceAll("\\\\", "slashpathslash")
 					.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
 					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "")).collect(Collectors.toList());
 			
