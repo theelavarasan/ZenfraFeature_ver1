@@ -242,7 +242,7 @@ public class TaniumUserNameReportQueryBuilder {
 				+ "            AND (SR.LINK_TO = 'All' \r\n"
 				+ "                                OR SR.LINK_TO = 'None')\r\n"
 				+ "        GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
-				+ "SELECT USRD.USER_NAME,\r\n"
+				+ "SELECT count(1) over() as row_count, USRD.USER_NAME,\r\n"
 				+ "    USRD.USER_ID,\r\n"
 				+ "    USRD.GROUP_ID,\r\n"
 				+ "    USRD.SERVERS_COUNT,\r\n"
