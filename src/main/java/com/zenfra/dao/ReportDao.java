@@ -76,7 +76,13 @@ public class ReportDao {
 			System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
 			
 			List<Map<String, Object>> result; 
-			String headerQuery = reportQueries.getTaniumHeader();
+			String headerQuery = "";
+			if(reportBy.equalsIgnoreCase("Privileged Access")) {
+				headerQuery = reportQueries.getTaniumHeader();
+			} else if(reportBy.equalsIgnoreCase("User")) {
+				headerQuery = reportQueries.getUserSummaryHeader();
+			}
+			
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
 			System.out.println("!!!!! headerQuery: " + headerQuery);
 			result = jdbc.queryForList(headerQuery);

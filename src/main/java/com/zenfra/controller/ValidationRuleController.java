@@ -53,8 +53,10 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getVR_VanguardGroupInfo(model.getSiteKey(), model.getColumnName());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Group")) {
 			resultArray = validationRuleService.getVR_TaniumGroup(model.getSiteKey(), model.getColumnName());
-		}else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User")) {
+		}else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User") && model.getDeviceType().equalsIgnoreCase("zoom")) {
 			resultArray = validationRuleService.getVR_ZoomUsers(model.getSiteKey(), model.getColumnName());
+		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User") && model.getDeviceType().equalsIgnoreCase("tanium")) {
+			resultArray = validationRuleService.getVR_TaniumUsers(model.getSiteKey(), model.getColumnName());
 		}
 			
 
