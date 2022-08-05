@@ -234,7 +234,7 @@ public class TaniumUserNameReportQueryBuilder {
 
 		String tasklistQuery = "WITH SDDATA AS\r\n"
 				+ "    (SELECT PRIMARY_KEY_VALUE,\r\n"
-				+ "            JSON_AGG(DATA::JSON) AS SDJSONDATA\r\n"
+				+ "            JSON_collect(DATA::JSON) AS SDJSONDATA\r\n"
 				+ "        FROM SOURCE_DATA AS SD\r\n"
 				+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
 				+ "        WHERE SD.SITE_KEY = '" + siteKey + "'\r\n"
