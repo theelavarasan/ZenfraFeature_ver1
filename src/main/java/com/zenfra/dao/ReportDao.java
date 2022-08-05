@@ -142,7 +142,7 @@ public class ReportDao {
 			params.put("site_key", siteKey);
 			params.put("user_id", userId);
 			String query = reportQueries.getTaniumGroup();
-			query = query.replace(":site_key", siteKey).replace(":user_id", userId);
+			query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace("report_by", reportBy);
 			result = jdbc.queryForList(query);
 			
 			
