@@ -1240,7 +1240,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 
 		try {
 
-			String query = "select json_agg(distinct " + columnName + ") FROM (\r\n"
+			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
 					+ "WITH SDDATA AS\r\n"
 					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_AGG(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
 					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
@@ -1288,7 +1288,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 
 		try {
 
-			String query = "select json_agg(distinct " + columnName + ") FROM (\r\n"
+			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
 					+ "WITH SDDATA AS\r\n"
 					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_AGG(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
 					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
