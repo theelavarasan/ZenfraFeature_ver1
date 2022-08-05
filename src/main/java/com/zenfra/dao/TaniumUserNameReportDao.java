@@ -133,7 +133,9 @@ public class TaniumUserNameReportDao {
     							resultObject.put("Server Name", row.get(keys.get(i)));
     						} else if(keys.get(i).equalsIgnoreCase("source_id")) {
     							resultObject.put("User Name", row.get(keys.get(i)));
-    						} else {
+    						} else if (keys.get(i).equalsIgnoreCase("server_count")) { 
+    							resultObject.put(keys.get(i), Integer.parseInt(row.get(keys.get(i)).toString()));
+    						}else {
     							resultObject.put(keys.get(i), row.get(keys.get(i)));
     						}
     						
