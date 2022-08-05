@@ -31,6 +31,8 @@ public class ReportQueries {
 
 	private String userSummaryHeader;
 	
+	private String serverSummaryHeader;
+	
 	public String getHeader() {
 		return header;
 	}
@@ -118,6 +120,14 @@ public class ReportQueries {
 
 	public void setUserSummaryHeader(String userSummaryHeader) {
 		this.userSummaryHeader = userSummaryHeader;
+	}
+
+	public String getServerSummaryHeader() {
+		return serverSummaryHeader;
+	}
+
+	public void setServerSummaryHeader(String serverSummaryHeader) {
+		this.serverSummaryHeader = serverSummaryHeader;
 	}
 	
 	

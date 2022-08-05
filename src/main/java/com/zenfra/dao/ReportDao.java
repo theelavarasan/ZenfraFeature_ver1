@@ -81,6 +81,8 @@ public class ReportDao {
 				headerQuery = reportQueries.getTaniumHeader();
 			} else if(reportBy.equalsIgnoreCase("User")) {
 				headerQuery = reportQueries.getUserSummaryHeader();
+			} else if(reportBy.equalsIgnoreCase("Server")) {
+				headerQuery = reportQueries.getServerSummaryHeader();
 			}
 			
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);

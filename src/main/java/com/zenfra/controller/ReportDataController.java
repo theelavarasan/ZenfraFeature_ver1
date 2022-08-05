@@ -710,7 +710,6 @@ public class ReportDataController {
 
 		JSONParser jsonParser = new JSONParser();
 
-		JSONArray reportLabels = (JSONArray) jsonParser.parse("[\"Privileged Access\",\"User\",\"Server\"]");
 
 		JSONObject Object = (JSONObject) jsonParser.parse(chartParams.toString());
 		System.out.println("log 1 : " + Object);
@@ -718,7 +717,7 @@ public class ReportDataController {
 		String reportLabel = Object.get("reportLabel") != null && Object.get("reportLabel").toString().isEmpty() ? "" : Object.get("reportLabel").toString();
 		
 		JSONObject jsonObject = new JSONObject();
-		if(reportLabels.contains(reportLabel)) {
+		if(reportLabel.contains("Privileged Access") || reportLabel.contains("User") || reportLabel.contains("Server")) {
 			jsonObject =  dataframeService.prepareChartForTanium(Object);
 		}else {
 			jsonObject = dataframeService.prepareChart(Object);
