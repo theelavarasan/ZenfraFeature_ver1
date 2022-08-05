@@ -253,7 +253,7 @@ public class TaniumUserNameReportQueryBuilder {
 				+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
 				+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
 				+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
-				+ "    COALESCE(SDT.SDJSONDATA::TEXT, '') AS source_data \r\n"
+				+ "    SDT.SDJSONDATA AS source_data \r\n"
 				+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
 				+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
 				+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
