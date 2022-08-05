@@ -243,7 +243,7 @@ public class TaniumServerReportQueryBuilder {
 				+ "            AND (SR.LINK_TO = 'All'\r\n"
 				+ "                                OR SR.LINK_TO = 'None')\r\n"
 				+ "             GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
-				+ "SELECT SSRD.SERVER_NAME,\r\n"
+				+ "SELECT count(1) over() as row_count, SSRD.SERVER_NAME,\r\n"
 				+ "       SSRD.USER_NAME,\r\n"
 				+ "       SSRD.USER_ID,\r\n"
 				+ "       COALESCE(SSRD.GROUP_ID, '') AS GROUP_ID,\r\n"
