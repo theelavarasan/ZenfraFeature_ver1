@@ -3681,15 +3681,16 @@ public void putAwsInstanceDataToPostgres(String siteKey, String deviceType) {
 	public JSONObject getMigrationReport(String filePath) throws IOException, ParseException {
 		
 		JSONParser parser = new JSONParser();
+		System.out.println("!!!!! filePath1: " + filePath);
 		try {
 			if (filePath.contains(",")) {
 				filePath = filePath.split(",")[0];
 			}
 			
-			 ObjectMapper mapper = new ObjectMapper();			 
-			// JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
-			 JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(new File(filePath)));
-
+			 ObjectMapper mapper = new ObjectMapper();		
+			 System.out.println("!!!!! filePath2: " + filePath);
+			JSONObject jsonObject = mapper.readValue(new File(filePath), JSONObject.class);
+			 //JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(new File(filePath)));
 			 return jsonObject; 
 		} catch (Exception e) {
 			e.printStackTrace();
