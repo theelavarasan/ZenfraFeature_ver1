@@ -231,22 +231,29 @@ public class TaniumUserNameReportQueryBuilder {
     		String healthCheckId, List<String> ruleList, String validationFilterQuery) {
 		
 		JSONParser parser = new JSONParser();
-		
-		String tasklistQuery = "select * from ( SELECT count(1) over() as row_count, USER_NAME,\r\n"
-				+ "       STRING_AGG(DISTINCT USER_ID, ', ') AS USER_ID,\r\n"
-				+ "       STRING_AGG(DISTINCT GROUP_ID, ', ') AS GROUP_ID,\r\n"
-				+ "       COUNT(SERVER_NAME) AS SERVERS_COUNT,\r\n"
-				+ "       STRING_AGG(DISTINCT PRIMARY_GRP_NAME, ', ') AS PRIMARY_GRP_NAME,\r\n"
-				+ "       STRING_AGG(DISTINCT GROUP_MEMBER, ', ') AS GROUP_MEMBER,\r\n"
-				+ "       STRING_AGG(DISTINCT SUDOERS_ACCESS_USER, ', ') AS SUDOERS_ACCESS_USER,\r\n"
-				+ "       STRING_AGG(DISTINCT SUDO_PRIVILEGES, ', ') AS SUDO_PRIVILEGES,\r\n"
-				+ "       STRING_AGG(DISTINCT SUDO_PRIVILEGES_BY_GROUP, ', ') AS SUDO_PRIVILEGES_BY_GROUP,\r\n"
-				+ "       STRING_AGG(DISTINCT USER_ALIAS, ', ') AS USER_ALIAS,\r\n"
-				+ "       STRING_AGG(DISTINCT USER_ALIAS_SUDOERS_ACCESS, ', ') AS USER_ALIAS_SUDOERS_ACCESS\r\n"
-				+ "FROM PRIVILLEGE_DATA_DETAILS WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
-				+ "GROUP BY USER_NAME " + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ""
-				+ " )a where 1 = 1 " + getOrderBy(sortModel);
 
+		String tasklistQuery = "WITH SDDATA AS\r\n"
+				+ "    (SELECT PRIMARY_KEY_VALUE,\r\n"
+				+ "            JSON_AGG(DATA::JSON) AS SDJSONDATA\r\n"
+				+ "        FROM SOURCE_DATA\r\n"
+				+ "        GROUP BY PRIMARY_KEY_VALUE)\r\n"
+				+ "SELECT USRD.USER_NAME,\r\n"
+				+ "    USRD.USER_ID,\r\n"
+				+ "    USRD.GROUP_ID,\r\n"
+				+ "    USRD.SERVERS_COUNT,\r\n"
+				+ "    USRD.PRIMARY_GROUP_NAME,\r\n"
+				+ "    USRD.SECONDARY_GROUP_NAME,\r\n"
+				+ "    USRD.SUDO_PRIVILEGES_BY_USER,\r\n"
+				+ "    USRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
+				+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
+				+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
+				+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
+				+ "    COALESCE(SDT.SDJSONDATA::TEXT, '') AS SOURCE_JSON_DATA\r\n"
+				+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
+				+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
+				+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
+				+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "";
+		
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
 		return tasklistQuery;
