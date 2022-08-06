@@ -742,7 +742,7 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().contains("Server Data~")) {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				orderBy = "order by sdt.sdjsondata::jsonb||sdt1.sdjsondata::jsonb ->> '" + s.getActualColId() + "' " + s.getSort();
+    				orderBy = "order by (sdt.sdjsondata::jsonb||sdt1.sdjsondata::jsonb) ->> '" + s.getActualColId() + "' " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
