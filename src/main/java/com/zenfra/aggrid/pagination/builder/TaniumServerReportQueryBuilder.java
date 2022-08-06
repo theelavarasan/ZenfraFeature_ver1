@@ -261,7 +261,7 @@ public class TaniumServerReportQueryBuilder {
 				+ "LEFT JOIN SDDATA AS SDT\r\n"
 				+ "ON (SSRD.SERVER_NAME = SDT.PRIMARY_KEY_VALUE OR SSRD.USER_NAME = SDT.PRIMARY_KEY_VALUE)\r\n"
 				+ "WHERE SSRD.SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
-				+ " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "";
+				+ getSourceDataFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "";
 
 		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
 
@@ -629,7 +629,7 @@ public class TaniumServerReportQueryBuilder {
     	
     	try {
     		for(SortModel s: sortModel) {
-    			if(s.getActualColId().startsWith("User Summary~")) {
+    			if(s.getActualColId().startsWith("Server Summary~")) {
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
         			System.out.println("!!!!! colId: " + s.getActualColId());
         			orderBy = " order by " + columnName +  " " + s.getSort();
