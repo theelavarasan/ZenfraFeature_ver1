@@ -654,7 +654,7 @@ public class TaniumServerReportQueryBuilder {
     	
     	try {
     		for(SortModel s: sortModel) {
-    			if(!s.getActualColId().contains("Server Data~")) {
+    			if(!s.getActualColId().contains("Server Summary~")) {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     				orderBy = "order by (case when source_data1::text ilike '%\"" + columnPrefix + "\"%' then (select json_array_elements(source_data1::json) ->> '" + columnPrefix + "')::json ->> '" + columnName + "'\r\n"
