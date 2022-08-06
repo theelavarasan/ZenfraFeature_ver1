@@ -498,7 +498,7 @@ public class TaniumServerReportQueryBuilder {
     					
     					if(!column.contains("Server Summary~")) {
     						
-							String column1 = column.substring(column.indexOf("~") + 1, column.length());
+							String column1 = column;
 							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " data::json ->> '" + column1 + "' <> '' and (case when data::json ->> '" + column1 + "' = '' then 0 else (data::json ->> '" + column1 + "'::numeric end) = " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
@@ -551,12 +551,8 @@ public class TaniumServerReportQueryBuilder {
     	}
     	
     	
-    	String cedQuery = "and (user_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + filterQuery.toString() + ") or \r\n"
-				+ "server_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
-				+ "and site_key = '" + siteKey + "'\r\n"
-				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "')) " + filterQuery.toString() + ") ";
+    	String cedQuery = "and (user_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ") or \r\n"
+				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ")) ";
     	
     	return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
