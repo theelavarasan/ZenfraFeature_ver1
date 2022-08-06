@@ -173,7 +173,7 @@ public class TaniumServerReportDao {
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''(',con_value, ')%''') else (case when con_condition = 'endsWith' then concat(' ''%(',con_value, ')''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')\r\n"
-				+ "else concat(' ''',con_value, '''') end) end) end) end), (case when con_field_id ilike 'Server Data~%' then '' else ')' end)) as condition_value from (\r\n"
+				+ "else concat(' ''',con_value, '''') end) end) end) end), (case when con_field_id ilike 'Server Summary~%' then '' else ')' end)) as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, coalesce(con_operator, '') as con_operator, con_condition, con_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value as con_value from (\r\n"
