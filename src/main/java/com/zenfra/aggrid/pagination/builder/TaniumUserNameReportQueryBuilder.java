@@ -455,7 +455,7 @@ public class TaniumUserNameReportQueryBuilder {
     				
     				if(columnFilter instanceof TextColumnFilter) {
     					
-    					if(!column.contains("Server Data~")) {
+    					if(!column.contains("User Summary~")) {
    						
 							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
@@ -496,7 +496,7 @@ public class TaniumUserNameReportQueryBuilder {
     					
     				} else if(columnFilter instanceof NumberColumnFilter) {
     					
-    					if(!column.contains("Server Data~")) {
+    					if(!column.contains("User Summary~")) {
 							
 							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
@@ -550,7 +550,7 @@ public class TaniumUserNameReportQueryBuilder {
     	}
     	
     	
-    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
+    	String cedQuery = "and (user_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"
 				+ "and site_key = '" + siteKey + "'\r\n"
 				+ "union all select link_to from source where is_active = true and site_key = '" + siteKey + "') " + filterQuery.toString() + ") or \r\n"
 				+ "server_name in (select distinct primary_key_value from source_data where source_id in (select source_id from source where is_active = true \r\n"

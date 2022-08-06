@@ -105,31 +105,17 @@ public class TaniumServerReportDao {
     					}
     					
     				} else if(keys.get(i).contains("source_data")) {
-    					JSONArray sourceDataArray = (JSONArray) parser.parse(row.get(keys.get(i)) == null ? "[]" : row.get(keys.get(i)).toString());
-    					for(int j = 0; j < sourceDataArray.size(); j++) {
-    						JSONObject sourceDataObject = (JSONObject) sourceDataArray.get(j);
+    					JSONObject sourceDataObject = (JSONObject) parser.parse(row.get(keys.get(i)) == null ? "{}" : row.get(keys.get(i)).toString());
+    					if(sourceDataObject != null & !sourceDataObject.isEmpty()) {
     						Set<String> keySet = sourceDataObject == null ? new HashSet<>() : sourceDataObject.keySet();
     						for(String key : keySet) {
-    							JSONObject jsonObject1 = (JSONObject) sourceDataObject.get(key);
-    							Set<String> innerKeySet = jsonObject1 == null ? new HashSet<>() : jsonObject1.keySet();
-    							for(String key1 : innerKeySet) {
-    								if(key1 != null && key1.isEmpty() && (key1.equalsIgnoreCase("Processed Date"))) {
-    									String value = jsonObject1.get(key1).toString();
-    									value = formatDateStringToUtc(value);
-    									resultObject.put(key + "~" + key1, value);
-    								} else {
-    									String value = jsonObject1.get(key1) != null && !jsonObject1.get(key1).toString().equalsIgnoreCase("null") ? jsonObject1.get(key1).toString() : "";
-    									resultObject.put(key + "~" + key1, value);
-    								}
-    								String value = jsonObject1.get(key1) != null && !jsonObject1.get(key1).toString().equalsIgnoreCase("null") ? jsonObject1.get(key1).toString() : "";
-    								resultObject.put(key + "~" + key1, value);
-    							}
+    							resultObject.put(key, sourceDataObject.get(key));
     						}
     					}
     					
     				} else {
     					if(!keys.get(i).equalsIgnoreCase("row_count")) {
-    							resultObject.put(keys.get(i), row.get(keys.get(i)));
+    							resultObject.put("Server Summary~" + keys.get(i), row.get(keys.get(i)));
     					} 
     				}
     			}
