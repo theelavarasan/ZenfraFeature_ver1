@@ -628,10 +628,16 @@ public class TaniumUserNameReportQueryBuilder {
     	
     	try {
     		for(SortModel s: sortModel) {
-    			String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    			System.out.println("!!!!! colId: " + s.getActualColId());
+    			if(s.getActualColId().startsWith("User Summary~")) {
+    				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
+        			System.out.println("!!!!! colId: " + s.getActualColId());
+        			orderBy = " order by " + columnName +  " " + s.getSort();
+    			} else {
+    				orderBy = " order by SDT.SDJSONDATA::json ->> '" + s.getActualColId()+ "' " + " " + s.getSort();
+    			}
     			
-    			orderBy = " order by " + columnName +  " " + s.getSort();
+    			
+    			
     			
     		}
     	} catch(Exception e) {
