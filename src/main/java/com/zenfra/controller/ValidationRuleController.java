@@ -69,7 +69,7 @@ public class ValidationRuleController {
 		
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") 
 				&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User")
-		&& (model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
+		&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
 					
 			if(resultData.containsKey(colName)) {	
 				List<Object> datas = resultData.get(colName);
