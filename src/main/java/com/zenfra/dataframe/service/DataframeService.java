@@ -3039,7 +3039,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 		JSONArray yaxisColumnField = new JSONArray();
 		String yaxisColumnFieldName = "";
-		boolean yaxisServerCheck = false;
 
 		// xaxis column names
 		JSONObject xaxisColumn = new JSONObject();
@@ -3061,30 +3060,30 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			pieChartColName = (String) pieChartObject.get("value");
 			pieChartClassName = (String) pieChartObject.get("className");
 			pieChartField = (String) pieChartObject.get("field");
-			
-				if (pieChartField.startsWith("Server Data~")) {
-					query = query.concat("select " + pieChartColName + " as \"colName\"");
-				} else {
-					query = query.concat("select pd." + pieChartField + " as \"colName\"");
-				}
+			if (pieChartField.startsWith("Server Data~")) {
+				query = query.concat("select * from\r\n" + "(select pd.server_data::json->>'" + pieChartColName
+						+ "' as \"colName\"");
+			} else {
+				query = query.concat("select * from\r\n" + "(select json_array_elements(pd.source_data::json)->>'"
+						+ pieChartField + "' as \"colName\"");
+			}
 
-				if (pieChartField.startsWith("Server Data~")) {
-					if (pieChartClassName.contains("count")) {
-						query = query.concat(", count(" + pieChartColName + ") as \"colValue\"");
-					} else if (pieChartClassName.contains("sum")) {
-						query = query
-								.concat(", sum(" + pieChartColName + "::int) as \"colValue\"");
-					}
-				} else {
-					if (pieChartClassName.contains("count")) {
-						query = query.concat(", count(pd.source_data::json ->> '" + pieChartField
-								+ "') as \"colValue\"");
-					} else if (pieChartClassName.contains("sum")) {
-						query = query.concat(", sum((pd.source_data::json ->>  '" + pieChartField
-								+ "')::int) as \"colValue\"");
-					}
+			if (pieChartField.startsWith("Server Data~")) {
+				if (pieChartClassName.contains("count")) {
+					query = query.concat(", count(pd.server_data::json ->> '" + pieChartColName + "') as \"colValue\"");
+				} else if (pieChartClassName.contains("sum")) {
+					query = query
+							.concat(", sum((pd.server_data::json ->> '" + pieChartColName + "')::int) as \"colValue\"");
 				}
-				
+			} else {
+				if (pieChartClassName.contains("count")) {
+					query = query.concat(", count(json_array_elements(pd.source_data::json) ->> '" + pieChartField
+							+ "') as \"colValue\"");
+				} else if (pieChartClassName.contains("sum")) {
+					query = query.concat(", sum((json_array_elements(pd.source_data::json) ->> '" + pieChartField
+							+ "')::int) as \"colValue\"");
+				}
+			}
 		} else if (chartTypes.contains(chartType)) {
 			xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
 			xaxisColumnNameField = (String) xaxisColumn.get("field");
@@ -3103,87 +3102,67 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				classNameArray.add(className);
 
 				yaxisColumnFieldName = (String) yaxisColumn.get("field");
-				if(yaxisColumnFieldName.startsWith("Server Data~")) {
-					yaxisServerCheck = true;
-				} else {
-					yaxisServerCheck = false;
-				}
 				yaxisColumnField.add(yaxisColumnFieldName);
 			}
-			
-			if(xaxisColumnNameField.startsWith("Server Data~") && yaxisServerCheck) {
-				
-				query = query.concat("select " + xaxisColumnName + " as \"colName\"");
-				
-				if (breakDownName != null && !breakDownName.isEmpty()) {
-						query = query.concat(", " + breakDownName + " as \"colBreakdown\"");
-				}
 
-				for (int i = 0; i < yaxisColumnField.size(); i++) {
-					String operater = (String) classNameArray.get(i);
-
-					String yFieldCheck = (String) yaxisColumnField.get(i);
-						if (operater.contains("count")) {
-							query = query.concat(", count(" + yaxisNames.get(i) + ") as \"colValue" + i + "\"");
-						} else if (operater.contains("sum")) {
-							query = query.concat(", sum(" + yaxisNames.get(i) + "::int) as \"colValue" + i + "\"");
-						}
-				}
-			
+			if (xaxisColumnNameField.startsWith("Server Data~")) {
+				query = query.concat("select * from\r\n" + "(select pd.server_data::json->>'" + xaxisColumnName
+						+ "' as \"colName\"");
 			} else {
+				query = query.concat("select * from\r\n" + "(select json_array_elements(pd.source_data::json)->>'"
+						+ xaxisColumnNameField + "' as \"colName\"");
+			}
 
-				if (xaxisColumnNameField.startsWith("Server Data~")) {
-					query = query.concat("select " + xaxisColumnName + " as \"colName'\"");
+			if (breakDownName != null && !breakDownName.isEmpty()) {
+				if (breakDownField.startsWith("Server Data~")) {
+					query = query.concat(", pd.server_data::json->>'" + breakDownName + "' as \"colBreakdown\"");
 				} else {
-					query = query.concat("select pd." + xaxisColumnNameField + " as \"colName\"");
+					query = query.concat(", json_array_elements(pd.source_data::json)->>'" + breakDownField
+							+ "' as \"colBreakdown\"");
 				}
+			}
 
-				if (breakDownName != null && !breakDownName.isEmpty()) {
-					if (breakDownField.startsWith("Server Data~")) {
-						query = query.concat(", " + breakDownName + " as \"colBreakdown\"");
-					} else {
-						query = query.concat(", pd.source_data::json ->> '" + breakDownField + "' as \"colBreakdown\"");
+			for (int i = 0; i < yaxisColumnField.size(); i++) {
+				String operater = (String) classNameArray.get(i);
+
+				String yFieldCheck = (String) yaxisColumnField.get(i);
+				if (yFieldCheck.startsWith("Server Data~")) {
+					if (operater.contains("count")) {
+						query = query.concat(", count(pd.server_data::json ->> '" + yaxisNames.get(i)
+								+ "') as \"colValue" + i + "\"");
+					} else if (operater.contains("sum")) {
+						query = query.concat(", sum((pd.server_data::json ->> '" + yaxisNames.get(i)
+								+ "')::int) as \"colValue" + i + "\"");
 					}
-				}
-
-				for (int i = 0; i < yaxisColumnField.size(); i++) {
-					String operater = (String) classNameArray.get(i);
-
-					String yFieldCheck = (String) yaxisColumnField.get(i);
-					if (yFieldCheck.startsWith("Server Data~")) {
-						if (operater.contains("count")) {
-							query = query.concat(", count(" + yaxisNames.get(i) + ") as \"colValue" + i + "\"");
-						} else if (operater.contains("sum")) {
-							query = query.concat(", sum(" + yaxisNames.get(i) + "::int) as \"colValue" + i + "\"");
-						}
-					} else {
-						if (operater.contains("count")) {
-							query = query.concat(", count(pd.source_data::json ->> '" + yFieldCheck
-									+ "')) as \"colValue" + i + "\"");
-						} else if (operater.contains("sum")) {
-							query = query.concat(", sum((pd.source_data::json ->> '" + yFieldCheck
-									+ "'))::int) as \"colValue" + i + "\"");
-						}
+				} else {
+					if (operater.contains("count")) {
+						query = query.concat(", count(json_array_elements(pd.source_data::json) ->> '" + yFieldCheck
+								+ "') as \"colValue" + i + "\"");
+					} else if (operater.contains("sum")) {
+						query = query.concat(", sum((json_array_elements(pd.source_data::json) ->> '" + yFieldCheck
+								+ "')::int) as \"colValue" + i + "\"");
 					}
 				}
 			}
 		}
 
-		if((xaxisColumnNameField.startsWith("Server Data~") && yaxisServerCheck) || 
-				(pieChartField.startsWith("Server Data~"))) {
-			query = query.concat(" FROM privillege_data_details AS PDD\r\n"
-					+ "WHERE SITE_KEY = '" + siteKey + "'");
-		} else {
-			query = query.concat(" from (\r\n" + "Select pd.*,sd1.source_data\r\n" + "from privillege_data_details pd\r\n"
-					+ "LEFT JOIN (select a.primary_key,a.primary_key_value,json_collect(a.data::json) source_data\r\n"
-					+ "           from source_data a\r\n" + "           join source b on b.source_id = a.source_id\r\n"
-					+ "           where a.site_key = '" + siteKey + "'\r\n"
-					+ "          group by a.primary_key_value,a.primary_key) sd1 on \r\n"
-					+ "    ((sd1.primary_key_value = pd.user_name and sd1.primary_key = 'User Name') or \r\n"
-					+ "     (sd1.primary_key_value = pd.server_name and sd1.primary_key = 'Server Name'))\r\n"
-					+ "Where pd.site_key = '" + siteKey + "') pd ");
-		}
-		
+		query = query.concat(" from (\r\n"
+				+ "select server_name, data as server_data, (coalesce(source_data1,'[{}]')::jsonb|| coalesce(source_data2,'[{}]')::jsonb ) as source_data from (\r\n"
+				+ "Select pd.server_name,pd.data,sd1.source_data1,sd2.source_data2\r\n" + "from privillege_data pd\r\n"
+				+ "LEFT JOIN (select a.primary_key_value,jsonb_agg(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data1\r\n"
+				+ "LEFT JOIN (select a.primary_key_value, jsonb_agg(replace(a.data,'},{', ',') ::json) source_data1\r\n"
+				+ "           from source_data a\r\n" + "           join source b on b.source_id = a.source_id\r\n"
+				+ "           where a.site_key = '" + siteKey + "'\r\n" + "          and a.primary_key='User Name'\r\n"
+				+ "          group by a.primary_key_value) sd1 on sd1.primary_key_value = pd.source_id\r\n"
+				+ "LEFT JOIN (select a.primary_key_value,jsonb_agg(replace(replace(replace(a.data,',\"',concat(',\"', b.source_name, '~')),'{\"', concat('{\"', b.source_name, '~')),'},{', ',') ::json) source_data2\r\n"
+				+ "LEFT JOIN (select a.primary_key_value,jsonb_agg(replace(a.data,'},{', ',') ::json) source_data2\r\n"
+				+ "           from source_data a\r\n" + "           join source b on b.source_id = a.source_id\r\n"
+				+ "           where a.site_key = '" + siteKey + "'\r\n"
+				+ "          and (a.primary_key='Server Name' or a.primary_key ='server_name')\r\n"
+				+ "          group by a.primary_key_value) sd2 on sd2.primary_key_value = pd.server_name\r\n"
+				+ "Where pd.site_key = '" + siteKey + "'\r\n"
+				+ "group by pd.server_name, pd.data,sd1.source_data1,sd2.source_data2\r\n" + ") a\r\n" + ") pd ");
+
 		/*
 		 * conditions for filtering if(!filterModel.isEmpty() && filterModel != null) {
 		 * 
@@ -3207,33 +3186,36 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 		query = query.concat(" group by ");
 		if (chartType.equalsIgnoreCase("pie")) {
-				if (pieChartField.startsWith("Server Data~")) {
-					query = query.concat(" " + pieChartColName + "");
-				} else {
-					query = query.concat(" pd." + pieChartField + "");
-				}
-			} else if (chartTypes.contains(chartType)) {
+			if (pieChartField.startsWith("Server Data~")) {
+				query = query.concat(" pd.server_data::json ->> '" + pieChartColName + "'");
 
-				if (xaxisColumnNameField.startsWith("Server Data~")) {
-					query = query.concat(" " + xaxisColumnName + "");
-				} else {
-					query = query.concat(" pd." + xaxisColumnNameField + "");
-				}
-				if (breakDownName != null && !breakDownName.isEmpty()) {
-					if (breakDownField.startsWith("Server Data~")) {
-						query = query.concat(", " + breakDownName + "");
-					} else {
-						query = query.concat(", pd." + breakDownField + "");
-					}
-				}
+			} else {
+				query = query.concat(" json_array_elements(pd.source_data::json) ->> '" + pieChartField + "'");
 
 			}
+		} else if (chartTypes.contains(chartType)) {
+			if (xaxisColumnNameField.startsWith("Server Data~")) {
+				query = query.concat(" pd.server_data::json ->> '" + xaxisColumnName + "'");
 
-//		query = query.concat(") pd2 where pd2.\"colName\" is not null");
-//
-//		if (breakDownName != null && !breakDownName.isEmpty()) {
-//			query = query.concat(" and pd2.\"colBreakdown\" is not null");
-//		}
+			} else {
+				query = query.concat(" json_array_elements(pd.source_data::json) ->> '" + xaxisColumnNameField + "'");
+
+			}
+			if (breakDownName != null && !breakDownName.isEmpty()) {
+				if (breakDownField.startsWith("Server Data~")) {
+					query = query.concat(", pd.server_data::json ->> '" + breakDownName + "'");
+				} else {
+					query = query.concat(", json_array_elements(pd.source_data::json) ->> '" + breakDownField + "'");
+
+				}
+			}
+		}
+
+		query = query.concat(") pd2 where pd2.\"colName\" is not null");
+
+		if (breakDownName != null && !breakDownName.isEmpty()) {
+			query = query.concat(" and pd2.\"colBreakdown\" is not null");
+		}
 
 		return query;
 	}
