@@ -156,7 +156,7 @@ public class ReportDao {
 				query = reportQueries.getTaniumUserSummaryGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium users summary group query: " + query);
-			} else {
+			} else if(reportBy.equalsIgnoreCase("Server")) {
 				query = reportQueries.getTaniumServerSummaryGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium users summary group query: " + query);
