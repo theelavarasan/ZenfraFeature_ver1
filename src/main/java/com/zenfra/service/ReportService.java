@@ -121,7 +121,7 @@ public class ReportService {
 			resultObject.put("report_label", report_label);
 		}
 		resultObject.put("report_name", report_name);
-		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax")) {
+		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax") || (deviceType.equalsIgnoreCase("Tanium") && reportBy.equalsIgnoreCase("User"))) {
 			resultObject.put("subLinkDetails", getDSRConfigData(request, deviceType));
 		}
 		
