@@ -3172,7 +3172,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			}
 		}
 
-		if(xaxisColumnNameField.startsWith("Server Data~") && yaxisColumnField.contains("Server Data~") && breakDownField.startsWith("Server Data~")) {
+		if((xaxisColumnNameField.startsWith("Server Data~") && yaxisColumnField.contains("Server Data~") && breakDownField.startsWith("Server Data~")) || 
+				(pieChartField.startsWith("Server Data~"))) {
 			query = query.concat("FROM privillege_data_details AS PDD\r\n"
 					+ "WHERE SITE_KEY = '" + siteKey + "'");
 		} else {
@@ -3209,7 +3210,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 		query = query.concat(" group by ");
 		if (chartType.equalsIgnoreCase("pie")) {
-			if(xaxisColumnNameField.startsWith("Server Data~") && yaxisColumnField.contains("Server Data~") && breakDownField.startsWith("Server Data~")) {
+			if(pieChartField.startsWith("Server Data~")) {
 				query = query.concat(" " + pieChartColName + "");
 			} else {
 				if (pieChartField.startsWith("Server Data~")) {
