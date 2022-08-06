@@ -33,6 +33,8 @@ public class ReportQueries {
 	
 	private String serverSummaryHeader;
 	
+	private String taniumUserSummaryGroup;
+	
 	public String getHeader() {
 		return header;
 	}
@@ -129,6 +131,16 @@ public class ReportQueries {
 	public void setServerSummaryHeader(String serverSummaryHeader) {
 		this.serverSummaryHeader = serverSummaryHeader;
 	}
+
+	public String getTaniumUserSummaryGroup() {
+		return taniumUserSummaryGroup;
+	}
+
+	public void setTaniumUserSummaryGroup(String taniumUserSummaryGroup) {
+		this.taniumUserSummaryGroup = taniumUserSummaryGroup;
+	}
+	
+	
 	
 	
 	
