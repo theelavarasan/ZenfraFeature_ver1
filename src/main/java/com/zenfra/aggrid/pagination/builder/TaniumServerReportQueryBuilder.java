@@ -456,7 +456,7 @@ public class TaniumServerReportQueryBuilder {
     					
     					if(!column.contains("Server Summary~")) {
     						
-							String column1 = column.substring(column.indexOf("~") + 1, column.length());
+    						String column1 = column;
 							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower(data::json ->> '" + column1 + "') = lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" +  ((columnArray.size() > 1 && i == 1) ? ")": ""));
