@@ -256,7 +256,7 @@ public class TaniumServerReportQueryBuilder {
 				+ "       COALESCE(SSRD.SUDO_PRIVILEGES_BY_USER_ALIAS, '') AS SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 				+ "       SSRD.PROCESSEDDATE AS PROCESSEDDATE,\r\n"
 				+ "       SSRD.OPERATING_SYSTEM AS OS,\r\n"
-				+ "       COALESCE(SDT.SDJSONDATA::TEXT, '') AS source_data\r\n"
+				+ "       COALESCE(SDT.SDJSONDATA::TEXT, '{}') AS source_data\r\n"
 				+ "FROM privillege_data_details AS SSRD\r\n"
 				+ "LEFT JOIN SDDATA AS SDT\r\n"
 				+ "ON (SSRD.SERVER_NAME = SDT.PRIMARY_KEY_VALUE OR SSRD.USER_NAME = SDT.PRIMARY_KEY_VALUE)\r\n"
