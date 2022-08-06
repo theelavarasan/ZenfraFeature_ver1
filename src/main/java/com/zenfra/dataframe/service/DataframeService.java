@@ -3039,6 +3039,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 		JSONArray yaxisColumnField = new JSONArray();
 		String yaxisColumnFieldName = "";
+		boolean yaxisServerCheck = false;
 
 		// xaxis column names
 		JSONObject xaxisColumn = new JSONObject();
@@ -3061,18 +3062,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			pieChartClassName = (String) pieChartObject.get("className");
 			pieChartField = (String) pieChartObject.get("field");
 			
-			if (pieChartField.startsWith("Server Data~")) {
-				query = query.concat("select " + pieChartColName + "' as \"colName\"");
-				if (pieChartClassName.contains("count")) {
-					query = query.concat(", count(" + pieChartColName + ") as \"colValue\"");
-				} else if (pieChartClassName.contains("sum")) {
-					query = query.concat(", sum(" + pieChartColName + "::int) as \"colValue\"");
-				}
-			} else {
 				if (pieChartField.startsWith("Server Data~")) {
-					query = query.concat("select " + pieChartColName + "' as \"colName\"");
+					query = query.concat("select " + pieChartColName + " as \"colName\"");
 				} else {
-					query = query.concat("select pd." + pieChartField + "' as \"colName\"");
+					query = query.concat("select pd." + pieChartField + " as \"colName\"");
 				}
 
 				if (pieChartField.startsWith("Server Data~")) {
@@ -3092,7 +3085,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					}
 				}
 				
-			}
 		} else if (chartTypes.contains(chartType)) {
 			xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
 			xaxisColumnNameField = (String) xaxisColumn.get("field");
@@ -3111,12 +3103,17 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				classNameArray.add(className);
 
 				yaxisColumnFieldName = (String) yaxisColumn.get("field");
+				if(yaxisColumnFieldName.startsWith("Server Data~")) {
+					yaxisServerCheck = true;
+				} else {
+					yaxisServerCheck = false;
+				}
 				yaxisColumnField.add(yaxisColumnFieldName);
 			}
 			
-			if(xaxisColumnNameField.startsWith("Server Data~") && yaxisColumnField.contains("Server Data~") && breakDownField.startsWith("Server Data~")) {
+			if(xaxisColumnNameField.startsWith("Server Data~") && yaxisServerCheck) {
 				
-				query = query.concat("select " + xaxisColumnName + " as \"colName'\"");
+				query = query.concat("select " + xaxisColumnName + " as \"colName\"");
 				
 				if (breakDownName != null && !breakDownName.isEmpty()) {
 						query = query.concat(", " + breakDownName + " as \"colBreakdown\"");
@@ -3172,12 +3169,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			}
 		}
 
-		if((xaxisColumnNameField.startsWith("Server Data~") && yaxisColumnField.contains("Server Data~") && breakDownField.startsWith("Server Data~")) || 
+		if((xaxisColumnNameField.startsWith("Server Data~") && yaxisServerCheck) || 
 				(pieChartField.startsWith("Server Data~"))) {
-			query = query.concat("FROM privillege_data_details AS PDD\r\n"
+			query = query.concat(" FROM privillege_data_details AS PDD\r\n"
 					+ "WHERE SITE_KEY = '" + siteKey + "'");
 		} else {
-			query = query.concat("from (\r\n" + "Select pd.*,sd1.source_data\r\n" + "from privillege_data_details pd\r\n"
+			query = query.concat(" from (\r\n" + "Select pd.*,sd1.source_data\r\n" + "from privillege_data_details pd\r\n"
 					+ "LEFT JOIN (select a.primary_key,a.primary_key_value,json_collect(a.data::json) source_data\r\n"
 					+ "           from source_data a\r\n" + "           join source b on b.source_id = a.source_id\r\n"
 					+ "           where a.site_key = '" + siteKey + "'\r\n"
@@ -3210,23 +3207,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 		query = query.concat(" group by ");
 		if (chartType.equalsIgnoreCase("pie")) {
-			if(pieChartField.startsWith("Server Data~")) {
-				query = query.concat(" " + pieChartColName + "");
-			} else {
 				if (pieChartField.startsWith("Server Data~")) {
 					query = query.concat(" " + pieChartColName + "");
 				} else {
 					query = query.concat(" pd." + pieChartField + "");
 				}
-			}
-		} else if (chartTypes.contains(chartType)) {
-			
-			if(xaxisColumnNameField.startsWith("Server Data~") && yaxisColumnField.contains("Server Data~") && breakDownField.startsWith("Server Data~")) {
-					query = query.concat(" " + xaxisColumnName + "");
-				if (breakDownName != null && !breakDownName.isEmpty()) {
-						query = query.concat(", " + breakDownName + "");
-				}
-			} else {
+			} else if (chartTypes.contains(chartType)) {
+
 				if (xaxisColumnNameField.startsWith("Server Data~")) {
 					query = query.concat(" " + xaxisColumnName + "");
 				} else {
@@ -3239,8 +3226,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						query = query.concat(", pd." + breakDownField + "");
 					}
 				}
+
 			}
-		}
 
 //		query = query.concat(") pd2 where pd2.\"colName\" is not null");
 //
