@@ -1239,10 +1239,10 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		JSONArray resultArray = new JSONArray();
 
 		try {
-			columnName = columnName.startsWith("User Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : columnName;
+			columnName = columnName.startsWith("User Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : ("source_json_data::json ->> '" + columnName + "'");
 			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
 					+ "WITH SDDATA AS\r\n"
-					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_AGG(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
+					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_collect(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
 					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
 					+ "        WHERE SD.SITE_KEY = '" + siteKey + "' AND SR.IS_ACTIVE = true\r\n"
 					+ "            AND (SR.LINK_TO = 'All' OR SR.LINK_TO = 'None') GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
@@ -1287,10 +1287,10 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		JSONArray resultArray = new JSONArray();
 
 		try {
-
+			columnName = columnName.startsWith("Server Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : ("source_json_data::json ->> '" + columnName + "'");
 			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
 					+ "WITH SDDATA AS\r\n"
-					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_AGG(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
+					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_collect(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
 					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
 					+ "        WHERE SD.SITE_KEY = '" + siteKey + "' AND SR.IS_ACTIVE = true\r\n"
 					+ "            AND (SR.LINK_TO = 'All' OR SR.LINK_TO = 'None') GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
@@ -1306,7 +1306,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
 					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS, COALESCE(SDT.SDJSONDATA::TEXT, '') AS SOURCE_JSON_DATA\r\n"
 					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD\r\n"
-					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE\r\n"
+					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE or USRD.server_name = SDT.PRIMARY_KEY_VALUE\r\n"
 					+ "WHERE SITE_KEY = '" + siteKey + "'    \r\n"
 					+ ") A";
 					
