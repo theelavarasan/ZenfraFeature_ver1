@@ -34,7 +34,8 @@ public class ValidationRuleController {
 		Map<String, List<Object>> resultData = new HashMap<String, List<Object>>();
 		JSONArray resultArray = new JSONArray();
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") && !model.getReportBy().equalsIgnoreCase("Group Info")
-				&& !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User")) {
+				&& !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") 
+				&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
 			resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
 				   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList(), model.getAnalyticsType());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Compatibility")) {
@@ -53,8 +54,12 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getVR_VanguardGroupInfo(model.getSiteKey(), model.getColumnName());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Group")) {
 			resultArray = validationRuleService.getVR_TaniumGroup(model.getSiteKey(), model.getColumnName());
-		}else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User")) {
+		}else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User") && model.getDeviceType().equalsIgnoreCase("zoom")) {
 			resultArray = validationRuleService.getVR_ZoomUsers(model.getSiteKey(), model.getColumnName());
+		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User") && model.getDeviceType().equalsIgnoreCase("tanium")) {
+			resultArray = validationRuleService.getVR_TaniumUsers(model.getSiteKey(), model.getColumnName());
+		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("server") && model.getDeviceType().equalsIgnoreCase("tanium")) {
+			resultArray = validationRuleService.getVR_TaniumServer(model.getSiteKey(), model.getColumnName());
 		}
 			
 
@@ -64,7 +69,8 @@ public class ValidationRuleController {
 		}	
 		
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") 
-				&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group")&& !model.getReportBy().equalsIgnoreCase("User")) {
+				&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User")
+		&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
 					
 			if(resultData.containsKey(colName)) {	
 				List<Object> datas = resultData.get(colName);

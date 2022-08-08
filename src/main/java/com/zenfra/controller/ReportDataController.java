@@ -23,15 +23,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import javax.json.stream.JsonParser;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.SparkSession;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -56,6 +52,8 @@ import org.springframework.web.client.RestTemplate;
 import com.clickhouse.jdbc.ClickHouseDataSource;
 import com.zenfra.dao.PrivillegeAccessReportDAO;
 import com.zenfra.dao.TaniumGroupReportDAO;
+import com.zenfra.dao.TaniumServerReportDao;
+import com.zenfra.dao.TaniumUserNameReportDao;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.response.DataResult;
 import com.zenfra.dataframe.service.DataframeService;
@@ -97,10 +95,18 @@ public class ReportDataController {
 	
 	private TaniumGroupReportDAO taniumGroupReportDAO;
 	
+	private TaniumUserNameReportDao taniumUserNameReportDao;
+	
+	private TaniumServerReportDao taniumServerReportDao;
+	
 	@Autowired
-    public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO, @Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO) {
+    public ReportDataController(@Qualifier("privillegeAccessReportDAO") PrivillegeAccessReportDAO privillegeAccessReportDAO, @Qualifier("taniumGroupReportDAO") TaniumGroupReportDAO taniumGroupReportDAO,
+    		@Qualifier("taniumUserNameReportDao") TaniumUserNameReportDao taniumUserNameReportDao,
+    		@Qualifier("taniumServerReportDao") TaniumServerReportDao taniumServerReportDao) {
         this.privillegeAccessReportDAO = privillegeAccessReportDAO;
         this.taniumGroupReportDAO = taniumGroupReportDAO;
+        this.taniumUserNameReportDao = taniumUserNameReportDao;
+        this.taniumServerReportDao = taniumServerReportDao;
     }
 	
 	@GetMapping("createLocalDiscoveryDF")
@@ -145,7 +151,18 @@ public class ReportDataController {
 				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
 						request.getReportBy().equalsIgnoreCase("Group")) {
 					return new ResponseEntity<>(taniumGroupReportDAO.getData(request), HttpStatus.OK);
+				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") 
+						&& request.getOstype().equalsIgnoreCase("tanium") && 
+						request.getReportBy().equalsIgnoreCase("User")) {
+					System.out.println("log 1: ");
+					return new ResponseEntity<>(taniumUserNameReportDao.getData(request), HttpStatus.OK);
+				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") 
+						&& request.getOstype().equalsIgnoreCase("tanium") && 
+						request.getReportBy().equalsIgnoreCase("Server")) {
+					System.out.println("log 1: ");
+					return new ResponseEntity<>(taniumServerReportDao.getData(request), HttpStatus.OK);
 				} else {
+					System.out.println("log 2");
 					DataResult data = dataframeService.getReportDataFromDF(request, false);
 					if (data != null) {
 						return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
@@ -693,13 +710,14 @@ public class ReportDataController {
 
 		JSONParser jsonParser = new JSONParser();
 
+
 		JSONObject Object = (JSONObject) jsonParser.parse(chartParams.toString());
 		System.out.println("log 1 : " + Object);
 
 		String reportLabel = Object.get("reportLabel") != null && Object.get("reportLabel").toString().isEmpty() ? "" : Object.get("reportLabel").toString();
 		
 		JSONObject jsonObject = new JSONObject();
-		if(reportLabel.contains("Privileged")) {
+		if(reportLabel.contains("Privileged Access") || reportLabel.contains("User") || reportLabel.contains("Server")) {
 			jsonObject =  dataframeService.prepareChartForTanium(Object);
 		}else {
 			jsonObject = dataframeService.prepareChart(Object);

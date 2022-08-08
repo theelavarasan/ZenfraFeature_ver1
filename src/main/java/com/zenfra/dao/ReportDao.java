@@ -76,6 +76,41 @@ public class ReportDao {
 			System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
 			
 			List<Map<String, Object>> result; 
+			String headerQuery = "";
+			if(reportBy.equalsIgnoreCase("Privileged Access")) {
+				headerQuery = reportQueries.getTaniumHeader();
+			} else if(reportBy.equalsIgnoreCase("User")) {
+				headerQuery = reportQueries.getUserSummaryHeader();
+			} else if(reportBy.equalsIgnoreCase("Server")) {
+				headerQuery = reportQueries.getServerSummaryHeader();
+			}
+			
+			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
+			System.out.println("!!!!! headerQuery: " + headerQuery);
+			result = jdbc.queryForList(headerQuery);
+			
+			System.out.println("!!!!! result: " + result);
+			reportHeaders = parseResultSetForHeaderInfo(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		return reportHeaders;
+	}
+	
+	public JSONArray getUserReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+		JSONArray reportHeaders = new JSONArray();
+		try {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("site_key", siteKey);
+			params.put("user_id", userId);
+			System.out.println("------params--------- " + params);
+			System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
+			
+			List<Map<String, Object>> result; 
 			String headerQuery = reportQueries.getTaniumHeader();
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
 			System.out.println("!!!!! headerQuery: " + headerQuery);
@@ -96,6 +131,13 @@ public class ReportDao {
 	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
 		JSONObject reportGroup = new JSONObject();
 		try {
+			
+			System.out.println("!!!!! reportName: " + reportName);
+			System.out.println("!!!!! deviceType: " + deviceType);
+			System.out.println("!!!!! reportBy: " + reportBy);
+			System.out.println("!!!!! siteKey: " + siteKey);
+			System.out.println("!!!!! userId: " + userId);
+			
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("report_name", reportName.toLowerCase());
 			params.put("device_type", deviceType.toLowerCase());
@@ -107,7 +149,18 @@ public class ReportDao {
 			params.put("site_key", siteKey);
 			params.put("user_id", userId);
 			String query = reportQueries.getTaniumGroup();
-			query = query.replace(":site_key", siteKey).replace(":user_id", userId);
+			query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
+			
+			System.out.println("!!!!! tanium group query: " + query);
+			if(reportBy.equalsIgnoreCase("User")) {
+				query = reportQueries.getTaniumUserSummaryGroup();
+				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
+				System.out.println("!!!!! tanium users summary group query: " + query);
+			} else if(reportBy.equalsIgnoreCase("Server")) {
+				query = reportQueries.getTaniumServerSummaryGroup();
+				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
+				System.out.println("!!!!! tanium users summary group query: " + query);
+			}
 			result = jdbc.queryForList(query);
 			
 			

@@ -1233,4 +1233,110 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		return resultArray;
 
 	}
+	
+	public JSONArray getVR_TaniumUsers(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+			columnName = columnName.startsWith("User Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : ("source_json_data::json ->> '" + columnName + "'");
+			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
+					+ "WITH SDDATA AS\r\n"
+					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_collect(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
+					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
+					+ "        WHERE SD.SITE_KEY = '" + siteKey + "' AND SR.IS_ACTIVE = true\r\n"
+					+ "            AND (SR.LINK_TO = 'All' OR SR.LINK_TO = 'None') GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
+					+ "SELECT count(1) over() as row_count, USRD.USER_NAME,\r\n"
+					+ "    USRD.USER_ID,\r\n"
+					+ "    USRD.GROUP_ID,\r\n"
+					+ "    USRD.SERVERS_COUNT,\r\n"
+					+ "    USRD.PRIMARY_GROUP_NAME,\r\n"
+					+ "    USRD.SECONDARY_GROUP_NAME,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_USER,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
+					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS, COALESCE(SDT.SDJSONDATA::TEXT, '{}') AS SOURCE_JSON_DATA\r\n"
+					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD\r\n"
+					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE\r\n"
+					+ "WHERE SITE_KEY = '" + siteKey + "'    \r\n"
+					+ ") A";
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
+	}
+	
+	public JSONArray getVR_TaniumServer(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+			columnName = columnName.startsWith("Server Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : ("source_json_data::json ->> '" + columnName + "'");
+			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
+					+ " WITH SDDATA AS\r\n"
+					+ "(\r\n"
+					+ "    SELECT SD.PRIMARY_KEY_VALUE,\r\n"
+					+ "           JSON_collect(SD.DATA::JSON) AS SDJSONDATA\r\n"
+					+ "    FROM SOURCE_DATA SD\r\n"
+					+ "       INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
+					+ "        WHERE SD.SITE_KEY = '" + siteKey + "'\r\n"
+					+ "            AND SR.IS_ACTIVE = true\r\n"
+					+ "            AND (SR.LINK_TO = 'All'\r\n"
+					+ "                                OR SR.LINK_TO = 'None')\r\n"
+					+ "             GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
+					+ "SELECT count(1) over() as row_count, SSRD.SERVER_NAME,\r\n"
+					+ "       SSRD.USER_NAME,\r\n"
+					+ "       SSRD.USER_ID,\r\n"
+					+ "       COALESCE(SSRD.GROUP_ID, '') AS GROUP_ID,\r\n"
+					+ "       COALESCE(SSRD.PRIMARY_GROUP_NAME, '') AS PRIMARY_GROUP_NAME,\r\n"
+					+ "       COALESCE(SSRD.SECONDARY_GROUP_NAME, '') AS SECONDARY_GROUP_NAME,\r\n"
+					+ "       COALESCE(SSRD.SUDO_PRIVILEGES_BY_USER, '') AS SUDO_PRIVILEGES_BY_USER,\r\n"
+					+ "       COALESCE(SSRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP, '') AS SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
+					+ "       COALESCE(SSRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP, '') AS SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
+					+ "       COALESCE(SSRD.MEMBER_OF_USER_ALIAS, '') AS USER_ALIAS_NAME,\r\n"
+					+ "       COALESCE(SSRD.SUDO_PRIVILEGES_BY_USER_ALIAS, '') AS SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
+					+ "       SSRD.PROCESSEDDATE AS PROCESSEDDATE,\r\n"
+					+ "       SSRD.OPERATING_SYSTEM AS OS,\r\n"
+					+ "       COALESCE(SDT.SDJSONDATA::TEXT, '{}') AS source_data\r\n"
+					+ "FROM privillege_data_details AS SSRD\r\n"
+					+ "LEFT JOIN SDDATA AS SDT\r\n"
+					+ "ON (SSRD.SERVER_NAME = SDT.PRIMARY_KEY_VALUE OR SSRD.USER_NAME = SDT.PRIMARY_KEY_VALUE)\r\n"
+					+ "WHERE SSRD.SITE_KEY = '" + siteKey + "'"
+					+ ") A";
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
+	}
 }

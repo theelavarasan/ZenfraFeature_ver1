@@ -19,30 +19,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.zenfra.aggrid.pagination.builder.PrivillegeAccessReportQueryBuilder;
+import com.zenfra.aggrid.pagination.builder.TaniumServerReportQueryBuilder;
+import com.zenfra.aggrid.pagination.builder.TaniumUserNameReportQueryBuilder;
 import com.zenfra.aggrid.pagination.response.EnterpriseGetRowsResponse;
 import com.zenfra.dataframe.request.ColumnVO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.utils.CommonFunctions;
 
-@Repository("privillegeAccessReportDAO")
-public class PrivillegeAccessReportDAO {
+@Repository("taniumServerReportDao")
+public class TaniumServerReportDao {
 	
 	@Autowired
 	CommonFunctions utilities;
 
     private JdbcTemplate template;
-    private PrivillegeAccessReportQueryBuilder queryBuilder;
+    private TaniumServerReportQueryBuilder queryBuilder;
     
     
 
     @Autowired
-    public PrivillegeAccessReportDAO(JdbcTemplate template) {
+    public TaniumServerReportDao(JdbcTemplate template) {
         this.template = template;
-        queryBuilder = new PrivillegeAccessReportQueryBuilder();
+        queryBuilder = new TaniumServerReportQueryBuilder();
     }
 
     public EnterpriseGetRowsResponse getData(ServerSideGetRowsRequest request) {
+    	System.out.println("test log 1");
         String tableName = "privillege_data"; // could be supplied in request as a lookup key?
         
         // first obtain the pivot values from the DB for the requested pivot columns
@@ -53,13 +55,16 @@ public class PrivillegeAccessReportDAO {
         
         String validationFilter = "";
         if(request.getHealthCheckId() != null && !request.getHealthCheckId().isEmpty()) {
+        	System.out.println("test log 2");
         	String validationFilterQuery = getValidationRuleCondition(request.getSiteKey(), request.getHealthCheckId(), request.getRuleList());
             List<Map<String, Object>> validationRows = utilities.getDBDatafromJdbcTemplate(validationFilterQuery);
             validationFilter = getValidationFilter(validationRows);
         }
         
+        System.out.println("test log 3");
         String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter);
         
+        System.out.println("test log " + sql);
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
         JSONArray resultArray = dataNormalize(rows);
         //System.out.println("!!!!! pagination data: " + rows);
@@ -94,13 +99,8 @@ public class PrivillegeAccessReportDAO {
     					if(!dataObject.isEmpty()) {
     						List<String> dataKeys = new ArrayList<>(dataObject == null ? new HashSet<>() : dataObject.keySet());
         					for(int j = 0; j < dataObject.size(); j++) {
-        						/*if(dataKeys.get(j).equalsIgnoreCase("Processed Date")) {
-        							resultObject.put("Server Data~" + dataKeys.get(j), formatDateStringToUtc(dataObject.get(dataKeys.get(j)).toString()));
-        						} else {
-        							resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
-        						}*/
-        						resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
         						
+        						resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
         					}
     					}
     					
@@ -115,14 +115,7 @@ public class PrivillegeAccessReportDAO {
     					
     				} else {
     					if(!keys.get(i).equalsIgnoreCase("row_count")) {
-    						if(keys.get(i).equalsIgnoreCase("server_name")) {
-    							resultObject.put("Server Data~Server Name", row.get(keys.get(i)));
-    						} else if(keys.get(i).equalsIgnoreCase("source_id")) {
-    							resultObject.put("Server Data~User Name", row.get(keys.get(i)));
-    						} else {
-    							resultObject.put("Server Data~" + keys.get(i), row.get(keys.get(i)));
-    						}
-    						
+    							resultObject.put("Server Summary~" + keys.get(i), row.get(keys.get(i)));
     					} 
     				}
     			}
@@ -175,12 +168,12 @@ public class PrivillegeAccessReportDAO {
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' or ') as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
-				+ "concat(con_operator, (case when con_field_id ilike 'Server Data~%' then ' replace(data,''null,'',''\"\",'')::json ->> ''' else ' source_id in (select distinct primary_key_value from \r\n"
-				+ "source_data where site_key = '':site_key'' and data::json ->> ''' end),  replace(con_field_id,'Server Data~',''), ''' ', \r\n"
+				+ "concat(con_operator, (case when con_field_id ilike 'Server Summary~%' then ' ' else ' source_id in (select distinct primary_key_value from \r\n"
+				+ "source_data where site_key = '':site_key'' and coalesce(data::json ->> ''' end),  (case when con_field_id ilike 'User Summary~%' then substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id))  else concat(con_field_id,''','''')') end), ' ', \r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''(',con_value, ')%''') else (case when con_condition = 'endsWith' then concat(' ''%(',con_value, ')''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')\r\n"
-				+ "else concat(' ''',con_value, '''') end) end) end) end), (case when con_field_id ilike 'Server Data~%' then '' else ')' end)) as condition_value from (\r\n"
+				+ "else concat(' ''',con_value, '''') end) end) end) end), (case when con_field_id ilike 'Server Summary~%' then '' else ')' end)) as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, coalesce(con_operator, '') as con_operator, con_condition, con_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value as con_value from (\r\n"
@@ -209,7 +202,7 @@ public class PrivillegeAccessReportDAO {
 				+ ") c\r\n"
 				+ ") d\r\n"
 				+ ") e\r\n"
-				+ ") f group by report_by, rule_id, con_field_id, con_id, con_operator, condition_field order by rule_id, con_id\r\n"
+				+ ") f group by report_by, rule_id, con_field_id, con_id, con_operator, condition_field order by con_id\r\n"
 				+ ") d\r\n"
 				+ ") g group by rule_id\r\n"
 				+ ") f";
@@ -231,7 +224,7 @@ public class PrivillegeAccessReportDAO {
     		e.printStackTrace();
     	}
     	
-    	return validationFilterQuery.isEmpty() ? "" : (" and (" + validationFilterQuery.trim() + ")");
+    	return validationFilterQuery.isEmpty() ? "" : (" and " + validationFilterQuery.trim());
     	
     }
 
