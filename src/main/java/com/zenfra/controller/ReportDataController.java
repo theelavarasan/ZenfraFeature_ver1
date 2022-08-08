@@ -303,7 +303,7 @@ public class ReportDataController {
 
 			JSONObject data = dataframeService.getMigrationReport(filePath);
 			if (data != null) {
-				return new ResponseEntity<>(data, HttpStatus.OK);
+				return new ResponseEntity<>(data.toJSONString().replace("<%pathslash%>", "\\\\"), HttpStatus.OK);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -326,7 +326,7 @@ public class ReportDataController {
 			dataframeService.createDataframeForJsonData(filePath);
 			JSONObject data = dataframeService.getMigrationReport(filePath);
 			if (data != null) {
-				return new ResponseEntity<>(data, HttpStatus.OK);
+				return new ResponseEntity<>(data.toJSONString().replace("<%pathslash%>", "\\\\"), HttpStatus.OK);
 			}
 
 		} catch (Exception e) {
