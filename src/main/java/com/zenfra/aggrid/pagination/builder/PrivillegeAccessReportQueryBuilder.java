@@ -10,6 +10,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -497,6 +498,8 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	StringBuilder filterQuery = new StringBuilder();
     	ObjectMapper mapper = new ObjectMapper();
+    	Set<String> sourceSet = new HashSet<String>();
+    	JSONArray sourceArray = new JSONArray();
     	try {
     		if(!filters.isEmpty()) {
     			
@@ -536,6 +539,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						
 							String column1 = column;
 							String columnPrefix = column.substring(0, column.indexOf("~"));
+							sourceSet.add(columnPrefix);
 							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower(coalesce(data::json ->> '" + column + "','')) = lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" +  ((columnArray.size() > 1 && i == 1) ? ")": ""));
@@ -579,6 +583,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						
 							String column1 = column;
 							String columnPrefix = column.substring(0, column.indexOf("~"));
+							sourceSet.add(columnPrefix);
 							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','') <> '' and coalesce(data ->> '" + column + "','0')::numeric = " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
@@ -630,9 +635,11 @@ public class PrivillegeAccessReportQueryBuilder {
     		e.printStackTrace();
     	}
     	
-    	
-    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ") or \r\n"
-				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' " + filterQuery.toString() + ")) ";
+    	if(!sourceSet.isEmpty()) {
+    		sourceArray.addAll(sourceSet);
+    	}
+    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select source_id from source where source_name in (select json_array_elements_text('" + sourceArray + "'))) " + filterQuery.toString() + ") or \r\n"
+				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select source_id from source where source_name in (select json_array_elements_text('" + sourceArray + "'))) " + filterQuery.toString() + ")) ";
     	
     	return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
