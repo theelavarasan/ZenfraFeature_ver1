@@ -94,11 +94,12 @@ public class PrivillegeAccessReportDAO {
     					if(!dataObject.isEmpty()) {
     						List<String> dataKeys = new ArrayList<>(dataObject == null ? new HashSet<>() : dataObject.keySet());
         					for(int j = 0; j < dataObject.size(); j++) {
-        						if(dataKeys.get(j).equalsIgnoreCase("Processed Date")) {
+        						/*if(dataKeys.get(j).equalsIgnoreCase("Processed Date")) {
         							resultObject.put("Server Data~" + dataKeys.get(j), formatDateStringToUtc(dataObject.get(dataKeys.get(j)).toString()));
         						} else {
         							resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
-        						}
+        						}*/
+        						resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
         						
         					}
     					}
