@@ -638,8 +638,8 @@ public class PrivillegeAccessReportQueryBuilder {
     	if(!sourceSet.isEmpty()) {
     		sourceArray.addAll(sourceSet);
     	}
-    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select source_id from source where source_name in (select json_array_elements_text('" + sourceArray + "'))) " + filterQuery.toString() + ") or \r\n"
-				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select source_id from source where source_name in (select json_array_elements_text('" + sourceArray + "'))) " + filterQuery.toString() + ")) ";
+    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select source_id from source where site_key = '" + siteKey + "' and source_name in (select json_array_elements_text('" + sourceArray + "')) union all select link_to from source where source_name in (select json_array_elements_text('" + sourceArray + "'))) " + filterQuery.toString() + ") or \r\n"
+				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select source_id from source where site_key = '" + siteKey + "' and source_name in (select json_array_elements_text('" + sourceArray + "')) union all select source_id from source where source_name in (select json_array_elements_text('" + sourceArray + "'))) " + filterQuery.toString() + ")) ";
     	
     	return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
