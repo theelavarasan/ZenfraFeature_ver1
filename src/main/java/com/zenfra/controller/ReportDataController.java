@@ -153,7 +153,7 @@ public class ReportDataController {
 					return new ResponseEntity<>(taniumGroupReportDAO.getData(request), HttpStatus.OK);
 				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") 
 						&& request.getOstype().equalsIgnoreCase("tanium") && 
-						(request.getReportBy().equalsIgnoreCase("User") || request.getReportBy().equalsIgnoreCase("Sudoers User"))) {
+						(request.getReportBy().equalsIgnoreCase("User") || request.getReportBy().equalsIgnoreCase("Sudoers"))) {
 					System.out.println("log 1: ");
 					return new ResponseEntity<>(taniumUserNameReportDao.getData(request), HttpStatus.OK);
 				} else if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") 

@@ -262,7 +262,7 @@ public class TaniumUserNameReportQueryBuilder {
 					+ getSourceDataFilters(filters, siteKey, projectId, reportBy) + " " + getOrderBy(sortModel, reportBy) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "";
 			
 			System.out.println("!!!!! user summary report query: " + tasklistQuery);
-		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			
 			tasklistQuery = "WITH SSDDATA AS\r\n"
 					+ "(\r\n"
@@ -332,7 +332,7 @@ public class TaniumUserNameReportQueryBuilder {
 		
 		if(reportBy.equalsIgnoreCase("User")) {
 			prefix = "User Summary~";
-		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			prefix = "Sudoers Summary~";
 		}
 		
@@ -493,7 +493,7 @@ public class TaniumUserNameReportQueryBuilder {
 		
 		if(reportBy.equalsIgnoreCase("User")) {
 			prefix = "User Summary~";
-		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			prefix = "Sudoers Summary~";
 		}
 		
@@ -702,7 +702,7 @@ public class TaniumUserNameReportQueryBuilder {
 		
 		if(reportBy.equalsIgnoreCase("User")) {
 			prefix = "User Summary~";
-		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			prefix = "Sudoers Summary~";
 		}
     	

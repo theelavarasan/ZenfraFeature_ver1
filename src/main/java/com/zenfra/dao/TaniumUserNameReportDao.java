@@ -94,7 +94,7 @@ public class TaniumUserNameReportDao {
 		
 		if(reportBy.equalsIgnoreCase("User")) {
 			prefix = "User Summary~";
-		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			prefix = "Sudoers Summary~";
 		}
 		
@@ -179,7 +179,7 @@ public class TaniumUserNameReportDao {
 		
 		if(reportBy.equalsIgnoreCase("User")) {
 			prefix = "User Summary~";
-		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			prefix = "Sudoers Summary~";
 		}
 		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
