@@ -9,6 +9,7 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -37,6 +38,7 @@ import com.zenfra.dataframe.request.ColumnVO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.utils.CommonFunctions;
+import com.zenfra.model.OperatorModel;
 
 public class PrivillegeAccessReportQueryBuilder {
 	
@@ -356,7 +358,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
     						}
-    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + getOperator().get(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     					}  
     					
     					
@@ -370,7 +372,7 @@ public class PrivillegeAccessReportQueryBuilder {
     							value =  ((NumberColumnFilter) columnFilter).getFilter() + " and " + ((NumberColumnFilter) columnFilter).getFilterTo();
     						}
     						
-    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + column1 + "' <> '' and " + column1 + "::numeric " + getOperator().get(((NumberColumnFilter) columnFilter).getType()) + " " + value + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + column1 + "' <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     						
     					} 
     					
@@ -667,20 +669,5 @@ public class PrivillegeAccessReportQueryBuilder {
     	return orderBy;
     }
     
-    private Map<String, String> getOperator() {
-    	Map<String, String> operators = new HashMap<String, String>();
-    	operators.put("equals", "=");
-    	operators.put("contains", "ilike");
-    	operators.put("notContains", "not ilike");
-    	operators.put("startsWith", "ilike");
-    	operators.put("endsWith", "ilike");
-    	operators.put("Blanks", "=");
-    	operators.put("Not Blanks", "<>");
-    	operators.put("notEqual", "<>");
-    	operators.put("lessThan", "<");
-    	operators.put("lessThanOrEqual", "<=");
-    	operators.put("greaterThan", ">");
-    	operators.put("greaterThanOrEqual", ">=");
-    	operators.put("inRange", "between");
-    }
+    
 }
