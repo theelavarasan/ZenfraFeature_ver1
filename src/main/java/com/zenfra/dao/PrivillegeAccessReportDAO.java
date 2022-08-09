@@ -162,7 +162,7 @@ public class PrivillegeAccessReportDAO {
 		return value;
 	}
     
-private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList, String reportBy) {
+private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList) {
     	
     	JSONArray ruleArray = new JSONArray();
 		if(!ruleList.isEmpty()) {
@@ -170,11 +170,6 @@ private String  getValidationRuleCondition(String siteKey, String healthCheckId,
 		}
 		String prefix = "Server Data~";
 		
-		if(reportBy.equalsIgnoreCase("User")) {
-			prefix = "User Summary~";
-		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-			prefix = "Sudoers Summary~";
-		}
 		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
 				+ "select rule_id, concat('(', string_agg(condition_value, ' '), ')') as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field,\r\n"
