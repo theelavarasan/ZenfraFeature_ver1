@@ -77,7 +77,7 @@ public class TaniumUserNameReportQueryBuilder {
         System.out.println("creating sql query");
         //return selectSql() + fromSql(tableName) + whereSql() + groupBySql() + orderBySql() + limitSql();
         return getUserAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel(),
-        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery);
+        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery, request.getReportBy());
         
     }
 
@@ -228,38 +228,97 @@ public class TaniumUserNameReportQueryBuilder {
     }};
     
     private String getUserAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel,
-    		String healthCheckId, List<String> ruleList, String validationFilterQuery) {
+    		String healthCheckId, List<String> ruleList, String validationFilterQuery, String reportBy) {
 		
 		JSONParser parser = new JSONParser();
-
-		String tasklistQuery = "WITH SDDATA AS\r\n"
-				+ "    (SELECT PRIMARY_KEY_VALUE,\r\n"
-				+ "            JSON_collect(DATA::JSON) AS SDJSONDATA\r\n"
-				+ "        FROM SOURCE_DATA AS SD\r\n"
-				+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
-				+ "        WHERE SD.SITE_KEY = '" + siteKey + "'\r\n"
-				+ "            AND SR.IS_ACTIVE = true \r\n"
-				+ "            AND (SR.LINK_TO = 'All' \r\n"
-				+ "                                OR SR.LINK_TO = 'None')\r\n"
-				+ "        GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
-				+ "SELECT count(1) over() as row_count, USRD.USER_NAME,\r\n"
-				+ "    USRD.USER_ID,\r\n"
-				+ "    USRD.GROUP_ID,\r\n"
-				+ "    USRD.SERVERS_COUNT,\r\n"
-				+ "    USRD.PRIMARY_GROUP_NAME,\r\n"
-				+ "    USRD.SECONDARY_GROUP_NAME,\r\n"
-				+ "    USRD.SUDO_PRIVILEGES_BY_USER,\r\n"
-				+ "    USRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
-				+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
-				+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
-				+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
-				+ "    SDT.SDJSONDATA AS source_data \r\n"
-				+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
-				+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
-				+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
-				+ getSourceDataFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "";
 		
-		System.out.println("!!!!! trackerQuery: " + tasklistQuery);
+		String tasklistQuery = "";
+		if(reportBy.equalsIgnoreCase("Server")) {
+			tasklistQuery = "WITH SDDATA AS\r\n"
+					+ "    (SELECT PRIMARY_KEY_VALUE,\r\n"
+					+ "            JSON_collect(DATA::JSON) AS SDJSONDATA\r\n"
+					+ "        FROM SOURCE_DATA AS SD\r\n"
+					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
+					+ "        WHERE SD.SITE_KEY = '" + siteKey + "'\r\n"
+					+ "            AND SR.IS_ACTIVE = true \r\n"
+					+ "            AND (SR.LINK_TO = 'All' \r\n"
+					+ "                                OR SR.LINK_TO = 'None')\r\n"
+					+ "        GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
+					+ "SELECT count(1) over() as row_count, USRD.USER_NAME,\r\n"
+					+ "    USRD.USER_ID,\r\n"
+					+ "    USRD.GROUP_ID,\r\n"
+					+ "    USRD.SERVERS_COUNT,\r\n"
+					+ "    USRD.PRIMARY_GROUP_NAME,\r\n"
+					+ "    USRD.SECONDARY_GROUP_NAME,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_USER,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
+					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
+					+ "    SDT.SDJSONDATA AS source_data \r\n"
+					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
+					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
+					+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
+					+ getSourceDataFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "";
+			
+			System.out.println("!!!!! user summary report query: " + tasklistQuery);
+		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+			
+			tasklistQuery = "WITH SSDDATA AS\r\n"
+					+ "(\r\n"
+					+ "    SELECT SITE_KEY,\r\n"
+					+ "       SERVER_NAME,\r\n"
+					+ "       USER_NAME,\r\n"
+					+ "       USER_ID,\r\n"
+					+ "       COALESCE(GROUP_ID, '') AS GROUP_ID,\r\n"
+					+ "       COALESCE(PRIMARY_GROUP_NAME, '') AS PRIMARY_GROUP_NAME,\r\n"
+					+ "       COALESCE(SECONDARY_GROUP_NAME, '') AS SECONDARY_GROUP_NAME,\r\n"
+					+ "       COALESCE(SUDO_PRIVILEGES_BY_USER, '') AS SUDO_PRIVILEGES_BY_USER,\r\n"
+					+ "       COALESCE(SUDO_PRIVILEGES_BY_PRIMARY_GROUP, '') AS SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
+					+ "       COALESCE(SUDO_PRIVILEGES_BY_SECONDARY_GROUP, '') AS SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
+					+ "       COALESCE(MEMBER_OF_USER_ALIAS, '') AS USER_ALIAS_NAME,\r\n"
+					+ "       COALESCE(SUDO_PRIVILEGES_BY_USER_ALIAS, '') AS SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
+					+ "       PROCESSEDDATE,\r\n"
+					+ "       OPERATING_SYSTEM AS OS\r\n"
+					+ "    FROM SUDOERS_SUMMARY_DETAILS\r\n"
+					+ "    WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
+							+ getSourceDataFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " "
+					+ "),\r\n"
+					+ "SDDATA AS\r\n"
+					+ "(    \r\n"
+					+ "    SELECT SD.PRIMARY_KEY_VALUE,\r\n"
+					+ "           JSON_AGG(SD.DATA::JSON) AS SDJSONDATA\r\n"
+					+ "    FROM SOURCE_DATA SD\r\n"
+					+ "       INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
+					+ "        WHERE SD.SITE_KEY = '" + siteKey + "'\r\n"
+					+ "            AND SR.IS_ACTIVE = 'True'\r\n"
+					+ "            AND (SR.LINK_TO = 'All'\r\n"
+					+ "                                OR SR.LINK_TO = 'None')\r\n"
+					+ "             GROUP BY SD.PRIMARY_KEY_VALUE\r\n"
+					+ ")\r\n"
+					+ "SELECT SSD.SERVER_NAME,\r\n"
+					+ "       SSD.USER_NAME,\r\n"
+					+ "       SSD.USER_ID,\r\n"
+					+ "       SSD.GROUP_ID,\r\n"
+					+ "       SSD.PRIMARY_GROUP_NAME,\r\n"
+					+ "       SSD.SECONDARY_GROUP_NAME,\r\n"
+					+ "       SSD.SUDO_PRIVILEGES_BY_USER,\r\n"
+					+ "       SSD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
+					+ "       SSD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
+					+ "       SSD.USER_ALIAS_NAME,\r\n"
+					+ "       SSD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
+					+ "       SSD.PROCESSEDDATE,\r\n"
+					+ "       SSD.OS,\r\n"
+					+ "       SDT1.SDJSONDATA::TEXT AS SOURCE_JSON_DATA1,\r\n"
+					+ "       SDT2.SDJSONDATA::TEXT AS SOURCE_JSON_DATA2\r\n"
+					+ "FROM SSDDATA AS SSD\r\n"
+					+ "LEFT JOIN SDDATA AS SDT1\r\n"
+					+ "ON SSD.SERVER_NAME = SDT1.PRIMARY_KEY_VALUE\r\n"
+					+ "LEFT JOIN SDDATA AS SDT2\r\n"
+					+ "ON SSD.USER_NAME = SDT2.PRIMARY_KEY_VALUE\r\n"
+					+ "WHERE SSD.SITE_KEY = '" + siteKey + "'";
+		}
+		
 
 		return tasklistQuery;
 	} 
