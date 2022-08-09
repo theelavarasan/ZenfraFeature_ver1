@@ -66,7 +66,7 @@ public class TaniumUserNameReportDao {
         
         System.out.println("test log " + sql);
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
-        JSONArray resultArray = dataNormalize(rows);
+        JSONArray resultArray = dataNormalize(rows, request.getReportBy());
         //System.out.println("!!!!! pagination data: " + rows);
         // create response with our results
         int rowCount = rows.isEmpty() ? 0 : getRowCount(rows.get(0));
@@ -85,10 +85,19 @@ public class TaniumUserNameReportDao {
     }
     
     @SuppressWarnings("unchecked")
-	private JSONArray dataNormalize(List<Map<String, Object>> rows) {
+	private JSONArray dataNormalize(List<Map<String, Object>> rows, String reportBy) {
     	
     	JSONArray resultArray = new JSONArray();
     	JSONParser parser = new JSONParser();
+    	
+    	String prefix = "";
+		
+		if(reportBy.equalsIgnoreCase("User")) {
+			prefix = "User Summary~";
+		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+			prefix = "Sudoers Summary~";
+		}
+		
     	try {
     		for(Map<String, Object> row : rows) {
     			JSONObject resultObject = new JSONObject();
@@ -116,9 +125,9 @@ public class TaniumUserNameReportDao {
     				} else {
     					if(!keys.get(i).equalsIgnoreCase("row_count")) {
     						if (keys.get(i).equalsIgnoreCase("server_count")) { 
-    							resultObject.put("User Summary~" + keys.get(i), Integer.parseInt(row.get(keys.get(i)).toString()));
+    							resultObject.put(prefix + keys.get(i), Integer.parseInt(row.get(keys.get(i)).toString()));
     						} else {
-    							resultObject.put("User Summary~" + keys.get(i), row.get(keys.get(i)));
+    							resultObject.put(prefix + keys.get(i), row.get(keys.get(i)));
     						}
     						
     					} 

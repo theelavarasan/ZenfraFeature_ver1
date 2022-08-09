@@ -258,8 +258,8 @@ public class TaniumUserNameReportQueryBuilder {
 					+ "    SDT.SDJSONDATA AS source_data \r\n"
 					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
 					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
-					+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
-					+ getSourceDataFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "";
+					+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy) + " " + getOrderBy(sortModel, reportBy) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "";
 			
 			System.out.println("!!!!! user summary report query: " + tasklistQuery);
 		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
@@ -281,8 +281,8 @@ public class TaniumUserNameReportQueryBuilder {
 					+ "       PROCESSEDDATE,\r\n"
 					+ "       OPERATING_SYSTEM AS OS\r\n"
 					+ "    FROM SUDOERS_SUMMARY_DETAILS\r\n"
-					+ "    WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId) + " "
-							+ getSourceDataFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " "
+					+ "    WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+							+ getSourceDataFilters(filters, siteKey, projectId, reportBy) + " " + getOrderBy(sortModel, reportBy) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " "
 					+ "),\r\n"
 					+ "SDDATA AS\r\n"
 					+ "(    \r\n"
@@ -323,10 +323,19 @@ public class TaniumUserNameReportQueryBuilder {
 		return tasklistQuery;
 	} 
     
-    private String getTasklistFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId) {
+    private String getTasklistFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId, String reportBy) {
     	
     	StringBuilder filterQuery = new StringBuilder();
     	ObjectMapper mapper = new ObjectMapper();
+    	
+    	String prefix = "";
+		
+		if(reportBy.equalsIgnoreCase("User")) {
+			prefix = "User Summary~";
+		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+			prefix = "Sudoers Summary~";
+		}
+		
     	try {
     		if(!filters.isEmpty()) {
     			
@@ -362,7 +371,7 @@ public class TaniumUserNameReportQueryBuilder {
     				
     				if(columnFilter instanceof TextColumnFilter) {
     					
-    					if(column.contains("User Summary~")) {
+    					if(column.contains(prefix)) {
     						String column1 = column.substring(column.indexOf("~") + 1, column.length());
     						
     						if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
@@ -401,7 +410,7 @@ public class TaniumUserNameReportQueryBuilder {
     					}
     				} else if(columnFilter instanceof NumberColumnFilter) {
     					
-    					if(column.contains("User Summary~")) {
+    					if(column.contains(prefix)) {
     						String column1 = column.substring(column.indexOf("~") + 1, column.length());
     					
     						if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
@@ -475,10 +484,19 @@ public class TaniumUserNameReportQueryBuilder {
     	
     } 
     
-    private String getSourceDataFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId) {
+    private String getSourceDataFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId, String reportBy) {
     	
     	StringBuilder filterQuery = new StringBuilder();
     	ObjectMapper mapper = new ObjectMapper();
+    	
+    	String prefix = "";
+		
+		if(reportBy.equalsIgnoreCase("User")) {
+			prefix = "User Summary~";
+		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+			prefix = "Sudoers Summary~";
+		}
+		
     	try {
     		if(!filters.isEmpty()) {
     			
@@ -514,7 +532,7 @@ public class TaniumUserNameReportQueryBuilder {
     				
     				if(columnFilter instanceof TextColumnFilter) {
     					
-    					if(!column.contains("User Summary~")) {
+    					if(!column.contains(prefix)) {
    						
 							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
@@ -555,7 +573,7 @@ public class TaniumUserNameReportQueryBuilder {
     					
     				} else if(columnFilter instanceof NumberColumnFilter) {
     					
-    					if(!column.contains("User Summary~")) {
+    					if(!column.contains(prefix)) {
 							
 							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
@@ -676,13 +694,21 @@ public class TaniumUserNameReportQueryBuilder {
     	
     }
     
-    private String getOrderBy(List<SortModel> sortModel) {
+    private String getOrderBy(List<SortModel> sortModel, String reportBy) {
     	
     	String orderBy = "";
     	
+    	String prefix = "";
+		
+		if(reportBy.equalsIgnoreCase("User")) {
+			prefix = "User Summary~";
+		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
+			prefix = "Sudoers Summary~";
+		}
+    	
     	try {
     		for(SortModel s: sortModel) {
-    			if(s.getActualColId().startsWith("User Summary~")) {
+    			if(s.getActualColId().startsWith(prefix)) {
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
         			System.out.println("!!!!! colId: " + s.getActualColId());
         			orderBy = " order by " + columnName +  " " + s.getSort();
