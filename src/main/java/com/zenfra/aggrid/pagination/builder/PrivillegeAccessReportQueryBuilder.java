@@ -38,7 +38,7 @@ import com.zenfra.dataframe.request.ColumnVO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.utils.CommonFunctions;
-import com.zenfra.model.OperatorModel;
+import com.zenfra.model.OperatorModel;x
 
 public class PrivillegeAccessReportQueryBuilder {
 	
