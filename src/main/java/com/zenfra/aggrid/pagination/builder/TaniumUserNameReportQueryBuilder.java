@@ -233,7 +233,7 @@ public class TaniumUserNameReportQueryBuilder {
 		JSONParser parser = new JSONParser();
 		
 		String tasklistQuery = "";
-		if(reportBy.equalsIgnoreCase("Server")) {
+		if(reportBy.equalsIgnoreCase("User")) {
 			tasklistQuery = "WITH SDDATA AS\r\n"
 					+ "    (SELECT PRIMARY_KEY_VALUE,\r\n"
 					+ "            JSON_collect(DATA::JSON) AS SDJSONDATA\r\n"
