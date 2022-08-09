@@ -262,7 +262,7 @@ public class TaniumUserNameReportQueryBuilder {
 					+ getSourceDataFilters(filters, siteKey, projectId) + " " + getOrderBy(sortModel) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + "";
 			
 			System.out.println("!!!!! user summary report query: " + tasklistQuery);
-		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+		} else if(reportBy.equalsIgnoreCase("Sudoers User")) {
 			
 			tasklistQuery = "WITH SSDDATA AS\r\n"
 					+ "(\r\n"
@@ -309,8 +309,8 @@ public class TaniumUserNameReportQueryBuilder {
 					+ "       SSD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 					+ "       SSD.PROCESSEDDATE,\r\n"
 					+ "       SSD.OS,\r\n"
-					+ "       SDT1.SDJSONDATA::TEXT AS SOURCE_JSON_DATA1,\r\n"
-					+ "       SDT2.SDJSONDATA::TEXT AS SOURCE_JSON_DATA2\r\n"
+					+ "       SDT1.SDJSONDATA AS source_data,\r\n"
+					+ "       SDT2.SDJSONDATA AS source_data1\r\n"
 					+ "FROM SSDDATA AS SSD\r\n"
 					+ "LEFT JOIN SDDATA AS SDT1\r\n"
 					+ "ON SSD.SERVER_NAME = SDT1.PRIMARY_KEY_VALUE\r\n"
