@@ -35,6 +35,8 @@ public class PrivillegeAccessReportDAO {
     private JdbcTemplate template;
     private PrivillegeAccessReportQueryBuilder queryBuilder;
     
+    PrefixModel prefixModel = new PrefixModel();
+    
     
 
     @Autowired
