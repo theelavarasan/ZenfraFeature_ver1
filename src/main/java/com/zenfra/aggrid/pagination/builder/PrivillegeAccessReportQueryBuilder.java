@@ -632,6 +632,10 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	String cedQuery = "and (user_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select json_array_elements_text('" + sourceArray + "'::json)) " + filterQuery.toString() + ") or \r\n"
 				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select json_array_elements_text('" + sourceArray + "'::json))  " + filterQuery.toString() + ")) ";
+    	if(reportBy.equalsIgnoreCase("User")) {
+    		cedQuery = "and user_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select json_array_elements_text('" + sourceArray + "'::json)) " + filterQuery.toString() + ") \r\n";
+    				
+    	}
     	
     	return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
