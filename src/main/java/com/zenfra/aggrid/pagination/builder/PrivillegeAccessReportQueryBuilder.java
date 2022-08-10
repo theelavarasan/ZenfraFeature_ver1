@@ -61,6 +61,8 @@ public class PrivillegeAccessReportQueryBuilder {
     private Map<String, List<String>> pivotValues;
     private boolean isPivotMode;
     private List<String> ruleList;
+    
+    OperatorModel operator = new OperatorModel();
 
     public String createSql(ServerSideGetRowsRequest request, String tableName, Map<String, List<String>> pivotValues, String validationFilterQuery) {
         this.valueColumns = request.getValueCols();
@@ -280,10 +282,9 @@ public class PrivillegeAccessReportQueryBuilder {
 		
 		String privillegeAccessReportQuery = "WITH PDDATA AS\r\n" + 
 				"(\r\n" + 
-				"    SELECT COUNT(1) over() AS row_count, * \r\n" + 
+				"    SELECT * \r\n" + 
 				"    FROM privillege_data_details \r\n" + 
-				"    WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
-				+ getSourceDataFilters(filters, siteKey, projectId) + " \r\n" + 
+				"    WHERE site_key = '" + siteKey + "' \r\n" + 
 				"),\r\n" + 
 				"SDDATA AS\r\n" + 
 				"(\r\n" + 
@@ -292,12 +293,15 @@ public class PrivillegeAccessReportQueryBuilder {
 				"    WHERE site_key = '" + siteKey + "'\r\n" + 
 				"    GROUP BY primary_key_value\r\n" + 
 				")\r\n" + 
-				"SELECT pdt.*, sdt.sdjsondata as source_data1, sdt1.sdjsondata as source_data2 \r\n" + 
+				"SELECT count(1) over() as row_count, pdt.*, sdt.sdjsondata as source_data1, sdt1.sdjsondata as source_data2 \r\n" + 
 				"FROM PDDATA AS pdt\r\n" + 
 				"LEFT JOIN SDDATA AS sdt\r\n" + 
 				"ON pdt.user_name = sdt.primary_key_value\r\n" + 
 				"LEFT JOIN SDDATA AS sdt1\r\n" + 
-				"ON pdt.server_name = sdt1.primary_key_value\r\n" 
+				"ON pdt.server_name = sdt1.primary_key_value \r\n" +
+				"where pdt.site_key = '" + siteKey + "' " 
+				+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
+				+ getSourceDataFilters(filters, siteKey, projectId) 
 				+ getOrderBy(sortModel) + getOrderBy1(sortModel) 
 				+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 				
@@ -358,6 +362,10 @@ public class PrivillegeAccessReportQueryBuilder {
     						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
     						}
+    						
+    						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
+    						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
+    						
     						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     					}  
     					
@@ -548,7 +556,7 @@ public class PrivillegeAccessReportQueryBuilder {
     	if(!sourceSet.isEmpty()) {
     		sourceArray.addAll(sourceSet);
     	}
-    	String cedQuery = "and (source_id in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select source_id from source where site_key = '" + siteKey + "' and source_name in (select json_array_elements_text('" + sourceArray + "')) union all select link_to from source where source_name in (select json_array_elements_text('" + sourceArray + "'))) " + filterQuery.toString() + ") or \r\n"
+    	String cedQuery = "and (user_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select source_id from source where site_key = '" + siteKey + "' and source_name in (select json_array_elements_text('" + sourceArray + "')) union all select link_to from source where source_name in (select json_array_elements_text('" + sourceArray + "'))) " + filterQuery.toString() + ") or \r\n"
 				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select source_id from source where site_key = '" + siteKey + "' and source_name in (select json_array_elements_text('" + sourceArray + "')) union all select source_id from source where source_name in (select json_array_elements_text('" + sourceArray + "'))) " + filterQuery.toString() + ")) ";
     	
     	return filterQuery.toString().isEmpty() ? "" : cedQuery;
@@ -628,7 +636,9 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(s.getActualColId().startsWith("Server Data~")) {
     				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     				System.out.println("!!!!! column_name: " + column_name);
-    				if(column_name.equalsIgnoreCase("Server Name")) {
+    				
+    				orderBy = " order by " + column_name + " " + s.getSort();
+    				/*if(column_name.equalsIgnoreCase("Server Name")) {
     					orderBy = " order by server_name " + s.getSort();
     				} else if(column_name.equalsIgnoreCase("User Name")) {
     					orderBy = " order by source_id " + s.getSort();
@@ -636,7 +646,7 @@ public class PrivillegeAccessReportQueryBuilder {
     					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
     				} else {
     					orderBy = " order by privillege_data::json ->> '" + column_name + "' " + s.getSort();
-    				}
+    				}*/
     			} /*else {
     					String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     					String column_alias = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
@@ -659,7 +669,7 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().contains("Server Data~")) {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				orderBy = "order by (coalesce(sdt.sdjsondata,'{}'::json)::jsonb||coalesce(sdt1.sdjsondata,'{}'::json)::jsonb) ->> '" + s.getActualColId() + "' " + s.getSort();
+    				orderBy = " order by (coalesce(sdt.sdjsondata,'{}'::json)::jsonb||coalesce(sdt1.sdjsondata,'{}'::json)::jsonb) ->> '" + s.getActualColId() + "' " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
