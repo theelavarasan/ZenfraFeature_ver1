@@ -83,6 +83,8 @@ public class ReportDao {
 				headerQuery = reportQueries.getUserSummaryHeader();
 			} else if(reportBy.equalsIgnoreCase("Server")) {
 				headerQuery = reportQueries.getServerSummaryHeader();
+			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+				headerQuery = reportQueries.getSudoersSummaryHeader();
 			}
 			
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
@@ -160,6 +162,10 @@ public class ReportDao {
 				query = reportQueries.getTaniumServerSummaryGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium users summary group query: " + query);
+			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+				query = reportQueries.getTaniumSudoersSummaryGroup();
+				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
+				System.out.println("!!!!! tanium sudoers summary group query: " + query);
 			}
 			result = jdbc.queryForList(query);
 			

@@ -37,6 +37,10 @@ public class ReportQueries {
 	
 	private String taniumServerSummaryGroup;
 	
+	private String sudoersSummaryHeader;
+	
+	private String taniumSudoersSummaryGroup;
+	
 	public String getHeader() {
 		return header;
 	}
@@ -148,6 +152,22 @@ public class ReportQueries {
 
 	public void setTaniumServerSummaryGroup(String taniumServerSummaryGroup) {
 		this.taniumServerSummaryGroup = taniumServerSummaryGroup;
+	}
+
+	public String getSudoersSummaryHeader() {
+		return sudoersSummaryHeader;
+	}
+
+	public void setSudoersSummaryHeader(String sudoersSummaryHeader) {
+		this.sudoersSummaryHeader = sudoersSummaryHeader;
+	}
+
+	public String getTaniumSudoersSummaryGroup() {
+		return taniumSudoersSummaryGroup;
+	}
+
+	public void setTaniumSudoersSummaryGroup(String taniumSudoersSummaryGroup) {
+		this.taniumSudoersSummaryGroup = taniumSudoersSummaryGroup;
 	}
 	
 }
