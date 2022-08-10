@@ -282,7 +282,7 @@ public class PrivillegeAccessReportQueryBuilder {
 		
 		String privillegeAccessReportQuery = "WITH PDDATA AS\r\n" + 
 				"(\r\n" + 
-				"    SELECT COUNT(1) over() AS row_count, * \r\n" + 
+				"    SELECT * \r\n" + 
 				"    FROM privillege_data_details \r\n" + 
 				"    WHERE site_key = '" + siteKey + "' \r\n" + 
 				"),\r\n" + 
@@ -293,7 +293,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				"    WHERE site_key = '" + siteKey + "'\r\n" + 
 				"    GROUP BY primary_key_value\r\n" + 
 				")\r\n" + 
-				"SELECT pdt.*, sdt.sdjsondata as source_data1, sdt1.sdjsondata as source_data2 \r\n" + 
+				"SELECT count(1) over() as row_count, pdt.*, sdt.sdjsondata as source_data1, sdt1.sdjsondata as source_data2 \r\n" + 
 				"FROM PDDATA AS pdt\r\n" + 
 				"LEFT JOIN SDDATA AS sdt\r\n" + 
 				"ON pdt.user_name = sdt.primary_key_value\r\n" + 
@@ -637,7 +637,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     				System.out.println("!!!!! column_name: " + column_name);
     				
-    				orderBy = "order by " + column_name + " " + s.getSort();
+    				orderBy = " order by " + column_name + " " + s.getSort();
     				/*if(column_name.equalsIgnoreCase("Server Name")) {
     					orderBy = " order by server_name " + s.getSort();
     				} else if(column_name.equalsIgnoreCase("User Name")) {
@@ -669,7 +669,7 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().contains("Server Data~")) {
     				String columnPrefix = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
     				String columnName = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				orderBy = "order by (coalesce(sdt.sdjsondata,'{}'::json)::jsonb||coalesce(sdt1.sdjsondata,'{}'::json)::jsonb) ->> '" + s.getActualColId() + "' " + s.getSort();
+    				orderBy = " order by (coalesce(sdt.sdjsondata,'{}'::json)::jsonb||coalesce(sdt1.sdjsondata,'{}'::json)::jsonb) ->> '" + s.getActualColId() + "' " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
