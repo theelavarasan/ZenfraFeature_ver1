@@ -298,7 +298,8 @@ public class PrivillegeAccessReportQueryBuilder {
 				"LEFT JOIN SDDATA AS sdt\r\n" + 
 				"ON pdt.user_name = sdt.primary_key_value\r\n" + 
 				"LEFT JOIN SDDATA AS sdt1\r\n" + 
-				"ON pdt.server_name = sdt1.primary_key_value \r\n" 
+				"ON pdt.server_name = sdt1.primary_key_value \r\n" +
+				"where pdt.site_key = '" + siteKey + "' " 
 				+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
 				+ getSourceDataFilters(filters, siteKey, projectId) 
 				+ getOrderBy(sortModel) + getOrderBy1(sortModel) 
