@@ -296,7 +296,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
 					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
 					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
-					+ "    coalesce(SDT.SDJSONDATA, '{<%dummyvalue%>}') AS source_data1,"
+					+ "    coalesce(SDT.SDJSONDATA, '{}') AS source_data1,"
 					+ " '{}' as source_data2 \r\n"
 					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
 					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
@@ -352,8 +352,8 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "       SSD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 					+ "       SSD.PROCESSEDDATE,\r\n"
 					+ "       SSD.OS,\r\n"
-					+ "       coalesce(SDT1.SDJSONDATA,'{<%dummyvalue%>}') AS source_data1,\r\n"
-					+ "       coalesce(SDT2.SDJSONDATA, '{<%dummyvalue%>}') AS source_data2 \r\n"
+					+ "       coalesce(SDT1.SDJSONDATA,'{}') AS source_data1,\r\n"
+					+ "       coalesce(SDT2.SDJSONDATA, '{}') AS source_data2 \r\n"
 					+ "FROM SSDDATA AS SSD\r\n"
 					+ "LEFT JOIN SDDATA AS SDT1\r\n"
 					+ "ON SSD.SERVER_NAME = SDT1.PRIMARY_KEY_VALUE\r\n"
@@ -363,12 +363,12 @@ public class PrivillegeAccessReportQueryBuilder {
 			
 		}
 		
-		if(!getOrderBy1(sortModel, reportBy).isEmpty()) {
+		/*if(!getOrderBy1(sortModel, reportBy).isEmpty()) {
 			
 			taniumReportQuery = taniumReportQuery.replace("{<%dummyvalue%>}", setDummyValue(sortModel, taniumReportQuery).toJSONString());
 		} else {
 			taniumReportQuery = taniumReportQuery.replace("{<%dummyvalue%>}", "{}");
-		}
+		}*/
 
 		System.out.println("!!!!! trackerQuery: " + taniumReportQuery);
 
