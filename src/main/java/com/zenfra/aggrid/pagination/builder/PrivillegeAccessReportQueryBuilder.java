@@ -284,8 +284,7 @@ public class PrivillegeAccessReportQueryBuilder {
 				"(\r\n" + 
 				"    SELECT COUNT(1) over() AS row_count, * \r\n" + 
 				"    FROM privillege_data_details \r\n" + 
-				"    WHERE site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
-				+ getSourceDataFilters(filters, siteKey, projectId) + " \r\n" + 
+				"    WHERE site_key = '" + siteKey + "' \r\n" + 
 				"),\r\n" + 
 				"SDDATA AS\r\n" + 
 				"(\r\n" + 
@@ -299,7 +298,9 @@ public class PrivillegeAccessReportQueryBuilder {
 				"LEFT JOIN SDDATA AS sdt\r\n" + 
 				"ON pdt.user_name = sdt.primary_key_value\r\n" + 
 				"LEFT JOIN SDDATA AS sdt1\r\n" + 
-				"ON pdt.server_name = sdt1.primary_key_value\r\n" 
+				"ON pdt.server_name = sdt1.primary_key_value \r\n" 
+				+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId) 
+				+ getSourceDataFilters(filters, siteKey, projectId) 
 				+ getOrderBy(sortModel) + getOrderBy1(sortModel) 
 				+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 				
