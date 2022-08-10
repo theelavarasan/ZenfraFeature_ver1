@@ -2157,6 +2157,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 		System.out.println("!!!!! privilleges report headerInfo query: " + query);
 		
+		JSONParser parser = new JSONParser();
+		//System.out.println("!!!!! filePath1: " + filePath);
 		try {
 			List<Map<String, Object>> resultList = reportDao.getListOfMapByQuery(query);
 		for(Map<String, Object> rs : resultList) { 

@@ -135,7 +135,7 @@ public class ReportDataController {
 			/*if (request.getCategory().equalsIgnoreCase("Server") && request.getAnalyticstype() != null && request.getAnalyticstype().equalsIgnoreCase("Discovery") && (request.getReportBy().equalsIgnoreCase("Server") || request.getReportBy().equalsIgnoreCase("VM") || request.getReportBy().equalsIgnoreCase("Host"))) {
 				DataResult data = dataframeService.getReportData(request);
 				if (data != null) {
-					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+					return new ResponseEntity<>(DataframeUtil.asJsonResponse(data).replace("<%pathslash%>", "\\\\"), HttpStatus.OK);
 				}
 			} else */ if (request.getReportType() != null && request.getReportType().equalsIgnoreCase("optimization")) {
 				List<Map<String, Object>> data = dataframeService.getCloudCostDataPostgresFn(request);
@@ -440,7 +440,7 @@ public class ReportDataController {
 
 			JSONObject data = dataframeService.getMigrationReport(filePath);
 			if (data != null) {
-				return new ResponseEntity<>(data, HttpStatus.OK);
+				return new ResponseEntity<>(data.toJSONString().replace("<%pathslash%>", "\\\\"), HttpStatus.OK);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -463,7 +463,7 @@ public class ReportDataController {
 			dataframeService.createDataframeForJsonData(filePath);
 			JSONObject data = dataframeService.getMigrationReport(filePath);
 			if (data != null) {
-				return new ResponseEntity<>(data, HttpStatus.OK);
+				return new ResponseEntity<>(data.toJSONString().replace("<%pathslash%>", "\\\\"), HttpStatus.OK);
 			}
 
 		} catch (Exception e) {
