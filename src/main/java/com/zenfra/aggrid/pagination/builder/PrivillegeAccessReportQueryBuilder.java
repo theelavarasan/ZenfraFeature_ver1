@@ -482,7 +482,6 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	StringBuilder filterQuery = new StringBuilder();
     	ObjectMapper mapper = new ObjectMapper();
-    	Set<String> sourceSet = new HashSet<String>();
     	JSONArray sourceArray = new JSONArray();
     	
     	String prefix = PrefixModel.getPrefix(reportBy);
@@ -500,7 +499,6 @@ public class PrivillegeAccessReportQueryBuilder {
     				System.out.println("!!!!! columnObject: " + columnObject);
     				
     				JSONArray columnArray = new JSONArray();
-    				JSONArray sourceMapArray = new JSONArray();
     				
     				String operator = " and";
     				if(columnObject.containsKey("condition1") && columnObject.get("condition1") != null && columnObject.containsKey("condition2") && columnObject.get("condition2") != null) {
@@ -529,8 +527,8 @@ public class PrivillegeAccessReportQueryBuilder {
 							String column1 = column;
 							String columnPrefix = column.substring(0, column.indexOf("~"));
 							
-							if(!sourceMapArray.contains(sourceMap.get(columnPrefix))) {
-								sourceMapArray.add(sourceMap.get(columnPrefix));
+							if(!sourceArray.contains(sourceMap.get(columnPrefix))) {
+								sourceArray.add(sourceMap.get(columnPrefix));
 							}
 							
 							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
@@ -576,7 +574,9 @@ public class PrivillegeAccessReportQueryBuilder {
     						
 							String column1 = column;
 							String columnPrefix = column.substring(0, column.indexOf("~"));
-							sourceSet.add(columnPrefix);
+							if(!sourceArray.contains(sourceMap.get(columnPrefix))) {
+								sourceArray.add(sourceMap.get(columnPrefix));
+							}
 							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','') <> '' and coalesce(data ->> '" + column + "','0')::numeric = " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
@@ -628,9 +628,7 @@ public class PrivillegeAccessReportQueryBuilder {
     		e.printStackTrace();
     	}
     	
-    	if(!sourceSet.isEmpty()) {
-    		sourceArray.addAll(sourceSet);
-    	}
+    	
     	String cedQuery = "and (user_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select json_array_elements_text('" + sourceArray + "'::json)) " + filterQuery.toString() + ") or \r\n"
 				+ "server_name in (select distinct primary_key_value from source_data where site_key = '" + siteKey + "' and source_id in (select json_array_elements_text('" + sourceArray + "'::json))  " + filterQuery.toString() + ")) ";
     	
