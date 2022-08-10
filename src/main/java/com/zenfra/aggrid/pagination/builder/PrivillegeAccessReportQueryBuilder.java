@@ -441,10 +441,12 @@ public class PrivillegeAccessReportQueryBuilder {
     					
     					if(column.contains(prefix)) {
     						String column1 = column.substring(column.indexOf("~") + 1, column.length());
-    						String value = ((TextColumnFilter) columnFilter).getFilter();
+    						String value = "";
+    						double value1 = ((NumberColumnFilter) columnFilter).getFilter();
     						
-    						if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
-    							value =  ((NumberColumnFilter) columnFilter).getFilter() + " and " + ((NumberColumnFilter) columnFilter).getFilterTo();
+    						if(((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
+    							double value2 = ((NumberColumnFilter) columnFilter).getFilterTo();
+    							value =  value1 + " and " + value2;
     						}
     						
     						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + column1 + "' <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value + ((columnArray.size() > 1 && i == 1) ? ")": ""));
