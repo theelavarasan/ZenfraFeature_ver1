@@ -39,6 +39,7 @@ import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.request.SortModel;
 import com.zenfra.utils.CommonFunctions;
 import com.zenfra.model.OperatorModel;
+import com.zenfra.model.PrefixModel;
 
 public class PrivillegeAccessReportQueryBuilder {
 	
@@ -63,6 +64,7 @@ public class PrivillegeAccessReportQueryBuilder {
     private List<String> ruleList;
     
     OperatorModel operator = new OperatorModel();
+    OperatorModel prefixModel = new OperatorModel();
 
     public String createSql(ServerSideGetRowsRequest request, String tableName, Map<String, List<String>> pivotValues, String validationFilterQuery, String reportBy) {
         this.valueColumns = request.getValueCols();
@@ -378,7 +380,7 @@ public class PrivillegeAccessReportQueryBuilder {
     	ObjectMapper mapper = new ObjectMapper();
     	
     	System.out.println("!!!!! reportBy: " + reportBy);
-    	String prefix = utilities.getTaniumReportPrefix(reportBy);
+    	String prefix = PrefixModel.getPrefix(reportBy);
     	try {
     		if(!filters.isEmpty()) {
     			
@@ -483,7 +485,7 @@ public class PrivillegeAccessReportQueryBuilder {
     	Set<String> sourceSet = new HashSet<String>();
     	JSONArray sourceArray = new JSONArray();
     	
-    	String prefix = utilities.getTaniumReportPrefix(reportBy);
+    	String prefix = PrefixModel.getPrefix(reportBy);
     	
     	try {
     		if(!filters.isEmpty()) {
@@ -697,7 +699,7 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	String orderBy = "";
     	
-    	String prefix = utilities.getTaniumReportPrefix(reportBy);
+    	String prefix = PrefixModel.getPrefix(reportBy);
     	try {
     		for(SortModel s: sortModel) {
     			System.out.println("!!!!! colId: " + s.getActualColId());
@@ -722,7 +724,7 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	String orderBy = "";
     	
-    	String prefix = utilities.getTaniumReportPrefix(reportBy);
+    	String prefix = PrefixModel.getPrefix(reportBy);
     	try {
     		for(SortModel s: sortModel) {
     			System.out.println("!!!!! colId: " + s.getActualColId());

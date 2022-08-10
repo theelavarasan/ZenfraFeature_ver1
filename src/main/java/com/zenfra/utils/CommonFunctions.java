@@ -794,27 +794,4 @@ public class CommonFunctions {
 		} 
 		return obj1;
 	}
-	
-	public String getTaniumReportPrefix(String reportBy) {
-		
-		System.out.println("!!!!! utilities reportBy1: " + reportBy);
-		String prefix = "Server Data~";
-		try {
-			if(reportBy.equalsIgnoreCase("Privileged Access")) {
-				prefix = "Server Data~";
-			} else if(reportBy.equalsIgnoreCase("User")) {
-				prefix = "User Summary~";
-			} else if(reportBy.equalsIgnoreCase("Server")) {
-				prefix = "Server Summary~";
-			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-				prefix = "Sudoers Summary~";
-			} 
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-		System.out.println("!!!!! utilities reportBy2: " + reportBy);
-		return prefix;
-	}
-	
 }

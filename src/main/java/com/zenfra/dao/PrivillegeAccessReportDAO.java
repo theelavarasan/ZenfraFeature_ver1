@@ -23,6 +23,7 @@ import com.zenfra.aggrid.pagination.builder.PrivillegeAccessReportQueryBuilder;
 import com.zenfra.aggrid.pagination.response.EnterpriseGetRowsResponse;
 import com.zenfra.dataframe.request.ColumnVO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
+import com.zenfra.model.PrefixModel;
 import com.zenfra.utils.CommonFunctions;
 
 @Repository("privillegeAccessReportDAO")
@@ -86,7 +87,7 @@ public class PrivillegeAccessReportDAO {
     	JSONArray resultArray = new JSONArray();
     	JSONParser parser = new JSONParser();
     	
-    	String prefix = utilities.getTaniumReportPrefix(reportBy);
+    	String prefix = PrefixModel.getPrefix(reportBy);
     	
     	try {
     		for(Map<String, Object> row : rows) {
@@ -163,7 +164,7 @@ private String  getValidationRuleCondition(String siteKey, String healthCheckId,
 		if(!ruleList.isEmpty()) {
 			ruleArray.addAll(ruleList);
 		}
-		String prefix = utilities.getTaniumReportPrefix(reportBy);
+		String prefix = PrefixModel.getPrefix(reportBy);
 		
 		
 		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
