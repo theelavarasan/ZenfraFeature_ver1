@@ -797,6 +797,7 @@ public class CommonFunctions {
 	
 	public String getTaniumReportPrefix(String reportBy) {
 		
+		System.out.println("!!!!! utilities reportBy1: " + reportBy);
 		String prefix = "Server Data~";
 		try {
 			if(reportBy.equalsIgnoreCase("Privileged Access")) {
@@ -812,6 +813,7 @@ public class CommonFunctions {
 			e.printStackTrace();
 		}
 		
+		System.out.println("!!!!! utilities reportBy2: " + reportBy);
 		return prefix;
 	}
 	
