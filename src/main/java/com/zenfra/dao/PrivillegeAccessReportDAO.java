@@ -62,7 +62,7 @@ public class PrivillegeAccessReportDAO {
         }
         
         System.out.println("!!!!! reportBy DAO: " + request.getReportBy());
-        String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter, request.getReportBy());
+        String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter, request.getReportBy(), getSourceMap(request.getSiteKey()));
         
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
         JSONArray resultArray = dataNormalize(rows, request.getReportBy());
@@ -160,7 +160,7 @@ public class PrivillegeAccessReportDAO {
 		return value;
 	}
     
-private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList, String reportBy) {
+    private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList, String reportBy) {
     	
     	JSONArray ruleArray = new JSONArray();
 		if(!ruleList.isEmpty()) {
@@ -233,6 +233,24 @@ private String  getValidationRuleCondition(String siteKey, String healthCheckId,
     	}
     	
     	return validationFilterQuery.isEmpty() ? "" : (" and (" + validationFilterQuery.trim() + ")");
+    	
+    }
+    
+    private Map<String, String> getSourceMap(String siteKey) {
+    	
+    	List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate("select source_id, source_name from source where site_key = '" + siteKey + "'");
+    	
+    	Map<String, String> sourceMap = new HashMap<>();
+    	
+    	try {
+    		for(Map<String, Object> row : rows) {
+    			sourceMap.put(row.get("source_name").toString(), row.get("source_id").toString());
+    		}
+    	} catch(Exception e) {
+    		e.printStackTrace();
+    	}
+    	
+    	return sourceMap;
     	
     }
 
