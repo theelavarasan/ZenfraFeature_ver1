@@ -297,7 +297,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
 					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 					+ "    coalesce(SDT.SDJSONDATA, '{<%dummyvalue%>}') AS source_data1,"
-					+ " '{<%dummyvalue%>}' as source_data2 \r\n"
+					+ " '{}' as source_data2 \r\n"
 					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
 					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
 					+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
