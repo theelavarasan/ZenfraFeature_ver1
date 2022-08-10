@@ -736,7 +736,7 @@ public class PrivillegeAccessReportQueryBuilder {
     		for(SortModel s: sortModel) {
     			System.out.println("!!!!! colId: " + s.getActualColId());
     			if(!s.getActualColId().startsWith(prefix)) {
-    				orderBy = " order by (coalesce(source_data1,'{}')::jsonb || coalesce(source_data2, '{}')::jsonb) ->> '" + s.getActualColId() + "' " + s.getSort();
+    				orderBy = " order by coalesce((coalesce(source_data1,'{}')::jsonb || coalesce(source_data2, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     			} 
     		}
     	} catch(Exception e) {
