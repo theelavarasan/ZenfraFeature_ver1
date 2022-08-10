@@ -117,6 +117,8 @@ public class ReportService {
 			resultObject.put("report_label", "User Summary");
 		} else if(category.equalsIgnoreCase("user") && reportList.equalsIgnoreCase("End-To-End-Basic") && reportBy.equalsIgnoreCase("server") && deviceType.equalsIgnoreCase("tanium")) {
 			resultObject.put("report_label", "Server Summary");
+		} else if(category.equalsIgnoreCase("user") && reportList.equalsIgnoreCase("End-To-End-Basic") && reportBy.equalsIgnoreCase("Sudoers") && deviceType.equalsIgnoreCase("tanium")) {
+			resultObject.put("report_label", "Sudoers Summary");
 		} else {
 			resultObject.put("report_label", report_label);
 		}
