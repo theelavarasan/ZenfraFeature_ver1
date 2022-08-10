@@ -119,7 +119,12 @@ public class PrivillegeAccessReportDAO {
     				} else {
     					if(!keys.get(i).equalsIgnoreCase("row_count")) {
     						
-    						resultObject.put(prefix + keys.get(i), row.get(keys.get(i)));
+    						if(keys.get(i).equalsIgnoreCase("servers_count")) {
+    							resultObject.put(prefix + keys.get(i), Integer.parseInt(row.get(keys.get(i)).toString()));
+    						} else {
+    							resultObject.put(prefix + keys.get(i), row.get(keys.get(i)));
+    						}
+    						
     						
     					} 
     				}
