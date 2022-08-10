@@ -61,6 +61,8 @@ public class PrivillegeAccessReportQueryBuilder {
     private Map<String, List<String>> pivotValues;
     private boolean isPivotMode;
     private List<String> ruleList;
+    
+    OperatorModel operator = new OperatorModel();
 
     public String createSql(ServerSideGetRowsRequest request, String tableName, Map<String, List<String>> pivotValues, String validationFilterQuery) {
         this.valueColumns = request.getValueCols();
@@ -360,7 +362,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						}
     						
     						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
-    						System.out.println("filter type: " + OperatorModel.getOperator("contains"));
+    						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
     						
     						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + ((TextColumnFilter) columnFilter).getType() + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     					}  
