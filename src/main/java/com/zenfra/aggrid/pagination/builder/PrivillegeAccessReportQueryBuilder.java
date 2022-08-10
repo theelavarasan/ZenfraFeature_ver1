@@ -263,7 +263,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					"    WHERE site_key = '" + siteKey + "'\r\n" + 
 					"    GROUP BY primary_key_value\r\n" + 
 					")\r\n" + 
-					"SELECT count(1) over() as row_count, pdt.*, coalesce(sdt.sdjsondata,'{<%dummyvalue%>}') as source_data1, coalesce(sdt1.sdjsondata,'{<%dummyvalue%>}') as source_data2 \r\n" + 
+					"SELECT count(1) over() as row_count, pdt.*, coalesce(sdt.sdjsondata,'{}') as source_data1, coalesce(sdt1.sdjsondata,'{}') as source_data2 \r\n" + 
 					"FROM PDDATA AS pdt\r\n" + 
 					"LEFT JOIN SDDATA AS sdt\r\n" + 
 					"ON pdt.user_name = sdt.primary_key_value\r\n" + 
