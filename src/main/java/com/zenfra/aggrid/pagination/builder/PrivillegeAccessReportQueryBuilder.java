@@ -359,9 +359,10 @@ public class PrivillegeAccessReportQueryBuilder {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
     						}
     						
-    						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
+    						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
+    						System.out.println("filter type: " + OperatorModel.getOperator("contains"));
     						
-    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + ((TextColumnFilter) columnFilter).getType() + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     					}  
     					
     					
