@@ -634,7 +634,9 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(s.getActualColId().startsWith("Server Data~")) {
     				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     				System.out.println("!!!!! column_name: " + column_name);
-    				if(column_name.equalsIgnoreCase("Server Name")) {
+    				
+    				orderBy = "order by " + column_name + " " + s.getSort();
+    				/*if(column_name.equalsIgnoreCase("Server Name")) {
     					orderBy = " order by server_name " + s.getSort();
     				} else if(column_name.equalsIgnoreCase("User Name")) {
     					orderBy = " order by source_id " + s.getSort();
@@ -642,7 +644,7 @@ public class PrivillegeAccessReportQueryBuilder {
     					orderBy = " order by concat(server_name, '~', source_id) " + s.getSort();
     				} else {
     					orderBy = " order by privillege_data::json ->> '" + column_name + "' " + s.getSort();
-    				}
+    				}*/
     			} /*else {
     					String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     					String column_alias = s.getActualColId().substring(0, s.getActualColId().indexOf("~"));
