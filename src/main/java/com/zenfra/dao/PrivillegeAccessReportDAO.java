@@ -238,6 +238,7 @@ public class PrivillegeAccessReportDAO {
     
     private Map<String, String> getSourceMap(String siteKey) {
     	
+    	String query = "select (case when link_to not in ('All', 'None') then link_to else source_id end) as source_id, source_name from source where site_key = '" + siteKey + "'";
     	List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate("select source_id, source_name from source where site_key = '" + siteKey + "'");
     	
     	Map<String, String> sourceMap = new HashMap<>();
