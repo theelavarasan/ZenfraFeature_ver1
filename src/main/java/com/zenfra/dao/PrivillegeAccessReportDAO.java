@@ -58,6 +58,7 @@ public class PrivillegeAccessReportDAO {
             validationFilter = getValidationFilter(validationRows);
         }
         
+        System.out.println("!!!!! reportBy DAO: " + request.getReportBy());
         String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter, request.getReportBy());
         
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);

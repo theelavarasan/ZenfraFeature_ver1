@@ -377,6 +377,7 @@ public class PrivillegeAccessReportQueryBuilder {
     	StringBuilder filterQuery = new StringBuilder();
     	ObjectMapper mapper = new ObjectMapper();
     	
+    	System.out.println("!!!!! reportBy: " + reportBy);
     	String prefix = utilities.getTaniumReportPrefix(reportBy);
     	try {
     		if(!filters.isEmpty()) {
