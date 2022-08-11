@@ -182,7 +182,7 @@ public class PrivillegeAccessReportDAO {
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
 				+ "concat(con_operator, (case when con_field_id ilike '" + prefix + "%' then ' ' else ' user_name in (select distinct primary_key_value from \r\n"
-				+ "source_data where site_key = '':site_key'' and source_id in (select distinct source_id from source_data where '':site_key'' and data ilike concat(''%', substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), '%'' )) and coalesce(data::json ->> ''' end),  (case when con_field_id ilike '" + prefix + "%' then substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id))  else concat(con_field_id,''','''')') end), ' ', \r\n"
+				+ "source_data where site_key = '':site_key'' and source_id in (select distinct source_id from source_data where '':site_key'' and data ilike concat(''%', substring(con_field_id, 0, position('~' in con_field_id) + 1)) and coalesce(data::json ->> ''' end),  (case when con_field_id ilike '" + prefix + "%' then substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id))  else concat(con_field_id,''','''')') end), ' ', \r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''(',con_value, ')%''') else (case when con_condition = 'endsWith' then concat(' ''%(',con_value, ')''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')\r\n"
