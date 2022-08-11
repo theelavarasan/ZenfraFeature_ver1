@@ -60,7 +60,7 @@ public class ValidationRuleController {
 			resultArray = validationRuleService.getVR_TaniumUsers(model.getSiteKey(), model.getColumnName());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("server") && model.getDeviceType().equalsIgnoreCase("tanium")) {
 			resultArray = validationRuleService.getVR_TaniumServer(model.getSiteKey(), model.getColumnName());
-			System.out.println("!!!!! resultArray3: " + resultArray);
+			//System.out.println("!!!!! resultArray3: " + resultArray);
 		}
 			
 
