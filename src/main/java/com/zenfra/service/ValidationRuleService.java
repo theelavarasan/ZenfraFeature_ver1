@@ -1333,8 +1333,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
-			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
