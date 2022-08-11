@@ -1285,6 +1285,8 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 	public JSONArray getVR_TaniumServer(String siteKey, String columnName) {
 
 		JSONArray resultArray = new JSONArray();
+		
+		System.out.println("!!!!! Server Summary: ");
 
 		try {
 			
@@ -1333,10 +1335,12 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
-			
+			System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
+			
+			System.out.println("!!!!! resultArray1: " + resultArray);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1345,7 +1349,8 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			String ex = errors.toString();
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
-
+		
+		System.out.println("!!!!! resultArray2: " + resultArray);
 		return resultArray;
 
 	}
