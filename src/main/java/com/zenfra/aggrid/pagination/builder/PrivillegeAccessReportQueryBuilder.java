@@ -254,7 +254,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					"    WHERE site_key = '" + siteKey + "' \r\n" 
 					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId, reportBy) 
 					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " \r\n"
-					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n " +
+					+ " \r\n " +
 					"),\r\n" + 
 					"SDDATA AS\r\n" + 
 					"(\r\n" + 
@@ -270,8 +270,8 @@ public class PrivillegeAccessReportQueryBuilder {
 					"LEFT JOIN SDDATA AS sdt1\r\n" + 
 					"ON pdt.server_name = sdt1.primary_key_value \r\n" +
 					"where pdt.site_key = '" + siteKey + "' ) a" 
-					
-					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy);
+					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) +
+					" limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0);
 			
 		} else if(reportBy.equalsIgnoreCase("User")) {
 			
