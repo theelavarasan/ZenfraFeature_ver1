@@ -1287,7 +1287,6 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		JSONArray resultArray = new JSONArray();
 
 		try {
-			columnName = columnName.startsWith("Server Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : ("source_json_data::json ->> '" + columnName + "'");
 			
 			String query = "";
 			
