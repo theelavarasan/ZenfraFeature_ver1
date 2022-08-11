@@ -1285,10 +1285,23 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 	public JSONArray getVR_TaniumServer(String siteKey, String columnName) {
 
 		JSONArray resultArray = new JSONArray();
+		
+		//System.out.println("!!!!! Server Summary: ");
 
 		try {
-			columnName = columnName.startsWith("Server Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : ("source_json_data::json ->> '" + columnName + "'");
-			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
+			
+			String query = "";
+			
+			if(columnName.startsWith("Server Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("Server Summary~", "") + ") as column_values from privillege_data_details "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+						" and data::json ->> '" + columnName + "' is not null";
+			}
+			
+			/*String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
 					+ " WITH SDDATA AS\r\n"
 					+ "(\r\n"
 					+ "    SELECT SD.PRIMARY_KEY_VALUE,\r\n"
@@ -1318,15 +1331,16 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 					+ "LEFT JOIN SDDATA AS SDT\r\n"
 					+ "ON (SSRD.SERVER_NAME = SDT.PRIMARY_KEY_VALUE OR SSRD.USER_NAME = SDT.PRIMARY_KEY_VALUE)\r\n"
 					+ "WHERE SSRD.SITE_KEY = '" + siteKey + "'"
-					+ ") A";
+					+ ") A";*/
 					
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
-			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
+			
+			//System.out.println("!!!!! resultArray1: " + resultArray);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1335,7 +1349,8 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			String ex = errors.toString();
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
-
+		
+		//System.out.println("!!!!! resultArray2: " + resultArray);
 		return resultArray;
 
 	}
