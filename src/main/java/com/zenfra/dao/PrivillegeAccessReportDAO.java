@@ -23,6 +23,7 @@ import com.zenfra.aggrid.pagination.builder.PrivillegeAccessReportQueryBuilder;
 import com.zenfra.aggrid.pagination.response.EnterpriseGetRowsResponse;
 import com.zenfra.dataframe.request.ColumnVO;
 import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
+import com.zenfra.model.PrefixModel;
 import com.zenfra.utils.CommonFunctions;
 
 @Repository("privillegeAccessReportDAO")
@@ -33,6 +34,8 @@ public class PrivillegeAccessReportDAO {
 
     private JdbcTemplate template;
     private PrivillegeAccessReportQueryBuilder queryBuilder;
+    
+    PrefixModel prefixModel = new PrefixModel();
     
     
 
@@ -53,15 +56,16 @@ public class PrivillegeAccessReportDAO {
         
         String validationFilter = "";
         if(request.getHealthCheckId() != null && !request.getHealthCheckId().isEmpty()) {
-        	String validationFilterQuery = getValidationRuleCondition(request.getSiteKey(), request.getHealthCheckId(), request.getRuleList());
+        	String validationFilterQuery = getValidationRuleCondition(request.getSiteKey(), request.getHealthCheckId(), request.getRuleList(), request.getReportBy());
             List<Map<String, Object>> validationRows = utilities.getDBDatafromJdbcTemplate(validationFilterQuery);
             validationFilter = getValidationFilter(validationRows);
         }
         
-        String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter);
+        System.out.println("!!!!! reportBy DAO: " + request.getReportBy());
+        String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter, request.getReportBy(), getSourceMap(request.getSiteKey()));
         
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
-        JSONArray resultArray = dataNormalize(rows);
+        JSONArray resultArray = dataNormalize(rows, request.getReportBy());
         //System.out.println("!!!!! pagination data: " + rows);
         // create response with our results
         int rowCount = rows.isEmpty() ? 0 : getRowCount(rows.get(0));
@@ -80,10 +84,13 @@ public class PrivillegeAccessReportDAO {
     }
     
     @SuppressWarnings("unchecked")
-	private JSONArray dataNormalize(List<Map<String, Object>> rows) {
+	private JSONArray dataNormalize(List<Map<String, Object>> rows, String reportBy) {
     	
     	JSONArray resultArray = new JSONArray();
     	JSONParser parser = new JSONParser();
+    	
+    	String prefix = PrefixModel.getPrefix(reportBy);
+    	
     	try {
     		for(Map<String, Object> row : rows) {
     			JSONObject resultObject = new JSONObject();
@@ -94,12 +101,8 @@ public class PrivillegeAccessReportDAO {
     					if(!dataObject.isEmpty()) {
     						List<String> dataKeys = new ArrayList<>(dataObject == null ? new HashSet<>() : dataObject.keySet());
         					for(int j = 0; j < dataObject.size(); j++) {
-        						/*if(dataKeys.get(j).equalsIgnoreCase("Processed Date")) {
-        							resultObject.put("Server Data~" + dataKeys.get(j), formatDateStringToUtc(dataObject.get(dataKeys.get(j)).toString()));
-        						} else {
-        							resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
-        						}*/
-        						resultObject.put("Server Data~" + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
+        						
+        						resultObject.put(prefix + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
         						
         					}
     					}
@@ -115,15 +118,13 @@ public class PrivillegeAccessReportDAO {
     					
     				} else {
     					if(!keys.get(i).equalsIgnoreCase("row_count")) {
-    						/*if(keys.get(i).equalsIgnoreCase("server_name")) {
-    							resultObject.put("Server Data~Server Name", row.get(keys.get(i)));
-    						} else if(keys.get(i).equalsIgnoreCase("source_id")) {
-    							resultObject.put("Server Data~User Name", row.get(keys.get(i)));
-    						} else {
-    							resultObject.put("Server Data~" + keys.get(i), row.get(keys.get(i)));
-    						}*/
     						
-    						resultObject.put("Server Data~" + keys.get(i), row.get(keys.get(i)));
+    						if(keys.get(i).equalsIgnoreCase("servers_count")) {
+    							resultObject.put(prefix + keys.get(i), Integer.parseInt(row.get(keys.get(i)).toString()));
+    						} else {
+    							resultObject.put(prefix + keys.get(i), row.get(keys.get(i)));
+    						}
+    						
     						
     					} 
     				}
@@ -164,13 +165,14 @@ public class PrivillegeAccessReportDAO {
 		return value;
 	}
     
-private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList) {
+    private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList, String reportBy) {
     	
     	JSONArray ruleArray = new JSONArray();
 		if(!ruleList.isEmpty()) {
 			ruleArray.addAll(ruleList);
 		}
-		String prefix = "Server Data~";
+		String prefix = PrefixModel.getPrefix(reportBy);
+		
 		
 		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
 				+ "select rule_id, concat('(', string_agg(condition_value, ' '), ')') as condition_value from (\r\n"
@@ -236,6 +238,25 @@ private String  getValidationRuleCondition(String siteKey, String healthCheckId,
     	}
     	
     	return validationFilterQuery.isEmpty() ? "" : (" and (" + validationFilterQuery.trim() + ")");
+    	
+    }
+    
+    private Map<String, String> getSourceMap(String siteKey) {
+    	
+    	String query = "select (case when link_to not in ('All', 'None') then link_to else source_id end) as source_id, source_name from source where site_key = '" + siteKey + "'";
+    	List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(query);
+    	
+    	Map<String, String> sourceMap = new HashMap<>();
+    	
+    	try {
+    		for(Map<String, Object> row : rows) {
+    			sourceMap.put(row.get("source_name").toString(), row.get("source_id").toString());
+    		}
+    	} catch(Exception e) {
+    		e.printStackTrace();
+    	}
+    	
+    	return sourceMap;
     	
     }
 

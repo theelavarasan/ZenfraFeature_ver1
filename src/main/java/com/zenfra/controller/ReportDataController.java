@@ -143,7 +143,7 @@ public class ReportDataController {
 				result.put("data", data);
 				return new ResponseEntity<>(result, HttpStatus.OK);
 			} else  {  // orient db reports
-				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
+				/*if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium") && 
 						request.getReportBy().equalsIgnoreCase("Privileged Access")) {
 					
 					return new ResponseEntity<>(privillegeAccessReportDAO.getData(request), HttpStatus.OK);
@@ -167,7 +167,21 @@ public class ReportDataController {
 					if (data != null) {
 						return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
 					}
+				}*/
+				
+				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium")) {
+					
+					return new ResponseEntity<>(privillegeAccessReportDAO.getData(request), HttpStatus.OK);
+					
+				} else {
+					System.out.println("log 2");
+					DataResult data = dataframeService.getReportDataFromDF(request, false);
+					if (data != null) {
+						return new ResponseEntity<>(DataframeUtil.asJsonResponse(data), HttpStatus.OK);
+					}
 				}
+				
+				
 				
 			}
 			
