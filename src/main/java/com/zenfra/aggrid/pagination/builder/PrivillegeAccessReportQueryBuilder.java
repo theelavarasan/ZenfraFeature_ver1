@@ -301,9 +301,9 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
 					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
 					+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
-					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " " 
-					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ") a " 
-					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy);
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " " + getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
+					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ") a ";
+					
 			
 		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			
@@ -325,7 +325,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "       OPERATING_SYSTEM AS OS\r\n"
 					+ "    FROM SUDOERS_SUMMARY_DETAILS\r\n"
 					+ "    WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
-							+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " "
+							+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " "
 					+ "),\r\n"
 					+ "SDDATA AS\r\n"
 					+ "(    \r\n"
@@ -359,7 +359,9 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "ON SSD.SERVER_NAME = SDT1.PRIMARY_KEY_VALUE\r\n"
 					+ "LEFT JOIN SDDATA AS SDT2\r\n"
 					+ "ON SSD.USER_NAME = SDT2.PRIMARY_KEY_VALUE\r\n"
-					+ "WHERE SSD.SITE_KEY = '" + siteKey + "' )a " + getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy);
+					+ "WHERE SSD.SITE_KEY = '" + siteKey + "' )a " 
+					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
+					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy);
 			
 		}
 		
@@ -742,7 +744,12 @@ public class PrivillegeAccessReportQueryBuilder {
     		for(SortModel s: sortModel) {
     			System.out.println("!!!!! colId: " + s.getActualColId());
     			if(!s.getActualColId().startsWith(prefix)) {
-    				orderBy = " order by coalesce((coalesce(source_data1,'{}')::jsonb || coalesce(source_data2, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
+    				if(reportBy.equalsIgnoreCase("User")) {
+    					orderBy = " order by coalesce(SDT.SDJSONDATA::jsonb ->> '" + s.getActualColId() + "','') " + s.getSort();
+    				} else {
+    					orderBy = " order by coalesce((coalesce(source_data1,'{}')::jsonb || coalesce(source_data2, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
+    				}
+    				
     			} 
     		}
     	} catch(Exception e) {
