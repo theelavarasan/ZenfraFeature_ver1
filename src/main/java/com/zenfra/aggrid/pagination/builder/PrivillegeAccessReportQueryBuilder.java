@@ -430,6 +430,10 @@ public class PrivillegeAccessReportQueryBuilder {
     							value = ((TextColumnFilter) columnFilter).getFilter() + "%";
     						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
+    							value = "";
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
+    							value = "";
     						}
     						
     						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
@@ -540,7 +544,31 @@ public class PrivillegeAccessReportQueryBuilder {
 								sourceArray.add(sourceMap.get(columnPrefix));
 							}
 							
-							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
+							//String column1 = column.substring(column.indexOf("~") + 1, column.length());
+    						String value = ((TextColumnFilter) columnFilter).getFilter();
+    						if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
+    							value = "%" + ((TextColumnFilter) columnFilter).getFilter() + "%";
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notContains")) {
+    							value = "%" + ((TextColumnFilter) columnFilter).getFilter() + "%";
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("startsWith")) {
+    							value = ((TextColumnFilter) columnFilter).getFilter() + "%";
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
+    							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
+    							value = "";
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
+    							value = "";
+    						}
+    						
+    						if(reportBy.equalsIgnoreCase("User")) {
+    							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
+    						}
+    						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
+    						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
+    						
+    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+							
+							/*if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower(coalesce(data::json ->> '" + column + "','')) = lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" +  ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
@@ -572,7 +600,7 @@ public class PrivillegeAccessReportQueryBuilder {
         						
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','') not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
-        					}
+        					}*/
     					
     					}
     					
@@ -586,7 +614,23 @@ public class PrivillegeAccessReportQueryBuilder {
 							if(!sourceArray.contains(sourceMap.get(columnPrefix))) {
 								sourceArray.add(sourceMap.get(columnPrefix));
 							}
-							if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
+							
+							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') <> '' and coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','')::numeric ";
+    						String value = "";
+    						double value1 = ((NumberColumnFilter) columnFilter).getFilter();
+    						double value2 = 0;
+    						
+    						if(((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
+    							value2 = ((NumberColumnFilter) columnFilter).getFilterTo();
+    						}
+    						
+    						if(((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
+    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + " and " + value2 + " " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    						} else {
+    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    						}
+    						
+							/*if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','') <> '' and coalesce(data ->> '" + column + "','0')::numeric = " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
@@ -624,7 +668,7 @@ public class PrivillegeAccessReportQueryBuilder {
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + "  coalesce(data::json ->> '" + column + "','') <> '' and coalesce(data ->> '" + column + "','0')::numeric <= " + ((NumberColumnFilter) columnFilter).getFilter() + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    
         					
-        					}
+        					}*/
     					}
     					
     				} 
@@ -645,9 +689,9 @@ public class PrivillegeAccessReportQueryBuilder {
     				
     	}
     	
-    	return filterQuery.toString().isEmpty() ? "" : cedQuery;
+    	//return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
-    	//return filterQuery.toString();
+    	return filterQuery.toString();
     	
     } 
     
