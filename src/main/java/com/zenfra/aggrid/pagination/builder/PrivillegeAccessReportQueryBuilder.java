@@ -430,6 +430,10 @@ public class PrivillegeAccessReportQueryBuilder {
     							value = ((TextColumnFilter) columnFilter).getFilter() + "%";
     						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
+    							value = "";
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
+    							value = "";
     						}
     						
     						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
