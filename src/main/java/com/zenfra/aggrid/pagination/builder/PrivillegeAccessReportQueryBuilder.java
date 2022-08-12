@@ -665,9 +665,9 @@ public class PrivillegeAccessReportQueryBuilder {
     				
     	}
     	
-    	return filterQuery.toString().isEmpty() ? "" : cedQuery;
+    	//return filterQuery.toString().isEmpty() ? "" : cedQuery;
     	
-    	//return filterQuery.toString();
+    	return filterQuery.toString();
     	
     } 
     
