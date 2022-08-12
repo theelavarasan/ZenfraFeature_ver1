@@ -540,7 +540,27 @@ public class PrivillegeAccessReportQueryBuilder {
 								sourceArray.add(sourceMap.get(columnPrefix));
 							}
 							
-							if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
+							//String column1 = column.substring(column.indexOf("~") + 1, column.length());
+    						String value = ((TextColumnFilter) columnFilter).getFilter();
+    						if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
+    							value = "%" + ((TextColumnFilter) columnFilter).getFilter() + "%";
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notContains")) {
+    							value = "%" + ((TextColumnFilter) columnFilter).getFilter() + "%";
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("startsWith")) {
+    							value = ((TextColumnFilter) columnFilter).getFilter() + "%";
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
+    							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
+    						}
+    						
+    						if(reportBy.equalsIgnoreCase("User")) {
+    							column1 = "coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "' ";
+    						}
+    						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
+    						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
+    						
+    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+							
+							/*if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
     							
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower(coalesce(data::json ->> '" + column + "','')) = lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" +  ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
@@ -572,7 +592,7 @@ public class PrivillegeAccessReportQueryBuilder {
         						
         	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','') not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
         	    				
-        					}
+        					}*/
     					
     					}
     					
