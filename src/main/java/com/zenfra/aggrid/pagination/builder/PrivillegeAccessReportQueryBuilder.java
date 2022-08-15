@@ -363,8 +363,8 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "WHERE SSD.SITE_KEY = '" + siteKey + "' " 
 					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
 					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " " 
+							+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
-					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy)		
 					+ ")a ";
 					
 			
@@ -567,7 +567,10 @@ public class PrivillegeAccessReportQueryBuilder {
     						
     						if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
+    						} else {
+    							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						}
+    						
     						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
     						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
     						
