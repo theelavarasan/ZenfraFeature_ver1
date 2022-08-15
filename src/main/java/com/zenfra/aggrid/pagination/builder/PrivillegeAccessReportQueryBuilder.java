@@ -435,9 +435,9 @@ public class PrivillegeAccessReportQueryBuilder {
     							value = ((TextColumnFilter) columnFilter).getFilter() + "%";
     						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
-    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("blank") || ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
     							value = "";
-    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notBlank") || ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
     							value = "";
     						}
     						
@@ -559,14 +559,16 @@ public class PrivillegeAccessReportQueryBuilder {
     							value = ((TextColumnFilter) columnFilter).getFilter() + "%";
     						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
-    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("blank") || ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
     							value = "";
-    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notBlank") || ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
     							value = "";
     						}
     						
     						if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
+    						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+    							column1 = "coalesce(coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						} else {
     							column1 = "coalesce(coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						}
