@@ -311,7 +311,7 @@ public class PrivillegeAccessReportQueryBuilder {
 			
 			taniumReportQuery = "select * from ( WITH SSDDATA AS\r\n"
 					+ "(\r\n"
-					+ "    SELECT count(1) over() as row_count, SITE_KEY,\r\n"
+					+ "    SELECT SITE_KEY,\r\n"
 					+ "       SERVER_NAME,\r\n"
 					+ "       USER_NAME,\r\n"
 					+ "       USER_ID,\r\n"
@@ -340,7 +340,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "                                OR SR.LINK_TO = 'None')\r\n"
 					+ "             GROUP BY SD.PRIMARY_KEY_VALUE\r\n"
 					+ ")\r\n"
-					+ "SELECT SSD.row_count, SSD.SERVER_NAME,\r\n"
+					+ "SELECT count(1) over() as row_count, SSD.SERVER_NAME,\r\n"
 					+ "       SSD.USER_NAME,\r\n"
 					+ "       SSD.USER_ID,\r\n"
 					+ "       SSD.GROUP_ID,\r\n"
