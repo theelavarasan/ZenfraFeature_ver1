@@ -568,7 +568,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						} else {
-    							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
+    							column1 = "coalesce(coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						}
     						
     						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
