@@ -799,7 +799,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				if(reportBy.equalsIgnoreCase("User")) {
     					orderBy = " order by coalesce(SDT.SDJSONDATA::jsonb ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else {
-    					orderBy = " order by coalesce((coalesce(source_data1,'{}')::jsonb || coalesce(source_data2, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
+    					orderBy = " order by coalesce((coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
     				
     			} 
