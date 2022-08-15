@@ -175,11 +175,11 @@ public class PrivillegeAccessReportDAO {
 		
 		String column1 = "";
 		if(reportBy.equalsIgnoreCase("User")) {
-			column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '";
+			column1 = "coalesce(coalesce(SDT.SDJSONDATA,''{}'')::jsonb ->> '''";
 		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-			column1 = "coalesce(coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb ->> '";
+			column1 = "coalesce(coalesce(SDT1.SDJSONDATA,''{}'')::jsonb || coalesce(SDT2.SDJSONDATA,''{}'')::jsonb ->> '''";
 		} else {
-			column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb ->> '";
+			column1 = "coalesce(coalesce(SDT.SDJSONDATA,''{}'')::jsonb || coalesce(SDT1.SDJSONDATA,''{}'')::jsonb ->> '''";
 		}
 		
 		
@@ -190,7 +190,7 @@ public class PrivillegeAccessReportDAO {
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' or ') as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
-				+ "concat(con_operator, (case when con_field_id ilike '" + prefix + "%' then ' ' else " + column1 + " end),  (case when con_field_id ilike '" + prefix + "%' then substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id))  else concat(con_field_id,''','''')') end), ' ', \r\n"
+				+ "concat(con_operator, (case when con_field_id ilike '" + prefix + "%' then ' ' else '" + column1 + " end),  (case when con_field_id ilike '" + prefix + "%' then substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id))  else concat(con_field_id,''','''')') end), ' ', \r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''(',con_value, ')%''') else (case when con_condition = 'endsWith' then concat(' ''%(',con_value, ')''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')\r\n"
