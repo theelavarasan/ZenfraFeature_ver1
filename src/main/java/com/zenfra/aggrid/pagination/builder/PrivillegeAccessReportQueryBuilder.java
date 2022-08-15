@@ -800,8 +800,10 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().startsWith(prefix)) {
     				if(reportBy.equalsIgnoreCase("User")) {
     					orderBy = " order by coalesce(SDT.SDJSONDATA::jsonb ->> '" + s.getActualColId() + "','') " + s.getSort();
-    				} else {
+    				} else if(reportBy.equalsIgnoreCase("Sudoers")) {
     					orderBy = " order by coalesce((coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
+    				} else {
+    					orderBy = " order by coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
     				
     			} 
