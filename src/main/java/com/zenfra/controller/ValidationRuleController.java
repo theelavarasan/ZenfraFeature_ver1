@@ -34,7 +34,7 @@ public class ValidationRuleController {
 		Map<String, List<Object>> resultData = new HashMap<String, List<Object>>();
 		JSONArray resultArray = new JSONArray();
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") && !model.getReportBy().equalsIgnoreCase("Group Info")
-				&& !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") 
+				&& !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") && !model.getReportBy().equalsIgnoreCase("Sudoers")
 				&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
 			resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
 				   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList(), model.getAnalyticsType());
