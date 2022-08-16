@@ -3765,9 +3765,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					if (chartConfig.containsKey("column")) {
 
 						String chartQuery = "";
-						if(reportLabel.contains("User")) {
+						if(reportLabel.contains("User-End-To-End-Basic")) {
 							chartQuery = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Server")) {
+						} else if(reportLabel.contains("Server-End-To-End-Basic")) {
 							chartQuery = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
 						} else if(reportLabel.contains("Privileged Access")) {
 							chartQuery = priviledgeChartQueries(chartConfig, siteKey, chartType);
@@ -3823,9 +3823,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray finalBreakDownValue = new JSONArray();
 
 						String query = "";
-						if(reportLabel.contains("User")) {
+						if(reportLabel.contains("User-End-To-End-Basic")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Server")) {
+						} else if(reportLabel.contains("Server-End-To-End-Basic")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
 						} else if(reportLabel.contains("Privileged Access")) {
 							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
@@ -3918,9 +3918,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String xaxisColumnName = (String) xaxisColumn.get("value");
 
 						String query = "";
-						if(reportLabel.contains("User")) {
+						if(reportLabel.contains("User-End-To-End-Basic")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Server")) {
+						} else if(reportLabel.contains("Server-End-To-End-Basic")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
 						} else if(reportLabel.contains("Privileged Access")) {
 							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
@@ -4034,9 +4034,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray finalBreakDownValue = new JSONArray();
 
 						String query = "";
-						if(reportLabel.contains("User")) {
+						if(reportLabel.contains("User-End-To-End-Basic")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Server")) {
+						} else if(reportLabel.contains("Server-End-To-End-Basic")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
 						} else if(reportLabel.contains("Privileged Access")) {
 							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
