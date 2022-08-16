@@ -3397,7 +3397,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 			if (breakDownName != null && !breakDownName.isEmpty()) {
 				if (breakDownField.startsWith("User Summary~")) {
-					query = query.concat(", " + breakDownName + " as \"colBreakdown\"");
+					query = query.concat(", " + breakDownField.substring(13) + " as \"colBreakdown\"");
 				} else {
 					query = query.concat(", SR_DATA::JSON ->> '" + breakDownField + "' as \"colBreakdown\"");
 				}
@@ -3477,7 +3477,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 			if (breakDownName != null && !breakDownName.isEmpty()) {
 				if (breakDownField.startsWith("User Summary~")) {
-					query = query.concat(", " + breakDownName + " ");
+					query = query.concat(", " + breakDownField.substring(13) + " ");
 				} else {
 					query = query.concat(", SR_DATA::JSON ->> '" + breakDownField + "' ");
 				}
