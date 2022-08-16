@@ -291,7 +291,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "date_of_last_pwd_change, num_of_days_after_pwd_exp_to_disable_the_account, num_of_days_in_advance_to_dis_pwd_exp_msg, \r\n"
 					+ "max_required_days_btw_pwd_changes, min_required_days_btw_pwd_changes, operating_system\r\n"
 					+ ") a \r\n" 
-					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
+					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) + " \r\n"
 					+ "limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0);
 					
 			
