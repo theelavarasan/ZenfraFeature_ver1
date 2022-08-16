@@ -13,6 +13,8 @@ public class OperatorModel {
     	operators.put("notContains", "not ilike");
     	operators.put("startsWith", "ilike");
     	operators.put("endsWith", "ilike");
+    	operators.put("blank", "=");
+    	operators.put("notBlank", "<>");
     	operators.put("Blanks", "=");
     	operators.put("Not Blanks", "<>");
     	operators.put("notEqual", "<>");

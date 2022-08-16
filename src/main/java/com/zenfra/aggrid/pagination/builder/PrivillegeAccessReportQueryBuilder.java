@@ -249,11 +249,9 @@ public class PrivillegeAccessReportQueryBuilder {
 		if(reportBy.equalsIgnoreCase("Privileged Access") || reportBy.equalsIgnoreCase("Server")) {
 			taniumReportQuery = "select * from ( WITH PDDATA AS\r\n" + 
 					"(\r\n" + 
-					"    SELECT count(1) over() as row_count, * \r\n" + 
+					"    SELECT * \r\n" + 
 					"    FROM privillege_data_details \r\n" + 
 					"    WHERE site_key = '" + siteKey + "' \r\n" 
-					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId, reportBy) 
-					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " \r\n"
 					+ " \r\n " +
 					"),\r\n" + 
 					"SDDATA AS\r\n" + 
@@ -263,15 +261,19 @@ public class PrivillegeAccessReportQueryBuilder {
 					"    WHERE site_key = '" + siteKey + "'\r\n" + 
 					"    GROUP BY primary_key_value\r\n" + 
 					")\r\n" + 
-					"SELECT pdt.*, coalesce(sdt.sdjsondata,'{}') as source_data1, coalesce(sdt1.sdjsondata,'{}') as source_data2 \r\n" + 
+					"SELECT pdt.*, count(1) over() as row_count,coalesce(sdt.sdjsondata,'{}') as source_data1, coalesce(sdt1.sdjsondata,'{}') as source_data2 \r\n" + 
 					"FROM PDDATA AS pdt\r\n" + 
 					"LEFT JOIN SDDATA AS sdt\r\n" + 
 					"ON pdt.user_name = sdt.primary_key_value\r\n" + 
 					"LEFT JOIN SDDATA AS sdt1\r\n" + 
 					"ON pdt.server_name = sdt1.primary_key_value \r\n" +
-					"where pdt.site_key = '" + siteKey + "' ) a" 
+					"where pdt.site_key = '" + siteKey + "' " 
+					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId, reportBy) 
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " \r\n" 
 					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) +
-					" limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0);
+					" limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0)
+					+ ") a";
+					
 			
 		} else if(reportBy.equalsIgnoreCase("User")) {
 			
@@ -309,7 +311,7 @@ public class PrivillegeAccessReportQueryBuilder {
 			
 			taniumReportQuery = "select * from ( WITH SSDDATA AS\r\n"
 					+ "(\r\n"
-					+ "    SELECT count(1) over() as row_count, SITE_KEY,\r\n"
+					+ "    SELECT SITE_KEY,\r\n"
 					+ "       SERVER_NAME,\r\n"
 					+ "       USER_NAME,\r\n"
 					+ "       USER_ID,\r\n"
@@ -322,10 +324,9 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "       COALESCE(MEMBER_OF_USER_ALIAS, '') AS USER_ALIAS_NAME,\r\n"
 					+ "       COALESCE(SUDO_PRIVILEGES_BY_USER_ALIAS, '') AS SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 					+ "       PROCESSEDDATE,\r\n"
-					+ "       OPERATING_SYSTEM AS OS\r\n"
+					+ "       OPERATING_SYSTEM \r\n"
 					+ "    FROM SUDOERS_SUMMARY_DETAILS\r\n"
-					+ "    WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
-							+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " "
+					+ "    WHERE SITE_KEY = '" + siteKey + "' " 
 					+ "),\r\n"
 					+ "SDDATA AS\r\n"
 					+ "(    \r\n"
@@ -339,7 +340,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "                                OR SR.LINK_TO = 'None')\r\n"
 					+ "             GROUP BY SD.PRIMARY_KEY_VALUE\r\n"
 					+ ")\r\n"
-					+ "SELECT SSD.row_count, SSD.SERVER_NAME,\r\n"
+					+ "SELECT count(1) over() as row_count, SSD.SERVER_NAME,\r\n"
 					+ "       SSD.USER_NAME,\r\n"
 					+ "       SSD.USER_ID,\r\n"
 					+ "       SSD.GROUP_ID,\r\n"
@@ -351,7 +352,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "       SSD.USER_ALIAS_NAME,\r\n"
 					+ "       SSD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 					+ "       SSD.PROCESSEDDATE,\r\n"
-					+ "       SSD.OS,\r\n"
+					+ "       SSD.OPERATING_SYSTEM,\r\n"
 					+ "       coalesce(SDT1.SDJSONDATA,'{}') AS source_data1,\r\n"
 					+ "       coalesce(SDT2.SDJSONDATA, '{}') AS source_data2 \r\n"
 					+ "FROM SSDDATA AS SSD\r\n"
@@ -359,9 +360,13 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "ON SSD.SERVER_NAME = SDT1.PRIMARY_KEY_VALUE\r\n"
 					+ "LEFT JOIN SDDATA AS SDT2\r\n"
 					+ "ON SSD.USER_NAME = SDT2.PRIMARY_KEY_VALUE\r\n"
-					+ "WHERE SSD.SITE_KEY = '" + siteKey + "' )a " 
+					+ "WHERE SSD.SITE_KEY = '" + siteKey + "' " 
+					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " " 
+							+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
-					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy);
+					+ ")a ";
+					
 			
 		}
 		
@@ -430,9 +435,9 @@ public class PrivillegeAccessReportQueryBuilder {
     							value = ((TextColumnFilter) columnFilter).getFilter() + "%";
     						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
-    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("blank") || ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
     							value = "";
-    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notBlank") || ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
     							value = "";
     						}
     						
@@ -554,15 +559,20 @@ public class PrivillegeAccessReportQueryBuilder {
     							value = ((TextColumnFilter) columnFilter).getFilter() + "%";
     						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter();
-    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("blank") || ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
     							value = "";
-    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
+    						} else if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notBlank") || ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
     							value = "";
     						}
     						
     						if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
+    						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+    							column1 = "coalesce(coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
+    						} else {
+    							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						}
+    						
     						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
     						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
     						
@@ -615,7 +625,14 @@ public class PrivillegeAccessReportQueryBuilder {
 								sourceArray.add(sourceMap.get(columnPrefix));
 							}
 							
-							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') <> '' and coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','')::numeric ";
+							if(reportBy.equalsIgnoreCase("User")) {
+    							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') <> '' and coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','')::numeric ";
+    						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+    							column1 = "coalesce((coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','') <> '' and coalesce((coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','')::numeric ";
+    						} else {
+    							column1 = "coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','') <> '' and coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','')::numeric ";
+    						}
+							
     						String value = "";
     						double value1 = ((NumberColumnFilter) columnFilter).getFilter();
     						double value2 = 0;
@@ -790,8 +807,10 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().startsWith(prefix)) {
     				if(reportBy.equalsIgnoreCase("User")) {
     					orderBy = " order by coalesce(SDT.SDJSONDATA::jsonb ->> '" + s.getActualColId() + "','') " + s.getSort();
+    				} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+    					orderBy = " order by coalesce((coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else {
-    					orderBy = " order by coalesce((coalesce(source_data1,'{}')::jsonb || coalesce(source_data2, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
+    					orderBy = " order by coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
     				
     			} 
