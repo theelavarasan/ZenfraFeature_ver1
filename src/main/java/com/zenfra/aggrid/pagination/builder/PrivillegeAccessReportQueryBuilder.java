@@ -367,7 +367,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
 					+ ")a ";*/
 			
-			taniumReportQuery = "select count(1) over() as row_count,user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
+			taniumReportQuery = "select select count(1) over() as row_count,user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
 					+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count, json_collect(sd.data::json) as source_data1 "
 					+ "from user_sudoers_summary_details ud \r\n"
 					+ "LEFT JOIN source_data sd on sd.primary_key_value = ud.user_name and sd.site_key = '" + siteKey + "'\r\n"
@@ -786,7 +786,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				if(reportBy.equalsIgnoreCase("User")) {
     					orderBy = " order by coalesce(SDT.SDJSONDATA::jsonb ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-    					orderBy = "order by coalesce(coalesce(sd.data, '{}')::json ->> '" + s.getActualColId() + "','') " + s.getSort();
+    					orderBy = "order by coalesce(json_collect(coalesce(sd.data, '{}')::json) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else {
     					orderBy = " order by coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
