@@ -3767,7 +3767,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String chartQuery = "";
 						if(reportLabel.contains("User")) {
 							chartQuery = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else {
+						} else if(reportLabel.contains("Server")) {
+							chartQuery = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
+						} else if(reportLabel.contains("Privileged Access")) {
 							chartQuery = priviledgeChartQueries(chartConfig, siteKey, chartType);
 						}
 
@@ -3823,7 +3825,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String query = "";
 						if(reportLabel.contains("User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else {
+						} else if(reportLabel.contains("Server")) {
+							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
+						} else if(reportLabel.contains("Privileged Access")) {
 							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
 						}
 						
@@ -3916,7 +3920,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String query = "";
 						if(reportLabel.contains("User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else {
+						} else if(reportLabel.contains("Server")) {
+							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
+						} else if(reportLabel.contains("Privileged Access")) {
 							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
 						}
 						
@@ -4030,7 +4036,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String query = "";
 						if(reportLabel.contains("User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else {
+						} else if(reportLabel.contains("Server")) {
+							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
+						} else if(reportLabel.contains("Privileged Access")) {
 							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
 						}
 						
