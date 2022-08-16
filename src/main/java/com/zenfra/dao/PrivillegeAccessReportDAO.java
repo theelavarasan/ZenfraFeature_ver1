@@ -65,7 +65,7 @@ public class PrivillegeAccessReportDAO {
         String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter, request.getReportBy(), getSourceMap(request.getSiteKey()));
         
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
-        JSONArray resultArray = dataNormalize(rows, request.getReportBy());
+        JSONArray resultArray = utilities.dataNormalize(rows, request.getReportBy());
         //System.out.println("!!!!! pagination data: " + rows);
         // create response with our results
         int rowCount = rows.isEmpty() ? 0 : getRowCount(rows.get(0));
@@ -83,63 +83,7 @@ public class PrivillegeAccessReportDAO {
         return template.queryForList(format(sql, pivotColumn), String.class);
     }
     
-    @SuppressWarnings("unchecked")
-	private JSONArray dataNormalize(List<Map<String, Object>> rows, String reportBy) {
-    	
-    	JSONArray resultArray = new JSONArray();
-    	JSONParser parser = new JSONParser();
-    	
-    	String prefix = PrefixModel.getPrefix(reportBy);
-    	
-    	try {
-    		for(Map<String, Object> row : rows) {
-    			JSONObject resultObject = new JSONObject();
-    			List<String> keys = new ArrayList<>(row.keySet());
-    			for(int i = 0; i < keys.size(); i++) {
-    				if(keys.get(i).equalsIgnoreCase("privillege_data")) {
-    					JSONObject dataObject = (JSONObject) parser.parse(row.get(keys.get(i)) == null ? "{}" : row.get(keys.get(i)).toString());
-    					if(!dataObject.isEmpty()) {
-    						List<String> dataKeys = new ArrayList<>(dataObject == null ? new HashSet<>() : dataObject.keySet());
-        					for(int j = 0; j < dataObject.size(); j++) {
-        						
-        						resultObject.put(prefix + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
-        						
-        					}
-    					}
-    					
-    				} else if(keys.get(i).contains("source_data")) {
-    					JSONObject sourceDataObject = (JSONObject) parser.parse(row.get(keys.get(i)) == null ? "{}" : row.get(keys.get(i)).toString());
-    					if(sourceDataObject != null & !sourceDataObject.isEmpty()) {
-    						Set<String> keySet = sourceDataObject == null ? new HashSet<>() : sourceDataObject.keySet();
-    						for(String key : keySet) {
-    							resultObject.put(key, sourceDataObject.get(key));
-    						}
-    					}
-    					
-    				} else {
-    					if(!keys.get(i).equalsIgnoreCase("row_count")) {
-    						
-    						if(keys.get(i).equalsIgnoreCase("servers_count")) {
-    							resultObject.put(prefix + keys.get(i), Integer.parseInt(row.get(keys.get(i)).toString()));
-    						} else {
-    							resultObject.put(prefix + keys.get(i), row.get(keys.get(i)));
-    						}
-    						
-    						
-    					} 
-    				}
-    			}
-    			if(!resultObject.isEmpty()) {
-    				resultArray.add(resultObject);
-    			}
-    			
-    		}
-    	} catch(Exception e) {
-    		e.printStackTrace();
-    	}
-    	
-    	return resultArray;
-    }
+    
     
     private int getRowCount(Map<String, Object> row) {
     	
@@ -177,13 +121,13 @@ public class PrivillegeAccessReportDAO {
 		if(reportBy.equalsIgnoreCase("User")) {
 			column1 = " coalesce(coalesce(SDT.SDJSONDATA,''{}'')::jsonb ->> '''";
 		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-			column1 = " coalesce(coalesce(SDT1.SDJSONDATA,''{}'')::jsonb || coalesce(SDT2.SDJSONDATA,''{}'')::jsonb ->> '''";
+			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
 		} else {
-			column1 = " coalesce(coalesce(SDT.SDJSONDATA,''{}'')::jsonb || coalesce(SDT1.SDJSONDATA,''{}'')::jsonb ->> '''";
+			column1 = " coalesce(coalesce(sd.data,''{}'')::jsonb || coalesce(sd1.data,''{}'')::jsonb ->> '''";
 		}
 		
 		
-		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
+		/*String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
 				+ "select rule_id, string_agg(condition_value, ' ') as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field,\r\n"
 				+ "(case when con_id = 0 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
@@ -225,6 +169,54 @@ public class PrivillegeAccessReportDAO {
 				+ ") e\r\n"
 				+ ") f group by report_by, rule_id, con_field_id, con_id, con_operator, condition_field order by con_id\r\n"
 				+ ") d\r\n"
+				+ ") g group by rule_id\r\n"
+				+ ") f";*/
+		
+		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
+				+ "select rule_id, string_agg(condition_value, ' AND ') as condition_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field,\r\n"
+				+ "(case when rule_row = 0 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' ') over(partition by rule_id, con_operator) as condition_value,\r\n"
+				+ "row_number() over(partition by rule_id, con_operator) as rule_row from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
+				+ " con_field_id as condition_field,\r\n"
+				+ "concat((case when op_row = 1 then null else con_operator end), ' ', (case when con_field_id ilike '" + prefix + "%' then ' ' else '" + column1 + " end),  (case when con_field_id ilike '" + prefix + "%' then substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id))  else concat(con_field_id,''','''')') end), ' ', \r\n"
+				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
+				+ "(case when con_condition = 'startsWith' then concat(' ''',con_value, '%''') else (case when con_condition = 'endsWith' then concat(' ''%',con_value, '''')\r\n"
+				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')\r\n"
+				+ "else (case when con_condition = 'contains' then concat(' ''%',con_value, '%''') else concat(' ''',con_value, '''') end) end) end) end) end), (case when con_field_id ilike '" + prefix + "%' then '' else '' end)) as condition_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, row_number() over() as con_id, con_operator, con_condition, con_value, op_row from ("
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value, row_number() over(partition by rule_id, con_operator) as op_row from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, (case when con_operator is null then lead(con_operator) over(partition by rule_id order by rule_id, con_id) else con_operator end) as con_operator, con_condition, con_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, concat('(', string_agg(con_value, '|'), ')') as con_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, (case when con_id is null then 0 else con_id::int end) as con_id,\r\n"
+				+ "con_operator,\r\n"
+				+ "con_condition,\r\n"
+				+ "(case when con_condition = 'notBlank' or con_condition = 'blank' then ''\r\n"
+				+ "else conditions::json ->> 'value' end) as con_value  from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, json_array_elements(conditions::json) as conditions, con_condition from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, \r\n"
+				+ "(case when conditions = '[]' then '[{\"value\":\"\", \"label\":\"\"}]' else coalesce(conditions, '[{\"value\":\"\", \"label\":\"\"}]') end) as conditions, con_condition from (\r\n"
+				+ "select report_by, rule_id, json_array_elements(conditions::json) ->> 'field' as con_field_id,\r\n"
+				+ "json_array_elements(conditions::json) ->> 'conditionId' as con_id,\r\n"
+				+ "json_array_elements(conditions::json) ->> 'operator' as con_operator,\r\n"
+				+ "json_array_elements(conditions::json) ->> 'value' as conditions, json_array_elements(conditions::json) ->> 'condition' as con_condition  from (\r\n"
+				+ "select *, row_number() over(partition by rule_id) as row_number from (\r\n"
+				+ "select report_by, json_array_elements(report_condition::json) ->> 'id' as rule_id,\r\n"
+				+ "json_array_elements(report_condition::json) ->> 'conditions' as conditions \r\n"
+				+ "from health_check where health_check_id = '" + healthCheckId + "'\r\n"
+				+ ") a where rule_id in (select json_array_elements_text('" + ruleArray + "'))\r\n"
+				+ ") a1 where row_number = 1\r\n"
+				+ ") a2 \r\n"
+				+ ") a22\r\n"
+				+ ") a3\r\n"
+				+ ") b group by report_by, rule_id, con_field_id, con_id, con_operator, con_condition order by rule_id, con_id\r\n"
+				+ ") c\r\n"
+				+ ") d\r\n"
+				+ ") e\r\n"
+				+ ") e1\r\n"
+				+ ") f --group by report_by, rule_id, con_field_id, con_id, con_operator, condition_field order by con_id\r\n"
+				+ ") d where rule_row = 1 \r\n"
 				+ ") g group by rule_id\r\n"
 				+ ") f";
 		

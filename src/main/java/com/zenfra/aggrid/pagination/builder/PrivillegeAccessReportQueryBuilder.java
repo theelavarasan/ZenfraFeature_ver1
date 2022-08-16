@@ -247,7 +247,7 @@ public class PrivillegeAccessReportQueryBuilder {
 		String taniumReportQuery = ""; 
 		
 		if(reportBy.equalsIgnoreCase("Privileged Access") || reportBy.equalsIgnoreCase("Server")) {
-			taniumReportQuery = "select * from ( WITH PDDATA AS\r\n" + 
+			/*taniumReportQuery = "select * from ( WITH PDDATA AS\r\n" + 
 					"(\r\n" + 
 					"    SELECT * \r\n" + 
 					"    FROM privillege_data_details \r\n" + 
@@ -272,7 +272,27 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " \r\n" 
 					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) +
 					" limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0)
-					+ ") a";
+					+ ") a";*/
+			
+			taniumReportQuery = "select * from (select count(1) over() as row_count, server_name,user_name, user_id, is_sudoers_by_user, sudo_privileges_by_user, group_id, primary_group_name, secondary_group_name,\r\n"
+					+ "is_sudoers_by_group, sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, \r\n"
+					+ "is_sudoers_by_user_alias, sudo_privileges_by_user_alias, processeddate, default_login_shell, home_dir, account_expiration_date, \r\n"
+					+ "date_of_last_pwd_change, num_of_days_after_pwd_exp_to_disable_the_account, num_of_days_in_advance_to_dis_pwd_exp_msg, \r\n"
+					+ "max_required_days_btw_pwd_changes, min_required_days_btw_pwd_changes, operating_system,  \r\n"
+					+ "json_collect(sd.data::json) as source_data1, json_collect(sd1.data::json) as source_data2 from privillege_data_details pd \r\n"
+					+ "LEFT JOIN source_data sd on sd.primary_key_value = pd.user_name and sd.site_key = '" + siteKey + "' \r\n"
+					+ "LEFT JOIN source_data sd1 on sd1.primary_key_value = pd.server_name and sd1.site_key = '" + siteKey + "' \r\n"
+					+ "where pd.site_key = '" + siteKey + "' \r\n" 
+					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId, reportBy) 
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " \r\n" 
+					+ "group by server_name,user_name, user_id, is_sudoers_by_user, sudo_privileges_by_user, group_id, primary_group_name, secondary_group_name,\r\n"
+					+ "is_sudoers_by_group, sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, \r\n"
+					+ "is_sudoers_by_user_alias, sudo_privileges_by_user_alias, processeddate, default_login_shell, home_dir, account_expiration_date, \r\n"
+					+ "date_of_last_pwd_change, num_of_days_after_pwd_exp_to_disable_the_account, num_of_days_in_advance_to_dis_pwd_exp_msg, \r\n"
+					+ "max_required_days_btw_pwd_changes, min_required_days_btw_pwd_changes, operating_system\r\n"
+					+ ") a \r\n" 
+					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) + " \r\n"
+					+ "limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0);
 					
 			
 		} else if(reportBy.equalsIgnoreCase("User")) {
@@ -309,7 +329,7 @@ public class PrivillegeAccessReportQueryBuilder {
 			
 		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			
-			taniumReportQuery = "select * from ( WITH SSDDATA AS\r\n"
+			/*taniumReportQuery = "select * from ( WITH SSDDATA AS\r\n"
 					+ "(\r\n"
 					+ "    SELECT SITE_KEY,\r\n"
 					+ "       SERVER_NAME,\r\n"
@@ -365,7 +385,20 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " " 
 							+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
-					+ ")a ";
+					+ ")a ";*/
+			
+			taniumReportQuery = "select * from (select count(1) over() as row_count,user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
+					+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count, json_collect(sd.data::json) as source_data1 "
+					+ "from user_sudoers_summary_details ud \r\n"
+					+ "LEFT JOIN source_data sd on sd.primary_key_value = ud.user_name and sd.site_key = '" + siteKey + "'\r\n"
+					+ "WHERE ud.site_key = '" + siteKey + "'  \r\n " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
+					+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " "
+					+ "group by user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
+					+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count \r\n" 
+					+ ")a \r\n"
+					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy)
+					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 					
 			
 		}
@@ -568,49 +601,15 @@ public class PrivillegeAccessReportQueryBuilder {
     						if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-    							column1 = "coalesce(coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
+    							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') ";
     						} else {
-    							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
+    							column1 = "coalesce(coalesce(sd.data,'{}')::jsonb || coalesce(sd1.data,'{}')::jsonb ->> '" + column + "','') ";
     						}
     						
     						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
     						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
     						
     						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-							
-							/*if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
-    							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower(coalesce(data::json ->> '" + column + "','')) = lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" +  ((columnArray.size() > 1 && i == 1) ? ")": ""));
-        	    				
-        					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
-        						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','') ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-    	        				
-        					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Blanks")) {
-        						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','')  = '' " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-        	    				
-        					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("Not Blanks")) {
-        						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','')  <> '' " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-        	    			
-        					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("startsWith")) {
-        						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','') ilike '" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-        	    				
-        					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("endsWith")) {
-        						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coaalesce(data::json ->> '" + column + "','') ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-        	    			
-        					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notEqual")) {
-    							
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " lower(coalesce(data::json ->> '" + column + "','')) <> lower('" + ((TextColumnFilter) columnFilter).getFilter() + "')" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-        	    				
-        					} else if(((TextColumnFilter) columnFilter).getType() != null && ((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("notContains")) {
-        						
-        	    				filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + " coalesce(data::json ->> '" + column + "','') not ilike '%" + ((TextColumnFilter) columnFilter).getFilter() + "%'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
-        	    				
-        					}*/
     					
     					}
     					
@@ -626,11 +625,11 @@ public class PrivillegeAccessReportQueryBuilder {
 							}
 							
 							if(reportBy.equalsIgnoreCase("User")) {
-    							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') <> '' and coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','')::numeric ";
+    							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') <> '' and coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','0')::numeric ";
     						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-    							column1 = "coalesce((coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','') <> '' and coalesce((coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','')::numeric ";
+    							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') <> '' and coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','0')::numeric ";
     						} else {
-    							column1 = "coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','') <> '' and coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','')::numeric ";
+    							column1 = "coalesce((coalesce(sd.data,'{}')::jsonb || coalesce(sd1.data,'{}')::jsonb) ->> '" + column + "','') <> '' and coalesce((coalesce(sd.data,'{}')::jsonb || coalesce(sd1.data,'{}')::jsonb) ->> '" + column + "','')::numeric ";
     						}
 							
     						String value = "";
@@ -808,10 +807,11 @@ public class PrivillegeAccessReportQueryBuilder {
     				if(reportBy.equalsIgnoreCase("User")) {
     					orderBy = " order by coalesce(SDT.SDJSONDATA::jsonb ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-    					orderBy = " order by coalesce((coalesce(SDT1.SDJSONDATA,'{}')::jsonb || coalesce(SDT2.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
+    					orderBy = " order by coalesce(coalesce(source_data1, '{}')::json ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else {
-    					orderBy = " order by coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
+    					orderBy = " order by coalesce((coalesce(source_data1, '{}')::jsonb || coalesce(source_data2, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
+    				
     				
     			} 
     		}
@@ -821,22 +821,5 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	return orderBy;
     }
-    
-    private JSONObject setDummyValue(List<SortModel> sortModel, String orderBy1) {
-    	
-    	JSONObject dummyObject = new JSONObject();
-    	try {
-    		for(SortModel s: sortModel) {
-    			dummyObject.put(s.getActualColId(), "");
-    		}
-    		
-    	} catch(Exception e) {
-    		e.printStackTrace();
-    	}
-    	
-    	return dummyObject;
-    	
-    }
-    
     
 }
