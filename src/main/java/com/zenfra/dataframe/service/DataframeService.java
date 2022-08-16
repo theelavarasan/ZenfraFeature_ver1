@@ -3765,9 +3765,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 					if (chartConfig.containsKey("column")) {
 
 						String query = "";
-						if(reportLabel.contains("Server-End-To-End-Basic") || reportLabel.contains("Privileged Access")) {
+						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("User")) {
+						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
 						} 
 
@@ -3821,9 +3821,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray finalBreakDownValue = new JSONArray();
 
 						String query = "";
-						if(reportLabel.contains("Server-End-To-End-Basic") || reportLabel.contains("Privileged Access")) {
+						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("User")) {
+						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
 						} 
 						
@@ -3914,9 +3914,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String xaxisColumnName = (String) xaxisColumn.get("value");
 
 						String query = "";
-						if(reportLabel.contains("Server-End-To-End-Basic") || reportLabel.contains("Privileged Access")) {
+						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("User")) {
+						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
 						} 
 						
@@ -4028,9 +4028,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray finalBreakDownValue = new JSONArray();
 
 						String query = "";
-						if(reportLabel.contains("Server-End-To-End-Basic") || reportLabel.contains("Privileged Access")) {
+						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("User")) {
+						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
 						} 
 						
