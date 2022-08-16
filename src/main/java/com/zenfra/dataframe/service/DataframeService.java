@@ -3390,7 +3390,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			}
 
 			if (xaxisColumnNameField.startsWith("User Summary~")) {
-				query = query.concat("select " + xaxisColumnNameField.substring(13) + " as \"colName'\"");
+				query = query.concat("select " + xaxisColumnNameField.substring(13) + " as \"colName\"");
 			} else {
 				query = query.concat("select SR_DATA::JSON ->> '" + xaxisColumnNameField + "' as \"colName\"");
 			}
