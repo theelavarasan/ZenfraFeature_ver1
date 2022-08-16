@@ -208,7 +208,7 @@ public class PrivillegeAccessReportDAO {
 				+ ") a2 \r\n"
 				+ ") a22\r\n"
 				+ ") a3\r\n"
-				+ ") b order by con_id\r\n"
+				+ ") b group by report_by, rule_id, con_field_id, con_id, con_operator, con_condition order by rule_id, con_id\r\n"
 				+ ") c\r\n"
 				+ ") d\r\n"
 				+ ") e\r\n"
