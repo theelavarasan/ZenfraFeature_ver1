@@ -352,7 +352,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "       SSD.USER_ALIAS_NAME,\r\n"
 					+ "       SSD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 					+ "       SSD.PROCESSEDDATE,\r\n"
-					+ "       SSD.OS,\r\n"
+					+ "       SSD.OPERATING_SYSTEM,\r\n"
 					+ "       coalesce(SDT1.SDJSONDATA,'{}') AS source_data1,\r\n"
 					+ "       coalesce(SDT2.SDJSONDATA, '{}') AS source_data2 \r\n"
 					+ "FROM SSDDATA AS SSD\r\n"
