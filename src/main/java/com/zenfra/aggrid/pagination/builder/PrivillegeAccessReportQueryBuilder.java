@@ -274,7 +274,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					" limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0)
 					+ ") a";*/
 			
-			taniumReportQuery = "select count(1) over() as row_count, server_name,user_name, user_id, is_sudoers_by_user, sudo_privileges_by_user, group_id, primary_group_name, secondary_group_name,\r\n"
+			taniumReportQuery = "select * from (select count(1) over() as row_count, server_name,user_name, user_id, is_sudoers_by_user, sudo_privileges_by_user, group_id, primary_group_name, secondary_group_name,\r\n"
 					+ "is_sudoers_by_group, sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, \r\n"
 					+ "is_sudoers_by_user_alias, sudo_privileges_by_user_alias, processeddate, default_login_shell, home_dir, account_expiration_date, \r\n"
 					+ "date_of_last_pwd_change, num_of_days_after_pwd_exp_to_disable_the_account, num_of_days_in_advance_to_dis_pwd_exp_msg, \r\n"
@@ -290,8 +290,9 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "is_sudoers_by_user_alias, sudo_privileges_by_user_alias, processeddate, default_login_shell, home_dir, account_expiration_date, \r\n"
 					+ "date_of_last_pwd_change, num_of_days_after_pwd_exp_to_disable_the_account, num_of_days_in_advance_to_dis_pwd_exp_msg, \r\n"
 					+ "max_required_days_btw_pwd_changes, min_required_days_btw_pwd_changes, operating_system\r\n"
-					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) +
-					" limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0);
+					+ ") a \r\n" 
+					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
+					+ "limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0);
 					
 			
 		} else if(reportBy.equalsIgnoreCase("User")) {
@@ -807,7 +808,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				} else if(reportBy.equalsIgnoreCase("Sudoers")) {
     					orderBy = "order by coalesce(json_collect(coalesce(sd.data, '{}')::json) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else {
-    					orderBy = " order by coalesce((json_collect(coalesce(sd.data,'{}')::jsonb) || json_collect(coalesce(sd1.data, '{}')::jsonb)) ->> '" + s.getActualColId() + "','') " + s.getSort();
+    					orderBy = " order by coalesce((coalesce(source_data1, '{}')::jsonb || coalesce(source_data2, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
     				
     				
