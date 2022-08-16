@@ -3764,18 +3764,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 					if (chartConfig.containsKey("column")) {
 
-						String chartQuery = "";
-						if(reportLabel.contains("User-End-To-End-Basic")) {
-							chartQuery = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Server-End-To-End-Basic")) {
-							chartQuery = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Privileged Access")) {
-							chartQuery = priviledgeChartQueries(chartConfig, siteKey, chartType);
-						}
+						String query = "";
+						if(reportLabel.contains("Server-End-To-End-Basic") || reportLabel.contains("Privileged Access")) {
+							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
+						} else if(reportLabel.contains("User")) {
+							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
+						} 
 
-						System.out.println("------pie query------ " + chartQuery);
+						System.out.println("------pie query------ " + query);
 
-						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(chartQuery);
+						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);
 
 						for (Map<String, Object> resultMap : resultSet) {
 							lableArray.add(resultMap.get("colName"));
@@ -3823,13 +3821,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray finalBreakDownValue = new JSONArray();
 
 						String query = "";
-						if(reportLabel.contains("User-End-To-End-Basic")) {
-							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Server-End-To-End-Basic")) {
+						if(reportLabel.contains("Server-End-To-End-Basic") || reportLabel.contains("Privileged Access")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Privileged Access")) {
-							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
-						}
+						} else if(reportLabel.contains("User")) {
+							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
+						} 
 						
 						System.out.println("------ " + chartType + " : " + query);
 
@@ -3918,13 +3914,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String xaxisColumnName = (String) xaxisColumn.get("value");
 
 						String query = "";
-						if(reportLabel.contains("User-End-To-End-Basic")) {
-							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Server-End-To-End-Basic")) {
+						if(reportLabel.contains("Server-End-To-End-Basic") || reportLabel.contains("Privileged Access")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Privileged Access")) {
-							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
-						}
+						} else if(reportLabel.contains("User")) {
+							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
+						} 
 						
 						System.out.println("---" + chartType + " : " + query);
 
@@ -4034,13 +4028,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray finalBreakDownValue = new JSONArray();
 
 						String query = "";
-						if(reportLabel.contains("User-End-To-End-Basic")) {
-							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Server-End-To-End-Basic")) {
+						if(reportLabel.contains("Server-End-To-End-Basic") || reportLabel.contains("Privileged Access")) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else if(reportLabel.contains("Privileged Access")) {
-							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
-						}
+						} else if(reportLabel.contains("User")) {
+							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
+						} 
 						
 						System.out.println("---" + chartType + " : " + query);
 
