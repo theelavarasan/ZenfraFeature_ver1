@@ -3746,7 +3746,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							JSONArray xarray = new JSONArray();
 							JSONArray yarray = new JSONArray();
 
-							for (int i = 0; i < valueArray.size(); i++) {
+							for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 								xarray.add(xaxisCloumnValues.get(i));
 								yarray.add(valueArray.get(i));
 
