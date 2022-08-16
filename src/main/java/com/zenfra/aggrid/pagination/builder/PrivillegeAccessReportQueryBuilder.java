@@ -791,6 +791,7 @@ public class PrivillegeAccessReportQueryBuilder {
     					orderBy = " order by coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
     				
+    				
     			} 
     		}
     	} catch(Exception e) {
