@@ -3706,6 +3706,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							JSONObject jsonObj = new JSONObject();
 							jsonObj.putAll(resultMap);
 							Iterator iterator = jsonObj.keySet().iterator();
+							System.out.println(iterator.toString());
+							System.out.println(jsonObj);
 							while (iterator.hasNext()) {
 								String key = (String) iterator.next();
 								if (key.contains("colValue")) {
