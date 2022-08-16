@@ -3156,7 +3156,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						+ ")");
 
 				if (xaxisColumnNameField.startsWith("Server Data~")) {
-					query = query.concat("select PDD." + xaxisColumnName + " as \"colName'\"");
+					query = query.concat("select PDD." + xaxisColumnName + " as \"colName\"");
 				} else {
 					query = query.concat("select SDT." + xaxisColumnNameField + " as \"colName\"");
 				}
