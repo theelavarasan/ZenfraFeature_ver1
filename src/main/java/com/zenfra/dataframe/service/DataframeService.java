@@ -3724,6 +3724,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						JSONArray array = new JSONArray();
 
+						System.out.println("valueArray : " + valueArray);
+						System.out.println("xaxisCloumnValues " + xaxisCloumnValues);
 						if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
 
 							for (int i = 0; i < finalBreakDownValue.size(); i++) {
@@ -3747,6 +3749,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								yarray.add(valueArray.get(i));
 
 							}
+							System.out.println("xarray : " + xarray);
+							System.out.println("yarray : " + yarray);
+
 							jsonObject.put("name", xaxisColumnName);
 							jsonObject.put("x", xarray);
 							jsonObject.put("y", yarray);
