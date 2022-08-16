@@ -3397,7 +3397,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 			if (breakDownName != null && !breakDownName.isEmpty()) {
 				if (breakDownField.startsWith("User Summary~")) {
-					query = query.concat(", " + breakDownName + " as \"colBreakdown\"");
+					query = query.concat(", " + breakDownField.substring(13) + " as \"colBreakdown\"");
 				} else {
 					query = query.concat(", SR_DATA::JSON ->> '" + breakDownField + "' as \"colBreakdown\"");
 				}
@@ -3477,7 +3477,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 			if (breakDownName != null && !breakDownName.isEmpty()) {
 				if (breakDownField.startsWith("User Summary~")) {
-					query = query.concat(", " + breakDownName + " ");
+					query = query.concat(", " + breakDownField.substring(13) + " ");
 				} else {
 					query = query.concat(", SR_DATA::JSON ->> '" + breakDownField + "' ");
 				}
@@ -3487,6 +3487,234 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		return query;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public String priviledgeServerSummaryChartQueries(JSONObject chartConfig, String siteKey, String chartType)
+			throws ParseException {
+		System.out.println("Query builder for priviledge charts");
+
+		System.out.println("-----------chartConfig : " + chartConfig);
+
+		JSONParser jsonParser = new JSONParser();
+		JSONArray chartTypes = new JSONArray();
+		chartTypes.add("bar");
+		chartTypes.add("line");
+		chartTypes.add("table");
+		chartTypes.add("scatter");
+
+		System.out.println("ChartTypes : " + chartTypes + " : " + chartType);
+		System.out.println("ChartTypes : " + chartTypes.contains(chartType));
+
+		JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
+		JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
+		JSONArray breakDownAry = (JSONArray) chartConfig.get("breakdown");
+
+		JSONArray pieChartCols = new JSONArray();
+		JSONObject pieChartObject = new JSONObject();
+		String pieChartColName = "";
+		String pieChartClassName = "";
+		String pieChartField = "";
+
+		// yaxis column names
+		JSONObject yaxisColumn = new JSONObject();
+		String yaxisColumnName = "";
+		JSONArray yaxisNames = new JSONArray();
+		String className = "";
+		JSONArray classNameArray = new JSONArray();
+
+		JSONArray yaxisColumnField = new JSONArray();
+		String yaxisColumnFieldName = "";
+		boolean yaxisServerCheck = false;
+
+		// xaxis column names
+		JSONObject xaxisColumn = new JSONObject();
+		String xaxisColumnNameField = "";
+		String xaxisColumnName = "";
+		String xaxisColumnClassName = "";
+
+		// breakdown names
+		JSONObject breakDown = new JSONObject();
+		String breakDownName = "";
+		String breakDownField = "";
+
+		String query = "WITH SDDATA AS\r\n"
+				+ "(\r\n"
+				+ "    SELECT SD.PRIMARY_KEY_VALUE,\r\n"
+				+ "           JSON_collect(SD.DATA::JSON) AS SDJSONDATA\r\n"
+				+ "    FROM SOURCE_DATA SD\r\n"
+				+ "       INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
+				+ "        WHERE SD.SITE_KEY = '" + siteKey + "'\r\n"
+				+ "            AND SR.IS_ACTIVE = true\r\n"
+				+ "            AND (SR.LINK_TO = 'All'\r\n"
+				+ "                                OR SR.LINK_TO = 'None')\r\n"
+				+ "             GROUP BY SD.PRIMARY_KEY_VALUE),\r\n"
+				+ "PDD AS\r\n"
+				+ "(\r\n"
+				+ "    SELECT count(1) over() as row_count, SSRD.SERVER_NAME,\r\n"
+				+ "           SSRD.USER_NAME,\r\n"
+				+ "           SSRD.USER_ID,\r\n"
+				+ "           COALESCE(SSRD.GROUP_ID, '') AS GROUP_ID,\r\n"
+				+ "           COALESCE(SSRD.PRIMARY_GROUP_NAME, '') AS PRIMARY_GROUP_NAME,\r\n"
+				+ "           COALESCE(SSRD.SECONDARY_GROUP_NAME, '') AS SECONDARY_GROUP_NAME,\r\n"
+				+ "           COALESCE(SSRD.SUDO_PRIVILEGES_BY_USER, '') AS SUDO_PRIVILEGES_BY_USER,\r\n"
+				+ "           COALESCE(SSRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP, '') AS SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
+				+ "           COALESCE(SSRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP, '') AS SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
+				+ "           COALESCE(SSRD.MEMBER_OF_USER_ALIAS, '') AS USER_ALIAS_NAME,\r\n"
+				+ "           COALESCE(SSRD.SUDO_PRIVILEGES_BY_USER_ALIAS, '') AS SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
+				+ "           SSRD.PROCESSEDDATE AS PROCESSEDDATE,\r\n"
+				+ "           SSRD.OPERATING_SYSTEM AS OS,\r\n"
+				+ "           COALESCE(SDT.SDJSONDATA::TEXT, '{}') AS source_data\r\n"
+				+ "    FROM privillege_data_details AS SSRD\r\n"
+				+ "    LEFT JOIN SDDATA AS SDT\r\n"
+				+ "    ON (SSRD.SERVER_NAME = SDT.PRIMARY_KEY_VALUE OR SSRD.USER_NAME = SDT.PRIMARY_KEY_VALUE)\r\n"
+				+ "    WHERE SSRD.SITE_KEY = '" + siteKey + "'\r\n"
+				+ ")";
+
+		if (chartType.equalsIgnoreCase("pie")) {
+
+			pieChartCols = (JSONArray) chartConfig.get("column");
+			pieChartObject = (JSONObject) pieChartCols.get(0);
+			pieChartColName = (String) pieChartObject.get("value");
+			pieChartClassName = (String) pieChartObject.get("className");
+			pieChartField = (String) pieChartObject.get("field");
+
+			if (pieChartField.startsWith("Server Summary~")) {
+				query = query.concat("select " + pieChartField.substring(13) + " as \"colName\"");
+			} else {
+				query = query.concat("SELECT source_data::JSON ->> '" + pieChartField + "' AS \"colName\"");
+			}
+
+			if (pieChartField.startsWith("Server Summary~")) {
+				if (pieChartClassName.contains("count")) {
+					query = query.concat(", count(" + pieChartField.substring(13) + ") as \"colValue\"");
+				} else if (pieChartClassName.contains("sum")) {
+					query = query.concat(", sum(" + pieChartField.substring(13) + "::int) as \"colValue\"");
+				}
+			} else {
+				if (pieChartClassName.contains("count")) {
+					query = query.concat(", count(source_data::JSON ->> '" + pieChartField + "') as \"colValue\"");
+				} else if (pieChartClassName.contains("sum")) {
+					query = query
+							.concat(", sum((source_data::JSON ->> '" + pieChartField + "')::int) as \"colValue\"");
+				}
+			}
+
+		} else if (chartTypes.contains(chartType)) {
+			xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
+			xaxisColumnNameField = (String) xaxisColumn.get("field");
+			xaxisColumnName = (String) xaxisColumn.get("value");
+			xaxisColumnClassName = (String) xaxisColumn.get("className");
+
+			breakDown = breakDownAry.isEmpty() ? new JSONObject() : (JSONObject) breakDownAry.get(0);
+			breakDownName = (String) breakDown.get("value");
+			breakDownField = (String) breakDown.get("field");
+
+			for (int i = 0; i < yaxisColumnAry.size(); i++) {
+				yaxisColumn = (JSONObject) yaxisColumnAry.get(i);
+				yaxisColumnName = (String) yaxisColumn.get("value");
+				yaxisNames.add(yaxisColumnName);
+				className = (String) yaxisColumn.get("className");
+				classNameArray.add(className);
+				yaxisColumnFieldName = (String) yaxisColumn.get("field");
+				yaxisColumnField.add(yaxisColumnFieldName);
+			}
+
+			if (xaxisColumnNameField.startsWith("Server Summary~")) {
+				query = query.concat("select " + xaxisColumnNameField.substring(13) + " as \"colName\"");
+			} else {
+				query = query.concat("select source_data::JSON ->> '" + xaxisColumnNameField + "' as \"colName\"");
+			}
+
+			if (breakDownName != null && !breakDownName.isEmpty()) {
+				if (breakDownField.startsWith("Server Summary~")) {
+					query = query.concat(", " + breakDownField.substring(13) + " as \"colBreakdown\"");
+				} else {
+					query = query.concat(", source_data::JSON ->> '" + breakDownField + "' as \"colBreakdown\"");
+				}
+			}
+
+			System.out.println("yaxisColumnField : " + yaxisColumnField);
+			for (int i = 0; i < yaxisColumnField.size(); i++) {
+				String operater = (String) classNameArray.get(i);
+
+				String yFieldCheck = (String) yaxisColumnField.get(i);
+				System.out.println("yFieldCheck : " + yFieldCheck);
+				if (yFieldCheck.startsWith("Server Summary~")) {
+					if (operater.contains("count")) {
+						query = query.concat(", count(" + yFieldCheck.substring(13) + ") as \"colValue" + i + "\"");
+					} else if (operater.contains("sum")) {
+						query = query.concat(", sum(" + yFieldCheck.substring(13) + "::int) as \"colValue" + i + "\"");
+					}
+				} else {
+					if (operater.contains("count")) {
+						query = query.concat(", count(source_data::JSON ->> '" + yFieldCheck + "') as \"colValue" + i + "\"");
+					} else if (operater.contains("sum")) {
+						query = query.concat(", sum((source_data::JSON ->> '" + yFieldCheck + "')::int) as \"colValue" + i + "\"");
+					}
+				}
+			}
+		}
+
+			query = query.concat(" FROM PDD");
+
+			if (chartType.equalsIgnoreCase("pie")) {
+				if (pieChartField.startsWith("Server Summary~")) {
+					query = query.concat(" where " + pieChartField.substring(13) + " is not null");
+				} else {
+					query = query.concat(" WHERE source_data::JSON ->> '" + pieChartField + "' is not null");
+				}
+			} else if(chartTypes.contains(chartType)) {
+				if (xaxisColumnNameField.startsWith("Server Summary~")) {
+					query = query.concat(" where " + xaxisColumnNameField.substring(13) + " is not null");
+				} else {
+					query = query.concat(" WHERE source_data::JSON ->> '" + pieChartField + "' is not null");
+				}
+			}
+		/*
+		 * conditions for filtering if(!filterModel.isEmpty() && filterModel != null) {
+		 * 
+		 * JSONObject filterModelObject = filterModel; Set<String> filterKeys = new
+		 * HashSet<>(); for (int i = 0; i < filterModelObject.size(); i++) { JSONObject
+		 * jsonObj = filterModelObject; filterKeys.addAll(jsonObj.keySet()); }
+		 * 
+		 * query = query.concat(" where "); for (String key : filterKeys) { JSONObject
+		 * filterColumnName = (JSONObject) filterModelObject.get(key); query =
+		 * query.concat("pd.data::json ->> '" + key + "'");
+		 * 
+		 * for(int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size()
+		 * / 2 : filterModelObject.size()); i++) { if
+		 * (filterColumnName.containsKey("type")) { query = query.concat(" ilike "); }
+		 * if (filterColumnName.containsKey("filter")) { query =
+		 * query.concat("pd.data::json ->> '" + filterColumnName.get("filter") + "'"); }
+		 * query = query.concat(" and "); }
+		 * 
+		 * } query = query.substring(0, query.length()-5); } conditions for filtering
+		 */
+
+		query = query.concat(" group by ");
+		if (chartType.equalsIgnoreCase("pie")) {
+			if (pieChartField.startsWith("Server Summary~")) {
+				query = query.concat(" " + pieChartField.substring(13) + "");
+			} else {
+				query = query.concat(" source_data::JSON ->> '" + pieChartField + "' ");
+			}
+		} else if (chartTypes.contains(chartType)) {
+			if (xaxisColumnNameField.startsWith("Server Summary~")) {
+				query = query.concat(" " + xaxisColumnNameField.substring(13) + " ");
+			} else {
+				query = query.concat(" source_data::JSON ->> '" + xaxisColumnNameField + "' ");
+			}
+
+			if (breakDownName != null && !breakDownName.isEmpty()) {
+				if (breakDownField.startsWith("Server Summary~")) {
+					query = query.concat(", " + breakDownField.substring(13) + " ");
+				} else {
+					query = query.concat(", source_data::JSON ->> '" + breakDownField + "' ");
+				}
+			}
+		}
+
+		return query;
+	}
 	
 	public JSONObject prepareChartForTanium(JSONObject chartParams) {
 
@@ -3539,7 +3767,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String chartQuery = "";
 						if(reportLabel.contains("User")) {
 							chartQuery = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else {
+						} else if(reportLabel.contains("Server")) {
+							chartQuery = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
+						} else if(reportLabel.contains("Privileged Access")) {
 							chartQuery = priviledgeChartQueries(chartConfig, siteKey, chartType);
 						}
 
@@ -3595,7 +3825,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String query = "";
 						if(reportLabel.contains("User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else {
+						} else if(reportLabel.contains("Server")) {
+							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
+						} else if(reportLabel.contains("Privileged Access")) {
 							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
 						}
 						
@@ -3688,7 +3920,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String query = "";
 						if(reportLabel.contains("User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else {
+						} else if(reportLabel.contains("Server")) {
+							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
+						} else if(reportLabel.contains("Privileged Access")) {
 							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
 						}
 						
@@ -3802,7 +4036,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						String query = "";
 						if(reportLabel.contains("User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} else {
+						} else if(reportLabel.contains("Server")) {
+							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
+						} else if(reportLabel.contains("Privileged Access")) {
 							query = priviledgeChartQueries(chartConfig, siteKey, chartType);
 						}
 						
