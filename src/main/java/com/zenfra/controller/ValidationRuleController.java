@@ -61,7 +61,7 @@ public class ValidationRuleController {
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("server") && model.getDeviceType().equalsIgnoreCase("tanium")) {
 			resultArray = validationRuleService.getVR_TaniumServer(model.getSiteKey(), model.getColumnName());
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("sudoers") && model.getDeviceType().equalsIgnoreCase("tanium")) {
-			resultArray = validationRuleService.getVR_TaniumServer(model.getSiteKey(), model.getColumnName());
+			resultArray = validationRuleService.getVR_TaniumSudoers(model.getSiteKey(), model.getColumnName());
 		}
 			
 
