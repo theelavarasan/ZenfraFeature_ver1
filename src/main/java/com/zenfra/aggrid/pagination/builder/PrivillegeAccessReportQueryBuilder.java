@@ -580,7 +580,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-    							column1 = "coalesce(coalesce(sd.data, '{}') ->> '" + column + "','') ";
+    							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') ";
     						} else {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						}
@@ -606,7 +606,7 @@ public class PrivillegeAccessReportQueryBuilder {
 							if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') <> '' and coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','0')::numeric ";
     						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-    							column1 = "coalesce(coalesce(sd.data, '{}') ->> '" + column + "','') <> '' and coalesce(coalesce(sd.data, '{}') ->> '" + column + "','0')::numeric ";
+    							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') <> '' and coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','0')::numeric ";
     						} else {
     							column1 = "coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','') <> '' and coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA,'{}')::jsonb) ->> '" + column + "','')::numeric ";
     						}
@@ -786,7 +786,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				if(reportBy.equalsIgnoreCase("User")) {
     					orderBy = " order by coalesce(SDT.SDJSONDATA::jsonb ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-    					orderBy = "order by coalesce(coalesce(sd.data, '{}') ->> '" + s.getActualColId() + "','') " + s.getSort();
+    					orderBy = "order by coalesce(coalesce(sd.data, '{}')::json ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else {
     					orderBy = " order by coalesce((coalesce(SDT.SDJSONDATA,'{}')::jsonb || coalesce(SDT1.SDJSONDATA, '{}')::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
