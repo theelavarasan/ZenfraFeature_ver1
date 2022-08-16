@@ -324,7 +324,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "       COALESCE(MEMBER_OF_USER_ALIAS, '') AS USER_ALIAS_NAME,\r\n"
 					+ "       COALESCE(SUDO_PRIVILEGES_BY_USER_ALIAS, '') AS SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 					+ "       PROCESSEDDATE,\r\n"
-					+ "       OPERATING_SYSTEM AS OS\r\n"
+					+ "       OPERATING_SYSTEM \r\n"
 					+ "    FROM SUDOERS_SUMMARY_DETAILS\r\n"
 					+ "    WHERE SITE_KEY = '" + siteKey + "' " 
 					+ "),\r\n"
