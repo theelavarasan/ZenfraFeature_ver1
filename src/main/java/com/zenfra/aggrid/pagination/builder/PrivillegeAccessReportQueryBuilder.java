@@ -552,6 +552,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				JSONArray columnArray = new JSONArray();
     				
     				String operator = " and";
+    				System.out.println("!!!!! columnObject: " + columnObject);
     				if(columnObject.containsKey("condition1") && columnObject.get("condition1") != null && columnObject.containsKey("condition2") && columnObject.get("condition2") != null) {
     					columnArray.add(columnObject.get("condition1"));
     					columnArray.add(columnObject.get("condition2"));
@@ -606,9 +607,9 @@ public class PrivillegeAccessReportQueryBuilder {
     							column1 = "coalesce(coalesce(sd.data,'{}')::jsonb || coalesce(sd1.data,'{}')::jsonb ->> '" + column + "','') ";
     						}
     						
-    						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
-    						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
-    						
+    						//System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
+    						//System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
+    						System.out.println("!!!!! columnArray size: " + columnArray.size());
     						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     					
     					}
