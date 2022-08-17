@@ -175,7 +175,7 @@ public class PrivillegeAccessReportDAO {
 		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
 				+ "select rule_id, string_agg(condition_value, ' AND ') as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field,\r\n"
-				+ "(case when rule_row = 0 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
+				+ "(case when rule_row = 1 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' ') over(partition by rule_id, con_operator) as condition_value,\r\n"
 				+ "row_number() over(partition by rule_id, con_operator) as rule_row from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
