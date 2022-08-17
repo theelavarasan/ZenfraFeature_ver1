@@ -3578,16 +3578,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			pieChartField = (String) pieChartObject.get("field");
 
 			if (pieChartField.startsWith("Server Summary~")) {
-				query = query.concat("select " + pieChartField.substring(13) + " as \"colName\"");
+				query = query.concat("select " + pieChartField.substring(15) + " as \"colName\"");
 			} else {
 				query = query.concat("SELECT source_data::JSON ->> '" + pieChartField + "' AS \"colName\"");
 			}
 
 			if (pieChartField.startsWith("Server Summary~")) {
 				if (pieChartClassName.contains("count")) {
-					query = query.concat(", count(" + pieChartField.substring(13) + ") as \"colValue\"");
+					query = query.concat(", count(" + pieChartField.substring(15) + ") as \"colValue\"");
 				} else if (pieChartClassName.contains("sum")) {
-					query = query.concat(", sum(" + pieChartField.substring(13) + "::int) as \"colValue\"");
+					query = query.concat(", sum(" + pieChartField.substring(15) + "::int) as \"colValue\"");
 				}
 			} else {
 				if (pieChartClassName.contains("count")) {
@@ -3619,14 +3619,14 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			}
 
 			if (xaxisColumnNameField.startsWith("Server Summary~")) {
-				query = query.concat("select " + xaxisColumnNameField.substring(13) + " as \"colName\"");
+				query = query.concat("select " + xaxisColumnNameField.substring(15) + " as \"colName\"");
 			} else {
 				query = query.concat("select source_data::JSON ->> '" + xaxisColumnNameField + "' as \"colName\"");
 			}
 
 			if (breakDownName != null && !breakDownName.isEmpty()) {
 				if (breakDownField.startsWith("Server Summary~")) {
-					query = query.concat(", " + breakDownField.substring(13) + " as \"colBreakdown\"");
+					query = query.concat(", " + breakDownField.substring(15) + " as \"colBreakdown\"");
 				} else {
 					query = query.concat(", source_data::JSON ->> '" + breakDownField + "' as \"colBreakdown\"");
 				}
@@ -3640,9 +3640,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				System.out.println("yFieldCheck : " + yFieldCheck);
 				if (yFieldCheck.startsWith("Server Summary~")) {
 					if (operater.contains("count")) {
-						query = query.concat(", count(" + yFieldCheck.substring(13) + ") as \"colValue" + i + "\"");
+						query = query.concat(", count(" + yFieldCheck.substring(15) + ") as \"colValue" + i + "\"");
 					} else if (operater.contains("sum")) {
-						query = query.concat(", sum(" + yFieldCheck.substring(13) + "::int) as \"colValue" + i + "\"");
+						query = query.concat(", sum(" + yFieldCheck.substring(15) + "::int) as \"colValue" + i + "\"");
 					}
 				} else {
 					if (operater.contains("count")) {
@@ -3658,13 +3658,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 			if (chartType.equalsIgnoreCase("pie")) {
 				if (pieChartField.startsWith("Server Summary~")) {
-					query = query.concat(" where " + pieChartField.substring(13) + " is not null");
+					query = query.concat(" where " + pieChartField.substring(15) + " is not null");
 				} else {
 					query = query.concat(" WHERE source_data::JSON ->> '" + pieChartField + "' is not null");
 				}
 			} else if(chartTypes.contains(chartType)) {
 				if (xaxisColumnNameField.startsWith("Server Summary~")) {
-					query = query.concat(" where " + xaxisColumnNameField.substring(13) + " is not null");
+					query = query.concat(" where " + xaxisColumnNameField.substring(15) + " is not null");
 				} else {
 					query = query.concat(" WHERE source_data::JSON ->> '" + pieChartField + "' is not null");
 				}
@@ -3693,20 +3693,20 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		query = query.concat(" group by ");
 		if (chartType.equalsIgnoreCase("pie")) {
 			if (pieChartField.startsWith("Server Summary~")) {
-				query = query.concat(" " + pieChartField.substring(13) + "");
+				query = query.concat(" " + pieChartField.substring(15) + "");
 			} else {
 				query = query.concat(" source_data::JSON ->> '" + pieChartField + "' ");
 			}
 		} else if (chartTypes.contains(chartType)) {
 			if (xaxisColumnNameField.startsWith("Server Summary~")) {
-				query = query.concat(" " + xaxisColumnNameField.substring(13) + " ");
+				query = query.concat(" " + xaxisColumnNameField.substring(15) + " ");
 			} else {
 				query = query.concat(" source_data::JSON ->> '" + xaxisColumnNameField + "' ");
 			}
 
 			if (breakDownName != null && !breakDownName.isEmpty()) {
 				if (breakDownField.startsWith("Server Summary~")) {
-					query = query.concat(", " + breakDownField.substring(13) + " ");
+					query = query.concat(", " + breakDownField.substring(15) + " ");
 				} else {
 					query = query.concat(", source_data::JSON ->> '" + breakDownField + "' ");
 				}
