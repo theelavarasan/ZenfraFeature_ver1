@@ -3513,7 +3513,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String pieChartColName = "";
 		String pieChartClassName = "";
 		String pieChartField = "";
-
+		String pieChartFieldSubString = "";
+		
 		// yaxis column names
 		JSONObject yaxisColumn = new JSONObject();
 		String yaxisColumnName = "";
@@ -3577,17 +3578,25 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			pieChartClassName = (String) pieChartObject.get("className");
 			pieChartField = (String) pieChartObject.get("field");
 
+			
+			 if(pieChartField.startsWith("Server Summary~")) {
+				 pieChartFieldSubString = pieChartField.substring(15);
+			 } else if(pieChartField.startsWith("Server Data~")) {
+				 pieChartFieldSubString = pieChartField.substring(12);
+			 }
+			System.out.println("pieChartFieldSub : " + pieChartFieldSubString);
+			
 			if (pieChartField.startsWith("Server Summary~")) {
-				query = query.concat("select " + pieChartField.substring(15) + " as \"colName\"");
+				query = query.concat("select " + pieChartFieldSubString + " as \"colName\"");
 			} else {
 				query = query.concat("SELECT source_data::JSON ->> '" + pieChartField + "' AS \"colName\"");
 			}
 
 			if (pieChartField.startsWith("Server Summary~")) {
 				if (pieChartClassName.contains("count")) {
-					query = query.concat(", count(" + pieChartField.substring(15) + ") as \"colValue\"");
+					query = query.concat(", count(" + pieChartFieldSubString + ") as \"colValue\"");
 				} else if (pieChartClassName.contains("sum")) {
-					query = query.concat(", sum(" + pieChartField.substring(15) + "::int) as \"colValue\"");
+					query = query.concat(", sum(" + pieChartFieldSubString + "::int) as \"colValue\"");
 				}
 			} else {
 				if (pieChartClassName.contains("count")) {
@@ -3658,13 +3667,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 			if (chartType.equalsIgnoreCase("pie")) {
 				if (pieChartField.startsWith("Server Summary~")) {
-					query = query.concat(" where " + pieChartField.substring(15) + " is not null");
+					query = query.concat(" where " + pieChartFieldSubString + " is not null");
 				} else {
 					query = query.concat(" WHERE source_data::JSON ->> '" + pieChartField + "' is not null");
 				}
 			} else if(chartTypes.contains(chartType)) {
 				if (xaxisColumnNameField.startsWith("Server Summary~")) {
-					query = query.concat(" where " + xaxisColumnNameField.substring(15) + " is not null");
+					query = query.concat(" where " + pieChartFieldSubString + " is not null");
 				} else {
 					query = query.concat(" WHERE source_data::JSON ->> '" + pieChartField + "' is not null");
 				}
@@ -3693,7 +3702,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		query = query.concat(" group by ");
 		if (chartType.equalsIgnoreCase("pie")) {
 			if (pieChartField.startsWith("Server Summary~")) {
-				query = query.concat(" " + pieChartField.substring(15) + "");
+				query = query.concat(" " + pieChartFieldSubString + "");
 			} else {
 				query = query.concat(" source_data::JSON ->> '" + pieChartField + "' ");
 			}
