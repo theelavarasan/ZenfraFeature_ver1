@@ -123,7 +123,8 @@ public class ReportService {
 			resultObject.put("report_label", report_label);
 		}
 		resultObject.put("report_name", report_name);
-		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax") || (deviceType.equalsIgnoreCase("Tanium") && reportBy.equalsIgnoreCase("User"))) {
+		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax") || (deviceType.equalsIgnoreCase("Tanium") && reportBy.equalsIgnoreCase("User"))
+				|| (deviceType.equalsIgnoreCase("Tanium") && reportBy.equalsIgnoreCase("Sudoers"))) {
 			resultObject.put("subLinkDetails", getDSRConfigData(request, deviceType));
 		}
 		

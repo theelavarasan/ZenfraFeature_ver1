@@ -1335,7 +1335,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			
 			if(columnName.startsWith("Sudoers Summary~")) {
 				
-				query = "select json_agg(distinct " + columnName.replace("Sudoers Summary~", "") + ") as column_values from SUDOERS_SUMMARY_DETAILS "
+				query = "select json_agg(distinct " + columnName.replace("Sudoers Summary~", "") + ") as column_values from user_sudoers_summary_details "
 						+ "where site_key = '" + siteKey + "'";
 			} else {
 				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
