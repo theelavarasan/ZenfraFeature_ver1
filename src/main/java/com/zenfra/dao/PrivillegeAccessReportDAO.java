@@ -123,7 +123,7 @@ public class PrivillegeAccessReportDAO {
 		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
 		} else {
-			column1 = " coalesce(coalesce(SDT.SDJSONDATA,''{}'')::jsonb || coalesce(SDT1.SDJSONDATA,''{}'')::jsonb ->> '''";
+			column1 = " coalesce(coalesce(sd.data,''{}'')::jsonb || coalesce(sd1.data,''{}'')::jsonb ->> '''";
 		}
 		
 		
@@ -173,19 +173,21 @@ public class PrivillegeAccessReportDAO {
 				+ ") f";*/
 		
 		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
-				+ "select rule_id, string_agg(condition_value, ' ') as condition_value from (\r\n"
+				+ "select rule_id, string_agg(condition_value, ' AND ') as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field,\r\n"
-				+ "(case when con_id = 0 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
-				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' or ') as condition_value from (\r\n"
+				+ "(case when rule_row = 1 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' ') over(partition by rule_id, con_operator) as condition_value,\r\n"
+				+ "row_number() over(partition by rule_id, con_operator) as rule_row from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
-				+ "concat(con_operator, ' ', (case when con_field_id ilike '" + prefix + "%' then ' ' else '" + column1 + " end),  (case when con_field_id ilike '" + prefix + "%' then substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id))  else concat(con_field_id,''','''')') end), ' ', \r\n"
+				+ "concat((case when op_row = 1 then null else con_operator end), ' ', (case when con_field_id ilike '" + prefix + "%' then ' ' else '" + column1 + " end),  (case when con_field_id ilike '" + prefix + "%' then substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id))  else concat(con_field_id,''','''')') end), ' ', \r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
-				+ "(case when con_condition = 'startsWith' then concat(' ''(',con_value, ')%''') else (case when con_condition = 'endsWith' then concat(' ''%(',con_value, ')''')\r\n"
+				+ "(case when con_condition = 'startsWith' then concat(' ''',con_value, '%''') else (case when con_condition = 'endsWith' then concat(' ''%',con_value, '''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')\r\n"
-				+ "else (case when con_condition = 'contains' then concat(' ''%(',con_value, ')%''') else concat(' ''',con_value, '''') end) end) end) end) end), (case when con_field_id ilike '" + prefix + "%' then '' else '' end)) as condition_value from (\r\n"
-				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value from (\r\n"
-				+ "select report_by, rule_id, con_field_id, con_id, coalesce(con_operator, '') as con_operator, con_condition, con_value from (\r\n"
+				+ "else (case when con_condition = 'contains' then concat(' ''%',con_value, '%''') else concat(' ''',con_value, '''') end) end) end) end) end), (case when con_field_id ilike '" + prefix + "%' then '' else '' end)) as condition_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, row_number() over() as con_id, con_operator, con_condition, con_value, op_row from ("
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value, row_number() over(partition by rule_id, con_operator) as op_row from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, (case when con_operator is null then lead(con_operator) over(partition by rule_id order by rule_id, con_id) else con_operator end) as con_operator, con_condition, con_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, concat('(', string_agg(con_value, '|'), ')') as con_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, (case when con_id is null then 0 else con_id::int end) as con_id,\r\n"
 				+ "con_operator,\r\n"
@@ -208,12 +210,13 @@ public class PrivillegeAccessReportDAO {
 				+ ") a2 \r\n"
 				+ ") a22\r\n"
 				+ ") a3\r\n"
-				+ ") b order by con_id\r\n"
+				+ ") b group by report_by, rule_id, con_field_id, con_id, con_operator, con_condition order by rule_id, con_id\r\n"
 				+ ") c\r\n"
 				+ ") d\r\n"
 				+ ") e\r\n"
-				+ ") f group by report_by, rule_id, con_field_id, con_id, con_operator, condition_field order by con_id\r\n"
-				+ ") d\r\n"
+				+ ") e1\r\n"
+				+ ") f --group by report_by, rule_id, con_field_id, con_id, con_operator, condition_field order by con_id\r\n"
+				+ ") d where rule_row = 1 \r\n"
 				+ ") g group by rule_id\r\n"
 				+ ") f";
 		
