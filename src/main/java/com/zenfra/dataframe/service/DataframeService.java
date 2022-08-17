@@ -3439,7 +3439,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				if (xaxisColumnNameField.startsWith("User Summary~")) {
 					query = query.concat(" where " + xaxisColumnNameField.substring(13) + " is not null");
 				} else {
-					query = query.concat(" WHERE SR_DATA::JSON ->> '" + pieChartField + "' is not null");
+					query = query.concat(" WHERE SR_DATA::JSON ->> '" + xaxisColumnNameField + "' is not null");
 				}
 			}
 		/*
@@ -3515,7 +3515,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String pieChartColName = "";
 		String pieChartClassName = "";
 		String pieChartField = "";
-
+		String pieChartFieldSubString = "";
+		
 		// yaxis column names
 		JSONObject yaxisColumn = new JSONObject();
 		String yaxisColumnName = "";
@@ -3526,17 +3527,20 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		JSONArray yaxisColumnField = new JSONArray();
 		String yaxisColumnFieldName = "";
 		boolean yaxisServerCheck = false;
+		String yaxisFieldSubString = "";
 
 		// xaxis column names
 		JSONObject xaxisColumn = new JSONObject();
 		String xaxisColumnNameField = "";
 		String xaxisColumnName = "";
 		String xaxisColumnClassName = "";
+		String xaxisFieldSubString = "";
 
 		// breakdown names
 		JSONObject breakDown = new JSONObject();
 		String breakDownName = "";
 		String breakDownField = "";
+		String breakdownFieldSubString = "";
 
 		String query = "WITH SDDATA AS\r\n"
 				+ "(\r\n"
@@ -3579,17 +3583,25 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			pieChartClassName = (String) pieChartObject.get("className");
 			pieChartField = (String) pieChartObject.get("field");
 
-			if (pieChartField.startsWith("Server Summary~")) {
-				query = query.concat("select " + pieChartField.substring(13) + " as \"colName\"");
+			
+			 if(pieChartField.startsWith("Server Summary~")) {
+				 pieChartFieldSubString = pieChartField.substring(15);
+			 } else if(pieChartField.startsWith("Server Data~")) {
+				 pieChartFieldSubString = pieChartField.substring(12);
+			 }
+			System.out.println("pieChartFieldSub : " + pieChartFieldSubString);
+			
+			if (pieChartField.startsWith("Server Summary~") || pieChartField.startsWith("Server Data~")) {
+				query = query.concat("select " + pieChartFieldSubString + " as \"colName\"");
 			} else {
 				query = query.concat("SELECT source_data::JSON ->> '" + pieChartField + "' AS \"colName\"");
 			}
 
-			if (pieChartField.startsWith("Server Summary~")) {
+			if (pieChartField.startsWith("Server Summary~") || pieChartField.startsWith("Server Data~")) {
 				if (pieChartClassName.contains("count")) {
-					query = query.concat(", count(" + pieChartField.substring(13) + ") as \"colValue\"");
+					query = query.concat(", count(" + pieChartFieldSubString + ") as \"colValue\"");
 				} else if (pieChartClassName.contains("sum")) {
-					query = query.concat(", sum(" + pieChartField.substring(13) + "::int) as \"colValue\"");
+					query = query.concat(", sum(" + pieChartFieldSubString + "::int) as \"colValue\"");
 				}
 			} else {
 				if (pieChartClassName.contains("count")) {
@@ -3620,15 +3632,29 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				yaxisColumnField.add(yaxisColumnFieldName);
 			}
 
-			if (xaxisColumnNameField.startsWith("Server Summary~")) {
-				query = query.concat("select " + xaxisColumnNameField.substring(13) + " as \"colName\"");
+			if(xaxisColumnNameField.startsWith("Server Summary~")) {
+				xaxisFieldSubString = xaxisColumnNameField.substring(15);
+			} else if(xaxisColumnNameField.startsWith("Server Data~")) {
+				xaxisFieldSubString = xaxisColumnNameField.substring(12);
+			}
+			
+			System.out.println("xaxisFieldSubString : " + xaxisFieldSubString);
+			
+			if (xaxisColumnNameField.startsWith("Server Summary~") || xaxisColumnNameField.startsWith("Server Data~")) {
+				query = query.concat("select " + xaxisFieldSubString + " as \"colName\"");
 			} else {
 				query = query.concat("select source_data::JSON ->> '" + xaxisColumnNameField + "' as \"colName\"");
 			}
 
 			if (breakDownName != null && !breakDownName.isEmpty()) {
-				if (breakDownField.startsWith("Server Summary~")) {
-					query = query.concat(", " + breakDownField.substring(13) + " as \"colBreakdown\"");
+				if(breakDownField.startsWith("Server Summary~")) {
+					breakdownFieldSubString = breakDownField.substring(15);
+				} else if(breakDownField.startsWith("Server Data~")) {
+					breakdownFieldSubString = breakDownField.substring(12);
+				}
+				System.out.println("breakdownFieldSubString : " + breakdownFieldSubString);
+				if (breakDownField.startsWith("Server Summary~") || breakDownField.startsWith("Server Data~")) {
+					query = query.concat(", " + breakdownFieldSubString + " as \"colBreakdown\"");
 				} else {
 					query = query.concat(", source_data::JSON ->> '" + breakDownField + "' as \"colBreakdown\"");
 				}
@@ -3640,11 +3666,19 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 				String yFieldCheck = (String) yaxisColumnField.get(i);
 				System.out.println("yFieldCheck : " + yFieldCheck);
-				if (yFieldCheck.startsWith("Server Summary~")) {
+				
+				if(yFieldCheck.startsWith("Server Summary~")) {
+					yaxisFieldSubString = yFieldCheck.substring(15);
+				} else if(yFieldCheck.startsWith("Server Data~")) {
+					yaxisFieldSubString = yFieldCheck.substring(12);
+				}
+				System.out.println("yaxisFieldSubString : " + yaxisFieldSubString);
+				
+				if (yFieldCheck.startsWith("Server Summary~") || yFieldCheck.startsWith("Server Data~")) {
 					if (operater.contains("count")) {
-						query = query.concat(", count(" + yFieldCheck.substring(13) + ") as \"colValue" + i + "\"");
+						query = query.concat(", count(" + yaxisFieldSubString + ") as \"colValue" + i + "\"");
 					} else if (operater.contains("sum")) {
-						query = query.concat(", sum(" + yFieldCheck.substring(13) + "::int) as \"colValue" + i + "\"");
+						query = query.concat(", sum(" + yaxisFieldSubString + "::int) as \"colValue" + i + "\"");
 					}
 				} else {
 					if (operater.contains("count")) {
@@ -3659,16 +3693,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			query = query.concat(" FROM PDD");
 
 			if (chartType.equalsIgnoreCase("pie")) {
-				if (pieChartField.startsWith("Server Summary~")) {
-					query = query.concat(" where " + pieChartField.substring(13) + " is not null");
+				if (pieChartField.startsWith("Server Summary~") || pieChartField.startsWith("Server Data~")) {
+					query = query.concat(" where " + pieChartFieldSubString + " is not null");
 				} else {
 					query = query.concat(" WHERE source_data::JSON ->> '" + pieChartField + "' is not null");
 				}
 			} else if(chartTypes.contains(chartType)) {
-				if (xaxisColumnNameField.startsWith("Server Summary~")) {
-					query = query.concat(" where " + xaxisColumnNameField.substring(13) + " is not null");
+				if (xaxisColumnNameField.startsWith("Server Summary~") || xaxisColumnNameField.startsWith("Server Data~")) {
+					query = query.concat(" where " + xaxisFieldSubString + " is not null");
 				} else {
-					query = query.concat(" WHERE source_data::JSON ->> '" + pieChartField + "' is not null");
+					query = query.concat(" WHERE source_data::JSON ->> '" + xaxisColumnNameField + "' is not null");
 				}
 			}
 		/*
@@ -3694,21 +3728,21 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 		query = query.concat(" group by ");
 		if (chartType.equalsIgnoreCase("pie")) {
-			if (pieChartField.startsWith("Server Summary~")) {
-				query = query.concat(" " + pieChartField.substring(13) + "");
+			if (pieChartField.startsWith("Server Summary~") || pieChartField.startsWith("Server Data~")) {
+				query = query.concat(" " + pieChartFieldSubString + "");
 			} else {
 				query = query.concat(" source_data::JSON ->> '" + pieChartField + "' ");
 			}
 		} else if (chartTypes.contains(chartType)) {
-			if (xaxisColumnNameField.startsWith("Server Summary~")) {
-				query = query.concat(" " + xaxisColumnNameField.substring(13) + " ");
+			if (xaxisColumnNameField.startsWith("Server Summary~") || xaxisColumnNameField.startsWith("Server Data~")) {
+				query = query.concat(" " + xaxisFieldSubString + " ");
 			} else {
 				query = query.concat(" source_data::JSON ->> '" + xaxisColumnNameField + "' ");
 			}
 
 			if (breakDownName != null && !breakDownName.isEmpty()) {
-				if (breakDownField.startsWith("Server Summary~")) {
-					query = query.concat(", " + breakDownField.substring(13) + " ");
+				if (breakDownField.startsWith("Server Summary~") || breakDownField.startsWith("Server Data~")) {
+					query = query.concat(", " + breakdownFieldSubString + " ");
 				} else {
 					query = query.concat(", source_data::JSON ->> '" + breakDownField + "' ");
 				}
