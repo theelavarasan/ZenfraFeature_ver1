@@ -783,8 +783,12 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(s.getActualColId().startsWith(prefix)) {
     				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     				System.out.println("!!!!! column_name: " + column_name);
+    				if(column_name.equalsIgnoreCase("servers_count")) {
+    					orderBy = " order by (case when servers_count is null or servers_count = '' then 0 else " + column_name + "::int end)" + s.getSort();
+    				} else {
+    					orderBy = " order by " + column_name + " " + s.getSort();
+    				}
     				
-    				orderBy = " order by " + column_name + " " + s.getSort();
     				
     			} 
     		}
