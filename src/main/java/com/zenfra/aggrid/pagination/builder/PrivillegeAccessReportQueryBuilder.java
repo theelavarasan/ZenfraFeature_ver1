@@ -477,7 +477,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
     						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
     						
-    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator + " ") : " and ") + ((columnArray.size() > 1 && i == 0) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     					}  
     					
     					
@@ -494,9 +494,9 @@ public class PrivillegeAccessReportQueryBuilder {
     						}
     						
     						if(((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
-    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + " and " + value2 + " " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator + " ") : " and ") + ((columnArray.size() > 1 && i == 0) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + " and " + value2 + " " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     						} else {
-    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator+ " ") : " and ") + ((columnArray.size() > 1 && i == 0) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     						}
     						
     					} 
@@ -552,6 +552,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				JSONArray columnArray = new JSONArray();
     				
     				String operator = " and";
+    				System.out.println("!!!!! columnObject: " + columnObject);
     				if(columnObject.containsKey("condition1") && columnObject.get("condition1") != null && columnObject.containsKey("condition2") && columnObject.get("condition2") != null) {
     					columnArray.add(columnObject.get("condition1"));
     					columnArray.add(columnObject.get("condition2"));
@@ -606,10 +607,10 @@ public class PrivillegeAccessReportQueryBuilder {
     							column1 = "coalesce(coalesce(sd.data,'{}')::jsonb || coalesce(sd1.data,'{}')::jsonb ->> '" + column + "','') ";
     						}
     						
-    						System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
-    						System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
-    						
-    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    						//System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());
+    						//System.out.println("filter type: " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()));
+    						System.out.println("!!!!! columnArray size: " + columnArray.size() + " ---- i == " + i);
+    						filterQuery = filterQuery.append(((i == 1) ? (" " + operator + " ") : " and ") + ((columnArray.size() > 1 && i == 0) ? "(": "") +  column1 + " " + OperatorModel.getOperator(((TextColumnFilter) columnFilter).getType()) + " '" + value + "'" + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     					
     					}
     					
@@ -641,9 +642,9 @@ public class PrivillegeAccessReportQueryBuilder {
     						}
     						
     						if(((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("inRange")) {
-    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + " and " + value2 + " " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator + " ") : " and ") + ((columnArray.size() > 1 && i == 0) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + " and " + value2 + " " + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     						} else {
-    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator) : " and ") + ((columnArray.size() > 1 && i == 1) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + ((columnArray.size() > 1 && i == 1) ? ")": ""));
+    							filterQuery = filterQuery.append(((i == 1) ? (" " + operator + " ") : " and ") + ((columnArray.size() > 1 && i == 0) ? "(": "") + column1 + " <> '' and " + column1 + "::numeric " + OperatorModel.getOperator(((NumberColumnFilter) columnFilter).getType()) + " " + value1 + ((columnArray.size() > 1 && i == 1) ? ")": ""));
     						}
     						
 							/*if(((NumberColumnFilter) columnFilter).getType() != null && ((NumberColumnFilter) columnFilter).getType().equalsIgnoreCase("equals")) {
@@ -783,8 +784,12 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(s.getActualColId().startsWith(prefix)) {
     				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
     				System.out.println("!!!!! column_name: " + column_name);
+    				if(column_name.equalsIgnoreCase("servers_count")) {
+    					orderBy = " order by (case when servers_count is null or servers_count = '' then 0 else " + column_name + "::int end)" + s.getSort();
+    				} else {
+    					orderBy = " order by " + column_name + " " + s.getSort();
+    				}
     				
-    				orderBy = " order by " + column_name + " " + s.getSort();
     				
     			} 
     		}
