@@ -83,6 +83,9 @@ public class ReportService {
 			if(reportBy.equalsIgnoreCase("Privileged Access")) {
 				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
 				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
+			} else if((reportBy.equalsIgnoreCase("User") || reportBy.equalsIgnoreCase("Server") || reportBy.equalsIgnoreCase("Sudoers")) && reportName.equalsIgnoreCase("End-To-End-Basic")) {
+				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
+				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
 			} else {
 				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 			}
@@ -105,13 +108,23 @@ public class ReportService {
 			report_label = "Cloud Cost Comparison Report";
 			report_name = "optimization" + "_" + reportCategory + "_" + actualDeviceType + "_" + reportBy;
 		}
+		
 
 		JSONObject resultObject = new JSONObject();
 		resultObject.put("headerInfo", result);
 		resultObject.put("columnGroupInfo", groupResult);
-		resultObject.put("report_label", report_label);
+		if(category.equalsIgnoreCase("user") && reportList.equalsIgnoreCase("End-To-End-Basic") && reportBy.equalsIgnoreCase("user") && deviceType.equalsIgnoreCase("tanium")) {
+			resultObject.put("report_label", "User Summary");
+		} else if(category.equalsIgnoreCase("user") && reportList.equalsIgnoreCase("End-To-End-Basic") && reportBy.equalsIgnoreCase("server") && deviceType.equalsIgnoreCase("tanium")) {
+			resultObject.put("report_label", "Server Summary");
+		} else if(category.equalsIgnoreCase("user") && reportList.equalsIgnoreCase("End-To-End-Basic") && reportBy.equalsIgnoreCase("Sudoers") && deviceType.equalsIgnoreCase("tanium")) {
+			resultObject.put("report_label", "Sudoers Summary");
+		} else {
+			resultObject.put("report_label", report_label);
+		}
 		resultObject.put("report_name", report_name);
-		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax")) {
+		if(deviceType.equalsIgnoreCase("ibmsvc") || deviceType.equalsIgnoreCase("vmax") || (deviceType.equalsIgnoreCase("Tanium") && reportBy.equalsIgnoreCase("User"))
+				|| (deviceType.equalsIgnoreCase("Tanium") && reportBy.equalsIgnoreCase("Sudoers"))) {
 			resultObject.put("subLinkDetails", getDSRConfigData(request, deviceType));
 		}
 		

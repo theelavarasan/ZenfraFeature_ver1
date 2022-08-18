@@ -29,6 +29,18 @@ public class ReportQueries {
 	
 	private String taniumGroup;
 
+	private String userSummaryHeader;
+	
+	private String serverSummaryHeader;
+	
+	private String taniumUserSummaryGroup;
+	
+	private String taniumServerSummaryGroup;
+	
+	private String sudoersSummaryHeader;
+	
+	private String taniumSudoersSummaryGroup;
+	
 	public String getHeader() {
 		return header;
 	}
@@ -109,7 +121,53 @@ public class ReportQueries {
 	public void setTaniumGroup(String taniumGroup) {
 		this.taniumGroup = taniumGroup;
 	}
-	
-	
+
+	public String getUserSummaryHeader() {
+		return userSummaryHeader;
+	}
+
+	public void setUserSummaryHeader(String userSummaryHeader) {
+		this.userSummaryHeader = userSummaryHeader;
+	}
+
+	public String getServerSummaryHeader() {
+		return serverSummaryHeader;
+	}
+
+	public void setServerSummaryHeader(String serverSummaryHeader) {
+		this.serverSummaryHeader = serverSummaryHeader;
+	}
+
+	public String getTaniumUserSummaryGroup() {
+		return taniumUserSummaryGroup;
+	}
+
+	public void setTaniumUserSummaryGroup(String taniumUserSummaryGroup) {
+		this.taniumUserSummaryGroup = taniumUserSummaryGroup;
+	}
+
+	public String getTaniumServerSummaryGroup() {
+		return taniumServerSummaryGroup;
+	}
+
+	public void setTaniumServerSummaryGroup(String taniumServerSummaryGroup) {
+		this.taniumServerSummaryGroup = taniumServerSummaryGroup;
+	}
+
+	public String getSudoersSummaryHeader() {
+		return sudoersSummaryHeader;
+	}
+
+	public void setSudoersSummaryHeader(String sudoersSummaryHeader) {
+		this.sudoersSummaryHeader = sudoersSummaryHeader;
+	}
+
+	public String getTaniumSudoersSummaryGroup() {
+		return taniumSudoersSummaryGroup;
+	}
+
+	public void setTaniumSudoersSummaryGroup(String taniumSudoersSummaryGroup) {
+		this.taniumSudoersSummaryGroup = taniumSudoersSummaryGroup;
+	}
 	
 }

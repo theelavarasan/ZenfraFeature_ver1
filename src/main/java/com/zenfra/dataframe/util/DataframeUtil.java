@@ -150,7 +150,7 @@ public class DataframeUtil {
 					.replaceAll(":\"\\[\\{", ":\"\",").replaceAll("\\}\\]\"", "")
 					.replaceAll(":\\[\\{", ":\"\",").replaceAll("\\}\\]", "")).collect(Collectors.toList());
 			
-			
+			//System.out.println("!!!!! replaced: " + replaced);
 			Files.write(path, replaced);
 			lines.close();
 			

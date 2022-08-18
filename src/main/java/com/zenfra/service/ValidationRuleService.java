@@ -1,12 +1,10 @@
 package com.zenfra.service;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,7 +12,6 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONArray;
@@ -26,7 +23,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zenfra.dataframe.request.ServerSideGetRowsRequest;
 import com.zenfra.dataframe.service.DataframeService;
 import com.zenfra.model.ZKConstants;
 import com.zenfra.model.ZKModel;
@@ -739,8 +735,19 @@ public class ValidationRuleService {
 		JSONArray resultArray = new JSONArray();
 
 		try {
+			
+			String query = "";
+			
+			if(columnName.startsWith("Server Data~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("Server Data~", "") + ") as column_values from privillege_data_details "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+						" and data::json ->> '" + columnName + "' is not null";
+			}
 
-			String query = "select keys, json_agg(column_values) as column_values from (\r\n"
+			/*String query = "select keys, json_agg(column_values) as column_values from (\r\n"
 					+ "select distinct keys, column_values from (\r\n"
 					+ "select concat('Server Data~', keys) as keys, data::json ->> keys as column_values from (\r\n"
 					+ "select data, json_object_keys(data::json) as keys from (\r\n"
@@ -749,9 +756,10 @@ public class ValidationRuleService {
 					+ ") a\r\n"
 					+ ") b\r\n"
 					+ "union all\r\n"
-					+ "select concat(source_name, '~', keys) as keys, data::json ->> keys as column_values from (\r\n"
+					+ "select concat(keys) as keys, data::json ->> keys as column_values from (\r\n"
 					+ "select source_name, data, json_object_keys(data::json) as keys from (\r\n"
-					+ "select sd.source_id, s.source_name, primary_key_value, replace(data, '.0\"', '\"') as data, row_number() over(partition by sd.source_id, primary_key_value order by update_time desc) as row_num\r\n"
+					+ "select sd.source_id, s.source_name, primary_key_value, replace(data, '.0\"', '\"') as data, row_number() over(partition by sd.source_id, primary_key_value "
+					+ "order by update_time desc) as row_num\r\n"
 					+ "from source_data sd\r\n"
 					+ "LEFT JOIN source s on s.source_id = sd.source_id and s.site_key = '" + siteKey + "'\r\n"
 					+ "where sd.site_key = '" + siteKey + "' \r\n"
@@ -760,12 +768,11 @@ public class ValidationRuleService {
 					+ ") c\r\n"
 					+ ") d where keys <> 'sourceId' and keys <> 'siteKey'\r\n"
 					+ ") e where keys = '" + columnName + "'\r\n"
-					+ "group by keys";
+					+ "group by keys";*/
 
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
-			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -1223,6 +1230,136 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			ExceptionHandlerMail.errorTriggerMail(ex);
 		}
 
+		return resultArray;
+
+	}
+	
+	public JSONArray getVR_TaniumUsers(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+			columnName = columnName.startsWith("User Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : ("source_json_data::json ->> '" + columnName + "'");
+			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
+					+ "WITH SDDATA AS\r\n"
+					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_collect(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
+					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
+					+ "        WHERE SD.SITE_KEY = '" + siteKey + "' AND SR.IS_ACTIVE = true\r\n"
+					+ "            AND (SR.LINK_TO = 'All' OR SR.LINK_TO = 'None') GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
+					+ "SELECT count(1) over() as row_count, USRD.USER_NAME,\r\n"
+					+ "    USRD.USER_ID,\r\n"
+					+ "    USRD.GROUP_ID,\r\n"
+					+ "    USRD.SERVERS_COUNT,\r\n"
+					+ "    USRD.PRIMARY_GROUP_NAME,\r\n"
+					+ "    USRD.SECONDARY_GROUP_NAME,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_USER,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
+					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
+					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS, COALESCE(SDT.SDJSONDATA::TEXT, '{}') AS SOURCE_JSON_DATA\r\n"
+					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD\r\n"
+					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE\r\n"
+					+ "WHERE SITE_KEY = '" + siteKey + "'    \r\n"
+					+ ") A";
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
+	}
+	
+	public JSONArray getVR_TaniumServer(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+		
+		//System.out.println("!!!!! Server Summary: ");
+
+		try {
+			
+			String query = "";
+			
+			if(columnName.startsWith("Server Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("Server Summary~", "") + ") as column_values from privillege_data_details "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+						" and data::json ->> '" + columnName + "' is not null";
+			}
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			//System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+			
+			//System.out.println("!!!!! resultArray1: " + resultArray);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		
+		//System.out.println("!!!!! resultArray2: " + resultArray);
+		return resultArray;
+
+	} 
+	
+	public JSONArray getVR_TaniumSudoers(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+		
+		//System.out.println("!!!!! Server Summary: ");
+
+		try {
+			
+			String query = "";
+			
+			if(columnName.startsWith("Sudoers Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("Sudoers Summary~", "") + ") as column_values from user_sudoers_summary_details "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+						" and data::json ->> '" + columnName + "' is not null";
+			}
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			//System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+			
+			//System.out.println("!!!!! resultArray1: " + resultArray);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+		
+		//System.out.println("!!!!! resultArray2: " + resultArray);
 		return resultArray;
 
 	}

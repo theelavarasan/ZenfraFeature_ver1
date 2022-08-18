@@ -16,8 +16,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -43,6 +45,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenfra.model.FavouriteModel;
+import com.zenfra.model.PrefixModel;
 import com.zenfra.model.ftp.FtpScheduler;
 
 @Component
@@ -795,4 +798,61 @@ public class CommonFunctions {
 		return obj1;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public JSONArray dataNormalize(List<Map<String, Object>> rows, String reportBy) {
+    	
+    	JSONArray resultArray = new JSONArray();
+    	JSONParser parser = new JSONParser();
+    	
+    	String prefix = PrefixModel.getPrefix(reportBy);
+    	
+    	try {
+    		for(Map<String, Object> row : rows) {
+    			JSONObject resultObject = new JSONObject();
+    			List<String> keys = new ArrayList<>(row.keySet());
+    			for(int i = 0; i < keys.size(); i++) {
+    				if(keys.get(i).equalsIgnoreCase("privillege_data")) {
+    					JSONObject dataObject = (JSONObject) parser.parse(row.get(keys.get(i)) == null ? "{}" : row.get(keys.get(i)).toString());
+    					if(!dataObject.isEmpty()) {
+    						List<String> dataKeys = new ArrayList<>(dataObject == null ? new HashSet<>() : dataObject.keySet());
+        					for(int j = 0; j < dataObject.size(); j++) {
+        						
+        						resultObject.put(prefix + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
+        						
+        					}
+    					}
+    					
+    				} else if(keys.get(i).contains("source_data")) {
+    					JSONObject sourceDataObject = (JSONObject) parser.parse(row.get(keys.get(i)) == null ? "{}" : row.get(keys.get(i)).toString());
+    					if(sourceDataObject != null & !sourceDataObject.isEmpty()) {
+    						Set<String> keySet = sourceDataObject == null ? new HashSet<>() : sourceDataObject.keySet();
+    						for(String key : keySet) {
+    							resultObject.put(key, sourceDataObject.get(key));
+    						}
+    					}
+    					
+    				} else {
+    					if(!keys.get(i).equalsIgnoreCase("row_count")) {
+    						
+    						if(keys.get(i).equalsIgnoreCase("servers_count")) {
+    							resultObject.put(prefix + keys.get(i), Integer.parseInt(row.get(keys.get(i)).toString()));
+    						} else {
+    							resultObject.put(prefix + keys.get(i), row.get(keys.get(i)));
+    						}
+    						
+    						
+    					} 
+    				}
+    			}
+    			if(!resultObject.isEmpty()) {
+    				resultArray.add(resultObject);
+    			}
+    			
+    		}
+    	} catch(Exception e) {
+    		e.printStackTrace();
+    	}
+    	
+    	return resultArray;
+    }
 }
