@@ -743,7 +743,7 @@ public class ValidationRuleService {
 				query = "select json_agg(distinct " + columnName.replace("Server Data~", "") + ") as column_values from privillege_data_details "
 						+ "where site_key = '" + siteKey + "'";
 			} else {
-				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
 						" and data::json ->> '" + columnName + "' is not null";
 			}
 
@@ -1297,7 +1297,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 				query = "select json_agg(distinct " + columnName.replace("Server Summary~", "") + ") as column_values from privillege_data_details "
 						+ "where site_key = '" + siteKey + "'";
 			} else {
-				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
 						" and data::json ->> '" + columnName + "' is not null";
 			}
 					
@@ -1338,7 +1338,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 				query = "select json_agg(distinct " + columnName.replace("Sudoers Summary~", "") + ") as column_values from user_sudoers_summary_details "
 						+ "where site_key = '" + siteKey + "'";
 			} else {
-				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
 						" and data::json ->> '" + columnName + "' is not null";
 			}
 					
