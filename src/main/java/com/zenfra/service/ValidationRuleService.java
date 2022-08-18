@@ -743,7 +743,7 @@ public class ValidationRuleService {
 				query = "select json_agg(distinct " + columnName.replace("Server Data~", "") + ") as column_values from privillege_data_details "
 						+ "where site_key = '" + siteKey + "'";
 			} else {
-				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
 						" and data::json ->> '" + columnName + "' is not null";
 			}
 
@@ -1239,28 +1239,17 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		JSONArray resultArray = new JSONArray();
 
 		try {
-			columnName = columnName.startsWith("User Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : ("source_json_data::json ->> '" + columnName + "'");
-			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
-					+ "WITH SDDATA AS\r\n"
-					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_collect(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
-					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
-					+ "        WHERE SD.SITE_KEY = '" + siteKey + "' AND SR.IS_ACTIVE = true\r\n"
-					+ "            AND (SR.LINK_TO = 'All' OR SR.LINK_TO = 'None') GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
-					+ "SELECT count(1) over() as row_count, USRD.USER_NAME,\r\n"
-					+ "    USRD.USER_ID,\r\n"
-					+ "    USRD.GROUP_ID,\r\n"
-					+ "    USRD.SERVERS_COUNT,\r\n"
-					+ "    USRD.PRIMARY_GROUP_NAME,\r\n"
-					+ "    USRD.SECONDARY_GROUP_NAME,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_USER,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
-					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS, COALESCE(SDT.SDJSONDATA::TEXT, '{}') AS SOURCE_JSON_DATA\r\n"
-					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD\r\n"
-					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE\r\n"
-					+ "WHERE SITE_KEY = '" + siteKey + "'    \r\n"
-					+ ") A";
+			
+			String query = "";
+			
+			if(columnName.startsWith("User Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("User Summary~", "") + ") as column_values from USER_SUMMARY_REPORT_DETAILS "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+						" and data::json ->> '" + columnName + "' is not null";
+			}
 					
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
@@ -1297,7 +1286,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 				query = "select json_agg(distinct " + columnName.replace("Server Summary~", "") + ") as column_values from privillege_data_details "
 						+ "where site_key = '" + siteKey + "'";
 			} else {
-				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
 						" and data::json ->> '" + columnName + "' is not null";
 			}
 					
@@ -1338,7 +1327,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 				query = "select json_agg(distinct " + columnName.replace("Sudoers Summary~", "") + ") as column_values from user_sudoers_summary_details "
 						+ "where site_key = '" + siteKey + "'";
 			} else {
-				query = "select json_agg(distinct replace(data,'null,','\"\",')::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
 						" and data::json ->> '" + columnName + "' is not null";
 			}
 					
