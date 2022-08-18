@@ -71,7 +71,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.mortbay.util.ajax.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,7 +88,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.univocity.parsers.annotations.Convert;
 import com.zenfra.configuration.AwsInventoryPostgresConnection;
 import com.zenfra.dao.AwsInstanceCcrDataRepository;
 import com.zenfra.dao.FavouriteDao_v2;
@@ -3752,6 +3750,213 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		return query;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public String priviledgeSudoersChartQueries(JSONObject chartConfig, String siteKey, String chartType)
+			throws ParseException {
+		System.out.println("Query builder for priviledge charts");
+
+		System.out.println("-----------chartConfig : " + chartConfig);
+
+		JSONParser jsonParser = new JSONParser();
+		JSONArray chartTypes = new JSONArray();
+		chartTypes.add("bar");
+		chartTypes.add("line");
+		chartTypes.add("table");
+		chartTypes.add("scatter");
+
+		System.out.println("ChartTypes : " + chartTypes + " : " + chartType);
+		System.out.println("ChartTypes : " + chartTypes.contains(chartType));
+
+		JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
+		JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
+		JSONArray breakDownAry = (JSONArray) chartConfig.get("breakdown");
+
+		JSONArray pieChartCols = new JSONArray();
+		JSONObject pieChartObject = new JSONObject();
+		String pieChartColName = "";
+		String pieChartClassName = "";
+		String pieChartField = "";
+
+		// yaxis column names
+		JSONObject yaxisColumn = new JSONObject();
+		String yaxisColumnName = "";
+		JSONArray yaxisNames = new JSONArray();
+		String className = "";
+		JSONArray classNameArray = new JSONArray();
+
+		JSONArray yaxisColumnField = new JSONArray();
+		String yaxisColumnFieldName = "";
+		boolean yaxisServerCheck = false;
+
+		// xaxis column names
+		JSONObject xaxisColumn = new JSONObject();
+		String xaxisColumnNameField = "";
+		String xaxisColumnName = "";
+		String xaxisColumnClassName = "";
+
+		// breakdown names
+		JSONObject breakDown = new JSONObject();
+		String breakDownName = "";
+		String breakDownField = "";
+
+		String query = "";
+
+		if (chartType.equalsIgnoreCase("pie")) {
+
+			pieChartCols = (JSONArray) chartConfig.get("column");
+			pieChartObject = (JSONObject) pieChartCols.get(0);
+			pieChartColName = (String) pieChartObject.get("value");
+			pieChartClassName = (String) pieChartObject.get("className");
+			pieChartField = (String) pieChartObject.get("field");
+
+			if (pieChartField.startsWith("Sudoers Summary~")) {
+				query = query.concat("select " + pieChartField.substring(16) + " as \"colName\"");
+			} else {
+				query = query.concat("SELECT source_data1::JSON ->> '" + pieChartField + "' AS \"colName\"");
+			}
+
+			if (pieChartField.startsWith("Sudoers Summary~")) {
+				if (pieChartClassName.contains("count")) {
+					query = query.concat(", count(" + pieChartField.substring(16) + ") as \"colValue\"");
+				} else if (pieChartClassName.contains("sum")) {
+					query = query.concat(", sum(" + pieChartField.substring(16) + "::int) as \"colValue\"");
+				}
+			} else {
+				if (pieChartClassName.contains("count")) {
+					query = query.concat(", count(source_data1::JSON ->> '" + pieChartField + "') as \"colValue\"");
+				} else if (pieChartClassName.contains("sum")) {
+					query = query.concat(", sum((source_data1::JSON ->> '" + pieChartField + "')::int) as \"colValue\"");
+				}
+			}
+
+		} else if (chartTypes.contains(chartType)) {
+			xaxisColumn = (JSONObject) xaxisColumnAry.get(0);
+			xaxisColumnNameField = (String) xaxisColumn.get("field");
+			xaxisColumnName = (String) xaxisColumn.get("value");
+			xaxisColumnClassName = (String) xaxisColumn.get("className");
+
+			breakDown = breakDownAry.isEmpty() ? new JSONObject() : (JSONObject) breakDownAry.get(0);
+			breakDownName = (String) breakDown.get("value");
+			breakDownField = (String) breakDown.get("field");
+
+			for (int i = 0; i < yaxisColumnAry.size(); i++) {
+				yaxisColumn = (JSONObject) yaxisColumnAry.get(i);
+				yaxisColumnName = (String) yaxisColumn.get("value");
+				yaxisNames.add(yaxisColumnName);
+				className = (String) yaxisColumn.get("className");
+				classNameArray.add(className);
+				yaxisColumnFieldName = (String) yaxisColumn.get("field");
+				yaxisColumnField.add(yaxisColumnFieldName);
+			}
+
+			if (xaxisColumnNameField.startsWith("Sudoers Summary~")) {
+				query = query.concat("select " + xaxisColumnNameField.substring(16) + " as \"colName\"");
+			} else {
+				query = query.concat("select source_data1::JSON ->> '" + xaxisColumnNameField + "' as \"colName\"");
+			}
+
+			if (breakDownName != null && !breakDownName.isEmpty()) {
+				if (breakDownField.startsWith("Sudoers Summary~")) {
+					query = query.concat(", " + breakDownField.substring(16) + " as \"colBreakdown\"");
+				} else {
+					query = query.concat(", source_data1::JSON ->> '" + breakDownField + "' as \"colBreakdown\"");
+				}
+			}
+
+			System.out.println("yaxisColumnField : " + yaxisColumnField);
+			for (int i = 0; i < yaxisColumnField.size(); i++) {
+				String operater = (String) classNameArray.get(i);
+
+				String yFieldCheck = (String) yaxisColumnField.get(i);
+				System.out.println("yFieldCheck : " + yFieldCheck);
+				if (yFieldCheck.startsWith("Sudoers Summary~")) {
+					if (operater.contains("count")) {
+						query = query.concat(", count(" + yFieldCheck.substring(16) + ") as \"colValue" + i + "\"");
+					} else if (operater.contains("sum")) {
+						query = query.concat(", sum(" + yFieldCheck.substring(16) + "::int) as \"colValue" + i + "\"");
+					}
+				} else {
+					if (operater.contains("count")) {
+						query = query.concat(", count(source_data1::JSON ->> '" + yFieldCheck + "') as \"colValue" + i + "\"");
+					} else if (operater.contains("sum")) {
+						query = query.concat(", sum((source_data1::JSON ->> '" + yFieldCheck + "')::int) as \"colValue" + i + "\"");
+					}
+				}
+			}
+		}
+
+			query = query.concat("from (\r\n"
+					+ "    select user_name,\r\n"
+					+ "    user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group,\r\n"
+					+ "    sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count,\r\n"
+					+ "    json_collect(sd.data::json) as source_data1 from user_sudoers_summary_details ud\r\n"
+					+ "    LEFT JOIN source_data sd on sd.primary_key_value = ud.user_name and sd.site_key = '" + siteKey + "'\r\n"
+					+ "    WHERE ud.site_key = '" + siteKey + "'\r\n"
+					+ "    group by user_name, user_id, group_id, primary_group_name, secondary_group_name,\r\n"
+					+ "    sudo_privileges_by_user, sudo_privileges_by_primary_group,\r\n"
+					+ "    sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count\r\n"
+					+ ")a");
+
+			if (chartType.equalsIgnoreCase("pie")) {
+				if (pieChartField.startsWith("Sudoers Summary~")) {
+					query = query.concat(" where " + pieChartField.substring(16) + " is not null");
+				} else {
+					query = query.concat(" WHERE source_data1::JSON ->> '" + pieChartField + "' is not null");
+				}
+			} else if(chartTypes.contains(chartType)) {
+				if (xaxisColumnNameField.startsWith("Sudoers Summary~")) {
+					query = query.concat(" where " + xaxisColumnNameField.substring(16) + " is not null");
+				} else {
+					query = query.concat(" WHERE source_data1::JSON ->> '" + xaxisColumnNameField + "' is not null");
+				}
+			}
+		/*
+		 * conditions for filtering if(!filterModel.isEmpty() && filterModel != null) {
+		 * 
+		 * JSONObject filterModelObject = filterModel; Set<String> filterKeys = new
+		 * HashSet<>(); for (int i = 0; i < filterModelObject.size(); i++) { JSONObject
+		 * jsonObj = filterModelObject; filterKeys.addAll(jsonObj.keySet()); }
+		 * 
+		 * query = query.concat(" where "); for (String key : filterKeys) { JSONObject
+		 * filterColumnName = (JSONObject) filterModelObject.get(key); query =
+		 * query.concat("pd.data::json ->> '" + key + "'");
+		 * 
+		 * for(int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size()
+		 * / 2 : filterModelObject.size()); i++) { if
+		 * (filterColumnName.containsKey("type")) { query = query.concat(" ilike "); }
+		 * if (filterColumnName.containsKey("filter")) { query =
+		 * query.concat("pd.data::json ->> '" + filterColumnName.get("filter") + "'"); }
+		 * query = query.concat(" and "); }
+		 * 
+		 * } query = query.substring(0, query.length()-5); } conditions for filtering
+		 */
+
+		query = query.concat(" group by ");
+		if (chartType.equalsIgnoreCase("pie")) {
+			if (pieChartField.startsWith("Sudoers Summary~")) {
+				query = query.concat(" " + pieChartField.substring(16) + "");
+			} else {
+				query = query.concat(" source_data1::JSON ->> '" + pieChartField + "' ");
+			}
+		} else if (chartTypes.contains(chartType)) {
+			if (xaxisColumnNameField.startsWith("Sudoers Summary~")) {
+				query = query.concat(" " + xaxisColumnNameField.substring(16) + " ");
+			} else {
+				query = query.concat(" source_data1::JSON ->> '" + xaxisColumnNameField + "' ");
+			}
+
+			if (breakDownName != null && !breakDownName.isEmpty()) {
+				if (breakDownField.startsWith("Sudoers Summary~")) {
+					query = query.concat(", " + breakDownField.substring(16) + " ");
+				} else {
+					query = query.concat(", source_data1::JSON ->> '" + breakDownField + "' ");
+				}
+			}
+		}
+
+		return query;
+	}
+	
 	public JSONObject prepareChartForTanium(JSONObject chartParams) {
 
 		JSONObject chartConfig = chartParams.get("chartConfiguration") != null
@@ -3805,7 +4010,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} 
+						} else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
+							query = priviledgeSudoersChartQueries(chartConfig, siteKey, chartType);
+						}
 
 						System.out.println("------pie query------ " + query);
 
@@ -3861,7 +4068,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} 
+						}  else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
+							query = priviledgeSudoersChartQueries(chartConfig, siteKey, chartType);
+						}
 						
 						System.out.println("------ " + chartType + " : " + query);
 
@@ -3954,7 +4163,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} 
+						}  else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
+							query = priviledgeSudoersChartQueries(chartConfig, siteKey, chartType);
+						}
 						
 						System.out.println("---" + chartType + " : " + query);
 
@@ -4068,7 +4279,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							query = priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeUserSummaryChartQueries(chartConfig, siteKey, chartType);
-						} 
+						}  else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
+							query = priviledgeSudoersChartQueries(chartConfig, siteKey, chartType);
+						}
 						
 						System.out.println("---" + chartType + " : " + query);
 
