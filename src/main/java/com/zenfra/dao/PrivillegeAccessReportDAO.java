@@ -184,7 +184,7 @@ public class PrivillegeAccessReportDAO {
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''',con_value, '%''') else (case when con_condition = 'endsWith' then concat(' ''%',con_value, '''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat('''',con_value,'''')\r\n"
-				+ "else (case when con_condition = 'contains' then concat(' ''%',con_value, '%''') else concat(' ''',con_value, '''') end) end) end) end) end), (case when con_field_id ilike '" + prefix + "%' then '' else '' end)) as condition_value from (\r\n"
+				+ "else (case when con_condition = 'contains' or con_condition = 'notContains' then concat(' ''%',con_value, '%''') else concat(' ''',con_value, '''') end) end) end) end) end), (case when con_field_id ilike '" + prefix + "%' then '' else '' end)) as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, row_number() over() as con_id, con_operator, con_condition, con_value, op_row from ("
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value, row_number() over(partition by rule_id, con_operator) as op_row from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, (case when con_operator is null then lead(con_operator) over(partition by rule_id order by rule_id, con_id) else con_operator end) as con_operator, con_condition, con_value from (\r\n"
