@@ -412,7 +412,7 @@ public class ValidationRuleService {
 			System.out.println("!!!! compatibility validation query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -622,7 +622,7 @@ public class ValidationRuleService {
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -668,7 +668,7 @@ public class ValidationRuleService {
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_name").toString());
 			}
@@ -999,7 +999,7 @@ public class ValidationRuleService {
 			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
 			List<Map<String,Object>> valueArray = getObjectFromQuery(uniqueFilterQuery); 
 			//JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for(Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("data").toString());
 			}
@@ -1035,7 +1035,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			
 			System.out.println("!!!!! query: " + query);
 			List<Map<String,Object>> valueArray= getObjectFromQuery(query); 
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for(Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 		}	
@@ -1055,7 +1055,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 				
 				System.out.println("!!!!! query: " + query);
 				List<Map<String,Object>> valueArray1 = getObjectFromQuery(query); 
-				System.out.println("!!!!! valueArray: " + valueArray1);
+				//System.out.println("!!!!! valueArray: " + valueArray1);
 				for(Map<String, Object> list : valueArray1) {
 					resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 		        }
@@ -1099,7 +1099,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		System.out.println("!!!!! query: " + query);
 		List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 		// JSONParser parser = new JSONParser();
-		System.out.println("!!!!! valueArray: " + valueArray);
+		//System.out.println("!!!!! valueArray: " + valueArray);
 		for (Map<String, Object> list : valueArray) {
 			resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 		}
@@ -1151,7 +1151,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -1217,7 +1217,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -1254,7 +1254,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
