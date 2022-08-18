@@ -816,7 +816,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				} else if(reportBy.equalsIgnoreCase("Sudoers")) {
     					orderBy = " order by coalesce(json_collect(coalesce(sd.data::json, '{}'::json))::json ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else {
-    					orderBy = " order by coalesce((json_collect(coalesce(sd.data::json, '{}'::json))::jsonb || json_collect(coalesce(sd1.data::json, '{}'::json))::jsonb) ->> '" + s.getActualColId() + "','') " + s.getSort();
+    					orderBy = " order by coalesce(json_collect((coalesce(sd.data,'{}')::jsonb||coalesce(sd1.data,'{}')::jsonb)::json) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
     				
     				
