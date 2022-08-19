@@ -327,7 +327,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " " + getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ") a ";*/
 			
-			taniumReportQuery = "select user_name, usr.user_id, group_id, servers_count, primary_group_name, secondary_group_name, sudo_privileges_by_user,\r\n"
+			taniumReportQuery = "select count(1) over() as row_count, user_name, usr.user_id, group_id, servers_count, primary_group_name, secondary_group_name, sudo_privileges_by_user,\r\n"
 					+ "sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, sudo_privileges_by_user_alias,\r\n"
 					+ "json_collect(sd1.data::json) as source_data1, json_collect(sd2.data::json) as source_data2\r\n"
 					+ "from user_summary_report_details usr \r\n"
