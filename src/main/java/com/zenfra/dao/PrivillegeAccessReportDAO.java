@@ -119,7 +119,7 @@ public class PrivillegeAccessReportDAO {
 		
 		String column1 = "";
 		if(reportBy.equalsIgnoreCase("User")) {
-			column1 = " coalesce(coalesce(SDT.SDJSONDATA,''{}'')::jsonb ->> '''";
+			column1 = " coalesce(coalesce(sd1.data,''{}'')::jsonb || coalesce(sd2.data,''{}'')::jsonb ->> '''";
 		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
 		} else {
