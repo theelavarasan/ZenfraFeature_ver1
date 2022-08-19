@@ -173,7 +173,7 @@ public class PrivillegeAccessReportDAO {
 				+ ") f";*/
 		
 		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
-				+ "select rule_id, string_agg(condition_value, ' AND ') as condition_value from (\r\n"
+				+ "select rule_id, string_agg(condition_value, (case when trim(con_operator) = '' then ' AND ' else concat(' ', con_operator, ' ') end)) as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field,\r\n"
 				+ "(case when rule_row = 1 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' ') over(partition by rule_id, con_operator) as condition_value,\r\n"
@@ -181,7 +181,7 @@ public class PrivillegeAccessReportDAO {
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
 				+ "concat((case when op_row = 1 then null else con_operator end), ' ', (case when con_field_id ilike '" + prefix + "%' then ' ' else '" + column1 + " end),  "
-				+ "(case when con_field_id ilike '" + prefix + "%' then replace(substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), 'servers_count', 'servers_count::numeric')  else concat(con_field_id,''','''')') end), ' ', \r\n"
+				+ "(case when con_field_id ilike '" + prefix + "%' then replace(replace(substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), 'servers_count', 'servers_count::numeric'),'user_id','usr.user_id')  else concat(con_field_id,''','''')') end), ' ', \r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''',con_value, '%''') else (case when con_condition = 'endsWith' then concat(' ''%',con_value, '''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat(' ''',con_value,'''')\r\n"

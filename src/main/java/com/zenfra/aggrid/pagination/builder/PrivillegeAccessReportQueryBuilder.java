@@ -405,7 +405,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
 					+ ")a ";*/
 			
-			taniumReportQuery = "select * from (select count(1) over() as row_count,user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
+			/*taniumReportQuery = "select * from (select count(1) over() as row_count,user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
 					+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count, json_collect(sd.data::json) as source_data1 "
 					+ "from user_sudoers_summary_details ud \r\n"
 					+ "LEFT JOIN source_data sd on sd.primary_key_value = ud.user_name and sd.site_key = '" + siteKey + "'\r\n"
@@ -416,7 +416,24 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count \r\n" 
 					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy)
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
-					+ ")a \r\n";
+					+ ")a \r\n";*/
+			
+			taniumReportQuery = "select count(1) over() as row_count, user_name, usr.user_id, group_id, servers_count, primary_group_name, secondary_group_name, sudo_privileges_by_user,\r\n"
+					+ "sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias,\r\n"
+					+ "json_collect(sd1.data::json) as source_data1, json_collect(sd2.data::json) as source_data2\r\n"
+					+ "from user_sudoers_summary_details usr \r\n"
+					+ "LEFT JOIN source_data sd1 on sd1.primary_key_value = usr.user_name and sd1.site_key = '" + siteKey + "'\r\n"
+					+ "LEFT JOIN source s1 on s1.source_id = sd1.source_id\r\n"
+					+ "LEFT JOIN source s2 on s2.link_to = s1.source_id\r\n"
+					+ "LEFT JOIN source_data sd2 on sd2.source_id = s2.source_id and sd2.site_key = '" + siteKey + "' \r\n"
+					+ "and sd2.primary_key_value = sd1.data::json ->> concat(s1.source_name, '~', s2.relationship) \r\n"
+					+ "where usr.site_key = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
+					+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " \r\n" 
+					+ "group by user_name, usr.user_id, group_id, servers_count, primary_group_name, secondary_group_name, sudo_privileges_by_user,\r\n"
+					+ "sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias\r\n"
+					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
+					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0);
 					
 					
 			
@@ -479,7 +496,7 @@ public class PrivillegeAccessReportQueryBuilder {
     					if(column.contains(prefix)) {
     						String column1 = column.substring(column.indexOf("~") + 1, column.length());
     						String value = ((TextColumnFilter) columnFilter).getFilter();
-    						if(reportBy.equalsIgnoreCase("User")) {
+    						if(reportBy.equalsIgnoreCase("User") || reportBy.equalsIgnoreCase("Sudoers")) {
     							column1 = "usr." + column1;
     						}
     						if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
@@ -805,10 +822,15 @@ public class PrivillegeAccessReportQueryBuilder {
     		for(SortModel s: sortModel) {
     			System.out.println("!!!!! colId: " + s.getActualColId());
     			if(s.getActualColId().startsWith(prefix)) {
+    				
     				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
+    				if(reportBy.equalsIgnoreCase("User")) {
+    					column_name = "usr." + column_name;
+    				}
     				System.out.println("!!!!! column_name: " + column_name);
-    				if(column_name.equalsIgnoreCase("servers_count")) {
-    					orderBy = " order by (case when servers_count is null or servers_count = '' then 0 else " + column_name + "::int end)" + s.getSort();
+    				
+    				if(column_name.contains("servers_count")) {
+    					orderBy = " order by (case when " + column_name + " is null or " + column_name + " = '' then 0 else " + column_name + "::int end)" + s.getSort();
     				} else {
     					orderBy = " order by " + column_name + " " + s.getSort();
     				}
