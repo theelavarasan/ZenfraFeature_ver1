@@ -3004,9 +3004,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	@SuppressWarnings("unchecked")
 	public String priviledgeChartQueries(JSONObject chartConfig, String siteKey, String chartType)
 			throws ParseException {
-		System.out.println("Query builder for priviledge charts");
-
-		System.out.println("-----------chartConfig : " + chartConfig);
 
 		JSONParser jsonParser = new JSONParser();
 		JSONArray chartTypes = new JSONArray();
@@ -3016,7 +3013,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		chartTypes.add("scatter");
 
 		System.out.println("ChartTypes : " + chartTypes + " : " + chartType);
-		System.out.println("ChartTypes : " + chartTypes.contains(chartType));
 
 		JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
 		JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
@@ -3265,9 +3261,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	@SuppressWarnings("unchecked")
 	public String priviledgeUserSummaryChartQueries(JSONObject chartConfig, String siteKey, String chartType)
 			throws ParseException {
-		System.out.println("Query builder for priviledge charts");
-
-		System.out.println("-----------chartConfig : " + chartConfig);
 
 		JSONParser jsonParser = new JSONParser();
 		JSONArray chartTypes = new JSONArray();
@@ -3277,7 +3270,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		chartTypes.add("scatter");
 
 		System.out.println("ChartTypes : " + chartTypes + " : " + chartType);
-		System.out.println("ChartTypes : " + chartTypes.contains(chartType));
 
 		JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
 		JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
@@ -3401,12 +3393,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				}
 			}
 
-			System.out.println("yaxisColumnField : " + yaxisColumnField);
 			for (int i = 0; i < yaxisColumnField.size(); i++) {
 				String operater = (String) classNameArray.get(i);
 
 				String yFieldCheck = (String) yaxisColumnField.get(i);
-				System.out.println("yFieldCheck : " + yFieldCheck);
 				if (yFieldCheck.startsWith("User Summary~")) {
 					if (operater.contains("count")) {
 						query = query.concat(", count(" + yFieldCheck.substring(13) + ") as \"colValue" + i + "\"");
@@ -3488,9 +3478,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	@SuppressWarnings("unchecked")
 	public String priviledgeServerSummaryChartQueries(JSONObject chartConfig, String siteKey, String chartType)
 			throws ParseException {
-		System.out.println("Query builder for priviledge charts");
-
-		System.out.println("-----------chartConfig : " + chartConfig);
 
 		JSONParser jsonParser = new JSONParser();
 		JSONArray chartTypes = new JSONArray();
@@ -3500,7 +3487,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		chartTypes.add("scatter");
 
 		System.out.println("ChartTypes : " + chartTypes + " : " + chartType);
-		System.out.println("ChartTypes : " + chartTypes.contains(chartType));
 
 		JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
 		JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
@@ -3585,7 +3571,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 			 } else if(pieChartField.startsWith("Server Data~")) {
 				 pieChartFieldSubString = pieChartField.substring(12);
 			 }
-			System.out.println("pieChartFieldSub : " + pieChartFieldSubString);
 			
 			if (pieChartField.startsWith("Server Summary~") || pieChartField.startsWith("Server Data~")) {
 				query = query.concat("select " + pieChartFieldSubString + " as \"colName\"");
@@ -3634,8 +3619,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				xaxisFieldSubString = xaxisColumnNameField.substring(12);
 			}
 			
-			System.out.println("xaxisFieldSubString : " + xaxisFieldSubString);
-			
+	
 			if (xaxisColumnNameField.startsWith("Server Summary~") || xaxisColumnNameField.startsWith("Server Data~")) {
 				query = query.concat("select " + xaxisFieldSubString + " as \"colName\"");
 			} else {
@@ -3648,7 +3632,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				} else if(breakDownField.startsWith("Server Data~")) {
 					breakdownFieldSubString = breakDownField.substring(12);
 				}
-				System.out.println("breakdownFieldSubString : " + breakdownFieldSubString);
 				if (breakDownField.startsWith("Server Summary~") || breakDownField.startsWith("Server Data~")) {
 					query = query.concat(", " + breakdownFieldSubString + " as \"colBreakdown\"");
 				} else {
@@ -3656,19 +3639,16 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				}
 			}
 
-			System.out.println("yaxisColumnField : " + yaxisColumnField);
 			for (int i = 0; i < yaxisColumnField.size(); i++) {
 				String operater = (String) classNameArray.get(i);
 
 				String yFieldCheck = (String) yaxisColumnField.get(i);
-				System.out.println("yFieldCheck : " + yFieldCheck);
 				
 				if(yFieldCheck.startsWith("Server Summary~")) {
 					yaxisFieldSubString = yFieldCheck.substring(15);
 				} else if(yFieldCheck.startsWith("Server Data~")) {
 					yaxisFieldSubString = yFieldCheck.substring(12);
 				}
-				System.out.println("yaxisFieldSubString : " + yaxisFieldSubString);
 				
 				if (yFieldCheck.startsWith("Server Summary~") || yFieldCheck.startsWith("Server Data~")) {
 					if (operater.contains("count")) {
@@ -3751,9 +3731,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 	@SuppressWarnings("unchecked")
 	public String priviledgeSudoersChartQueries(JSONObject chartConfig, String siteKey, String chartType)
 			throws ParseException {
-		System.out.println("Query builder for priviledge charts");
-
-		System.out.println("-----------chartConfig : " + chartConfig);
 
 		JSONParser jsonParser = new JSONParser();
 		JSONArray chartTypes = new JSONArray();
@@ -3763,7 +3740,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		chartTypes.add("scatter");
 
 		System.out.println("ChartTypes : " + chartTypes + " : " + chartType);
-		System.out.println("ChartTypes : " + chartTypes.contains(chartType));
 
 		JSONArray xaxisColumnAry = (JSONArray) chartConfig.get("xaxis");
 		JSONArray yaxisColumnAry = (JSONArray) chartConfig.get("yaxis");
@@ -3861,12 +3837,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				}
 			}
 
-			System.out.println("yaxisColumnField : " + yaxisColumnField);
 			for (int i = 0; i < yaxisColumnField.size(); i++) {
 				String operater = (String) classNameArray.get(i);
 
 				String yFieldCheck = (String) yaxisColumnField.get(i);
-				System.out.println("yFieldCheck : " + yFieldCheck);
 				if (yFieldCheck.startsWith("Sudoers Summary~")) {
 					if (operater.contains("count")) {
 						query = query.concat(", count(" + yFieldCheck.substring(16) + ") as \"colValue" + i + "\"");
@@ -4179,8 +4153,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							JSONObject jsonObj = new JSONObject();
 							jsonObj.putAll(resultMap);
 							Iterator iterator = jsonObj.keySet().iterator();
-							System.out.println(iterator.toString());
-							System.out.println(jsonObj);
 							while (iterator.hasNext()) {
 								String key = (String) iterator.next();
 								if (key.contains("colValue")) {
@@ -4199,8 +4171,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						JSONArray array = new JSONArray();
 
-						System.out.println("valueArray : " + valueArray);
-						System.out.println("xaxisCloumnValues " + xaxisCloumnValues);
 						if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
 
 							for (int i = 0; i < finalBreakDownValue.size(); i++) {
@@ -4224,8 +4194,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								yarray.add(valueArray.get(i));
 
 							}
-							System.out.println("xarray : " + xarray);
-							System.out.println("yarray : " + yarray);
 
 							jsonObject.put("name", xaxisColumnName);
 							jsonObject.put("x", xarray);
