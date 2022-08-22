@@ -83,7 +83,7 @@ public class PrivillegeAccessReportQueryBuilder {
 
         //return selectSql() + fromSql(tableName) + whereSql() + groupBySql() + orderBySql() + limitSql();
         return getPrivillegeAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel(),
-        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery, reportBy, sourceMap);
+        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery, reportBy, sourceMap, request.getCategory(), request.getThirdPartyId());
     }
 
     private String selectSql() {
@@ -240,12 +240,13 @@ public class PrivillegeAccessReportQueryBuilder {
     }};
     
     private String getPrivillegeAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel,
-    		String healthCheckId, List<String> ruleList, String validationFilterQuery, String reportBy, Map<String, String> sourceMap) {
+    		String healthCheckId, List<String> ruleList, String validationFilterQuery, String reportBy, Map<String, String> sourceMap, String category, String thirdPartyId) {
 		
 		JSONParser parser = new JSONParser();
 		
 		String taniumReportQuery = ""; 
 		
+		if(category.equalsIgnoreCase("User")) {
 		if(reportBy.equalsIgnoreCase("Privileged Access") || reportBy.equalsIgnoreCase("Server")) {
 			/*taniumReportQuery = "select * from ( WITH PDDATA AS\r\n" + 
 					"(\r\n" + 
@@ -403,6 +404,17 @@ public class PrivillegeAccessReportQueryBuilder {
 					
 					
 			
+		}
+		} else if(category.equalsIgnoreCase("Third Party Data")) {
+			
+			taniumReportQuery = "select count(1) over() as row_count, sd.data, usr.* from source_data sd \r\n"
+					+ "LEFT JOIN user_summary_report_details usr on usr.user_name = sd.primary_key_value \r\n"
+					+ "where sd.site_key = '" + siteKey + "' and sd.source_id = '" + thirdPartyId + "' \r\n" 
+					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
+					+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " "
+					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) + " \r\n"
+					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 		}
 		
 		/*if(!getOrderBy1(sortModel, reportBy).isEmpty()) {

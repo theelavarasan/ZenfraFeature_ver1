@@ -78,7 +78,7 @@ public class ReportService {
 
 			result = dataframeService.getReportHeaderForMigrationMethod(siteKey, deviceType);
 
-		} else {
+		} else if(!category.equalsIgnoreCase("Third Party Data")) {
 			
 			if(reportBy.equalsIgnoreCase("Privileged Access")) {
 				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
@@ -89,6 +89,9 @@ public class ReportService {
 			} else {
 				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 			}
+		} else if(category.equalsIgnoreCase("Third Party Data")) {
+			result = reportDao.getPrivillegeReportHeader(reportName, deviceType, category, siteKey, userId);
+			groupResult = reportDao.getReportGroup(reportName, deviceType, category, siteKey, userId);
 		}
 		
 		System.out.println("!!!!! reportHeade: " + result.size());
