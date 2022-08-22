@@ -74,7 +74,7 @@ public class ReportDao {
 			params.put("user_id", userId);
 			params.put("sourceId", reportName);
 			System.out.println("------params--------- " + params);
-			System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
+			//System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
 			
 			List<Map<String, Object>> result; 
 			String headerQuery = "";
@@ -89,9 +89,12 @@ public class ReportDao {
 			} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
 				headerQuery = reportQueries.getCedHeader();
 			}
-			
-			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId).replace(":sourceId", deviceType);
-			System.out.println("!!!!! headerQuery: " + headerQuery);
+			System.out.println("!!!!! headerQuery1: " + headerQuery);
+			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
+			if(headerQuery.contains(":sourceId")) {
+				headerQuery = headerQuery.replace(":sourceId", deviceType);
+			}
+			System.out.println("!!!!! headerQuery2: " + headerQuery);
 			result = jdbc.queryForList(headerQuery);
 			
 			System.out.println("!!!!! result: " + result);

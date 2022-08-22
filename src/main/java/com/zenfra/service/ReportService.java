@@ -81,10 +81,10 @@ public class ReportService {
 		} else if(!category.equalsIgnoreCase("Third Party Data")) {
 			
 			if(reportBy.equalsIgnoreCase("Privileged Access")) {
-				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
+				result = reportDao.getPrivillegeReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
 			} else if((reportBy.equalsIgnoreCase("User") || reportBy.equalsIgnoreCase("Server") || reportBy.equalsIgnoreCase("Sudoers")) && reportName.equalsIgnoreCase("End-To-End-Basic")) {
-				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
+				result = reportDao.getPrivillegeReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
 			} else {
 				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);

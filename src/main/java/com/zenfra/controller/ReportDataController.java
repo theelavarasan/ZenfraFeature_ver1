@@ -387,6 +387,10 @@ public class ReportDataController {
 				
 			}
 			
+			if(request.getCategory().equalsIgnoreCase("Third Party Data")) {
+				deviceType = "tanium";
+			}
+			
 		
 			
 			
