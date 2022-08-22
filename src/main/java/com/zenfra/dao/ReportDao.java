@@ -86,7 +86,7 @@ public class ReportDao {
 				headerQuery = reportQueries.getServerSummaryHeader();
 			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 				headerQuery = reportQueries.getSudoersSummaryHeader();
-			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+			} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
 				headerQuery = reportQueries.getCedHeader();
 			}
 			

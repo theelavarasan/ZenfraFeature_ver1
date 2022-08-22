@@ -90,8 +90,8 @@ public class ReportService {
 				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 			}
 		} else if(category.equalsIgnoreCase("Third Party Data")) {
-			result = reportDao.getPrivillegeReportHeader(reportName, deviceType, category, siteKey, userId);
-			groupResult = reportDao.getReportGroup(reportName, deviceType, category, siteKey, userId);
+			result = reportDao.getPrivillegeReportHeader("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
+			groupResult = reportDao.getReportGroup("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
 		}
 		
 		System.out.println("!!!!! reportHeade: " + result.size());
