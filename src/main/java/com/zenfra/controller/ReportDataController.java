@@ -326,6 +326,7 @@ public class ReportDataController {
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
 			} else*/ 
+			System.out.println("!!!!! reportType: " + request.getReportType());
 			if (request.getReportType().equalsIgnoreCase("optimization")) {
 				reportName = request.getReportType();
 				deviceType = "All";
