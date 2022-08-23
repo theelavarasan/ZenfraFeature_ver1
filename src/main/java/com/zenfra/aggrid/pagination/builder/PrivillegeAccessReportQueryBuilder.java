@@ -618,6 +618,8 @@ public class PrivillegeAccessReportQueryBuilder {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
     						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
     							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') ";
+    						} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
+    							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') ";
     						} else {
     							column1 = "coalesce(coalesce(sd.data,'{}')::jsonb || coalesce(sd1.data,'{}')::jsonb ->> '" + column + "','') ";
     						}
@@ -643,6 +645,8 @@ public class PrivillegeAccessReportQueryBuilder {
 							if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') <> '' and coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','0')::numeric ";
     						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+    							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') <> '' and coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','0')::numeric ";
+    						} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
     							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') <> '' and coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','0')::numeric ";
     						} else {
     							column1 = "coalesce((coalesce(sd.data,'{}')::jsonb || coalesce(sd1.data,'{}')::jsonb) ->> '" + column + "','') <> '' and coalesce((coalesce(sd.data,'{}')::jsonb || coalesce(sd1.data,'{}')::jsonb) ->> '" + column + "','')::numeric ";
