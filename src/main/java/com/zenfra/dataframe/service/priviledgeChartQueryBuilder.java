@@ -644,7 +644,6 @@ public class priviledgeChartQueryBuilder {
 	public String ChartFilters(JSONObject filterModel, String reportLabel) {
 
 		String filters = "";
-		System.out.println("filterModel : " + filterModel);
 		JSONObject filterModelObject = (JSONObject) filterModel;
 		Set<String> filterKeys = new HashSet<>();
 		for (int i = 0; i < filterModelObject.size(); i++) {
@@ -664,7 +663,6 @@ public class priviledgeChartQueryBuilder {
 				if ((filterColumnName.containsKey("type") && filterColumnName.containsKey("filter")
 						&& filterColumnName.containsKey("filterType")) || (filterColumnName.containsKey("type") && filterColumnName.containsKey("filterType"))) {
 					if(reportLabel.startsWith("User-Tanium-User")) {
-						System.out.println("User summary");
 						if (key.startsWith("User Summary~")) {
 							filters = filters.concat(key.substring(13));
 						} else {
@@ -672,7 +670,6 @@ public class priviledgeChartQueryBuilder {
 						}
 					} else if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
 						String keySubstring = "";
-						System.out.println("server summary");
 						if(key.startsWith("Server Summary~")) {
 							keySubstring = key.substring(15);
 						 } else if(key.startsWith("Server Data~")) {
@@ -686,30 +683,34 @@ public class priviledgeChartQueryBuilder {
 						}
 					}
 					
-					if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("contains")) {
-						filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "%'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("notContains")) {
-						filters = filters.concat(" not ilike '%" + filterColumnName.get("filter") + "%'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("equals")) {
-						filters = filters.concat(" = '" + filterColumnName.get("filter") + "'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("notEqual")) {
-						filters = filters.concat(" <> '" + filterColumnName.get("filter") + "'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("Blanks")) {
-						filters = filters.concat(" = ''");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("Not Blanks")) {
-						filters = filters.concat(" <> ''");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("startsWith")) {
-						filters = filters.concat(" ilike '" + filterColumnName.get("filter") + "%'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("endsWith")) {
-						filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "'");
+					if(filterColumnName.containsKey("filterType") && filterColumnName.get("filterType").toString().equalsIgnoreCase("text")) {
+						if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("contains")) {
+							filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "%'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("notContains")) {
+							filters = filters.concat(" not ilike '%" + filterColumnName.get("filter") + "%'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("equals")) {
+							filters = filters.concat(" = '" + filterColumnName.get("filter") + "'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("notEqual")) {
+							filters = filters.concat(" <> '" + filterColumnName.get("filter") + "'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("Blanks")) {
+							filters = filters.concat(" = ''");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("Not Blanks")) {
+							filters = filters.concat(" <> ''");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("startsWith")) {
+							filters = filters.concat(" ilike '" + filterColumnName.get("filter") + "%'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("endsWith")) {
+							filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "'");
+						}
+					} else if(filterColumnName.containsKey("filterType") && filterColumnName.get("filterType").toString().equalsIgnoreCase("number")) {
+						System.out.println("number:");
 					}
 					
 					filters = filters.concat(" and ");
@@ -719,17 +720,13 @@ public class priviledgeChartQueryBuilder {
 						JSONObject jsonObj = filterColumnName;
 						Keys.addAll(jsonObj.keySet());
 					}
-					System.out.println("Keys : " + Keys);
 					for (int j = 0; j < Keys.size() - 2; j++) {
 						conditionObject = filterColumnName;
-						System.out.println("conditionObject : " + conditionObject);
 						if (conditionObject.containsKey("condition" + (j + 1))) {
 							JSONObject object = (JSONObject) conditionObject.get("condition" + (j + 1));
-							System.out.println("object condition : " + object);
 							if ((object.containsKey("type") && object.containsKey("filter")
 									&& object.containsKey("filterType")) || (object.containsKey("type") && object.containsKey("filterType"))) {
 								if(reportLabel.startsWith("User-Tanium-User")) {
-									System.out.println("User summary");
 									if (key.startsWith("User Summary~")) {
 										filters = filters.concat(key.substring(13));
 									} else {
@@ -737,7 +734,6 @@ public class priviledgeChartQueryBuilder {
 									}
 								} else if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
 									String keySubstring = "";
-									System.out.println("server summary");
 									if(key.startsWith("Server Summary~")) {
 										keySubstring = key.substring(15);
 									 } else if(key.startsWith("Server Data~")) {
@@ -751,30 +747,34 @@ public class priviledgeChartQueryBuilder {
 									}
 								}
 
-								if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("contains")) {
-									filters = filters.concat(" ilike '%" + object.get("filter") + "%'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("notContains")) {
-									filters = filters.concat(" not ilike '%" + object.get("filter") + "%'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("equals")) {
-									filters = filters.concat(" = '" + object.get("filter") + "'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("notEqual")) {
-									filters = filters.concat(" <> '" + object.get("filter") + "'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("Blanks")) {
-									filters = filters.concat(" = ''");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("Not Blanks")) {
-									filters = filters.concat(" <> ''");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("startsWith")) {
-									filters = filters.concat(" ilike '" + object.get("filter") + "%'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("endsWith")) {
-									filters = filters.concat(" ilike '%" + object.get("filter") + "'");
+								if(object.containsKey("filterType") && object.get("filterType").toString().equalsIgnoreCase("text")) {
+									if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("contains")) {
+										filters = filters.concat(" ilike '%" + object.get("filter") + "%'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("notContains")) {
+										filters = filters.concat(" not ilike '%" + object.get("filter") + "%'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("equals")) {
+										filters = filters.concat(" = '" + object.get("filter") + "'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("notEqual")) {
+										filters = filters.concat(" <> '" + object.get("filter") + "'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("Blanks")) {
+										filters = filters.concat(" = ''");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("Not Blanks")) {
+										filters = filters.concat(" <> ''");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("startsWith")) {
+										filters = filters.concat(" ilike '" + object.get("filter") + "%'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("endsWith")) {
+										filters = filters.concat(" ilike '%" + object.get("filter") + "'");
+									}
+								} else if(object.containsKey("filterType") && object.get("filterType").toString().equalsIgnoreCase("number")) {
+									System.out.println("Number 1 :");
 								}
 							}
 
@@ -790,7 +790,6 @@ public class priviledgeChartQueryBuilder {
 
 				}
 
-				System.out.println("filters : " + filters);
 			}
 
 		}
@@ -800,7 +799,6 @@ public class priviledgeChartQueryBuilder {
 		} else {
 			filters = filters.substring(0, filters.length() - 5);
 		}
-		System.out.println("filters 2 : " + filters);
 
 		return filters;
 	}
