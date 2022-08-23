@@ -835,7 +835,7 @@ public class CommonFunctions {
     					if(!keys.get(i).equalsIgnoreCase("row_count")) {
     						
     						if(keys.get(i).equalsIgnoreCase("servers_count")) {
-    							resultObject.put(prefix + keys.get(i), Integer.parseInt(row.get(keys.get(i)).toString()));
+    							resultObject.put(prefix + keys.get(i), Integer.parseInt(row.get(keys.get(i)) == null ? "0" : row.get(keys.get(i)).toString()));
     						} else {
     							resultObject.put(prefix + keys.get(i), row.get(keys.get(i)));
     						}
