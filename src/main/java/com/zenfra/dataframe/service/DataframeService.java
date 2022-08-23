@@ -3311,7 +3311,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						String query = "";
 						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
-							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeChartQueryBuilder.priviledgeUserSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
@@ -3369,7 +3369,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						String query = "";
 						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
-							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeChartQueryBuilder.priviledgeUserSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}  else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
@@ -3464,7 +3464,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						String query = "";
 						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
-							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeChartQueryBuilder.priviledgeUserSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}  else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
@@ -3574,7 +3574,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						String query = "";
 						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
-							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeChartQueryBuilder.priviledgeUserSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}  else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
