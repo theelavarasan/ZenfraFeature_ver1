@@ -1352,4 +1352,50 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		return resultArray;
 
 	}
+	
+	public JSONArray getVR_CEDUniqueData(String siteKey, String columnName, String thirdPartyId) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+			
+			String query = "";
+			
+			String[] sourceId = thirdPartyId.split("~"); 
+			if(columnName.startsWith("User Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("User Summary~", "") + ") as column_values from USER_SUMMARY_REPORT_DETAILS "
+						+ "where site_key = '" + siteKey + "'";
+			} else if(columnName.startsWith("Server Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("Server Summary~", "") + ") as column_values from privillege_data_details "
+						+ "where site_key = '" + siteKey + "'";
+			} else if(columnName.startsWith("Server Data~")) {
+				
+				query = "select json_agg(distinct data::json ->> '" + columnName.substring(columnName.indexOf("~") + 1, columnName.length()) + "') as column_values from local_discovery "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' and source_id = '" + sourceId[2] + "' \r\n" +
+						" and data::json ->> '" + columnName + "' is not null";
+			}
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			//System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
+	}
 }
