@@ -178,8 +178,9 @@ public class ReportDao {
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! Privileged Access Group query: " + query);
 			} else {
+				String[] source_name = sourceId.split("~");
 				query = reportQueries.getCedHeaderGroup();
-				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", sourceId);
+				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", source_name[2]);
 				System.out.println("!!!!! CED Header Group query: " + query);
 				
 			}
