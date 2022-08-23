@@ -126,7 +126,7 @@ public class PrivillegeAccessReportDAO {
 			column1 = " coalesce(coalesce(SDT.SDJSONDATA,''{}'')::jsonb ->> '''";
 		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
-		} else if(reportBy.equalsIgnoreCase("Privileged Access")) {
+		} else if(reportBy.equalsIgnoreCase("Privileged Access") || reportBy.equalsIgnoreCase("Server")) {
 			column1 = " coalesce(coalesce(sd.data,''{}'')::jsonb || coalesce(sd1.data,''{}'')::jsonb ->> '''";
 		} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
 			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
