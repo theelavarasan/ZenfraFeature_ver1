@@ -3419,24 +3419,17 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray xValuesArray = new JSONArray();
 						JSONArray yValuesArray = new JSONArray();
 
-						for (Map<String, Object> mapobject : resultSet) {
-							JSONObject jsonObj = new JSONObject();
-							jsonObj.putAll(mapobject);
-							
-							Iterator iterator = jsonObj.keySet().iterator();
-							while (iterator.hasNext()) {
-								String key = (String) iterator.next();
-								if (key.contains("colValue")) {
-									yValuesArray.add(resultObject.get(key));
-								} else if (key.contains("colName")) {
-									xValuesArray.add(resultObject.get(key));
-								} else if (key.contains("colBreakdown")) {
-									finalBreakDownValue.add(resultObject.get(key));
-								}
+						Iterator iterator = resultObject.keySet().iterator();
+						while (iterator.hasNext()) {
+							String key = (String) iterator.next();
+							if (key.contains("colValue")) {
+								yValuesArray.add(resultObject.get(key));
+							} else if (key.contains("colName")) {
+								xValuesArray.add(resultObject.get(key));
+							} else if (key.contains("colBreakdown")) {
+								finalBreakDownValue.add(resultObject.get(key));
 							}
 						}
-						
-						System.out.println("yValuesArray : " + yValuesArray);
 
 						JSONArray combinedValuesArray = new JSONArray();
 						combinedValuesArray.add(xValuesArray);
