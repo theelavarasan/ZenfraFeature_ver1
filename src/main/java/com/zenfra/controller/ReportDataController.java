@@ -323,13 +323,16 @@ public class ReportDataController {
 				if(request.getThirdPartyId().startsWith("true~")) {
 					request.setReportList("End-To-End-Basic");
 					request.setReportBy("thirdPartyData");
+					request.setAnalyticstype("discovery");
 				} else {
 					request.setReportList("Local");
 					request.setReportBy("Server");
+					request.setAnalyticstype("discovery");
 				}
 			}
 			
 			System.out.println("!!!!! reportType: " + request.getReportType());
+			System.out.println("!!!!! reportType: " + request.getCategory());
 			if (request.getReportType().equalsIgnoreCase("optimization")) {
 				reportName = request.getReportType();
 				deviceType = "All";
