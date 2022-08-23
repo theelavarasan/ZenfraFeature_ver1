@@ -94,7 +94,7 @@ public class ReportDao {
 			System.out.println("!!!!! headerQuery1: " + headerQuery);
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
 			if(headerQuery.contains(":sourceId")) {
-				headerQuery = headerQuery.replace(":sourceId", deviceType);
+				headerQuery = headerQuery.replace(":sourceId", source_name[2]);
 			}
 			System.out.println("!!!!! headerQuery2: " + headerQuery);
 			result = jdbc.queryForList(headerQuery);
