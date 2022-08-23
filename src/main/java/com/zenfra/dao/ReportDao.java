@@ -89,7 +89,13 @@ public class ReportDao {
 			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 				headerQuery = reportQueries.getSudoersSummaryHeader();
 			} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
-				headerQuery = reportQueries.getCedHeader();
+				
+				if(sourceId.startsWith("true~")) {
+					headerQuery = reportQueries.getCedHeader();
+				} else {
+					headerQuery = reportQueries.getCedOtherHeader();
+				}
+				
 			}
 			System.out.println("!!!!! headerQuery1: " + headerQuery);
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
@@ -179,9 +185,16 @@ public class ReportDao {
 				System.out.println("!!!!! Privileged Access Group query: " + query);
 			} else {
 				String[] source_name = sourceId.split("~");
-				query = reportQueries.getCedHeaderGroup();
-				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", source_name[2]);
-				System.out.println("!!!!! CED Header Group query: " + query);
+				if(sourceId.startsWith("true~")) {
+					query = reportQueries.getCedHeaderGroup();
+					query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", source_name[2]);
+					System.out.println("!!!!! CED Header Group query: " + query);
+				} else {
+					query = reportQueries.getCedOtherHeaderGroup();
+					query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", source_name[2]);
+					System.out.println("!!!!! CED Header Group query: " + query);
+				}
+				
 				
 			}
 			result = jdbc.queryForList(query);

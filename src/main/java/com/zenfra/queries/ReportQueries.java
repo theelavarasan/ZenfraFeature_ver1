@@ -44,6 +44,9 @@ public class ReportQueries {
 	private String cedHeader;
 	private String cedHeaderGroup;
 	
+	private String cedOtherHeader;
+	private String cedOtherHeaderGroup;
+	
 	public String getHeader() {
 		return header;
 	}
@@ -188,7 +191,21 @@ public class ReportQueries {
 	public void setCedHeaderGroup(String cedHeaderGroup) {
 		this.cedHeaderGroup = cedHeaderGroup;
 	}
-	
-	
+
+	public String getCedOtherHeader() {
+		return cedOtherHeader;
+	}
+
+	public void setCedOtherHeader(String cedOtherHeader) {
+		this.cedOtherHeader = cedOtherHeader;
+	}
+
+	public String getCedOtherHeaderGroup() {
+		return cedOtherHeaderGroup;
+	}
+
+	public void setCedOtherHeaderGroup(String cedOtherHeaderGroup) {
+		this.cedOtherHeaderGroup = cedOtherHeaderGroup;
+	}
 	
 }
