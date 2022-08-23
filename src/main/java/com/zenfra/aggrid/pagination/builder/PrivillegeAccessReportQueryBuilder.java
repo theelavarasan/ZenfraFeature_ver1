@@ -407,9 +407,10 @@ public class PrivillegeAccessReportQueryBuilder {
 		}
 		} else if(category.equalsIgnoreCase("Third Party Data")) {
 			
+			String[] sourceId = thirdPartyId.split("~"); 
 			taniumReportQuery = "select count(1) over() as row_count, sd.data as source_data, usr.* from source_data sd \r\n"
 					+ "LEFT JOIN user_summary_report_details usr on usr.user_name = sd.primary_key_value \r\n"
-					+ "where sd.site_key = '" + siteKey + "' and sd.source_id = '" + thirdPartyId + "' \r\n" 
+					+ "where sd.site_key = '" + siteKey + "' and sd.source_id = '" + sourceId[2] + "' \r\n" 
 					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
 					+ getTasklistFilters(filters, siteKey, projectId, "thirdPartyData") + " "
 					+ getSourceDataFilters(filters, siteKey, projectId, "thirdPartyData", sourceMap) + " "
