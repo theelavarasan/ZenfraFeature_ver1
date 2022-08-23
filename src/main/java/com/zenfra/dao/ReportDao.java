@@ -69,10 +69,12 @@ public class ReportDao {
 	public JSONArray getPrivillegeReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId, String sourceId) {
 		JSONArray reportHeaders = new JSONArray();
 		try {
+			
+			String[] source_name = sourceId.split("~");
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("site_key", siteKey);
 			params.put("user_id", userId);
-			params.put("sourceId", reportName);
+			params.put("sourceId", source_name[2]);
 			System.out.println("------params--------- " + params);
 			//System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
 			
