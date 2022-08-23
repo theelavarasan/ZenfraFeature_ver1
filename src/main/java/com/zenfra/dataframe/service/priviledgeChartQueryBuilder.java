@@ -664,6 +664,7 @@ public class priviledgeChartQueryBuilder {
 				if ((filterColumnName.containsKey("type") && filterColumnName.containsKey("filter")
 						&& filterColumnName.containsKey("filterType")) || (filterColumnName.containsKey("type") && filterColumnName.containsKey("filterType"))) {
 					if(reportLabel.startsWith("User-Tanium-User")) {
+						System.out.println("User summary");
 						if (key.startsWith("User Summary~")) {
 							filters = filters.concat(key.substring(13));
 						} else {
@@ -671,6 +672,7 @@ public class priviledgeChartQueryBuilder {
 						}
 					} else if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
 						String keySubstring = "";
+						System.out.println("server summary");
 						if(key.startsWith("Server Summary~")) {
 							keySubstring = key.substring(15);
 						 } else if(key.startsWith("Server Data~")) {
