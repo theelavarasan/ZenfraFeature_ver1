@@ -807,24 +807,15 @@ public class priviledgeChartQueryBuilder {
 					} else {
 						filters = filters.substring(0, filters.length() - 5);
 					}
-					filters = filters.concat(") and");
+					filters = filters.concat(") and ");
 				}
 
 			}
 		}
 		
 		System.out.println("filters : " + filters);
-		if((filterColumnName.containsKey("type") && filterColumnName.containsKey("filter")
-				&& filterColumnName.containsKey("filterType")) || (filterColumnName.containsKey("type") && filterColumnName.containsKey("filterType"))) {
-			filters = filters.substring(0, filters.length() - 5);
-		} else if(filterColumnName.containsKey("filterType") && filterColumnName.containsKey("operator")) {
-			if (conditionObject.containsKey("operator")
-					&& conditionObject.get("operator").toString().equalsIgnoreCase("or")) {
-				filters = filters.substring(0, filters.length() - 4);
-			} else {
-				filters = filters.substring(0, filters.length() - 5);
-			}
-		}
+		filters = filters.substring(0, filters.length() - 5);
+		
 		return filters;
 	}
 
