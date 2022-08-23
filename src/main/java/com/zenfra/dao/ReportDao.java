@@ -66,7 +66,7 @@ public class ReportDao {
 		return reportHeaders;
 	} 
 	
-	public JSONArray getPrivillegeReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+	public JSONArray getPrivillegeReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId, String sourceId) {
 		JSONArray reportHeaders = new JSONArray();
 		try {
 			Map<String, Object> params = new HashMap<String, Object>();
@@ -136,7 +136,7 @@ public class ReportDao {
 		return reportHeaders;
 	}
 	
-	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId, String sourceId) {
 		JSONObject reportGroup = new JSONObject();
 		try {
 			
@@ -177,7 +177,7 @@ public class ReportDao {
 				System.out.println("!!!!! Privileged Access Group query: " + query);
 			} else {
 				query = reportQueries.getCedHeaderGroup();
-				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", deviceType);
+				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", sourceId);
 				System.out.println("!!!!! CED Header Group query: " + query);
 				
 			}

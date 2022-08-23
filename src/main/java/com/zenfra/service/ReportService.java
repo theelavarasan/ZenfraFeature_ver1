@@ -81,21 +81,21 @@ public class ReportService {
 		} else if(!category.equalsIgnoreCase("Third Party Data")) {
 			
 			if(reportBy.equalsIgnoreCase("Privileged Access")) {
-				result = reportDao.getPrivillegeReportHeader(reportName, deviceType, reportBy, siteKey, userId);
-				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
+				result = reportDao.getPrivillegeReportHeader(reportName, deviceType, reportBy, siteKey, userId,"");
+				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId, "");
 			} else if((reportBy.equalsIgnoreCase("User") || reportBy.equalsIgnoreCase("Server") || reportBy.equalsIgnoreCase("Sudoers")) && reportName.equalsIgnoreCase("End-To-End-Basic")) {
-				result = reportDao.getPrivillegeReportHeader(reportName, deviceType, reportBy, siteKey, userId);
-				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
+				result = reportDao.getPrivillegeReportHeader(reportName, deviceType, reportBy, siteKey, userId,"");
+				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId, "");
 			} else {
 				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 			}
 		} else if(category.equalsIgnoreCase("Third Party Data")) {
 			if(request.getThirdPartyId().startsWith("true~")) {
-				result = reportDao.getPrivillegeReportHeader("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
-				groupResult = reportDao.getReportGroup("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
+				result = reportDao.getPrivillegeReportHeader("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId, request.getThirdPartyId());
+				groupResult = reportDao.getReportGroup("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId, request.getThirdPartyId());
 			} else {
-				result = reportDao.getPrivillegeReportHeader("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
-				groupResult = reportDao.getReportGroup("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
+				result = reportDao.getPrivillegeReportHeader("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId, request.getThirdPartyId());
+				groupResult = reportDao.getReportGroup("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId, request.getThirdPartyId());
 			}
 			
 		}
