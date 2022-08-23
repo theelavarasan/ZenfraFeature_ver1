@@ -319,13 +319,16 @@ public class ReportDataController {
 			String siteKey = "";
 			String reportList = "";
 
-			/*if (request.getReportType().equalsIgnoreCase("discovery")) {
-				reportName = request.getReportType();
-				deviceType = request.getOstype();
-				reportBy = request.getReportBy();
-				siteKey = request.getSiteKey();
-				reportList = request.getReportList();
-			} else*/ 
+			if(request.getCategory().equalsIgnoreCase("Third Party Data")) {
+				if(request.getThirdPartyId().startsWith("true~")) {
+					request.setReportList("End-To-End-Basic");
+					request.setReportBy("thirdPartyData");
+				} else {
+					request.setReportList("Local");
+					request.setReportBy("Server");
+				}
+			}
+			
 			System.out.println("!!!!! reportType: " + request.getReportType());
 			if (request.getReportType().equalsIgnoreCase("optimization")) {
 				reportName = request.getReportType();

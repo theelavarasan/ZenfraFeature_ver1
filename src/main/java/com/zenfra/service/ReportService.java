@@ -90,8 +90,14 @@ public class ReportService {
 				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 			}
 		} else if(category.equalsIgnoreCase("Third Party Data")) {
-			result = reportDao.getPrivillegeReportHeader("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
-			groupResult = reportDao.getReportGroup("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
+			if(request.getThirdPartyId().startsWith("true~")) {
+				result = reportDao.getPrivillegeReportHeader("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
+				groupResult = reportDao.getReportGroup("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
+			} else {
+				result = reportDao.getPrivillegeReportHeader("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
+				groupResult = reportDao.getReportGroup("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
+			}
+			
 		}
 		
 		System.out.println("!!!!! reportHeade: " + result.size());
@@ -122,8 +128,9 @@ public class ReportService {
 			resultObject.put("report_label", "Server Summary");
 		} else if(category.equalsIgnoreCase("user") && reportList.equalsIgnoreCase("End-To-End-Basic") && reportBy.equalsIgnoreCase("Sudoers") && deviceType.equalsIgnoreCase("tanium")) {
 			resultObject.put("report_label", "Sudoers Summary");
-		} else if(category.equalsIgnoreCase("Third Party Data")){
-			resultObject.put("report_label", "Custom Excel Data Report");
+		} else if(category.equalsIgnoreCase("Third Party Data")) {
+			String[] source_name = request.getThirdPartyId().split("~");
+			resultObject.put("report_label", "CED - " + source_name[1]);
 		} else {
 			resultObject.put("report_label", report_label);
 		}
