@@ -728,10 +728,27 @@ public class priviledgeChartQueryBuilder {
 							System.out.println("object condition : " + object);
 							if ((object.containsKey("type") && object.containsKey("filter")
 									&& object.containsKey("filterType")) || (object.containsKey("type") && object.containsKey("filterType"))) {
-								if (key.startsWith("User Summary~")) {
-									filters = filters.concat(key.substring(13));
-								} else {
-									filters = filters.concat(" SR_DATA::JSON ->> '" + key + "'");
+								if(reportLabel.startsWith("User-Tanium-User")) {
+									System.out.println("User summary");
+									if (key.startsWith("User Summary~")) {
+										filters = filters.concat(key.substring(13));
+									} else {
+										filters = filters.concat(" SR_DATA::JSON ->> '" + key + "'");
+									}
+								} else if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
+									String keySubstring = "";
+									System.out.println("server summary");
+									if(key.startsWith("Server Summary~")) {
+										keySubstring = key.substring(15);
+									 } else if(key.startsWith("Server Data~")) {
+										 keySubstring = key.substring(12);
+									 }
+									
+									if (key.startsWith("Server Summary~") || key.startsWith("Server Data~")) {
+										filters = filters.concat(keySubstring);
+									} else {
+										filters = filters.concat(" source_data::JSON ->> '" + key + "'");
+									}
 								}
 
 								if (object.containsKey("type")
