@@ -78,17 +78,20 @@ public class ReportService {
 
 			result = dataframeService.getReportHeaderForMigrationMethod(siteKey, deviceType);
 
-		} else {
+		} else if(!category.equalsIgnoreCase("Third Party Data")) {
 			
 			if(reportBy.equalsIgnoreCase("Privileged Access")) {
-				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
+				result = reportDao.getPrivillegeReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
 			} else if((reportBy.equalsIgnoreCase("User") || reportBy.equalsIgnoreCase("Server") || reportBy.equalsIgnoreCase("Sudoers")) && reportName.equalsIgnoreCase("End-To-End-Basic")) {
-				result = reportDao.getPrivillegeReportHeader(reportName, actualDeviceType, reportBy, siteKey, userId);
+				result = reportDao.getPrivillegeReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 				groupResult = reportDao.getReportGroup(reportName, deviceType, reportBy, siteKey, userId);
 			} else {
 				result = reportDao.getReportHeader(reportName, deviceType, reportBy, siteKey, userId);
 			}
+		} else if(category.equalsIgnoreCase("Third Party Data")) {
+			result = reportDao.getPrivillegeReportHeader("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
+			groupResult = reportDao.getReportGroup("End-To-End-Basic", deviceType, "thirdPartyData", siteKey, userId);
 		}
 		
 		System.out.println("!!!!! reportHeade: " + result.size());
@@ -119,6 +122,8 @@ public class ReportService {
 			resultObject.put("report_label", "Server Summary");
 		} else if(category.equalsIgnoreCase("user") && reportList.equalsIgnoreCase("End-To-End-Basic") && reportBy.equalsIgnoreCase("Sudoers") && deviceType.equalsIgnoreCase("tanium")) {
 			resultObject.put("report_label", "Sudoers Summary");
+		} else if(category.equalsIgnoreCase("Third Party Data")){
+			resultObject.put("report_label", "Custom Excel Data Report");
 		} else {
 			resultObject.put("report_label", report_label);
 		}

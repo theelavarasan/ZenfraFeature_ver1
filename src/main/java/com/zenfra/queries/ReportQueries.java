@@ -41,6 +41,9 @@ public class ReportQueries {
 	
 	private String taniumSudoersSummaryGroup;
 	
+	private String cedHeader;
+	private String cedHeaderGroup;
+	
 	public String getHeader() {
 		return header;
 	}
@@ -169,5 +172,23 @@ public class ReportQueries {
 	public void setTaniumSudoersSummaryGroup(String taniumSudoersSummaryGroup) {
 		this.taniumSudoersSummaryGroup = taniumSudoersSummaryGroup;
 	}
+
+	public String getCedHeader() {
+		return cedHeader;
+	}
+
+	public void setCedHeader(String cedHeader) {
+		this.cedHeader = cedHeader;
+	}
+
+	public String getCedHeaderGroup() {
+		return cedHeaderGroup;
+	}
+
+	public void setCedHeaderGroup(String cedHeaderGroup) {
+		this.cedHeaderGroup = cedHeaderGroup;
+	}
+	
+	
 	
 }

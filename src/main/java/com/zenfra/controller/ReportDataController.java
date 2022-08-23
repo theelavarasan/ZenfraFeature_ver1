@@ -169,7 +169,8 @@ public class ReportDataController {
 					}
 				}*/
 				
-				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium")) {
+				if((request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium")) || 
+						request.getCategory().equalsIgnoreCase("Third Party Data")) {
 					
 					return new ResponseEntity<>(privillegeAccessReportDAO.getData(request), HttpStatus.OK);
 					
@@ -325,6 +326,7 @@ public class ReportDataController {
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();
 			} else*/ 
+			System.out.println("!!!!! reportType: " + request.getReportType());
 			if (request.getReportType().equalsIgnoreCase("optimization")) {
 				reportName = request.getReportType();
 				deviceType = "All";
@@ -383,6 +385,10 @@ public class ReportDataController {
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();	
 				
+			}
+			
+			if(request.getCategory().equalsIgnoreCase("Third Party Data")) {
+				deviceType = "tanium";
 			}
 			
 		

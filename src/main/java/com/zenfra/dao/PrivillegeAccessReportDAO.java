@@ -50,6 +50,9 @@ public class PrivillegeAccessReportDAO {
         
         // first obtain the pivot values from the DB for the requested pivot columns
         //Map<String, List<String>> pivotValues = getPivotValues(request.getPivotCols());
+        if(request.getCategory().equalsIgnoreCase("Third Party Data")) {
+        	request.setReportBy("thirdPartyData");
+        }
         Map<String, List<String>> pivotValues = new HashMap<String, List<String>>();
 
         // generate sql
@@ -65,6 +68,7 @@ public class PrivillegeAccessReportDAO {
         String sql = queryBuilder.createSql(request, tableName, pivotValues, validationFilter, request.getReportBy(), getSourceMap(request.getSiteKey()));
         
         List<Map<String, Object>> rows = utilities.getDBDatafromJdbcTemplate(sql); //template.queryForList(sql);
+        
         JSONArray resultArray = utilities.dataNormalize(rows, request.getReportBy());
         //System.out.println("!!!!! pagination data: " + rows);
         // create response with our results
@@ -122,8 +126,10 @@ public class PrivillegeAccessReportDAO {
 			column1 = " coalesce(coalesce(SDT.SDJSONDATA,''{}'')::jsonb ->> '''";
 		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
-		} else {
+		} else if(reportBy.equalsIgnoreCase("Privileged Access")) {
 			column1 = " coalesce(coalesce(sd.data,''{}'')::jsonb || coalesce(sd1.data,''{}'')::jsonb ->> '''";
+		} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
+			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
 		}
 		
 		
