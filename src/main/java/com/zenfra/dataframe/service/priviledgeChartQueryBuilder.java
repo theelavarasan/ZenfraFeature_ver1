@@ -645,6 +645,7 @@ public class priviledgeChartQueryBuilder {
 
 		String filters = "";
 		JSONObject filterModelObject = (JSONObject) filterModel;
+		JSONObject filterColumnName = new JSONObject();
 		Set<String> filterKeys = new HashSet<>();
 		for (int i = 0; i < filterModelObject.size(); i++) {
 			JSONObject jsonObj = filterModelObject;
@@ -655,7 +656,7 @@ public class priviledgeChartQueryBuilder {
 		JSONObject conditionObject = new JSONObject();
 
 		for (String key : filterKeys) {
-			JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
+			filterColumnName = (JSONObject) filterModelObject.get(key);
 
 			for (int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2
 					: filterModelObject.size()); i++) {
@@ -721,6 +722,7 @@ public class priviledgeChartQueryBuilder {
 					
 					filters = filters.concat(" and ");
 				} else if (filterColumnName.containsKey("filterType") && filterColumnName.containsKey("operator")) {
+					filters = filters.concat(" (");
 					Set<String> Keys = new HashSet<>();
 					for (int j = 0; j < filterModelObject.size(); j++) {
 						JSONObject jsonObj = filterColumnName;
@@ -799,19 +801,24 @@ public class priviledgeChartQueryBuilder {
 							}
 						}
 					}
-
+					if (conditionObject.containsKey("operator")
+							&& conditionObject.get("operator").toString().equalsIgnoreCase("or")) {
+						filters = filters.substring(0, filters.length() - 4);
+					} else {
+						filters = filters.substring(0, filters.length() - 5);
+					}
+					filters = filters.concat(") ");
 				}
 
 			}
 		}
 		
 		System.out.println("filters : " + filters);
-		if (conditionObject.containsKey("operator")
-				&& conditionObject.get("operator").toString().equalsIgnoreCase("or")) {
-			filters = filters.substring(0, filters.length() - 4);
-		} else {
+		if((filterColumnName.containsKey("type") && filterColumnName.containsKey("filter")
+				&& filterColumnName.containsKey("filterType")) || (filterColumnName.containsKey("type") && filterColumnName.containsKey("filterType"))) {
 			filters = filters.substring(0, filters.length() - 5);
 		}
+		
 		return filters;
 	}
 
