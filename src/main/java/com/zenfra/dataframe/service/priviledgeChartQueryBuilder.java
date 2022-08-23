@@ -455,7 +455,7 @@ public class priviledgeChartQueryBuilder {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public String priviledgeSudoersChartQueries(JSONObject chartConfig, String siteKey, String chartType, String reportLabel)
+	public String priviledgeSudoersChartQueries(JSONObject chartConfig, JSONObject filterModel, String siteKey, String chartType, String reportLabel)
 			throws ParseException {
 
 		JSONParser jsonParser = new JSONParser();
@@ -610,9 +610,9 @@ public class priviledgeChartQueryBuilder {
 			}
 
 //			filtering property
-//			if (!filterModel.isEmpty() && filterModel != null) {
-//				query = query.concat(userSummaryChartFilter(filterModel));
-//			}
+			if (!filterModel.isEmpty() && filterModel != null) {
+				query = query.concat(ChartFilters(filterModel, reportLabel));
+			}
 //			filtering property
 
 		query = query.concat(" group by ");
@@ -681,6 +681,12 @@ public class priviledgeChartQueryBuilder {
 						} else {
 							filters = filters.concat(" source_data::JSON ->> '" + key + "'");
 						}
+					} else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
+						if (key.startsWith("Sudoers Summary~")) {
+							filters = filters.concat(key.substring(16));
+						} else {
+							filters = filters.concat(" source_data1::JSON ->> '" + key + "'");
+						}
 					}
 					
 					if(filterColumnName.containsKey("filterType") && filterColumnName.get("filterType").toString().equalsIgnoreCase("text")) {
@@ -745,6 +751,12 @@ public class priviledgeChartQueryBuilder {
 									} else {
 										filters = filters.concat(" source_data::JSON ->> '" + key + "'");
 									}
+								} else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
+									if (key.startsWith("Sudoers Summary~")) {
+										filters = filters.concat(key.substring(16));
+									} else {
+										filters = filters.concat(" source_data1::JSON ->> '" + key + "'");
+									}
 								}
 
 								if(object.containsKey("filterType") && object.get("filterType").toString().equalsIgnoreCase("text")) {
@@ -802,5 +814,5 @@ public class priviledgeChartQueryBuilder {
 
 		return filters;
 	}
-	
+
 }
