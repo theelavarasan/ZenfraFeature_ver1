@@ -813,7 +813,6 @@ public class priviledgeChartQueryBuilder {
 			}
 		}
 		
-		System.out.println("filters : " + filters);
 		filters = filters.substring(0, filters.length() - 5);
 		
 		return filters;
