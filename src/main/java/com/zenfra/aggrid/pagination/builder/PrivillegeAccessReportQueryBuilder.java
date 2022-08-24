@@ -608,6 +608,10 @@ public class PrivillegeAccessReportQueryBuilder {
     				
     				if(columnFilter instanceof TextColumnFilter) {
     					
+    					if(reportBy.equalsIgnoreCase("Sudoers Detail")) {
+    						column = column.replace("Server Summary~", "Sudoers Detail~");
+    			    	}
+    					
     					if(!column.contains(prefix)) {
     						
 							String column1 = column;
