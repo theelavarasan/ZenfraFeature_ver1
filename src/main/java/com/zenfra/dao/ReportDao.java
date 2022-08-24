@@ -66,13 +66,18 @@ public class ReportDao {
 		return reportHeaders;
 	} 
 	
-	public JSONArray getPrivillegeReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+	public JSONArray getPrivillegeReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId, String sourceId) {
 		JSONArray reportHeaders = new JSONArray();
 		try {
+			
+			String[] source_name = sourceId.split("~");
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("site_key", siteKey);
 			params.put("user_id", userId);
-			params.put("sourceId", reportName);
+			if(source_name.length > 1) {
+				params.put("sourceId", source_name[2]);
+			}
+			
 			System.out.println("------params--------- " + params);
 			//System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
 			
@@ -87,12 +92,18 @@ public class ReportDao {
 			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
 				headerQuery = reportQueries.getSudoersSummaryHeader();
 			} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
-				headerQuery = reportQueries.getCedHeader();
+				
+				if(sourceId.startsWith("true~")) {
+					headerQuery = reportQueries.getCedHeader();
+				} else {
+					headerQuery = reportQueries.getCedOtherHeader();
+				}
+				
 			}
 			System.out.println("!!!!! headerQuery1: " + headerQuery);
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
 			if(headerQuery.contains(":sourceId")) {
-				headerQuery = headerQuery.replace(":sourceId", deviceType);
+				headerQuery = headerQuery.replace(":sourceId", source_name[2]);
 			}
 			System.out.println("!!!!! headerQuery2: " + headerQuery);
 			result = jdbc.queryForList(headerQuery);
@@ -136,7 +147,7 @@ public class ReportDao {
 		return reportHeaders;
 	}
 	
-	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId, String sourceId) {
 		JSONObject reportGroup = new JSONObject();
 		try {
 			
@@ -176,9 +187,17 @@ public class ReportDao {
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! Privileged Access Group query: " + query);
 			} else {
-				query = reportQueries.getCedHeaderGroup();
-				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", deviceType);
-				System.out.println("!!!!! CED Header Group query: " + query);
+				String[] source_name = sourceId.split("~");
+				if(sourceId.startsWith("true~")) {
+					query = reportQueries.getCedHeaderGroup();
+					query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", source_name[2]);
+					System.out.println("!!!!! CED Header Group query: " + query);
+				} else {
+					query = reportQueries.getCedOtherHeaderGroup();
+					query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", source_name[2]);
+					System.out.println("!!!!! CED Header Group query: " + query);
+				}
+				
 				
 			}
 			result = jdbc.queryForList(query);

@@ -319,14 +319,20 @@ public class ReportDataController {
 			String siteKey = "";
 			String reportList = "";
 
-			/*if (request.getReportType().equalsIgnoreCase("discovery")) {
-				reportName = request.getReportType();
-				deviceType = request.getOstype();
-				reportBy = request.getReportBy();
-				siteKey = request.getSiteKey();
-				reportList = request.getReportList();
-			} else*/ 
+			if(request.getCategory().equalsIgnoreCase("Third Party Data")) {
+				if(request.getThirdPartyId().startsWith("true~")) {
+					request.setReportList("End-To-End-Basic");
+					request.setReportBy("thirdPartyData");
+					request.setAnalyticstype("discovery");
+				} else {
+					request.setReportList("Local");
+					request.setReportBy("Server");
+					request.setAnalyticstype("discovery");
+				}
+			}
+			
 			System.out.println("!!!!! reportType: " + request.getReportType());
+			System.out.println("!!!!! reportType: " + request.getCategory());
 			if (request.getReportType().equalsIgnoreCase("optimization")) {
 				reportName = request.getReportType();
 				deviceType = "All";
@@ -360,6 +366,7 @@ public class ReportDataController {
 			} else {
 			
 				String componentName = "";
+				System.out.println("!!!!! thirdPartyId: " + request.getThirdPartyId());
 				if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
 					componentName = request.getOstype();
 				} else if(request.getSwitchtype() != null && !request.getSwitchtype().isEmpty()) { //switch

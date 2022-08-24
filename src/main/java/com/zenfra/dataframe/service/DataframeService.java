@@ -3313,11 +3313,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						String query = "";
 						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
-							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeChartQueryBuilder.priviledgeUserSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
-							query = priviledgeChartQueryBuilder.priviledgeSudoersChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeSudoersChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}
 
 						System.out.println("------pie query------ " + query);
@@ -3371,11 +3371,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						String query = "";
 						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
-							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeChartQueryBuilder.priviledgeUserSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}  else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
-							query = priviledgeChartQueryBuilder.priviledgeSudoersChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeSudoersChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}
 						
 						System.out.println("------ " + chartType + " : " + query);
@@ -3466,11 +3466,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						String query = "";
 						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
-							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeChartQueryBuilder.priviledgeUserSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}  else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
-							query = priviledgeChartQueryBuilder.priviledgeSudoersChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeSudoersChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}
 						
 						System.out.println("---" + chartType + " : " + query);
@@ -3576,11 +3576,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						String query = "";
 						if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
-							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeServerSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						} else if(reportLabel.startsWith("User-Tanium-User")) {
 							query = priviledgeChartQueryBuilder.priviledgeUserSummaryChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}  else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
-							query = priviledgeChartQueryBuilder.priviledgeSudoersChartQueries(chartConfig, siteKey, chartType, reportLabel);
+							query = priviledgeChartQueryBuilder.priviledgeSudoersChartQueries(chartConfig, filterModel, siteKey, chartType, reportLabel);
 						}
 						
 						System.out.println("---" + chartType + " : " + query);

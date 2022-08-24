@@ -185,7 +185,7 @@ public class priviledgeChartQueryBuilder {
 
 //		filtering property
 		if (!filterModel.isEmpty() && filterModel != null) {
-			query = query.concat(userSummaryChartFilter(filterModel, reportLabel));
+			query = query.concat(ChartFilters(filterModel, reportLabel));
 		}
 //		filtering property
 
@@ -215,141 +215,8 @@ public class priviledgeChartQueryBuilder {
 		return query;
 	}
 
-	public String userSummaryChartFilter(JSONObject filterModel, String reportLabel) {
-
-		String filters = "";
-		System.out.println("filterModel : " + filterModel);
-		JSONObject filterModelObject = (JSONObject) filterModel;
-		Set<String> filterKeys = new HashSet<>();
-		for (int i = 0; i < filterModelObject.size(); i++) {
-			JSONObject jsonObj = filterModelObject;
-			filterKeys.addAll(jsonObj.keySet());
-		}
-
-		filters = filters.concat(" and ");
-		JSONObject conditionObject = new JSONObject();
-
-		for (String key : filterKeys) {
-			JSONObject filterColumnName = (JSONObject) filterModelObject.get(key);
-
-			for (int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2
-					: filterModelObject.size()); i++) {
-
-				if ((filterColumnName.containsKey("type") && filterColumnName.containsKey("filter")
-						&& filterColumnName.containsKey("filterType")) || (filterColumnName.containsKey("type") && filterColumnName.containsKey("filterType"))) {
-					if(reportLabel.startsWith("User-Tanium-User")) {
-						if (key.startsWith("User Summary~")) {
-							filters = filters.concat(key.substring(13));
-						} else {
-							filters = filters.concat(" SR_DATA::JSON ->> '" + key + "'");
-						}
-					}
-					
-					if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("contains")) {
-						filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "%'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("notContains")) {
-						filters = filters.concat(" not ilike '%" + filterColumnName.get("filter") + "%'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("equals")) {
-						filters = filters.concat(" = '" + filterColumnName.get("filter") + "'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("notEqual")) {
-						filters = filters.concat(" <> '" + filterColumnName.get("filter") + "'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("Blanks")) {
-						filters = filters.concat(" = ''");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("Not Blanks")) {
-						filters = filters.concat(" <> ''");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("startsWith")) {
-						filters = filters.concat(" ilike '" + filterColumnName.get("filter") + "%'");
-					} else if (filterColumnName.containsKey("type")
-							&& filterColumnName.get("type").toString().equalsIgnoreCase("endsWith")) {
-						filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "'");
-					}
-					
-					filters = filters.concat(" and ");
-				} else if (filterColumnName.containsKey("filterType") && filterColumnName.containsKey("operator")) {
-					Set<String> Keys = new HashSet<>();
-					for (int j = 0; j < filterModelObject.size(); j++) {
-						JSONObject jsonObj = filterColumnName;
-						Keys.addAll(jsonObj.keySet());
-					}
-					System.out.println("Keys : " + Keys);
-					for (int j = 0; j < Keys.size() - 2; j++) {
-						conditionObject = filterColumnName;
-						System.out.println("conditionObject : " + conditionObject);
-						if (conditionObject.containsKey("condition" + (j + 1))) {
-							JSONObject object = (JSONObject) conditionObject.get("condition" + (j + 1));
-							System.out.println("object condition : " + object);
-							if ((object.containsKey("type") && object.containsKey("filter")
-									&& object.containsKey("filterType")) || (object.containsKey("type") && object.containsKey("filterType"))) {
-								if (key.startsWith("User Summary~")) {
-									filters = filters.concat(key.substring(13));
-								} else {
-									filters = filters.concat(" SR_DATA::JSON ->> '" + key + "'");
-								}
-
-								if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("contains")) {
-									filters = filters.concat(" ilike '%" + object.get("filter") + "%'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("notContains")) {
-									filters = filters.concat(" not ilike '%" + object.get("filter") + "%'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("equals")) {
-									filters = filters.concat(" = '" + object.get("filter") + "'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("notEqual")) {
-									filters = filters.concat(" <> '" + object.get("filter") + "'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("Blanks")) {
-									filters = filters.concat(" = ''");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("Not Blanks")) {
-									filters = filters.concat(" <> ''");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("startsWith")) {
-									filters = filters.concat(" ilike '" + object.get("filter") + "%'");
-								} else if (object.containsKey("type")
-										&& object.get("type").toString().equalsIgnoreCase("endsWith")) {
-									filters = filters.concat(" ilike '%" + object.get("filter") + "'");
-								}
-							}
-
-							if (conditionObject.containsKey("operator")
-									&& conditionObject.get("operator").toString().equalsIgnoreCase("and")) {
-								filters = filters.concat(" and ");
-							} else if (conditionObject.containsKey("operator")
-									&& conditionObject.get("operator").toString().equalsIgnoreCase("or")) {
-								filters = filters.concat(" or ");
-							}
-						}
-					}
-
-				}
-
-				System.out.println("filters : " + filters);
-			}
-
-		}
-		if (conditionObject.containsKey("operator")
-				&& conditionObject.get("operator").toString().equalsIgnoreCase("or")) {
-			filters = filters.substring(0, filters.length() - 4);
-		} else {
-			filters = filters.substring(0, filters.length() - 5);
-		}
-		System.out.println("filters 2 : " + filters);
-
-		return filters;
-	}
-
-	
 	@SuppressWarnings("unchecked")
-	public String priviledgeServerSummaryChartQueries(JSONObject chartConfig, String siteKey, String chartType, String reportLabel)
+	public String priviledgeServerSummaryChartQueries(JSONObject chartConfig, JSONObject filterModel, String siteKey, String chartType, String reportLabel)
 			throws ParseException {
 
 		JSONParser jsonParser = new JSONParser();
@@ -556,9 +423,9 @@ public class priviledgeChartQueryBuilder {
 			}
 
 //			filtering property
-//			if (!filterModel.isEmpty() && filterModel != null) {
-//				query = query.concat(userSummaryChartFilter(filterModel));
-//			}
+			if (!filterModel.isEmpty() && filterModel != null) {
+				query = query.concat(ChartFilters(filterModel, reportLabel));
+			}
 //			filtering property
 
 		query = query.concat(" group by ");
@@ -588,7 +455,7 @@ public class priviledgeChartQueryBuilder {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public String priviledgeSudoersChartQueries(JSONObject chartConfig, String siteKey, String chartType, String reportLabel)
+	public String priviledgeSudoersChartQueries(JSONObject chartConfig, JSONObject filterModel, String siteKey, String chartType, String reportLabel)
 			throws ParseException {
 
 		JSONParser jsonParser = new JSONParser();
@@ -743,9 +610,9 @@ public class priviledgeChartQueryBuilder {
 			}
 
 //			filtering property
-//			if (!filterModel.isEmpty() && filterModel != null) {
-//				query = query.concat(userSummaryChartFilter(filterModel));
-//			}
+			if (!filterModel.isEmpty() && filterModel != null) {
+				query = query.concat(ChartFilters(filterModel, reportLabel));
+			}
 //			filtering property
 
 		query = query.concat(" group by ");
@@ -774,4 +641,181 @@ public class priviledgeChartQueryBuilder {
 		return query;
 	}
 	
+	public String ChartFilters(JSONObject filterModel, String reportLabel) {
+
+		String filters = "";
+		JSONObject filterModelObject = (JSONObject) filterModel;
+		JSONObject filterColumnName = new JSONObject();
+		Set<String> filterKeys = new HashSet<>();
+		for (int i = 0; i < filterModelObject.size(); i++) {
+			JSONObject jsonObj = filterModelObject;
+			filterKeys.addAll(jsonObj.keySet());
+		}
+
+		filters = filters.concat(" and ");
+		JSONObject conditionObject = new JSONObject();
+
+		for (String key : filterKeys) {
+			filterColumnName = (JSONObject) filterModelObject.get(key);
+
+			for (int i = 0; i < (filterModelObject.size() >= 2 ? filterModelObject.size() / 2
+					: filterModelObject.size()); i++) {
+
+				if ((filterColumnName.containsKey("type") && filterColumnName.containsKey("filter")
+						&& filterColumnName.containsKey("filterType")) || (filterColumnName.containsKey("type") && filterColumnName.containsKey("filterType"))) {
+					if(reportLabel.startsWith("User-Tanium-User")) {
+						if (key.startsWith("User Summary~")) {
+							filters = filters.concat(key.substring(13));
+						} else {
+							filters = filters.concat(" SR_DATA::JSON ->> '" + key + "'");
+						}
+					} else if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
+						String keySubstring = "";
+						if(key.startsWith("Server Summary~")) {
+							keySubstring = key.substring(15);
+						 } else if(key.startsWith("Server Data~")) {
+							 keySubstring = key.substring(12);
+						 }
+						
+						if (key.startsWith("Server Summary~") || key.startsWith("Server Data~")) {
+							filters = filters.concat(keySubstring);
+						} else {
+							filters = filters.concat(" source_data::JSON ->> '" + key + "'");
+						}
+					} else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
+						if (key.startsWith("Sudoers Summary~")) {
+							filters = filters.concat(key.substring(16));
+						} else {
+							filters = filters.concat(" source_data1::JSON ->> '" + key + "'");
+						}
+					}
+					
+					if(filterColumnName.containsKey("filterType") && filterColumnName.get("filterType").toString().equalsIgnoreCase("text")) {
+						if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("contains")) {
+							filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "%'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("notContains")) {
+							filters = filters.concat(" not ilike '%" + filterColumnName.get("filter") + "%'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("equals")) {
+							filters = filters.concat(" = '" + filterColumnName.get("filter") + "'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("notEqual")) {
+							filters = filters.concat(" <> '" + filterColumnName.get("filter") + "'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("Blanks")) {
+							filters = filters.concat(" = ''");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("Not Blanks")) {
+							filters = filters.concat(" <> ''");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("startsWith")) {
+							filters = filters.concat(" ilike '" + filterColumnName.get("filter") + "%'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("endsWith")) {
+							filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "'");
+						}
+					} else if(filterColumnName.containsKey("filterType") && filterColumnName.get("filterType").toString().equalsIgnoreCase("number")) {
+						System.out.println("number:");
+					}
+					
+					filters = filters.concat(" and ");
+				} else if (filterColumnName.containsKey("filterType") && filterColumnName.containsKey("operator")) {
+					filters = filters.concat(" (");
+					Set<String> Keys = new HashSet<>();
+					for (int j = 0; j < filterModelObject.size(); j++) {
+						JSONObject jsonObj = filterColumnName;
+						Keys.addAll(jsonObj.keySet());
+					}
+					for (int j = 0; j < Keys.size() - 2; j++) {
+						conditionObject = filterColumnName;
+						if (conditionObject.containsKey("condition" + (j + 1))) {
+							JSONObject object = (JSONObject) conditionObject.get("condition" + (j + 1));
+							if ((object.containsKey("type") && object.containsKey("filter")
+									&& object.containsKey("filterType")) || (object.containsKey("type") && object.containsKey("filterType"))) {
+								if(reportLabel.startsWith("User-Tanium-User")) {
+									if (key.startsWith("User Summary~")) {
+										filters = filters.concat(key.substring(13));
+									} else {
+										filters = filters.concat(" SR_DATA::JSON ->> '" + key + "'");
+									}
+								} else if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
+									String keySubstring = "";
+									if(key.startsWith("Server Summary~")) {
+										keySubstring = key.substring(15);
+									 } else if(key.startsWith("Server Data~")) {
+										 keySubstring = key.substring(12);
+									 }
+									
+									if (key.startsWith("Server Summary~") || key.startsWith("Server Data~")) {
+										filters = filters.concat(keySubstring);
+									} else {
+										filters = filters.concat(" source_data::JSON ->> '" + key + "'");
+									}
+								} else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
+									if (key.startsWith("Sudoers Summary~")) {
+										filters = filters.concat(key.substring(16));
+									} else {
+										filters = filters.concat(" source_data1::JSON ->> '" + key + "'");
+									}
+								}
+
+								if(object.containsKey("filterType") && object.get("filterType").toString().equalsIgnoreCase("text")) {
+									if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("contains")) {
+										filters = filters.concat(" ilike '%" + object.get("filter") + "%'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("notContains")) {
+										filters = filters.concat(" not ilike '%" + object.get("filter") + "%'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("equals")) {
+										filters = filters.concat(" = '" + object.get("filter") + "'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("notEqual")) {
+										filters = filters.concat(" <> '" + object.get("filter") + "'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("Blanks")) {
+										filters = filters.concat(" = ''");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("Not Blanks")) {
+										filters = filters.concat(" <> ''");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("startsWith")) {
+										filters = filters.concat(" ilike '" + object.get("filter") + "%'");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("endsWith")) {
+										filters = filters.concat(" ilike '%" + object.get("filter") + "'");
+									}
+								} else if(object.containsKey("filterType") && object.get("filterType").toString().equalsIgnoreCase("number")) {
+									System.out.println("Number 1 :");
+								}
+							}
+
+							if (conditionObject.containsKey("operator")
+									&& conditionObject.get("operator").toString().equalsIgnoreCase("and")) {
+								filters = filters.concat(" and ");
+							} else if (conditionObject.containsKey("operator")
+									&& conditionObject.get("operator").toString().equalsIgnoreCase("or")) {
+								filters = filters.concat(" or ");
+							}
+						}
+					}
+					if (conditionObject.containsKey("operator")
+							&& conditionObject.get("operator").toString().equalsIgnoreCase("or")) {
+						filters = filters.substring(0, filters.length() - 4);
+					} else {
+						filters = filters.substring(0, filters.length() - 5);
+					}
+					filters = filters.concat(") and ");
+				}
+
+			}
+		}
+		
+		filters = filters.substring(0, filters.length() - 5);
+		
+		return filters;
+	}
+
 }

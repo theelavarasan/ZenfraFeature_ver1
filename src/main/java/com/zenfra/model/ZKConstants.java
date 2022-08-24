@@ -132,4 +132,5 @@ public class ZKConstants {
 	public static String CHECK_ZOOM_CONFIG = "checkzoomconfig";
 	public static String WILD_CARD_CERTIFICATE = "wild_card_certificate";
 	public static String ZENFRA_USER_GROUP_NAME = "zenuser";
+	public static String IS_USER_RELATED_CED = "is_user_related_ced";
 }

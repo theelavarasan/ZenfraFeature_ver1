@@ -33,36 +33,42 @@ public class ValidationRuleController {
 		
 		Map<String, List<Object>> resultData = new HashMap<String, List<Object>>();
 		JSONArray resultArray = new JSONArray();
-		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") && !model.getReportBy().equalsIgnoreCase("Group Info")
-				&& !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") && !model.getReportBy().equalsIgnoreCase("Sudoers")
-				&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
-			resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
-				   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList(), model.getAnalyticsType());
-		} else if(model.getAnalyticsType().equalsIgnoreCase("Compatibility")) {
-			resultArray = validationRuleService.getVR_Compatibility(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
-		} else if(model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
-			resultArray = validationRuleService.getVR_MigrationMethod(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
-		} else if (model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Privileged Access")) {
-			resultArray = validationRuleService.getVR_PrivilledgeData(model.getSiteKey(), model.getColumnName());
-		} else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
-			//resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
-			resultArray = validationRuleService.getCloudCostReportValuesPostgres(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
-		} else if (model.getAnalyticsType().equalsIgnoreCase("onpremises-cost") && !model.getReportBy().equalsIgnoreCase("Privileged Access") 
-				&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User")) {
-			resultArray = validationRuleService.getOnpremisesCostFieldType(model.getSiteKey(), model.getColumnName(), model.getOsType());
-		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Group Info")) {
-			resultArray = validationRuleService.getVR_VanguardGroupInfo(model.getSiteKey(), model.getColumnName());
-		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Group")) {
-			resultArray = validationRuleService.getVR_TaniumGroup(model.getSiteKey(), model.getColumnName());
-		}else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User") && model.getDeviceType().equalsIgnoreCase("zoom")) {
-			resultArray = validationRuleService.getVR_ZoomUsers(model.getSiteKey(), model.getColumnName());
-		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User") && model.getDeviceType().equalsIgnoreCase("tanium")) {
-			resultArray = validationRuleService.getVR_TaniumUsers(model.getSiteKey(), model.getColumnName());
-		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("server") && model.getDeviceType().equalsIgnoreCase("tanium")) {
-			resultArray = validationRuleService.getVR_TaniumServer(model.getSiteKey(), model.getColumnName());
-		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("sudoers") && model.getDeviceType().equalsIgnoreCase("tanium")) {
-			resultArray = validationRuleService.getVR_TaniumSudoers(model.getSiteKey(), model.getColumnName());
+		
+		if(!model.getCategory().equalsIgnoreCase("Third Party Data")) {
+			if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") && !model.getReportBy().equalsIgnoreCase("Group Info")
+					&& !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") && !model.getReportBy().equalsIgnoreCase("Sudoers")
+					&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
+				resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
+					   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList(), model.getAnalyticsType());
+			} else if(model.getAnalyticsType().equalsIgnoreCase("Compatibility")) {
+				resultArray = validationRuleService.getVR_Compatibility(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
+			} else if(model.getAnalyticsType().equalsIgnoreCase("Migration Method")) {
+				resultArray = validationRuleService.getVR_MigrationMethod(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType());
+			} else if (model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Privileged Access")) {
+				resultArray = validationRuleService.getVR_PrivilledgeData(model.getSiteKey(), model.getColumnName());
+			} else if(model.getAnalyticsType().equalsIgnoreCase("cloud-cost")) {
+				//resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
+				resultArray = validationRuleService.getCloudCostReportValuesPostgres(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
+			} else if (model.getAnalyticsType().equalsIgnoreCase("onpremises-cost") && !model.getReportBy().equalsIgnoreCase("Privileged Access") 
+					&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User")) {
+				resultArray = validationRuleService.getOnpremisesCostFieldType(model.getSiteKey(), model.getColumnName(), model.getOsType());
+			} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Group Info")) {
+				resultArray = validationRuleService.getVR_VanguardGroupInfo(model.getSiteKey(), model.getColumnName());
+			} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Group")) {
+				resultArray = validationRuleService.getVR_TaniumGroup(model.getSiteKey(), model.getColumnName());
+			}else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User") && model.getDeviceType().equalsIgnoreCase("zoom")) {
+				resultArray = validationRuleService.getVR_ZoomUsers(model.getSiteKey(), model.getColumnName());
+			} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("User") && model.getDeviceType().equalsIgnoreCase("tanium")) {
+				resultArray = validationRuleService.getVR_TaniumUsers(model.getSiteKey(), model.getColumnName());
+			} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("server") && model.getDeviceType().equalsIgnoreCase("tanium")) {
+				resultArray = validationRuleService.getVR_TaniumServer(model.getSiteKey(), model.getColumnName());
+			} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("sudoers") && model.getDeviceType().equalsIgnoreCase("tanium")) {
+				resultArray = validationRuleService.getVR_TaniumSudoers(model.getSiteKey(), model.getColumnName());
+			}
+		} else {
+			resultArray = validationRuleService.getVR_CEDUniqueData(model.getSiteKey(), model.getColumnName(), model.getThirdPartyId());
 		}
+		
 			
 
 		String colName = model.getColumnName();
