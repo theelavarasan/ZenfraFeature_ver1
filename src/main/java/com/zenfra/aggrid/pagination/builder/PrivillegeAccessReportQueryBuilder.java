@@ -321,7 +321,8 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
 					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 					+ "    coalesce(SDT.SDJSONDATA, '{}') AS source_data1,"
-					+ " '{}' as source_data2 \r\n"
+					+ " '{}' as source_data2, \r\n"
+					+ " USRD.processeddate "
 					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
 					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
 					+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
@@ -389,14 +390,14 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
 					+ ")a ";*/
 			
-			taniumReportQuery = "select * from (select count(1) over() as row_count,user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
+			taniumReportQuery = "select * from (select count(1) over() as row_count,user_name, processeddate, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
 					+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count, json_collect(sd.data::json) as source_data1 "
 					+ "from user_sudoers_summary_details ud \r\n"
 					+ "LEFT JOIN source_data sd on sd.primary_key_value = ud.user_name and sd.site_key = '" + siteKey + "'\r\n"
 					+ "WHERE ud.site_key = '" + siteKey + "'  \r\n " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
 					+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
 					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " "
-					+ "group by user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
+					+ "group by user_name, processeddate, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
 					+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count \r\n" 
 					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy)
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
