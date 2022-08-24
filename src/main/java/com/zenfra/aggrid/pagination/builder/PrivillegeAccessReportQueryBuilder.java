@@ -322,7 +322,7 @@ public class PrivillegeAccessReportQueryBuilder {
 					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 					+ "    coalesce(SDT.SDJSONDATA, '{}') AS source_data1,"
 					+ " '{}' as source_data2, \r\n"
-					+ " USRD.processeddate"
+					+ " USRD.processeddate "
 					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
 					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
 					+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
