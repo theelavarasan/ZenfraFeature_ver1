@@ -366,6 +366,7 @@ public class ReportDataController {
 			} else {
 			
 				String componentName = "";
+				System.out.println("!!!!! thirdPartyId: " + request.getThirdPartyId());
 				if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
 					componentName = request.getOstype();
 				} else if(request.getSwitchtype() != null && !request.getSwitchtype().isEmpty()) { //switch
