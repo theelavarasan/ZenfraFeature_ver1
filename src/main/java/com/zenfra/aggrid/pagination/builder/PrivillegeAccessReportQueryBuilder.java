@@ -405,6 +405,20 @@ public class PrivillegeAccessReportQueryBuilder {
 					
 					
 			
+		} else if(reportBy.equalsIgnoreCase("Sudoers Detail")) {
+			
+			taniumReportQuery = "select server_name, user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, \r\n"
+					+ "sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, sudo_privileges_by_user_alias, \r\n"
+					+ "processeddate, operating_system, is_group_user, json_collect(coalesce(sd.data, '{}')::json) as source_data from sudoers_summary_details ssd \r\n"
+					+ "LEFT JOIN source_data sd on sd.primary_key_value = ssd.user_name and sd.site_key = '" + siteKey + "' \r\n"
+					+ "where ssd.site_key = '" + siteKey + "' \r\n " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
+					+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " "
+					+ "group by server_name, user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, \r\n"
+					+ "sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, sudo_privileges_by_user_alias, \r\n"
+					+ "processeddate, operating_system, is_group_user\r\n"
+					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy)
+					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 		}
 		} else if(category.equalsIgnoreCase("Third Party Data")) {
 			
@@ -617,7 +631,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						
     						if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') ";
-    						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+    						} else if(reportBy.equalsIgnoreCase("Sudoers") || reportBy.equalsIgnoreCase("Sudoers Detail")) {
     							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') ";
     						} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
     							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') ";
@@ -645,7 +659,7 @@ public class PrivillegeAccessReportQueryBuilder {
 							
 							if(reportBy.equalsIgnoreCase("User")) {
     							column1 = "coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','') <> '' and coalesce(coalesce(SDT.SDJSONDATA,'{}')::jsonb ->> '" + column + "','0')::numeric ";
-    						} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+    						} else if(reportBy.equalsIgnoreCase("Sudoers") || reportBy.equalsIgnoreCase("Sudoers Detail")) {
     							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') <> '' and coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','0')::numeric ";
     						} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
     							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') <> '' and coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','0')::numeric ";
@@ -831,7 +845,7 @@ public class PrivillegeAccessReportQueryBuilder {
     			if(!s.getActualColId().startsWith(prefix)) {
     				if(reportBy.equalsIgnoreCase("User")) {
     					orderBy = " order by coalesce(SDT.SDJSONDATA::jsonb ->> '" + s.getActualColId() + "','') " + s.getSort();
-    				} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+    				} else if(reportBy.equalsIgnoreCase("Sudoers") || reportBy.equalsIgnoreCase("Sudoers Detail")) {
     					orderBy = " order by coalesce(json_collect(coalesce(sd.data::json, '{}'::json))::json ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
     					orderBy = " order by coalesce(coalesce(sd.data::json, '{}'::json)::json ->> '" + s.getActualColId() + "','') " + s.getSort();

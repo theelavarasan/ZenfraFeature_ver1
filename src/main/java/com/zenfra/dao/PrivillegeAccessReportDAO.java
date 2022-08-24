@@ -124,7 +124,7 @@ public class PrivillegeAccessReportDAO {
 		String column1 = "";
 		if(reportBy.equalsIgnoreCase("User")) {
 			column1 = " coalesce(coalesce(SDT.SDJSONDATA,''{}'')::jsonb ->> '''";
-		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+		} else if(reportBy.equalsIgnoreCase("Sudoers") || reportBy.equalsIgnoreCase("Sudoers Detail")) {
 			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
 		} else if(reportBy.equalsIgnoreCase("Privileged Access") || reportBy.equalsIgnoreCase("Server")) {
 			column1 = " coalesce(coalesce(sd.data,''{}'')::jsonb || coalesce(sd1.data,''{}'')::jsonb ->> '''";
