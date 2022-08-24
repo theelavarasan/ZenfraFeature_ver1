@@ -833,7 +833,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				if(column_name.equalsIgnoreCase("servers_count")) {
     					orderBy = " order by (case when servers_count is null or servers_count = '' then 0 else " + column_name + "::int end)" + s.getSort();
     				} else {
-    					orderBy = " order by " + column_name + " " + s.getSort();
+    					orderBy = " order by coalesce(" + column_name + ",'') " + s.getSort();
     				}
     				
     				
