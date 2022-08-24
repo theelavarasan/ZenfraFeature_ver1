@@ -452,6 +452,7 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     	System.out.println("!!!!! reportBy: " + reportBy);
     	String prefix = PrefixModel.getPrefix(reportBy);
+    	
     	try {
     		if(!filters.isEmpty()) {
     			
@@ -487,6 +488,9 @@ public class PrivillegeAccessReportQueryBuilder {
     				
     				if(columnFilter instanceof TextColumnFilter) {
     					
+    					if(reportBy.equalsIgnoreCase("Sudoers Detail")) {
+    						column = column.replace("Server Summary~", "Sudoers Detail~");
+    			    	}
     					if(column.contains(prefix)) {
     						String column1 = column.substring(column.indexOf("~") + 1, column.length());
     						String value = ((TextColumnFilter) columnFilter).getFilter();
