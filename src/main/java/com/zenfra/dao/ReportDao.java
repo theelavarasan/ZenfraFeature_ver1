@@ -74,7 +74,10 @@ public class ReportDao {
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("site_key", siteKey);
 			params.put("user_id", userId);
-			params.put("sourceId", source_name[2]);
+			if(source_name.length > 1) {
+				params.put("sourceId", source_name[2]);
+			}
+			
 			System.out.println("------params--------- " + params);
 			//System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
 			
