@@ -224,7 +224,7 @@ public class PrivillegeAccessReportDAO {
 				+ ") d\r\n"
 				+ ") e\r\n"
 				+ ") e1\r\n"
-				+ ") f order by con_id\r\n"
+				+ ") f order by con_id \r\n"
 				+ ") d where rule_row = 1 \r\n"
 				+ ") g group by rule_id\r\n"
 				+ ") f";
