@@ -647,6 +647,12 @@ public class priviledgeChartQueryBuilder {
 	public String ChartFilters(JSONObject filterModel, String reportLabel) {
 
 		String filters = "";
+		String columnName = "";
+		String value = "";
+		long integerLong = 1l;
+		double integerValue = 0.0f;
+		double integerValueTo = 0.0f;
+
 		JSONObject filterModelObject = (JSONObject) filterModel;
 		JSONObject filterColumnName = new JSONObject();
 		Set<String> filterKeys = new HashSet<>();
@@ -666,11 +672,12 @@ public class priviledgeChartQueryBuilder {
 
 				if ((filterColumnName.containsKey("type") && filterColumnName.containsKey("filter")
 						&& filterColumnName.containsKey("filterType")) || (filterColumnName.containsKey("type") && filterColumnName.containsKey("filterType"))) {
+					columnName = "";
 					if(reportLabel.startsWith("User-Tanium-User")) {
 						if (key.startsWith("User Summary~")) {
-							filters = filters.concat(key.substring(13));
+							columnName = columnName.concat(key.substring(13));
 						} else {
-							filters = filters.concat(" SR_DATA::JSON ->> '" + key + "'");
+							columnName = columnName.concat(" SR_DATA::JSON ->> '" + key + "'");
 						}
 					} else if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
 						String keySubstring = "";
@@ -681,46 +688,88 @@ public class priviledgeChartQueryBuilder {
 						 }
 						
 						if (key.startsWith("Server Summary~") || key.startsWith("Server Data~")) {
-							filters = filters.concat(keySubstring);
+							columnName = columnName.concat(keySubstring);
 						} else {
-							filters = filters.concat(" source_data::JSON ->> '" + key + "'");
+							columnName = columnName.concat(" source_data::JSON ->> '" + key + "'");
 						}
 					} else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
 						if (key.startsWith("Sudoers Summary~")) {
-							filters = filters.concat(key.substring(16));
+							columnName = columnName.concat(key.substring(16));
 						} else {
-							filters = filters.concat(" source_data1::JSON ->> '" + key + "'");
+							columnName = columnName.concat(" source_data1::JSON ->> '" + key + "'");
 						}
 					}
 					
+				
 					if(filterColumnName.containsKey("filterType") && filterColumnName.get("filterType").toString().equalsIgnoreCase("text")) {
+						value = (String) filterColumnName.get("filter");
 						if (filterColumnName.containsKey("type")
 								&& filterColumnName.get("type").toString().equalsIgnoreCase("contains")) {
-							filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "%'");
+							filters = filters.concat(" " + columnName + " ilike '%" + value + "%'");
 						} else if (filterColumnName.containsKey("type")
 								&& filterColumnName.get("type").toString().equalsIgnoreCase("notContains")) {
-							filters = filters.concat(" not ilike '%" + filterColumnName.get("filter") + "%'");
+							filters = filters.concat(" " + columnName + " not ilike '%" + value + "%'");
 						} else if (filterColumnName.containsKey("type")
 								&& filterColumnName.get("type").toString().equalsIgnoreCase("equals")) {
-							filters = filters.concat(" = '" + filterColumnName.get("filter") + "'");
+							filters = filters.concat(" " + columnName + " = '" + value + "'");
 						} else if (filterColumnName.containsKey("type")
 								&& filterColumnName.get("type").toString().equalsIgnoreCase("notEqual")) {
-							filters = filters.concat(" <> '" + filterColumnName.get("filter") + "'");
+							filters = filters.concat(" " + columnName + " <> '" + value + "'");
 						} else if (filterColumnName.containsKey("type")
 								&& filterColumnName.get("type").toString().equalsIgnoreCase("Blanks")) {
-							filters = filters.concat(" = ''");
+							filters = filters.concat(" " + columnName + " = ''");
 						} else if (filterColumnName.containsKey("type")
 								&& filterColumnName.get("type").toString().equalsIgnoreCase("Not Blanks")) {
-							filters = filters.concat(" <> ''");
+							filters = filters.concat(" " + columnName + " <> ''");
 						} else if (filterColumnName.containsKey("type")
 								&& filterColumnName.get("type").toString().equalsIgnoreCase("startsWith")) {
-							filters = filters.concat(" ilike '" + filterColumnName.get("filter") + "%'");
+							filters = filters.concat(" " + columnName + " ilike '" + value + "%'");
 						} else if (filterColumnName.containsKey("type")
 								&& filterColumnName.get("type").toString().equalsIgnoreCase("endsWith")) {
-							filters = filters.concat(" ilike '%" + filterColumnName.get("filter") + "'");
+							filters = filters.concat(" " + columnName + " ilike '%" + value + "'");
 						}
 					} else if(filterColumnName.containsKey("filterType") && filterColumnName.get("filterType").toString().equalsIgnoreCase("number")) {
-						System.out.println("number:");
+						String test = "";
+
+						if(filterColumnName.containsKey("filter") && filterColumnName.containsKey("filterTo")) {
+							test = filterColumnName.get("filter").toString();
+							integerValue = (double) Double.parseDouble((String) test) ;
+							
+							test = filterColumnName.get("filterTo").toString();
+							integerValueTo = (double) Double.parseDouble((String) test);
+						} else {
+							integerLong = (long) filterColumnName.get("filter") ;
+						}
+						
+						if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("equals")) {
+							filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric = " + integerLong + "");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("notEqual")) {
+							filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric <> " + integerLong + "'");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("Blanks")) {
+							filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric = ''");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("Not Blanks")) {
+							filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric <> ''");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("lessThan")) {
+							filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric < " + integerLong + "");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("lessThanOrEqual")) {
+							filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric <= " + integerLong + "");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("greaterThan")) {
+							filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric > " + integerLong + "");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("greaterThanOrEqual")) {
+							filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric >= " + integerLong + "");
+						} else if (filterColumnName.containsKey("type")
+								&& filterColumnName.get("type").toString().equalsIgnoreCase("inRange")) {
+							filters = filters.concat(" (" + columnName + " <> '' and " + columnName + "::numeric between "  
+								+ integerValue + " and " + integerValueTo + ") " );
+						}
 					}
 					
 					filters = filters.concat(" and ");
@@ -732,6 +781,7 @@ public class priviledgeChartQueryBuilder {
 						Keys.addAll(jsonObj.keySet());
 					}
 					for (int j = 0; j < Keys.size() - 2; j++) {
+						columnName = "";
 						conditionObject = filterColumnName;
 						if (conditionObject.containsKey("condition" + (j + 1))) {
 							JSONObject object = (JSONObject) conditionObject.get("condition" + (j + 1));
@@ -739,9 +789,9 @@ public class priviledgeChartQueryBuilder {
 									&& object.containsKey("filterType")) || (object.containsKey("type") && object.containsKey("filterType"))) {
 								if(reportLabel.startsWith("User-Tanium-User")) {
 									if (key.startsWith("User Summary~")) {
-										filters = filters.concat(key.substring(13));
+										columnName = columnName.concat(key.substring(13));
 									} else {
-										filters = filters.concat(" SR_DATA::JSON ->> '" + key + "'");
+										columnName = columnName.concat(" SR_DATA::JSON ->> '" + key + "'");
 									}
 								} else if(reportLabel.startsWith("User-Tanium-Privileged Access") || reportLabel.startsWith("User-Tanium-Server")) {
 									String keySubstring = "";
@@ -752,46 +802,88 @@ public class priviledgeChartQueryBuilder {
 									 }
 									
 									if (key.startsWith("Server Summary~") || key.startsWith("Server Data~")) {
-										filters = filters.concat(keySubstring);
+										columnName = columnName.concat(keySubstring);
 									} else {
-										filters = filters.concat(" source_data::JSON ->> '" + key + "'");
+										columnName = columnName.concat(" source_data::JSON ->> '" + key + "'");
 									}
 								} else if(reportLabel.startsWith("User-Tanium-Sudoers")) {
 									if (key.startsWith("Sudoers Summary~")) {
-										filters = filters.concat(key.substring(16));
+										columnName = columnName.concat(key.substring(16));
 									} else {
-										filters = filters.concat(" source_data1::JSON ->> '" + key + "'");
+										columnName = columnName.concat(" source_data1::JSON ->> '" + key + "'");
 									}
 								}
-
+								
 								if(object.containsKey("filterType") && object.get("filterType").toString().equalsIgnoreCase("text")) {
 									if (object.containsKey("type")
 											&& object.get("type").toString().equalsIgnoreCase("contains")) {
-										filters = filters.concat(" ilike '%" + object.get("filter") + "%'");
+										filters = filters.concat(" " + columnName + " ilike '%" + object.get("filter") + "%'");
 									} else if (object.containsKey("type")
 											&& object.get("type").toString().equalsIgnoreCase("notContains")) {
-										filters = filters.concat(" not ilike '%" + object.get("filter") + "%'");
+										filters = filters.concat(" " + columnName + " not ilike '%" + object.get("filter") + "%'");
 									} else if (object.containsKey("type")
 											&& object.get("type").toString().equalsIgnoreCase("equals")) {
-										filters = filters.concat(" = '" + object.get("filter") + "'");
+										filters = filters.concat(" " + columnName + " = '" + object.get("filter") + "'");
 									} else if (object.containsKey("type")
 											&& object.get("type").toString().equalsIgnoreCase("notEqual")) {
-										filters = filters.concat(" <> '" + object.get("filter") + "'");
+										filters = filters.concat(" " + columnName + " <> '" + object.get("filter") + "'");
 									} else if (object.containsKey("type")
 											&& object.get("type").toString().equalsIgnoreCase("Blanks")) {
-										filters = filters.concat(" = ''");
+										filters = filters.concat(" " + columnName + " = ''");
 									} else if (object.containsKey("type")
 											&& object.get("type").toString().equalsIgnoreCase("Not Blanks")) {
-										filters = filters.concat(" <> ''");
+										filters = filters.concat(" " + columnName + " <> ''");
 									} else if (object.containsKey("type")
 											&& object.get("type").toString().equalsIgnoreCase("startsWith")) {
-										filters = filters.concat(" ilike '" + object.get("filter") + "%'");
+										filters = filters.concat(" " + columnName + " ilike '" + object.get("filter") + "%'");
 									} else if (object.containsKey("type")
 											&& object.get("type").toString().equalsIgnoreCase("endsWith")) {
-										filters = filters.concat(" ilike '%" + object.get("filter") + "'");
+										filters = filters.concat(" " + columnName + " ilike '%" + object.get("filter") + "'");
 									}
 								} else if(object.containsKey("filterType") && object.get("filterType").toString().equalsIgnoreCase("number")) {
-									System.out.println("Number 1 :");
+									System.out.println("number:");
+									
+									String test = "";
+
+									if(object.containsKey("filter") && object.containsKey("filterTo")) {
+										test = object.get("filter").toString();
+										integerValue = (double) Double.parseDouble((String) test) ;
+										
+										test = object.get("filterTo").toString();
+										integerValueTo = (double) Double.parseDouble((String) test);
+									} else {
+										integerLong = (long) object.get("filter") ;
+									}
+																		
+									if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("equals")) {
+										filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric = " + integerLong + "");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("notEqual")) {
+										filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric <> " + integerLong + "");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("Blanks")) {
+										filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric = ''");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("Not Blanks")) {
+										filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric <> ''");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("lessThan")) {
+										filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric < " + integerLong + "");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("lessThanOrEqual")) {
+										filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric <= " + integerLong + "");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("greaterThan")) {
+										filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric > " + integerLong + "");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("greaterThanOrEqual")) {
+										filters = filters.concat(" " + columnName + " <> '' and " + columnName + "::numeric >= " + integerLong + "");
+									} else if (object.containsKey("type")
+											&& object.get("type").toString().equalsIgnoreCase("inRange")) {
+										filters = filters.concat(" (" + columnName + " <> '' and " + columnName + "::numeric between "  
+											+ integerValue + " and " + integerValueTo + ") " );
+									}
 								}
 							}
 
@@ -820,5 +912,4 @@ public class priviledgeChartQueryBuilder {
 		
 		return filters;
 	}
-
 }
