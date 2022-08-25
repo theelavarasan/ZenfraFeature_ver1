@@ -133,10 +133,11 @@ public class PrivillegeAccessReportDAO {
 		}
 		
 		
-		String validationRuleQuery = "select string_agg(condition_value, (case when con_operator is null or trim(con_operator) = '' then ' AND ' else concat(' ', con_operator, ' ') \r\n"
+		String validationRuleQuery = "select concat('(', string_agg(concat('(', condition_value, ')'), ' or '), ')') as condition_value from ( \r\n"
+				+ "select string_agg(condition_value, (case when con_operator is null or trim(con_operator) = '' then ' AND ' else concat(' ', con_operator, ' ') \r\n"
 				+ "end)) as condition_value from (\r\n"
 				+ "select rule_id, con_operator, concat('(', string_agg( condition_value, (case when con_operator is null or trim(con_operator) = '' then ' AND ' else concat(' ', con_operator, ' ') \r\n"
-				+ "end)) over(partition by con_operator order by con_id) , ')') \r\n"
+				+ "end)) over(partition by rule_id, con_operator order by rule_id, con_id) , ')') \r\n"
 				+ "as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, (case when con_operator is null or con_operator = '' then lead(con_operator) over(partition by rule_id \r\n"
 				+ "order by con_id) else con_operator end) as con_operator, condition_field,\r\n"
@@ -187,8 +188,9 @@ public class PrivillegeAccessReportDAO {
 				+ ") e1\r\n"
 				+ ") f order by con_id\r\n"
 				+ ") d where rule_row = 1\r\n"
-				+ ") g order by con_id \r\n"
-				+ ") f";
+				+ ") g order by rule_id, con_id \r\n"
+				+ ") f group by rule_id "
+				+ ") h";
 		
 		/*String validationRuleQuery = "select string_agg(condition_value, (case when con_operator is null or trim(con_operator) = '' then ' AND ' else concat(' ', con_operator, ' ') \r\n"
 				+ "end)) as condition_value from (\r\n"
