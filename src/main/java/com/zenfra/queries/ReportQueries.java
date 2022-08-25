@@ -47,6 +47,9 @@ public class ReportQueries {
 	private String cedOtherHeader;
 	private String cedOtherHeaderGroup;
 	
+	private String sudoersDetailHeader;
+	private String taniumSudoersDetailGroup;
+	
 	public String getHeader() {
 		return header;
 	}
@@ -206,6 +209,22 @@ public class ReportQueries {
 
 	public void setCedOtherHeaderGroup(String cedOtherHeaderGroup) {
 		this.cedOtherHeaderGroup = cedOtherHeaderGroup;
+	}
+
+	public String getSudoersDetailHeader() {
+		return sudoersDetailHeader;
+	}
+
+	public void setSudoersDetailHeader(String sudoersDetailHeader) {
+		this.sudoersDetailHeader = sudoersDetailHeader;
+	}
+
+	public String getTaniumSudoersDetailGroup() {
+		return taniumSudoersDetailGroup;
+	}
+
+	public void setTaniumSudoersDetailGroup(String taniumSudoersDetailGroup) {
+		this.taniumSudoersDetailGroup = taniumSudoersDetailGroup;
 	}
 	
 }

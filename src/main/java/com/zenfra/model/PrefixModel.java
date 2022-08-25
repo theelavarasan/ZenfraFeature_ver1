@@ -14,6 +14,7 @@ public class PrefixModel {
 		prefix.put("Server", "Server Summary~");
 		prefix.put("Sudoers", "Sudoers Summary~");
 		prefix.put("thirdPartyData", "User Summary~");
+		prefix.put("Sudoers Detail", "Sudoers Detail~");
 	}
 	
 	public static String getPrefix(String key) {
