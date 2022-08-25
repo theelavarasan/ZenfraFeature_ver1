@@ -178,8 +178,10 @@ public class PrivillegeAccessReportDAO {
 				+ ") g group by rule_id\r\n"
 				+ ") f";*/
 		
-		String validationRuleQuery = "select string_agg(condition_value, ' or ') as condition_value from (\r\n"
-				+ "select rule_id, string_agg(condition_value, (case when con_operator is null or trim(con_operator) = '' then ' AND ' else concat(' ', con_operator, ' ') end)) as condition_value from (\r\n"
+		String validationRuleQuery = "select string_agg(condition_value, (case when con_operator is null or trim(con_operator) = '' then ' AND ' else concat(' ', con_operator, ' ') \r\n"
+				+ "end)) as condition_value from (\r\n"
+				+ "select rule_id, con_operator, concat('(', string_agg( condition_value, (case when con_operator is null or trim(con_operator) = '' then ' AND ' else concat(' ', con_operator, ' ') \r\n"
+				+ "end)) over(partition by con_operator order by con_id) , ')')  as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field,\r\n"
 				+ "(case when rule_row = 1 then concat(' ( ', condition_value, ' ) ') else condition_value end) as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, condition_field, string_agg(condition_value, ' ') over(partition by rule_id, con_operator) as condition_value,\r\n"
@@ -195,8 +197,8 @@ public class PrivillegeAccessReportDAO {
 				+ "else concat(' ''',con_value, '''',(case when con_field_id ilike '%~servers_count' then '::numeric' else '' end)) end) end) end) end) end), (case when con_field_id ilike '" + prefix + "%' then '' else '' end)) as condition_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value, op_row from ("
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value, row_number() over(partition by rule_id, con_operator) as op_row from (\r\n"
-				+ "select report_by, rule_id, con_field_id, con_id, (case when con_operator is null then lead(con_operator) over(partition by rule_id order by rule_id, con_id) else con_operator end) as con_operator, con_condition, con_value from (\r\n"
-				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, "
+				+ "select report_by, rule_id, con_field_id, con_id, con_operator, con_condition, con_value from (\r\n"
+				+ "select report_by, rule_id, con_field_id, con_id, (case when con_operator is null then lead(con_operator) over(partition by rule_id order by rule_id, con_id) else con_operator end) as con_operator, con_condition, "
 				+ "(case when con_field_id ilike '%~servers_count' then string_agg(con_value,'') else concat('(', string_agg(con_value, '|'), ')') end) as con_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, (case when con_id is null then 0 else con_id::int end) as con_id,\r\n"
 				+ "con_operator,\r\n"
@@ -226,7 +228,7 @@ public class PrivillegeAccessReportDAO {
 				+ ") e1\r\n"
 				+ ") f order by con_id \r\n"
 				+ ") d where rule_row = 1 \r\n"
-				+ ") g group by rule_id\r\n"
+				+ ") g order by con_id\r\n"
 				+ ") f";
 		
 		validationRuleQuery = validationRuleQuery.replace(":site_key", siteKey);
