@@ -425,16 +425,31 @@ public class PrivillegeAccessReportQueryBuilder {
 			String[] sourceId = thirdPartyId.split("~"); 
 			String secondaryCondition = "";
 			if(thirdPartyId.contains("~link_true~")) {
-				secondaryCondition = " and data::json ->> '" + sourceId[1] + "~" + sourceId[4] + "' in (select primary_key_value from source_data where source_id = '" + sourceId[5] + "')";
+				
+				taniumReportQuery = "select count(1) over() as row_count, sd.data as source_data, usr.* from source_data sdl \r\n"
+						+ "LEFT JOIN source sl on sl.source_id = sdl.source_id \r\n"
+						+ "LEFT JOIN source s on s.source_id = sl.link_to and s.source_id = '" + sourceId[4] + "'\r\n"
+						+ "LEFT JOIN source_data sd on sd.source_id = s.source_id and sd.data::json ->> concat(s.source_name,'~', sl.relationship) = sdl.primary_key_value \r\n"
+						+ "and sd.source_id = '" + sourceId[2] + "'\r\n"
+						+ "LEFT JOIN user_summary_report_details usr on usr.user_name = sd.primary_key_value and usr.site_key = '" + siteKey + "'\r\n"
+						+ "where sd.site_key = '" + siteKey + "' and sdl.source_id = '" + sourceId[4] + "' \r\n"
+						+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
+						+ getTasklistFilters(filters, siteKey, projectId, "thirdPartyData") + " "
+						+ getSourceDataFilters(filters, siteKey, projectId, "thirdPartyData", sourceMap) + " "
+						+ getOrderBy(sortModel, "thirdPartyData") + getOrderBy1(sortModel, "thirdPartyData") + " \r\n"
+						+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
+				
+			} else {
+				taniumReportQuery = "select count(1) over() as row_count, sd.data as source_data, usr.* from source_data sd \r\n"
+						+ "LEFT JOIN user_summary_report_details usr on usr.user_name = sd.primary_key_value and usr.site_key = '" + siteKey + "' \r\n"
+						+ "where sd.site_key = '" + siteKey + "' and sd.source_id = '" + sourceId[2] + " \r\n" 
+						+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
+						+ getTasklistFilters(filters, siteKey, projectId, "thirdPartyData") + " "
+						+ getSourceDataFilters(filters, siteKey, projectId, "thirdPartyData", sourceMap) + " "
+						+ getOrderBy(sortModel, "thirdPartyData") + getOrderBy1(sortModel, "thirdPartyData") + " \r\n"
+						+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 			}
-			taniumReportQuery = "select count(1) over() as row_count, sd.data as source_data, usr.* from source_data sd \r\n"
-					+ "LEFT JOIN user_summary_report_details usr on usr.user_name = sd.primary_key_value and usr.site_key = '" + siteKey + "' \r\n"
-					+ "where sd.site_key = '" + siteKey + "' and sd.source_id = '" + sourceId[2] + "' " + secondaryCondition + " \r\n" 
-					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
-					+ getTasklistFilters(filters, siteKey, projectId, "thirdPartyData") + " "
-					+ getSourceDataFilters(filters, siteKey, projectId, "thirdPartyData", sourceMap) + " "
-					+ getOrderBy(sortModel, "thirdPartyData") + getOrderBy1(sortModel, "thirdPartyData") + " \r\n"
-					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
+			
 		}
 		
 		/*if(!getOrderBy1(sortModel, reportBy).isEmpty()) {
