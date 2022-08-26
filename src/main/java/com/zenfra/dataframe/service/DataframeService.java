@@ -3480,8 +3480,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						System.out.println("---" + chartType + " Query result size --- : " + resultSet.size());
 
-						System.out.println("resultSet : " + resultSet);
-
 						JSONObject resultObject = new JSONObject();
 						JSONArray xaxisCloumnValues = new JSONArray();
 						JSONArray finalBreakDownValue = new JSONArray();
@@ -3588,46 +3586,60 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						
 						System.out.println("---" + chartType + " : " + query);
 
-						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);						
+//						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);
+						Map<String, String> data = new HashMap<>();
+						data = DBUtils.getPostgres();
+						ResultSet resultSet = null;
+						try (Connection con = DriverManager.getConnection(data.get("url"), data.get("userName"), data.get("password"));
+								Statement statement = con.createStatement();) {
+							resultSet = statement.executeQuery(query);
+							System.out.println("-----------Data Updated------------" + resultSet);
+
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 						
-						System.out.println(" --------- Tanium line chart resultset----------- : " + resultSet.size());
+						
+//						System.out.println(" --------- Tanium line chart resultset----------- : " + resultSet.size());
 						JSONArray xaxisCloumnValues = new JSONArray();
 
 						System.out.println("resultSet : " + resultSet);
 						
-						for (Map<String, Object> resultMap : resultSet) {
-							JSONObject jsonObj = new JSONObject();
-							jsonObj.putAll(resultMap);
-							Iterator iterator = jsonObj.keySet().iterator();
-							while (iterator.hasNext()) {
-								String key = (String) iterator.next();
-								if (key.contains("colValue")) {
-									valueArray.add(jsonObj.get(key));
-								}
-								if (key.contains("colName")) {
-									xaxisCloumnValues.add(jsonObj.get(key));
-								}
-								if (key.contains("colBreakdown")) {
-									finalBreakDownValue.add(jsonObj.get(key));
-								}
-							}
-						}
+//						for (Map<String, Object> resultMap : resultSet) {
+//							JSONObject jsonObj = new JSONObject();
+//							jsonObj.putAll(resultMap);
+//							Iterator iterator = jsonObj.keySet().iterator();
+//							while (iterator.hasNext()) {
+//								String key = (String) iterator.next();
+//								if (key.contains("colValue")) {
+//									valueArray.add(jsonObj.get(key));
+//								}
+//								if (key.contains("colName")) {
+//									xaxisCloumnValues.add(jsonObj.get(key));
+//								}
+//								if (key.contains("colBreakdown")) {
+//									finalBreakDownValue.add(jsonObj.get(key));
+//								}
+//							}
+//						}
 						
 						
 						
 						JSONArray array = new JSONArray();
-						for (int i = 0; i < yaxisNames.size(); i++) {
-							JSONObject jsonObject = new JSONObject();
-							jsonObject.put("name", yaxisNames.get(i));
-							jsonObject.put("x", xaxisCloumnValues);
-							jsonObject.put("y", valueArray);
-							if (!finalBreakDownValue.isEmpty()) {
-								jsonObject.put("breakDown", finalBreakDownValue);
+						while(resultSet.next()) {
+							for (int i = 0; i < yaxisNames.size(); i++) {
+								JSONObject jsonObject = new JSONObject();
+								jsonObject.put("name", yaxisNames.get(i));
+								jsonObject.put("x", resultSet.getString("colName"));
+								jsonObject.put("y", resultSet.getString("colValue" + i));
+								if (!finalBreakDownValue.isEmpty()) {
+									jsonObject.put("breakDown", finalBreakDownValue);
+								}
+								array.add(jsonObject);
+
 							}
-							array.add(jsonObject);
-
 						}
-
+						
 						resultData.put("data", array);
 
 					}
