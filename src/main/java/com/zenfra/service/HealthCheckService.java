@@ -1071,7 +1071,7 @@ public class HealthCheckService {
 						+ "' and report_name = '" + reportName + "'"
 						+ " and report_by not in (select project_id from project) order by health_check_name ASC";
 			}
-			System.out.println("--------------query--------------" + query);
+			System.out.println("!!!!! healthcheck list query: " + query);
 
 			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
 			resultArray = healthCheckListToArray(resultList);
