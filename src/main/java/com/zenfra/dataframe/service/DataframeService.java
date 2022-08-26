@@ -3585,6 +3585,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						}
 						
 						System.out.println("---" + chartType + " : " + query);
+						JSONArray array = new JSONArray();
 
 //						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);
 						Map<String, String> data = new HashMap<>();
@@ -3594,6 +3595,20 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								Statement statement = con.createStatement();) {
 							resultSet = statement.executeQuery(query);
 							System.out.println("-----------Data Updated------------" + resultSet);
+							
+							while(resultSet.next()) {
+								for (int i = 0; i < yaxisNames.size(); i++) {
+									JSONObject jsonObject = new JSONObject();
+									jsonObject.put("name", yaxisNames.get(i));
+									jsonObject.put("x", resultSet.getString("colName"));
+									jsonObject.put("y", resultSet.getString("colValue" + i));
+									if (!finalBreakDownValue.isEmpty()) {
+										jsonObject.put("breakDown", finalBreakDownValue);
+									}
+									array.add(jsonObject);
+
+								}
+							}
 
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -3622,23 +3637,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 //								}
 //							}
 //						}
-						
-						
-						
-						JSONArray array = new JSONArray();
-						while(resultSet.next()) {
-							for (int i = 0; i < yaxisNames.size(); i++) {
-								JSONObject jsonObject = new JSONObject();
-								jsonObject.put("name", yaxisNames.get(i));
-								jsonObject.put("x", resultSet.getString("colName"));
-								jsonObject.put("y", resultSet.getString("colValue" + i));
-								if (!finalBreakDownValue.isEmpty()) {
-									jsonObject.put("breakDown", finalBreakDownValue);
-								}
-								array.add(jsonObject);
-
-							}
-						}
 						
 						resultData.put("data", array);
 
