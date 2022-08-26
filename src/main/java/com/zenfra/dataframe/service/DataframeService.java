@@ -3596,8 +3596,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							resultSet = statement.executeQuery(query);
 							System.out.println("-----------Data Updated------------" + resultSet);
 							
-							while(resultSet.next()) {
-								for (int i = 0; i < yaxisNames.size(); i++) {
+							
+							for (int i = 0; i < yaxisNames.size(); i++) {
+								while (resultSet.next()) {
 									JSONObject jsonObject = new JSONObject();
 									jsonObject.put("name", yaxisNames.get(i));
 									jsonObject.put("x", resultSet.getString("colName"));
