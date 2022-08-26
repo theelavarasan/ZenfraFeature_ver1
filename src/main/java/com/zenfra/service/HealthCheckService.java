@@ -62,6 +62,9 @@ public class HealthCheckService {
 
 	public HealthCheck saveHealthCheck(HealthCheck healthCheck) {
 		healthCheck.setHealthCheckId(commonFunctions.generateRandomId());
+		if(healthCheck.getAnalyticsType().equalsIgnoreCase("Custom Excel Data")) {
+			healthCheck.setComponentType("CED");
+		}
 		healthCheckDao.saveEntity(HealthCheck.class, healthCheck);
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.findEntityById(HealthCheck.class,
 				healthCheck.getHealthCheckId());
