@@ -34,7 +34,7 @@ public class ValidationRuleController {
 		Map<String, List<Object>> resultData = new HashMap<String, List<Object>>();
 		JSONArray resultArray = new JSONArray();
 		
-		if(!model.getCategory().equalsIgnoreCase("Third Party Data")) {
+		if(!model.getAnalyticsType().equalsIgnoreCase("Custom Excel Data")) {
 			if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") && !model.getReportBy().equalsIgnoreCase("Group Info")
 					&& !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") && !model.getReportBy().equalsIgnoreCase("Sudoers")
 					&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
@@ -66,7 +66,7 @@ public class ValidationRuleController {
 				resultArray = validationRuleService.getVR_TaniumSudoers(model.getSiteKey(), model.getColumnName());
 			}
 		} else {
-			resultArray = validationRuleService.getVR_CEDUniqueData(model.getSiteKey(), model.getColumnName(), model.getThirdPartyId());
+			resultArray = validationRuleService.getVR_CEDUniqueData(model.getSiteKey(), model.getColumnName(), model.getReportBy());
 		}
 		
 			
@@ -96,7 +96,7 @@ public class ValidationRuleController {
 			return ResponseEntity.ok(resultArray);
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && (model.getReportBy().equalsIgnoreCase("Privileged Access") || model.getReportBy().equalsIgnoreCase("Group Info")
 				|| model.getReportBy().equalsIgnoreCase("Group") || model.getReportBy().equalsIgnoreCase("User") || model.getReportBy().equalsIgnoreCase("Sudoers")
-				|| (model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server")))) {
+				|| (model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) || (model.getAnalyticsType().equalsIgnoreCase("Custom Excel Data"))) {
 			//System.out.println("!!!!! Privileged Access access result: " + resultArray);
 			return ResponseEntity.ok(resultArray);
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Project")) {

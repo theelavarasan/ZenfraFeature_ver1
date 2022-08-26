@@ -62,6 +62,9 @@ public class HealthCheckService {
 
 	public HealthCheck saveHealthCheck(HealthCheck healthCheck) {
 		healthCheck.setHealthCheckId(commonFunctions.generateRandomId());
+		if(healthCheck.getAnalyticsType().equalsIgnoreCase("Custom Excel Data")) {
+			healthCheck.setComponentType("CED");
+		}
 		healthCheckDao.saveEntity(HealthCheck.class, healthCheck);
 		HealthCheck savedObj = (HealthCheck) healthCheckDao.findEntityById(HealthCheck.class,
 				healthCheck.getHealthCheckId());
@@ -1068,7 +1071,7 @@ public class HealthCheckService {
 						+ "' and report_name = '" + reportName + "'"
 						+ " and report_by not in (select project_id from project) order by health_check_name ASC";
 			}
-			System.out.println("--------------query--------------" + query);
+			System.out.println("!!!!! healthcheck list query: " + query);
 
 			List<Map<String, Object>> resultList = healthCheckDao.getListMapObjectById(query);
 			resultArray = healthCheckListToArray(resultList);
