@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.UserPrincipal;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -3479,6 +3480,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						System.out.println("---" + chartType + " Query result size --- : " + resultSet.size());
 
+						System.out.println("resultSet : " + resultSet);
+
 						JSONObject resultObject = new JSONObject();
 						JSONArray xaxisCloumnValues = new JSONArray();
 						JSONArray finalBreakDownValue = new JSONArray();
@@ -3585,17 +3588,20 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						
 						System.out.println("---" + chartType + " : " + query);
 
-						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);
+						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);						
+						
 						System.out.println(" --------- Tanium line chart resultset----------- : " + resultSet.size());
 						JSONArray xaxisCloumnValues = new JSONArray();
 
+						System.out.println("resultSet : " + resultSet);
+						
 						for (Map<String, Object> resultMap : resultSet) {
 							JSONObject jsonObj = new JSONObject();
 							jsonObj.putAll(resultMap);
 							Iterator iterator = jsonObj.keySet().iterator();
 							while (iterator.hasNext()) {
 								String key = (String) iterator.next();
-								if (key.contains("colValue0")) {
+								if (key.contains("colValue")) {
 									valueArray.add(jsonObj.get(key));
 								}
 								if (key.contains("colName")) {
@@ -3606,6 +3612,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								}
 							}
 						}
+						
+						
+						
 						JSONArray array = new JSONArray();
 						for (int i = 0; i < yaxisNames.size(); i++) {
 							JSONObject jsonObject = new JSONObject();
