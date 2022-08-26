@@ -422,6 +422,7 @@ public class PrivillegeAccessReportQueryBuilder {
 		}
 		} else if(category.equalsIgnoreCase("Third Party Data")) {
 			
+			System.out.println("!!!!! thirdPartyId: " + thirdPartyId);
 			String[] sourceId = thirdPartyId.split("~"); 
 			String secondaryCondition = "";
 			if(thirdPartyId.contains("~link_true~")) {
