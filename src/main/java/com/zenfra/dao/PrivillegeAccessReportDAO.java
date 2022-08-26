@@ -159,7 +159,7 @@ public class PrivillegeAccessReportDAO {
 				+ "select report_by, rule_id, con_field_id, con_id, (case when con_operator is null or con_operator = '' then lead(con_operator) \r\n"
 				+ "over(partition by rule_id order by rule_id, con_id) \r\n"
 				+ "else con_operator end) as con_operator, con_condition, (case when con_field_id ilike '%~servers_count' then string_agg(con_value,'') \r\n"
-				+ "else concat('(', string_agg(con_value, '|'), (case when string_agg(con_value, '|') ilike ')' then '|)' else ')' end)) end) as con_value from (\r\n"
+				+ "else concat('(', string_agg(con_value, '|'), (case when string_agg(con_value, '|') ilike '%)' then '|)' else ')' end)) end) as con_value from (\r\n"
 				+ "select report_by, rule_id, con_field_id, (case when con_id is null then 0 else con_id::int end) as con_id,\r\n"
 				+ "con_operator,\r\n"
 				+ "con_condition,\r\n"
