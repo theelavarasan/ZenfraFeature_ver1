@@ -66,7 +66,7 @@ public class ValidationRuleController {
 				resultArray = validationRuleService.getVR_TaniumSudoers(model.getSiteKey(), model.getColumnName());
 			}
 		} else {
-			resultArray = validationRuleService.getVR_CEDUniqueData(model.getSiteKey(), model.getColumnName(), model.getThirdPartyId());
+			resultArray = validationRuleService.getVR_CEDUniqueData(model.getSiteKey(), model.getColumnName(), model.getReportBy());
 		}
 		
 			
