@@ -3599,7 +3599,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							JsonMapper jsonMapper = new JsonMapper();
 							System.out.println("resultSet.getFetchSize() : " + resultSet.getFetchSize());
 
-							System.out.println("jsonParser.parse(resultSet.toString()) : " + jsonParser.parse(resultSet.toString()));
 
 							System.out.println("jsonParser.parse(resultSet.toString()) : " + jsonMapper.convertValue(resultSet.toString(), JSONArray.class));
 
