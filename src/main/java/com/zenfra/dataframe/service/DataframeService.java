@@ -3594,25 +3594,26 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						try (Connection con = DriverManager.getConnection(data.get("url"), data.get("userName"), data.get("password"));
 								Statement statement = con.createStatement();) {
 							resultSet = statement.executeQuery(query);
-							System.out.println("resultSet : " + resultSet.getString("colName"));
-							System.out.println("resultSet : " + resultSet.getString("colValue" + 0));
-							System.out.println("resultSet : " + resultSet.getString("colValue" + 1));
-							System.out.println("-----------Data Updated------------" + resultSet.toString());
+							
 
 
 							while(resultSet.next()) {
 								for (int i = 0; i < yaxisNames.size(); i++) {
-									JSONObject jsonObject = new JSONObject();
-									jsonObject.put("name", yaxisNames.get(i));
-									jsonObject.put("x", resultSet.getString("colName"));
-									jsonObject.put("y", resultSet.getString("colValue" + i));
-									if (!finalBreakDownValue.isEmpty()) {
-										jsonObject.put("breakDown", finalBreakDownValue);
-									}
-									array.add(jsonObject);
-
+//									JSONObject jsonObject = new JSONObject();
+//									jsonObject.put("name", yaxisNames.get(i));
+//									jsonObject.put("x", resultSet.getString("colName"));
+//									jsonObject.put("y", resultSet.getString("colValue" + i));
+//									if (!finalBreakDownValue.isEmpty()) {
+//										jsonObject.put("breakDown", finalBreakDownValue);
+//									}
+//									array.add(jsonObject);
+									System.out.println("resultSet colName : " + resultSet.getString("colName"));
+									System.out.println("resultSet colValue : " + resultSet.getString("colValue" + i));
 								}
+								
+								
 							}
+							System.out.println("-----------Data Updated------------" + resultSet.toString());
 
 						} catch (Exception e) {
 							e.printStackTrace();
