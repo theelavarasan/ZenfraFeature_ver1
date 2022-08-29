@@ -3590,9 +3590,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);
 						
 						System.out.println(" --------- Tanium line chart resultset----------- : " + resultSet.size());
+						
 						JSONArray xaxisCloumnValues = new JSONArray();
 
 						for (Map<String, Object> resultMap : resultSet) {
+							System.out.println(" --------- Tanium line chart resultset----------- : " + resultMap);
 							JSONObject jsonObj = new JSONObject();
 							jsonObj.putAll(resultMap);
 							Iterator iterator = jsonObj.keySet().iterator();
