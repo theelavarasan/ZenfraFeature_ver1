@@ -4269,11 +4269,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 	}
 	
-	public String privillegedAccessCount(String deviceType, String reportBy, String siteKey) throws SQLException {
+	public Integer privillegedAccessCount(String deviceType, String reportBy, String siteKey) throws SQLException {
 		Map<String, String> data = new HashMap<>();
 		data = DBUtils.getPostgres();
 		
-		String count = "";
+		Integer count = 0;
 		String query = "";
 		
 		
@@ -4291,7 +4291,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query);) {
 			while(rs.next()) {
 				System.out.println("rs.getString(\"count\") : " + rs.getString("count"));
-				count = rs.getString("count");
+				count = rs.getInt("count");
 			}
 		}
 		System.out.println("count : " + count);

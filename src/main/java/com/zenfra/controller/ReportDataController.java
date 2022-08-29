@@ -934,7 +934,9 @@ public class ReportDataController {
 		System.out.println("siteKey : " + siteKey);
 		
 		JSONObject resultObject = new JSONObject();
-		String countValue = dataframeService.privillegedAccessCount(deviceType, reportBy, siteKey);
+		Integer countValue = dataframeService.privillegedAccessCount(deviceType, reportBy, siteKey);
+		System.out.println("countValue : " + countValue);
+
 		resultObject.put("rowCount", countValue);
 		return resultObject;
 	}
