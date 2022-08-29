@@ -3597,10 +3597,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							JSONArray jsonArray = new JSONArray();
 							JSONParser jsonParser = new JSONParser();
 							JsonMapper jsonMapper = new JsonMapper();
-							System.out.println("resultSet.getFetchSize() : " + resultSet.getFetchSize());
 
 
-							System.out.println("jsonParser.parse(resultSet.toString()) : " + jsonMapper.convertValue(resultSet.toString(), JSONArray.class));
+							jsonArray = jsonMapper.convertValue(resultSet.toString(), JSONArray.class);
+							System.out.println("jsonArray : " + jsonArray);
+							System.out.println("jsonParser.parse(resultSet.toString()) : " + jsonMapper.convertValue(resultSet.toString(), JSONArray.class).toJSONString());
 
 								while(resultSet.next()) {
 //									for (int i = 0; i < yaxisNames.size(); i++) {
