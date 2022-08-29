@@ -3587,69 +3587,48 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						System.out.println("---" + chartType + " : " + query);
 						JSONArray array = new JSONArray();
 
-//						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);
+						List<Map<String, Object>> resultSet = reportDao.getListOfMapByQuery(query);
 						
-						Map<String, String> data = new HashMap<>();
-						data = DBUtils.getPostgres();
-						ResultSet resultSet = null;
-						ResultSetMetaData data2 = null;
-						try (Connection con = DriverManager.getConnection(data.get("url"), data.get("userName"), data.get("password"));
-								Statement statement = con.createStatement();) {
-							resultSet = statement.executeQuery(query);
-							JSONArray jsonArray = new JSONArray();
-							JSONArray xValues = new JSONArray();
-							
-							data2 = resultSet.getMetaData();
-							System.out.println(" data2.getColumnCount : " + data2.getColumnCount());
-							System.out.println(" data2.getColumnCount : " + data2);
-
-							
-//							while(resultSet.next()) {
-//								xValues.add(resultSet.getString("colName"));
-//							}
-
-								while(resultSet.next()) {
-//									for (int i = 0; i < yaxisNames.size(); i++) {
-
-//									JSONObject jsonObject = new JSONObject();
-//									jsonObject.put("name", yaxisNames.get(i));
-//									jsonObject.put("x", resultSet.getString("colName"));
-//									jsonObject.put("y", resultSet.getString("colValue" + i));
-//									if (!finalBreakDownValue.isEmpty()) {
-//										jsonObject.put("breakDown", finalBreakDownValue);
-//									}
-//									array.add(jsonObject);
-//								}
-							}
-							System.out.println("resultSet colName : " + jsonArray);
-							System.out.println("-----------Data Updated------------" + resultSet.toString());
-
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-						
-						
-//						System.out.println(" --------- Tanium line chart resultset----------- : " + resultSet);
+						System.out.println(" --------- Tanium line chart resultset----------- : " + resultSet.size());
 						JSONArray xaxisCloumnValues = new JSONArray();
 
+						for (Map<String, Object> resultMap : resultSet) {
+							JSONObject jsonObj = new JSONObject();
+							jsonObj.putAll(resultMap);
+							Iterator iterator = jsonObj.keySet().iterator();
+							while (iterator.hasNext()) {
+								String key = (String) iterator.next();
+								if (key.contains("colValue0")) {
+									valueArray.add(jsonObj.get(key));
+								}
+								if (key.contains("colName")) {
+									xaxisCloumnValues.add(jsonObj.get(key));
+								}
+								if (key.contains("colBreakdown")) {
+									finalBreakDownValue.add(jsonObj.get(key));
+								}
+							}
+						}
+//						System.out.println(" --------- Tanium line chart resultset----------- : " + resultSet);
+
 						
-//						for (Map<String, Object> resultMap : resultSet) {
-//							JSONObject jsonObj = new JSONObject();
-//							jsonObj.putAll(resultMap);
-//							Iterator iterator = jsonObj.keySet().iterator();
-//							while (iterator.hasNext()) {
-//								String key = (String) iterator.next();
-//								if (key.contains("colValue")) {
-//									valueArray.add(jsonObj.get(key));
-//								}
-//								if (key.contains("colName")) {
-//									xaxisCloumnValues.add(jsonObj.get(key));
-//								}
-//								if (key.contains("colBreakdown")) {
-//									finalBreakDownValue.add(jsonObj.get(key));
-//								}
-//							}
-//						}
+						for (Map<String, Object> resultMap : resultSet) {
+							JSONObject jsonObj = new JSONObject();
+							jsonObj.putAll(resultMap);
+							Iterator iterator = jsonObj.keySet().iterator();
+							while (iterator.hasNext()) {
+								String key = (String) iterator.next();
+								if (key.contains("colValue")) {
+									valueArray.add(jsonObj.get(key));
+								}
+								if (key.contains("colName")) {
+									xaxisCloumnValues.add(jsonObj.get(key));
+								}
+								if (key.contains("colBreakdown")) {
+									finalBreakDownValue.add(jsonObj.get(key));
+								}
+							}
+						}
 						
 						resultData.put("data", array);
 
