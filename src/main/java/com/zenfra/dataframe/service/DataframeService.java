@@ -3594,7 +3594,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						try (Connection con = DriverManager.getConnection(data.get("url"), data.get("userName"), data.get("password"));
 								Statement statement = con.createStatement();) {
 							resultSet = statement.executeQuery(query);
-							
+							JSONArray jsonArray = new JSONArray();
 							System.out.println("resultSet.getFetchSize() : " + resultSet.getFetchSize());
 
 								while(resultSet.next()) {
@@ -3608,10 +3608,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 //										jsonObject.put("breakDown", finalBreakDownValue);
 //									}
 //									array.add(jsonObject);
-									System.out.println("resultSet colName : " + resultSet.getString("colName"));
-									System.out.println("resultSet colValue : " + resultSet.getString("colValue" + 0));
+									
+									jsonArray.add(resultSet);
+									System.out.println("resultSet colName : " + jsonArray);
 //								}
 							}
+							System.out.println("resultSet colName : " + jsonArray);
 							System.out.println("-----------Data Updated------------" + resultSet.toString());
 
 						} catch (Exception e) {
