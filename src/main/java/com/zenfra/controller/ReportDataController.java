@@ -234,38 +234,42 @@ public class ReportDataController {
 				+ siteKey + " : " + userId);
 		
 		sourceType = sourceType.toLowerCase();
+		
 		try {		
-
+			
+			
 			try { // remove orient db dataframe
-
-				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
-						+ File.separator + siteKey + File.separator; // +
-																											// sourceType
-																											// +
-																											// File.separator;
-				File[] directories = new File(dataframePath).listFiles(File::isDirectory);
-				if(directories != null)  {
-					for (File dir : directories) {
-						if (dir.getName().equalsIgnoreCase(sourceType)) {
-							FileSystemUtils.deleteRecursively(dir);
+				if(!sourceType.equalsIgnoreCase("tanium") && !sourceType.equalsIgnoreCase("activedirectory")) {
+					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
+							+ File.separator + siteKey + File.separator; // +
+																												// sourceType
+																												// +
+																												// File.separator;
+					File[] directories = new File(dataframePath).listFiles(File::isDirectory);
+					if(directories != null)  {
+						for (File dir : directories) {
+							if (dir.getName().equalsIgnoreCase(sourceType)) {
+								FileSystemUtils.deleteRecursively(dir);
+							}
 						}
 					}
+					
+					try { // delete end to end df file for all log folders
+						Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
+
+					    List<Path> fileWithName = Files.walk(configFilePath)
+					            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());  
+
+					    for (Path name : fileWithName) { 
+					    	FileSystemUtils.deleteRecursively(name);
+					    }
+					
+					} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+					} 
 				}
 				
-				try { // delete end to end df file for all log folders
-					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
-
-				    List<Path> fileWithName = Files.walk(configFilePath)
-				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());  
-
-				    for (Path name : fileWithName) { 
-				    	FileSystemUtils.deleteRecursively(name);
-				    }
-				
-				} catch (Exception e) {
-					// TODO: handle exception
-					e.printStackTrace();
-				} 
 				
 
 			} catch (Exception e) {
@@ -279,9 +283,8 @@ public class ReportDataController {
 			sourceType = sourceType.toLowerCase();
 			
 			//recreate Reports after completed parsing			
-			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
-				 //dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
-			} else {
+			if(sourceType != null && !sourceType.equalsIgnoreCase("Tanium") && !sourceType.equalsIgnoreCase("activedirectory")) {
+				 
 				 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 			}
 			
