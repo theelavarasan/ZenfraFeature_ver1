@@ -3594,10 +3594,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						try (Connection con = DriverManager.getConnection(data.get("url"), data.get("userName"), data.get("password"));
 								Statement statement = con.createStatement();) {
 							resultSet = statement.executeQuery(query);
-							System.out.println("-----------Data Updated------------" + resultSet);
 							System.out.println("resultSet : " + resultSet.getString("colName"));
 							System.out.println("resultSet : " + resultSet.getString("colValue" + 0));
 							System.out.println("resultSet : " + resultSet.getString("colValue" + 1));
+							System.out.println("-----------Data Updated------------" + resultSet.toString());
 
 
 							while(resultSet.next()) {
