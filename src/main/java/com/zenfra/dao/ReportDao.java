@@ -2,6 +2,7 @@ package com.zenfra.dao;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

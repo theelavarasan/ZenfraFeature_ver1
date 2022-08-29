@@ -3595,10 +3595,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								Statement statement = con.createStatement();) {
 							resultSet = statement.executeQuery(query);
 							System.out.println("-----------Data Updated------------" + resultSet);
-							
-							
-							for (int i = 0; i < yaxisNames.size(); i++) {
-								while (resultSet.next()) {
+							System.out.println("resultSet : " + resultSet.getString("colName"));
+							System.out.println("resultSet : " + resultSet.getString("colValue" + 0));
+							System.out.println("resultSet : " + resultSet.getString("colValue" + 1));
+
+
+							while(resultSet.next()) {
+								for (int i = 0; i < yaxisNames.size(); i++) {
 									JSONObject jsonObject = new JSONObject();
 									jsonObject.put("name", yaxisNames.get(i));
 									jsonObject.put("x", resultSet.getString("colName"));
@@ -3619,7 +3622,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 //						System.out.println(" --------- Tanium line chart resultset----------- : " + resultSet.size());
 						JSONArray xaxisCloumnValues = new JSONArray();
 
-						System.out.println("resultSet : " + resultSet);
 						
 //						for (Map<String, Object> resultMap : resultSet) {
 //							JSONObject jsonObj = new JSONObject();
