@@ -925,5 +925,23 @@ public class ReportDataController {
 
 		return resultJSONObject;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@PostMapping("getprivillegedAccessCount")
+	public JSONObject privillegedAccessCount(
+			@RequestParam String deviceType, @RequestParam String reportBy, @RequestParam String siteKey,
+			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ParseException, SQLException {
+
+		System.out.println("deviceType : " + deviceType);
+		System.out.println("reportBy : " + reportBy);
+		System.out.println("siteKey : " + siteKey);
+		
+		JSONObject resultObject = new JSONObject();
+		Integer countValue = dataframeService.privillegedAccessCount(deviceType, reportBy, siteKey);
+		System.out.println("countValue : " + countValue);
+
+		resultObject.put("rowCount", countValue);
+		return resultObject;
+	}
 
 }
