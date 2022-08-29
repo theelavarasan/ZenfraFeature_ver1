@@ -3595,6 +3595,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								Statement statement = con.createStatement();) {
 							resultSet = statement.executeQuery(query);
 							JSONArray jsonArray = new JSONArray();
+							JSONParser jsonParser = new JSONParser();
 							System.out.println("resultSet.getFetchSize() : " + resultSet.getFetchSize());
 
 								while(resultSet.next()) {
@@ -3609,8 +3610,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 //									}
 //									array.add(jsonObject);
 									
-									jsonArray.add(resultSet);
-									System.out.println("resultSet colName : " + jsonArray);
+									System.out.println("jsonParser.parse(resultSet.toString()) : " + jsonParser.parse(resultSet.toString()));
+									jsonArray.add(jsonParser.parse(resultSet.toString()));
+//									System.out.println("resultSet colName : " + jsonArray);
 //								}
 							}
 							System.out.println("resultSet colName : " + jsonArray);
