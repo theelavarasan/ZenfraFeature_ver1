@@ -4282,7 +4282,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		} else if(reportBy.contains("User")) {
 			query = "select count(1) from user_summary_report_details where site_key = '" + siteKey + "'";
 		} else if(reportBy.contains("Sudoers")) {
-			query = "select count(1) from sudoers_summary_details where site_key = '" + siteKey + "'";
+			query = "select count(1) from user_sudoers_summary_details where site_key = '" + siteKey + "'";
 		}
 		
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
