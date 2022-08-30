@@ -770,17 +770,36 @@ public class PrivillegeAccessReportQueryBuilder {
     	try {
     		for(SortModel s: sortModel) {
     			System.out.println("!!!!! colId: " + s.getActualColId());
-    			if(s.getActualColId().startsWith(prefix)) {
-    				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
-    				System.out.println("!!!!! column_name: " + column_name);
-    				if(column_name.equalsIgnoreCase("servers_count")) {
-    					orderBy = " order by (case when servers_count is null or servers_count = '' then 0 else " + column_name + "::int end)" + s.getSort();
-    				} else {
-    					orderBy = " order by coalesce(" + column_name + ",'') " + s.getSort();
-    				}
-    				
-    				
-    			} 
+    			if(!reportBy.equalsIgnoreCase("Summary")) {
+    				if(s.getActualColId().startsWith(prefix)) {
+        				String column_name = s.getActualColId().substring(s.getActualColId().indexOf("~") + 1, s.getActualColId().length());
+        				if(reportBy.equalsIgnoreCase("Summary")) {
+        					column_name = s.getActualColId();
+        				}
+        				System.out.println("!!!!! column_name: " + column_name);
+        				if(column_name.equalsIgnoreCase("servers_count")) {
+        					orderBy = " order by (case when servers_count is null or servers_count = '' then 0 else " + column_name + "::int end)" + s.getSort();
+        				} else {
+        					orderBy = " order by coalesce(" + column_name + ",'') " + s.getSort();
+        				}
+        				
+        				
+        			} 
+    			} else {
+    				if(s.getActualColId().startsWith(prefix)) {
+    					
+        				String column_name = s.getActualColId();
+        				System.out.println("!!!!! column_name: " + column_name);
+        				if(column_name.equalsIgnoreCase("servers_count")) {
+        					orderBy = " order by (case when servers_count is null or servers_count = '' then 0 else " + column_name + "::int end)" + s.getSort();
+        				} else {
+        					orderBy = " order by coalesce(" + column_name + ",'') " + s.getSort();
+        				}
+        				
+        				
+        			} 
+    			}
+    			
     		}
     	} catch(Exception e) {
     		e.printStackTrace();
@@ -804,6 +823,8 @@ public class PrivillegeAccessReportQueryBuilder {
     					orderBy = " order by coalesce(json_collect(coalesce(sd.data::json, '{}'::json))::json ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
     					orderBy = " order by coalesce(coalesce(sd.data::json, '{}'::json)::json ->> '" + s.getActualColId() + "','') " + s.getSort();
+    				} else if(reportBy.equalsIgnoreCase("Summary")) { 
+    					orderBy = " order by coalesce(coalesce(source_data::json, '{}'::json)::json ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else {
     					orderBy = " order by coalesce(json_collect((coalesce(sd.data,'{}')::jsonb||coalesce(sd1.data,'{}')::jsonb)::json) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
