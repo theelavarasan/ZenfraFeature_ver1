@@ -4277,12 +4277,10 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		String query = "";
 		
 		
-		if(reportBy.contains("Privileged Access")) {
+		if(reportBy.contains("Privileged Access") || reportBy.contains("Server")) {
 			query = "select count(1) from privillege_data_details where site_key = '" + siteKey + "'";
 		} else if(reportBy.contains("User")) {
 			query = "select count(1) from user_summary_report_details where site_key = '" + siteKey + "'";
-		} else if(reportBy.contains("Server")) {
-			query = "select count(1) from server_summary_report_details where site_key = '" + siteKey + "'";
 		} else if(reportBy.contains("Sudoers")) {
 			query = "select count(1) from sudoers_summary_details where site_key = '" + siteKey + "'";
 		}
