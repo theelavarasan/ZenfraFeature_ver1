@@ -4285,4 +4285,29 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		
 	}
 	
+	public Integer privillegedAccessCount(String deviceType, String reportBy, String siteKey) throws SQLException {
+		Map<String, String> data = new HashMap<>();
+		data = DBUtils.getPostgres();
+		
+		Integer count = 0;
+		String query = "";
+		
+		
+		if(reportBy.contains("Privileged Access") || reportBy.contains("Server")) {
+			query = "select count(1) from privillege_data_details where site_key = '" + siteKey + "'";
+		} else if(reportBy.contains("User")) {
+			query = "select count(1) from user_summary_report_details where site_key = '" + siteKey + "'";
+		} else if(reportBy.contains("Sudoers")) {
+			query = "select count(1) from user_sudoers_summary_details where site_key = '" + siteKey + "'";
+		}
+		
+		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
+				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query);) {
+			while(rs.next()) {
+				count = rs.getInt("count");
+			}
+		}
+		return count;
+	}
+	
 }

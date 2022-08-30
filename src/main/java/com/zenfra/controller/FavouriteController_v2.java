@@ -731,6 +731,11 @@ public class FavouriteController_v2 {
 		try {
 
 			String token = request.getHeader("Authorization");
+			
+			if(analyticsType.equalsIgnoreCase("Custom Excel Data")) {
+				componentType = "CED";
+				reportName = "Custom Excel Data";
+			}
 
 			GridDataFormat gridDataFormat = healthCheckService.getHealthCheckDataByFilters(siteKey, userId, reportBy, componentType, analyticsType, reportName);
 
