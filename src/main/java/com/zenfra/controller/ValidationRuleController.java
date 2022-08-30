@@ -37,7 +37,7 @@ public class ValidationRuleController {
 		if(!model.getAnalyticsType().equalsIgnoreCase("Custom Excel Data")) {
 			if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") && !model.getReportBy().equalsIgnoreCase("Group Info")
 					&& !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") && !model.getReportBy().equalsIgnoreCase("Sudoers")
-					&& !((model.getDeviceType().equalsIgnoreCase("Tanium") || model.getDeviceType().equalsIgnoreCase("activedirectory")) && model.getReportBy().equalsIgnoreCase("Server"))) {
+					&& !model.getDeviceType().equalsIgnoreCase("Tanium") && !model.getDeviceType().equalsIgnoreCase("activedirectory") && model.getReportBy().equalsIgnoreCase("Server")) {
 				resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
 					   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList(), model.getAnalyticsType());
 			} else if(model.getAnalyticsType().equalsIgnoreCase("Compatibility")) {
@@ -81,7 +81,8 @@ public class ValidationRuleController {
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") 
 				&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") 
 				&& !model.getReportBy().equalsIgnoreCase("Sudoers")
-		&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server")) && !(model.getDeviceType().equalsIgnoreCase("activedirectory"))) {
+		&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server")) 
+		&& !(model.getDeviceType().equalsIgnoreCase("activedirectory") && model.getReportBy().equalsIgnoreCase("Summary"))) {
 					
 			if(resultData.containsKey(colName)) {	
 				List<Object> datas = resultData.get(colName);
