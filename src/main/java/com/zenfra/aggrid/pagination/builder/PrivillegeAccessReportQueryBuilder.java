@@ -83,7 +83,7 @@ public class PrivillegeAccessReportQueryBuilder {
 
         //return selectSql() + fromSql(tableName) + whereSql() + groupBySql() + orderBySql() + limitSql();
         return getPrivillegeAccessReport(request.getSiteKey(), request.getProjectId(), request.getStartRow(), request.getEndRow(), request.getFilterModel(), request.getSortModel(),
-        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery, reportBy, sourceMap, request.getCategory(), request.getThirdPartyId());
+        		request.getHealthCheckId(), request.getRuleList(), validationFilterQuery, reportBy, sourceMap, request.getCategory(), request.getThirdPartyId(), request.getOstype());
     }
 
     private String selectSql() {
@@ -240,186 +240,113 @@ public class PrivillegeAccessReportQueryBuilder {
     }};
     
     private String getPrivillegeAccessReport(String siteKey, String projectId, int startRow, int endRow, Map<String, ColumnFilter> filters, List<SortModel> sortModel,
-    		String healthCheckId, List<String> ruleList, String validationFilterQuery, String reportBy, Map<String, String> sourceMap, String category, String thirdPartyId) {
+    		String healthCheckId, List<String> ruleList, String validationFilterQuery, String reportBy, Map<String, String> sourceMap, String category, String thirdPartyId, String deviceType) {
 		
 		JSONParser parser = new JSONParser();
 		
 		String taniumReportQuery = ""; 
 		
 		if(category.equalsIgnoreCase("User")) {
-		if(reportBy.equalsIgnoreCase("Privileged Access") || reportBy.equalsIgnoreCase("Server")) {
-			/*taniumReportQuery = "select * from ( WITH PDDATA AS\r\n" + 
-					"(\r\n" + 
-					"    SELECT * \r\n" + 
-					"    FROM privillege_data_details \r\n" + 
-					"    WHERE site_key = '" + siteKey + "' \r\n" 
-					+ " \r\n " +
-					"),\r\n" + 
-					"SDDATA AS\r\n" + 
-					"(\r\n" + 
-					"    SELECT primary_key_value, json_collect(data::json) AS sdjsondata\r\n" + 
-					"    FROM source_data\r\n" + 
-					"    WHERE site_key = '" + siteKey + "'\r\n" + 
-					"    GROUP BY primary_key_value\r\n" + 
-					")\r\n" + 
-					"SELECT pdt.*, count(1) over() as row_count,coalesce(sdt.sdjsondata,'{}') as source_data1, coalesce(sdt1.sdjsondata,'{}') as source_data2 \r\n" + 
-					"FROM PDDATA AS pdt\r\n" + 
-					"LEFT JOIN SDDATA AS sdt\r\n" + 
-					"ON pdt.user_name = sdt.primary_key_value\r\n" + 
-					"LEFT JOIN SDDATA AS sdt1\r\n" + 
-					"ON pdt.server_name = sdt1.primary_key_value \r\n" +
-					"where pdt.site_key = '" + siteKey + "' " 
-					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId, reportBy) 
-					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " \r\n" 
-					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) +
-					" limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0)
-					+ ") a";*/
-			
-			taniumReportQuery = "select * from (select count(1) over() as row_count, server_name,user_name, user_id, is_sudoers_by_user, sudo_privileges_by_user, group_id, primary_group_name, secondary_group_name,\r\n"
-					+ "is_sudoers_by_group, sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, \r\n"
-					+ "is_sudoers_by_user_alias, sudo_privileges_by_user_alias, processeddate, default_login_shell, home_dir, account_expiration_date, \r\n"
-					+ "date_of_last_pwd_change, num_of_days_after_pwd_exp_to_disable_the_account, num_of_days_in_advance_to_dis_pwd_exp_msg, \r\n"
-					+ "max_required_days_btw_pwd_changes, min_required_days_btw_pwd_changes, operating_system,  \r\n"
-					+ "json_collect(sd.data::json) as source_data1, json_collect(sd1.data::json) as source_data2 from privillege_data_details pd \r\n"
-					+ "LEFT JOIN source_data sd on sd.primary_key_value = pd.user_name and sd.site_key = '" + siteKey + "' \r\n"
-					+ "LEFT JOIN source_data sd1 on sd1.primary_key_value = pd.server_name and sd1.site_key = '" + siteKey + "' \r\n"
-					+ "where pd.site_key = '" + siteKey + "' \r\n" 
-					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId, reportBy) 
-					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " \r\n" 
-					+ "group by server_name,user_name, user_id, is_sudoers_by_user, sudo_privileges_by_user, group_id, primary_group_name, secondary_group_name,\r\n"
-					+ "is_sudoers_by_group, sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, \r\n"
-					+ "is_sudoers_by_user_alias, sudo_privileges_by_user_alias, processeddate, default_login_shell, home_dir, account_expiration_date, \r\n"
-					+ "date_of_last_pwd_change, num_of_days_after_pwd_exp_to_disable_the_account, num_of_days_in_advance_to_dis_pwd_exp_msg, \r\n"
-					+ "max_required_days_btw_pwd_changes, min_required_days_btw_pwd_changes, operating_system\r\n" 
-					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) + " \r\n"
-					+ "limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) 
-					+ ") a \r\n";
-					
-					
-			
-		} else if(reportBy.equalsIgnoreCase("User")) {
-			
-			taniumReportQuery = "select * from ( WITH SDDATA AS\r\n"
-					+ "    (SELECT PRIMARY_KEY_VALUE,\r\n"
-					+ "            JSON_collect(DATA::JSON) AS SDJSONDATA\r\n"
-					+ "        FROM SOURCE_DATA AS SD\r\n"
-					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
-					+ "        WHERE SD.SITE_KEY = '" + siteKey + "'\r\n"
-					+ "            AND SR.IS_ACTIVE = true \r\n"
-					+ "            AND (SR.LINK_TO = 'All' \r\n"
-					+ "                                OR SR.LINK_TO = 'None')\r\n"
-					+ "        GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
-					+ "SELECT count(1) over() as row_count, USRD.USER_NAME,\r\n"
-					+ "    USRD.USER_ID,\r\n"
-					+ "    USRD.GROUP_ID,\r\n"
-					+ "    USRD.SERVERS_COUNT,\r\n"
-					+ "    USRD.PRIMARY_GROUP_NAME,\r\n"
-					+ "    USRD.SECONDARY_GROUP_NAME,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_USER,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
-					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
-					+ "    coalesce(SDT.SDJSONDATA, '{}') AS source_data1,"
-					+ " '{}' as source_data2, \r\n"
-					+ " USRD.processeddate "
-					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
-					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
-					+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
-					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " " + getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
-					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ") a ";
-					
-			
-		} else if(reportBy.equalsIgnoreCase("Sudoers")) {
-			
-			/*taniumReportQuery = "select * from ( WITH SSDDATA AS\r\n"
-					+ "(\r\n"
-					+ "    SELECT SITE_KEY,\r\n"
-					+ "       SERVER_NAME,\r\n"
-					+ "       USER_NAME,\r\n"
-					+ "       USER_ID,\r\n"
-					+ "       COALESCE(GROUP_ID, '') AS GROUP_ID,\r\n"
-					+ "       COALESCE(PRIMARY_GROUP_NAME, '') AS PRIMARY_GROUP_NAME,\r\n"
-					+ "       COALESCE(SECONDARY_GROUP_NAME, '') AS SECONDARY_GROUP_NAME,\r\n"
-					+ "       COALESCE(SUDO_PRIVILEGES_BY_USER, '') AS SUDO_PRIVILEGES_BY_USER,\r\n"
-					+ "       COALESCE(SUDO_PRIVILEGES_BY_PRIMARY_GROUP, '') AS SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
-					+ "       COALESCE(SUDO_PRIVILEGES_BY_SECONDARY_GROUP, '') AS SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
-					+ "       COALESCE(MEMBER_OF_USER_ALIAS, '') AS USER_ALIAS_NAME,\r\n"
-					+ "       COALESCE(SUDO_PRIVILEGES_BY_USER_ALIAS, '') AS SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
-					+ "       PROCESSEDDATE,\r\n"
-					+ "       OPERATING_SYSTEM \r\n"
-					+ "    FROM SUDOERS_SUMMARY_DETAILS\r\n"
-					+ "    WHERE SITE_KEY = '" + siteKey + "' " 
-					+ "),\r\n"
-					+ "SDDATA AS\r\n"
-					+ "(    \r\n"
-					+ "    SELECT SD.PRIMARY_KEY_VALUE,\r\n"
-					+ "           JSON_collect(SD.DATA::JSON) AS SDJSONDATA\r\n"
-					+ "    FROM SOURCE_DATA SD\r\n"
-					+ "       INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
-					+ "        WHERE SD.SITE_KEY = '" + siteKey + "'\r\n"
-					+ "            AND SR.IS_ACTIVE = 'True'\r\n"
-					+ "            AND (SR.LINK_TO = 'All'\r\n"
-					+ "                                OR SR.LINK_TO = 'None')\r\n"
-					+ "             GROUP BY SD.PRIMARY_KEY_VALUE\r\n"
-					+ ")\r\n"
-					+ "SELECT count(1) over() as row_count, SSD.SERVER_NAME,\r\n"
-					+ "       SSD.USER_NAME,\r\n"
-					+ "       SSD.USER_ID,\r\n"
-					+ "       SSD.GROUP_ID,\r\n"
-					+ "       SSD.PRIMARY_GROUP_NAME,\r\n"
-					+ "       SSD.SECONDARY_GROUP_NAME,\r\n"
-					+ "       SSD.SUDO_PRIVILEGES_BY_USER,\r\n"
-					+ "       SSD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
-					+ "       SSD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
-					+ "       SSD.USER_ALIAS_NAME,\r\n"
-					+ "       SSD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
-					+ "       SSD.PROCESSEDDATE,\r\n"
-					+ "       SSD.OPERATING_SYSTEM,\r\n"
-					+ "       coalesce(SDT1.SDJSONDATA,'{}') AS source_data1,\r\n"
-					+ "       coalesce(SDT2.SDJSONDATA, '{}') AS source_data2 \r\n"
-					+ "FROM SSDDATA AS SSD\r\n"
-					+ "LEFT JOIN SDDATA AS SDT1\r\n"
-					+ "ON SSD.SERVER_NAME = SDT1.PRIMARY_KEY_VALUE\r\n"
-					+ "LEFT JOIN SDDATA AS SDT2\r\n"
-					+ "ON SSD.USER_NAME = SDT2.PRIMARY_KEY_VALUE\r\n"
-					+ "WHERE SSD.SITE_KEY = '" + siteKey + "' " 
-					+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
-					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " " 
-							+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
-					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
-					+ ")a ";*/
-			
-			taniumReportQuery = "select * from (select count(1) over() as row_count,user_name, processeddate, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
-					+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count, json_collect(sd.data::json) as source_data1 "
-					+ "from user_sudoers_summary_details ud \r\n"
-					+ "LEFT JOIN source_data sd on sd.primary_key_value = ud.user_name and sd.site_key = '" + siteKey + "'\r\n"
-					+ "WHERE ud.site_key = '" + siteKey + "'  \r\n " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
+		if(deviceType.equalsIgnoreCase("Tanium")) {
+			if(reportBy.equalsIgnoreCase("Privileged Access") || reportBy.equalsIgnoreCase("Server")) {
+				
+				taniumReportQuery = "select * from (select count(1) over() as row_count, server_name,user_name, user_id, is_sudoers_by_user, sudo_privileges_by_user, group_id, primary_group_name, secondary_group_name,\r\n"
+						+ "is_sudoers_by_group, sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, \r\n"
+						+ "is_sudoers_by_user_alias, sudo_privileges_by_user_alias, processeddate, default_login_shell, home_dir, account_expiration_date, \r\n"
+						+ "date_of_last_pwd_change, num_of_days_after_pwd_exp_to_disable_the_account, num_of_days_in_advance_to_dis_pwd_exp_msg, \r\n"
+						+ "max_required_days_btw_pwd_changes, min_required_days_btw_pwd_changes, operating_system,  \r\n"
+						+ "json_collect(sd.data::json) as source_data1, json_collect(sd1.data::json) as source_data2 from privillege_data_details pd \r\n"
+						+ "LEFT JOIN source_data sd on sd.primary_key_value = pd.user_name and sd.site_key = '" + siteKey + "' \r\n"
+						+ "LEFT JOIN source_data sd1 on sd1.primary_key_value = pd.server_name and sd1.site_key = '" + siteKey + "' \r\n"
+						+ "where pd.site_key = '" + siteKey + "' \r\n" 
+						+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + getTasklistFilters(filters, siteKey, projectId, reportBy) 
+						+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap, deviceType) + " \r\n" 
+						+ "group by server_name,user_name, user_id, is_sudoers_by_user, sudo_privileges_by_user, group_id, primary_group_name, secondary_group_name,\r\n"
+						+ "is_sudoers_by_group, sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, \r\n"
+						+ "is_sudoers_by_user_alias, sudo_privileges_by_user_alias, processeddate, default_login_shell, home_dir, account_expiration_date, \r\n"
+						+ "date_of_last_pwd_change, num_of_days_after_pwd_exp_to_disable_the_account, num_of_days_in_advance_to_dis_pwd_exp_msg, \r\n"
+						+ "max_required_days_btw_pwd_changes, min_required_days_btw_pwd_changes, operating_system\r\n" 
+						+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) + " \r\n"
+						+ "limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) 
+						+ ") a \r\n";
+						
+						
+				
+			} else if(reportBy.equalsIgnoreCase("User")) {
+				
+				taniumReportQuery = "select * from ( WITH SDDATA AS\r\n"
+						+ "    (SELECT PRIMARY_KEY_VALUE,\r\n"
+						+ "            JSON_collect(DATA::JSON) AS SDJSONDATA\r\n"
+						+ "        FROM SOURCE_DATA AS SD\r\n"
+						+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
+						+ "        WHERE SD.SITE_KEY = '" + siteKey + "'\r\n"
+						+ "            AND SR.IS_ACTIVE = true \r\n"
+						+ "            AND (SR.LINK_TO = 'All' \r\n"
+						+ "                                OR SR.LINK_TO = 'None')\r\n"
+						+ "        GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
+						+ "SELECT count(1) over() as row_count, USRD.USER_NAME,\r\n"
+						+ "    USRD.USER_ID,\r\n"
+						+ "    USRD.GROUP_ID,\r\n"
+						+ "    USRD.SERVERS_COUNT,\r\n"
+						+ "    USRD.PRIMARY_GROUP_NAME,\r\n"
+						+ "    USRD.SECONDARY_GROUP_NAME,\r\n"
+						+ "    USRD.SUDO_PRIVILEGES_BY_USER,\r\n"
+						+ "    USRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
+						+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
+						+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
+						+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
+						+ "    coalesce(SDT.SDJSONDATA, '{}') AS source_data1,"
+						+ " '{}' as source_data2, \r\n"
+						+ " USRD.processeddate "
+						+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD \r\n"
+						+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE \r\n"
+						+ "WHERE SITE_KEY = '" + siteKey + "' " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " + getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+						+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap, deviceType) + " " + getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy) 
+						+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + ") a ";
+						
+				
+			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+				
+				taniumReportQuery = "select * from (select count(1) over() as row_count,user_name, processeddate, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
+						+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count, json_collect(sd.data::json) as source_data1 "
+						+ "from user_sudoers_summary_details ud \r\n"
+						+ "LEFT JOIN source_data sd on sd.primary_key_value = ud.user_name and sd.site_key = '" + siteKey + "'\r\n"
+						+ "WHERE ud.site_key = '" + siteKey + "'  \r\n " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
+						+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+						+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap, deviceType) + " "
+						+ "group by user_name, processeddate, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
+						+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count \r\n" 
+						+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy)
+						+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
+						+ ")a \r\n";
+						
+						
+				
+			} else if(reportBy.equalsIgnoreCase("Sudoers Detail")) {
+				
+				taniumReportQuery = "select server_name, user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, \r\n"
+						+ "sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, sudo_privileges_by_user_alias, \r\n"
+						+ "processeddate, operating_system, is_group_user, json_collect(coalesce(sd.data, '{}')::json) as source_data from sudoers_summary_details ssd \r\n"
+						+ "LEFT JOIN source_data sd on sd.primary_key_value = ssd.user_name and sd.site_key = '" + siteKey + "' \r\n"
+						+ "where ssd.site_key = '" + siteKey + "' \r\n " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
+						+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
+						+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap, deviceType) + " "
+						+ "group by server_name, user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, \r\n"
+						+ "sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, sudo_privileges_by_user_alias, \r\n"
+						+ "processeddate, operating_system, is_group_user\r\n"
+						+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy)
+						+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
+			}
+		} else if(deviceType.equalsIgnoreCase("activedirectory")) {
+			taniumReportQuery = "select * from \"ad_user_summary_report_" + siteKey + "\" \r\n"
+					+ "where 1 = 1 " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
 					+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
-					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " "
-					+ "group by user_name, processeddate, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, sudo_privileges_by_primary_group, \r\n"
-					+ "sudo_privileges_by_secondary_group, user_alias_name, sudo_privileges_by_user_alias, servers_count \r\n" 
-					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy)
-					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n"
-					+ ")a \r\n";
-					
-					
-			
-		} else if(reportBy.equalsIgnoreCase("Sudoers Detail")) {
-			
-			taniumReportQuery = "select server_name, user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, \r\n"
-					+ "sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, sudo_privileges_by_user_alias, \r\n"
-					+ "processeddate, operating_system, is_group_user, json_collect(coalesce(sd.data, '{}')::json) as source_data from sudoers_summary_details ssd \r\n"
-					+ "LEFT JOIN source_data sd on sd.primary_key_value = ssd.user_name and sd.site_key = '" + siteKey + "' \r\n"
-					+ "where ssd.site_key = '" + siteKey + "' \r\n " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
-					+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
-					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap) + " "
-					+ "group by server_name, user_name, user_id, group_id, primary_group_name, secondary_group_name, sudo_privileges_by_user, \r\n"
-					+ "sudo_privileges_by_primary_group, sudo_privileges_by_secondary_group, member_of_user_alias, sudo_privileges_by_user_alias, \r\n"
-					+ "processeddate, operating_system, is_group_user\r\n"
+					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap, deviceType) + " "
 					+ getOrderBy(sortModel, reportBy) + getOrderBy1(sortModel, reportBy)
 					+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
+					
 		}
+		
 		} else if(category.equalsIgnoreCase("Third Party Data")) {
 			
 			System.out.println("!!!!! thirdPartyId: " + thirdPartyId);
@@ -436,7 +363,7 @@ public class PrivillegeAccessReportQueryBuilder {
 						+ "where sd.site_key = '" + siteKey + "' and sdl.source_id = '" + sourceId[5] + "' \r\n"
 						+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
 						+ getTasklistFilters(filters, siteKey, projectId, "thirdPartyData") + " "
-						+ getSourceDataFilters(filters, siteKey, projectId, "thirdPartyData", sourceMap) + " "
+						+ getSourceDataFilters(filters, siteKey, projectId, "thirdPartyData", sourceMap, deviceType) + " "
 						+ getOrderBy(sortModel, "thirdPartyData") + getOrderBy1(sortModel, "thirdPartyData") + " \r\n"
 						+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 				
@@ -446,19 +373,12 @@ public class PrivillegeAccessReportQueryBuilder {
 						+ "where sd.site_key = '" + siteKey + "' and sd.source_id = '" + sourceId[2] + "' \r\n" 
 						+ (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
 						+ getTasklistFilters(filters, siteKey, projectId, "thirdPartyData") + " "
-						+ getSourceDataFilters(filters, siteKey, projectId, "thirdPartyData", sourceMap) + " "
+						+ getSourceDataFilters(filters, siteKey, projectId, "thirdPartyData", sourceMap, deviceType) + " "
 						+ getOrderBy(sortModel, "thirdPartyData") + getOrderBy1(sortModel, "thirdPartyData") + " \r\n"
 						+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 			}
 			
 		}
-		
-		/*if(!getOrderBy1(sortModel, reportBy).isEmpty()) {
-			
-			taniumReportQuery = taniumReportQuery.replace("{<%dummyvalue%>}", setDummyValue(sortModel, taniumReportQuery).toJSONString());
-		} else {
-			taniumReportQuery = taniumReportQuery.replace("{<%dummyvalue%>}", "{}");
-		}*/
 
 		System.out.println("!!!!! trackerQuery: " + taniumReportQuery);
 
@@ -583,7 +503,7 @@ public class PrivillegeAccessReportQueryBuilder {
     	
     } 
     
-    private String getSourceDataFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId, String reportBy, Map<String, String> sourceMap) {
+    private String getSourceDataFilters(Map<String, ColumnFilter> filters, String siteKey, String projectId, String reportBy, Map<String, String> sourceMap, String deviceType) {
     	
     	StringBuilder filterQuery = new StringBuilder();
     	ObjectMapper mapper = new ObjectMapper();
@@ -665,6 +585,13 @@ public class PrivillegeAccessReportQueryBuilder {
     							column1 = "coalesce(coalesce(sd.data, '{}')::json ->> '" + column + "','') ";
     						} else {
     							column1 = "coalesce(coalesce(sd.data,'{}')::jsonb || coalesce(sd1.data,'{}')::jsonb ->> '" + column + "','') ";
+    						}
+    						
+    						if(deviceType.equalsIgnoreCase("activedirectory")) {
+    							if(reportBy.equalsIgnoreCase("Summary")) {
+    								column1 = "coalesce(coalesce(source_data, '{}')::json ->> '" + column + "','') ";
+    							}
+    							
     						}
     						
     						//System.out.println("filter type: " + ((TextColumnFilter) columnFilter).getType());

@@ -59,7 +59,7 @@ public class PrivillegeAccessReportDAO {
         
         String validationFilter = "";
         if(request.getHealthCheckId() != null && !request.getHealthCheckId().isEmpty()) {
-        	String validationFilterQuery = getValidationRuleCondition(request.getSiteKey(), request.getHealthCheckId(), request.getRuleList(), request.getReportBy());
+        	String validationFilterQuery = getValidationRuleCondition(request.getSiteKey(), request.getHealthCheckId(), request.getRuleList(), request.getReportBy(), request.getDeviceType());
             List<Map<String, Object>> validationRows = utilities.getDBDatafromJdbcTemplate(validationFilterQuery);
             validationFilter = getValidationFilter(validationRows);
         }
@@ -113,7 +113,7 @@ public class PrivillegeAccessReportDAO {
 		return value;
 	}
     
-    private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList, String reportBy) {
+    private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList, String reportBy, String deviceType) {
     	
     	JSONArray ruleArray = new JSONArray();
 		if(!ruleList.isEmpty()) {
@@ -130,6 +130,13 @@ public class PrivillegeAccessReportDAO {
 			column1 = " coalesce(coalesce(sd.data,''{}'')::jsonb || coalesce(sd1.data,''{}'')::jsonb ->> '''";
 		} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
 			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
+		}
+		
+		if(deviceType.equalsIgnoreCase("activedirectory")) {
+			if(reportBy.equalsIgnoreCase("Summary")) {
+				column1 = " coalesce(coalesce(source_data,''{}'')::jsonb ->> '''";
+			}
+			
 		}
 		
 		
