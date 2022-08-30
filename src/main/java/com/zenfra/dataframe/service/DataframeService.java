@@ -4288,11 +4288,9 @@ private void reprocessVmaxDiskSanData(String filePath) {
 		try (Connection connection = DriverManager.getConnection(data.get("url"), data.get("userName"),
 				data.get("password")); Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query);) {
 			while(rs.next()) {
-				System.out.println("rs.getString(\"count\") : " + rs.getString("count"));
 				count = rs.getInt("count");
 			}
 		}
-		System.out.println("count : " + count);
 		return count;
 	}
 	
