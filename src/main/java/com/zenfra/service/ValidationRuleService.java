@@ -1397,5 +1397,49 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 
 		return resultArray;
 
+	} 
+	
+	public JSONArray getVR_ADUserSummaryReport(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+			
+			String query = "";
+			
+			if(columnName.startsWith("User Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("User Summary~", "") + ") as column_values from USER_SUMMARY_REPORT_DETAILS "
+						+ "where site_key = '" + siteKey + "'";
+			} else if(columnName.startsWith("AD Group~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("AD Group~", "") + ") as column_values from ad_groupmember "
+						+ "where site_key = '" + siteKey + "'";
+			} else if(columnName.startsWith("AD Master~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("AD Master~", "") + ") as column_values from ad_master "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' and data::json ->> '" + columnName + "' is not null";
+			}
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			//System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
 	}
 }
