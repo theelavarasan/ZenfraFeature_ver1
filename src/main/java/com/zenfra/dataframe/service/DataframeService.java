@@ -3485,6 +3485,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						JSONArray finalBreakDownValue = new JSONArray();
 
 						for (Map<String, Object> resultMap : resultSet) {
+							System.out.println("resultMap : " + resultMap);
+
 							JSONObject jsonObj = new JSONObject();
 							jsonObj.putAll(resultMap);
 							Iterator iterator = jsonObj.keySet().iterator();
@@ -3591,8 +3593,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						
 						System.out.println(" --------- Tanium line chart resultset----------- : " + resultSet.size());
 						
-						JSONArray xaxisCloumnValues = new JSONArray();
-
 						Set<String> keySet = new HashSet<>();
 						for (Map<String, Object> resultMap : resultSet) {
 							System.out.println("resultMap : " + resultMap);
