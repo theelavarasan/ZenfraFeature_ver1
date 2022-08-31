@@ -338,7 +338,7 @@ public class PrivillegeAccessReportQueryBuilder {
 						+ " limit " + (startRow > 0 ? ((endRow - startRow) + 1) : endRow) + " offset " + (startRow > 0 ? (startRow - 1) : 0) + " \r\n";
 			}
 		} else if(deviceType.equalsIgnoreCase("activedirectory")) {
-			taniumReportQuery = "select * from \"ad_user_summary_report_" + siteKey + "\" \r\n"
+			taniumReportQuery = "select count(1) over() as row_count, * from \"ad_user_summary_report_" + siteKey + "\" \r\n"
 					+ "where 1 = 1 " + (!validationFilterQuery.isEmpty() ? validationFilterQuery: "") + " " 
 					+ getTasklistFilters(filters, siteKey, projectId, reportBy) + " "
 					+ getSourceDataFilters(filters, siteKey, projectId, reportBy, sourceMap, deviceType) + " "
