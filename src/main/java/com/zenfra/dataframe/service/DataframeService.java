@@ -3533,7 +3533,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								System.out.println("colValue : " + jsonObject.get("colValue" + i));
 								resultObject.put("y", jsonObject.get("colValue" + i));
 								finalArray.add(resultObject);
-								System.out.println("finalArray : " + finalArray);
 
 							}
 						}
