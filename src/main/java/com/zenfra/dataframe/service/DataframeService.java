@@ -3517,12 +3517,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 							testArray = (JSONArray) jsonObject.get("colBreakdown");
 							System.out.println("testArray : " + testArray);
 							for (int j = 0; j < testArray.size(); j++) {
-								JSONObject resultObject = new JSONObject();
-
-								resultObject.put("name", testArray.get(j));
-								resultObject.put("x", jsonObject.get("colName"));
-									resultObject.put("y", jsonObject.get("colValue" + j));
-								finalArray.add(resultObject);
+								for(int i = 0; i < comp; i++) {
+									JSONObject resultObject = new JSONObject();
+									resultObject.put("name", testArray.get(j));
+									resultObject.put("x", jsonObject.get("colName"));
+									resultObject.put("y", jsonObject.get("colValue" + i));
+									finalArray.add(resultObject);
+								}
 							}
 						} else {
 							for (int i = 0; i < comp; i++) {
