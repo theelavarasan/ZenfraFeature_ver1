@@ -155,7 +155,7 @@ public class PrivillegeAccessReportDAO {
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
 				+ "concat((case when op_row = 1 then null else con_operator end), ' ', (case when con_field_id ilike '" + prefix + "%' or con_field_id ilike 'Local Users~%' then ' ' else '" + column1 + " end),  "
-				+ "(case when con_field_id ilike 'AD Master~%' or con_field_id ilike 'Local Users~%' then replace(concat('\"', con_field_id, '\"'),'servers_count\"','servers_count\"::numeric') else (case when con_field_id ilike '" + prefix + "%' then replace(substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), 'servers_count', 'servers_count::numeric')  else concat(con_field_id,''','''')') end)end), ' ',\r\n"
+				+ "(case when con_field_id ilike 'AD Master~%' or con_field_id ilike 'Local Users~%' then replace(concat('\"', con_field_id, '\"'),'servers_count\"','servers_count\"::numeric') else (case when con_field_id ilike '" + prefix + "%' and then replace(substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), 'servers_count', 'servers_count::numeric')  else concat(con_field_id,''','''')') end)end), ' ',\r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''',con_value, '%''') else (case when con_condition = 'endsWith' then concat(' ''%',con_value, '''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat(' ''',con_value,'''')\r\n"
@@ -252,7 +252,7 @@ public class PrivillegeAccessReportDAO {
 				+ ") g order by con_id\r\n"
 				+ ") f";*/
 		
-		validationRuleQuery = validationRuleQuery.replace(":site_key", siteKey);
+		validationRuleQuery = validationRuleQuery.replace(":site_key", siteKey).replace("servers_count::numeric similar to", "servers_count::numeric = ");
 		System.out.println("!!!!! validation query: " + validationRuleQuery);
     	
     	return validationRuleQuery;
