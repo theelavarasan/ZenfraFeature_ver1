@@ -3482,10 +3482,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						Set<String> keySet = new HashSet<>();
 						for (Map<String, Object> resultMap : resultSet) {
-							System.out.println("resultMap : " + resultMap);
 							keySet = resultMap.keySet();
 						}
-						System.out.println("keySet" + keySet);
 
 						JSONObject jsonObject = new JSONObject();
 						List<Map<String, Object>> list = new ArrayList<>();
@@ -3507,15 +3505,12 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 							}
 						}
-						System.out.println("jsonObject : " + jsonObject);
 
 						JSONArray finalArray = new JSONArray();
 						JSONArray testArray = new JSONArray();
 						int comp = jsonObject.containsKey("colBreakdown") ? keySet.size() - 2 : keySet.size() - 1;
-						System.out.println("comp : " + comp);
 						if (jsonObject.containsKey("colBreakdown")) {
 							testArray = (JSONArray) jsonObject.get("colBreakdown");
-							System.out.println("testArray : " + testArray);
 							for (int j = 0; j < testArray.size(); j++) {
 								for(int i = 0; i < comp; i++) {
 									JSONObject resultObject = new JSONObject();
@@ -3531,13 +3526,11 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 								resultObject.put("name", xaxisColumnName);
 								resultObject.put("x", jsonObject.get("colName"));
-								System.out.println("colValue : " + jsonObject.get("colValue" + i));
 								resultObject.put("y", jsonObject.get("colValue" + i));
 								finalArray.add(resultObject);
 
 							}
 						}
-						System.out.println("finalArray : " + finalArray);
 						resultData.put("data", finalArray);
 
 					}
@@ -3595,10 +3588,8 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						
 						Set<String> keySet = new HashSet<>();
 						for (Map<String, Object> resultMap : resultSet) {
-							System.out.println("resultMap : " + resultMap);
 							keySet = resultMap.keySet();
 						}
-						System.out.println("keySet" + keySet);
 
 						JSONObject jsonObject = new JSONObject();
 						List<Map<String, Object>> list = new ArrayList<>();
