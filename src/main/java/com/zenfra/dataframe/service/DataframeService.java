@@ -3525,10 +3525,7 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								finalArray.add(resultObject);
 							}
 						} else {
-							JSONArray xaxisCloumnValues = new JSONArray();
-							xaxisCloumnValues = (JSONArray) jsonObject.get("colName");
-							System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);
-							for (int i = 0; i < xaxisCloumnValues.size(); i++) {
+							for (int i = 0; i < comp; i++) {
 								JSONObject resultObject = new JSONObject();
 
 								resultObject.put("name", xaxisColumnName);
