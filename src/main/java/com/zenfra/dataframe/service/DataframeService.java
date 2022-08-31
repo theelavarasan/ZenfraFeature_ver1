@@ -3509,10 +3509,6 @@ private void reprocessVmaxDiskSanData(String filePath) {
 						}
 						System.out.println("jsonObject : " + jsonObject);
 
-						JSONArray yaxisNames = new JSONArray();
-						yaxisNames.add("data");
-						yaxisNames.add("data2");
-
 						JSONArray finalArray = new JSONArray();
 						JSONArray testArray = new JSONArray();
 						int comp = jsonObject.containsKey("colBreakdown") ? keySet.size() - 2 : keySet.size() - 1;
@@ -3529,10 +3525,13 @@ private void reprocessVmaxDiskSanData(String filePath) {
 								finalArray.add(resultObject);
 							}
 						} else {
-							for (int i = 0; i < yaxisNames.size(); i++) {
+							JSONArray xaxisCloumnValues = new JSONArray();
+							xaxisCloumnValues = (JSONArray) jsonObject.get("colName");
+							System.out.println("xaxisCloumnValues : " + xaxisCloumnValues);
+							for (int i = 0; i < xaxisCloumnValues.size(); i++) {
 								JSONObject resultObject = new JSONObject();
 
-								resultObject.put("name", yaxisNames.get(i));
+								resultObject.put("name", xaxisColumnName);
 								resultObject.put("x", jsonObject.get("colName"));
 								System.out.println("colValue : " + jsonObject.get("colValue" + i));
 								resultObject.put("y", jsonObject.get("colValue" + i));
