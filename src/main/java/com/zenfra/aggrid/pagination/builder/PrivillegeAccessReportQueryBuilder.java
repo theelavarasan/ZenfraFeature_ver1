@@ -431,7 +431,7 @@ public class PrivillegeAccessReportQueryBuilder {
     					if(reportBy.equalsIgnoreCase("Sudoers Detail")) {
     						column = column.replace("Server Summary~", "Sudoers Detail~");
     			    	}
-    					if(column.contains(prefix)) {
+    					if(column.contains(prefix) || (reportBy.equalsIgnoreCase("Summary") && (column.startsWith("User Summary~") || column.startsWith("AD Master~")))) {
     						String column1 = column.substring(column.indexOf("~") + 1, column.length());
     						if(reportBy.equalsIgnoreCase("Summary")) {
     							column1 = "\"" + column + "\"";
