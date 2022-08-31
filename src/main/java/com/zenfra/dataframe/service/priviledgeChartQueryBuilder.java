@@ -291,7 +291,7 @@ public class priviledgeChartQueryBuilder {
 				+ "           COALESCE(SSRD.SUDO_PRIVILEGES_BY_USER_ALIAS, '') AS SUDO_PRIVILEGES_BY_USER_ALIAS,\r\n"
 				+ "           SSRD.PROCESSEDDATE AS PROCESSEDDATE,\r\n"
 				+ "           SSRD.OPERATING_SYSTEM AS OS,\r\n"
-				+ "           COALESCE(SDT1.SDJSONDATA::TEXT, SDT2.SDJSONDATA::TEXT, '') AS source_data\r\n"
+				+ "           COALESCE(SDT1.SDJSONDATA::TEXT, SDT2.SDJSONDATA::TEXT, '{}') AS source_data\r\n"
 				+ "    FROM PRIVILLEGE_DATA_DETAILS AS SSRD\r\n"
 				+ "    LEFT JOIN SDDATA AS SDT1\r\n"
 				+ "    ON SSRD.SERVER_NAME = SDT1.PRIMARY_KEY_VALUE\r\n"
