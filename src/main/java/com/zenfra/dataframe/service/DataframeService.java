@@ -3480,65 +3480,69 @@ private void reprocessVmaxDiskSanData(String filePath) {
 
 						System.out.println("---" + chartType + " Query result size --- : " + resultSet.size());
 
-						JSONObject resultObject = new JSONObject();
-						JSONArray xaxisCloumnValues = new JSONArray();
-						JSONArray finalBreakDownValue = new JSONArray();
-
+						Set<String> keySet = new HashSet<>();
 						for (Map<String, Object> resultMap : resultSet) {
 							System.out.println("resultMap : " + resultMap);
+							keySet = resultMap.keySet();
+						}
+						System.out.println("keySet" + keySet);
 
-							JSONObject jsonObj = new JSONObject();
-							jsonObj.putAll(resultMap);
-							Iterator iterator = jsonObj.keySet().iterator();
-							while (iterator.hasNext()) {
-								String key = (String) iterator.next();
-								if (key.contains("colValue")) {
-									// values
-									valueArray.add(jsonObj.get(key));
+						JSONObject jsonObject = new JSONObject();
+						List<Map<String, Object>> list = new ArrayList<>();
+
+						for (String key : keySet) {
+							JSONArray jsonArray = new JSONArray();
+							for (Map<String, Object> resultMap : resultSet) {
+								JSONObject jsonObj = new JSONObject();
+								jsonObj.putAll(resultMap);
+								Iterator iterator = jsonObj.keySet().iterator();
+
+								while (iterator.hasNext()) {
+									String keys = (String) iterator.next();
+									if (keys.contains(key)) {
+										jsonArray.add(jsonObj.get(key));
+									}
 								}
-								if (key.contains("colName")) {
-//								name
-									xaxisCloumnValues.add(jsonObj.get(key));
-								}
-								if (key.contains("colBreakdown")) {
-									finalBreakDownValue.add(jsonObj.get(key));
-								}
+								jsonObject.put(key, jsonArray);
+
 							}
 						}
+						System.out.println("jsonObject : " + jsonObject);
 
-						JSONArray array = new JSONArray();
+						JSONArray yaxisNames = new JSONArray();
+						yaxisNames.add("data");
+						yaxisNames.add("data2");
 
-						if (finalBreakDownValue != null && !finalBreakDownValue.isEmpty()) {
+						JSONArray finalArray = new JSONArray();
+						JSONArray testArray = new JSONArray();
+						int comp = jsonObject.containsKey("colBreakdown") ? keySet.size() - 2 : keySet.size() - 1;
+						System.out.println("comp : " + comp);
+						if (jsonObject.containsKey("colBreakdown")) {
+							testArray = (JSONArray) jsonObject.get("colBreakdown");
+							System.out.println("testArray : " + testArray);
+							for (int j = 0; j < testArray.size(); j++) {
+								JSONObject resultObject = new JSONObject();
 
-							for (int i = 0; i < finalBreakDownValue.size(); i++) {
-								JSONObject jsonObject2 = new JSONObject();
-								JSONArray breakdownXArray = new JSONArray();
-								JSONArray breakdownYArray = new JSONArray();
-								breakdownXArray.add(xaxisCloumnValues.get(i));
-								jsonObject2.put("x", breakdownXArray);
-								breakdownYArray.add(valueArray.get(i));
-								jsonObject2.put("y", breakdownYArray);
-								jsonObject2.put("name", finalBreakDownValue.get(i));
-								array.add(jsonObject2);
+								resultObject.put("name", testArray.get(j));
+								resultObject.put("x", jsonObject.get("colName"));
+									resultObject.put("y", jsonObject.get("colValue" + j));
+								finalArray.add(resultObject);
 							}
 						} else {
-							JSONObject jsonObject = new JSONObject();
-							JSONArray xarray = new JSONArray();
-							JSONArray yarray = new JSONArray();
+							for (int i = 0; i < yaxisNames.size(); i++) {
+								JSONObject resultObject = new JSONObject();
 
-							for (int i = 0; i < xaxisCloumnValues.size(); i++) {
-								xarray.add(xaxisCloumnValues.get(i));
-								yarray.add(valueArray.get(i));
+								resultObject.put("name", yaxisNames.get(i));
+								resultObject.put("x", jsonObject.get("colName"));
+								System.out.println("colValue : " + jsonObject.get("colValue" + i));
+								resultObject.put("y", jsonObject.get("colValue" + i));
+								finalArray.add(resultObject);
+								System.out.println("finalArray : " + finalArray);
 
 							}
-
-							jsonObject.put("name", xaxisColumnName);
-							jsonObject.put("x", xarray);
-							jsonObject.put("y", yarray);
-							array.add(jsonObject);
 						}
-
-						resultData.put("data", array);
+						System.out.println("finalArray : " + finalArray);
+						resultData.put("data", finalArray);
 
 					}
 
