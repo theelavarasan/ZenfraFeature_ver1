@@ -433,6 +433,9 @@ public class PrivillegeAccessReportQueryBuilder {
     			    	}
     					if(column.contains(prefix)) {
     						String column1 = column.substring(column.indexOf("~") + 1, column.length());
+    						if(reportBy.equalsIgnoreCase("Summary")) {
+    							column1 = "\"" + column + "\"";
+    						}
     						String value = ((TextColumnFilter) columnFilter).getFilter();
     						if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter() + "%";
