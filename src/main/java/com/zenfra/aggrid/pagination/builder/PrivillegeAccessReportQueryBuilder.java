@@ -431,7 +431,7 @@ public class PrivillegeAccessReportQueryBuilder {
     					if(reportBy.equalsIgnoreCase("Sudoers Detail")) {
     						column = column.replace("Server Summary~", "Sudoers Detail~");
     			    	}
-    					if(column.contains(prefix) || column.contains("User Summary~")) {
+    					if(column.contains(prefix) || column.contains("Local Users~")) {
     						String column1 = column.substring(column.indexOf("~") + 1, column.length());
     						if(reportBy.equalsIgnoreCase("Summary")) {
     							column1 = "\"" + column + "\"";
@@ -592,7 +592,7 @@ public class PrivillegeAccessReportQueryBuilder {
     						
     						if(deviceType.equalsIgnoreCase("activedirectory")) {
     							if(reportBy.equalsIgnoreCase("Summary")) {
-    								column1 = "coalesce(coalesce(source_data, '{}')::json ->> '" + column + "','') ";
+    								column1 = "coalesce(coalesce(source_data1,'{}')::jsonb || coalesce(source_data2,'{}')::jsonb ->> '" + column + "','') ";
     							}
     							
     						}
@@ -827,7 +827,7 @@ public class PrivillegeAccessReportQueryBuilder {
     				} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
     					orderBy = " order by coalesce(coalesce(sd.data::json, '{}'::json)::json ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else if(reportBy.equalsIgnoreCase("Summary")) { 
-    					orderBy = " order by coalesce(coalesce(source_data::json, '{}'::json)::json ->> '" + s.getActualColId() + "','') " + s.getSort();
+    					orderBy = " order by coalesce(json_collect((coalesce(source_data1,'{}')::jsonb||coalesce(source_data2,'{}')::jsonb)::json) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				} else {
     					orderBy = " order by coalesce(json_collect((coalesce(sd.data,'{}')::jsonb||coalesce(sd1.data,'{}')::jsonb)::json) ->> '" + s.getActualColId() + "','') " + s.getSort();
     				}
