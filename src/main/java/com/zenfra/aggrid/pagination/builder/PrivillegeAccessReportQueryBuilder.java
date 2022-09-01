@@ -436,6 +436,9 @@ public class PrivillegeAccessReportQueryBuilder {
     						if(reportBy.equalsIgnoreCase("Summary")) {
     							column1 = "\"" + column + "\"";
     						}
+    						if(reportBy.equalsIgnoreCase("thirdPartyData") && column.equalsIgnoreCase("User Summary~user_id")) {
+    							column1 = "usr.user_id";
+    						}
     						String value = ((TextColumnFilter) columnFilter).getFilter();
     						if(((TextColumnFilter) columnFilter).getType().equalsIgnoreCase("contains")) {
     							value = "%" + ((TextColumnFilter) columnFilter).getFilter() + "%";
