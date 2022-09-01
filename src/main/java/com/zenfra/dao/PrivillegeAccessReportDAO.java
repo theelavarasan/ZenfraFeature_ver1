@@ -252,7 +252,7 @@ public class PrivillegeAccessReportDAO {
 				+ ") g order by con_id\r\n"
 				+ ") f";*/
 		
-		validationRuleQuery = validationRuleQuery.replace(":site_key", siteKey).replace("servers_count::numeric similar to", "servers_count::numeric = ");
+		validationRuleQuery = validationRuleQuery.replace(":site_key", siteKey);
 		System.out.println("!!!!! validation query: " + validationRuleQuery);
     	
     	return validationRuleQuery;
@@ -269,7 +269,7 @@ public class PrivillegeAccessReportDAO {
     		e.printStackTrace();
     	}
     	
-    	return validationFilterQuery.isEmpty() ? "" : (" and (" + validationFilterQuery.trim() + ")");
+    	return validationFilterQuery.isEmpty() ? "" : (" and (" + validationFilterQuery.trim().replace("servers_count::numeric similar to", "servers_count::numeric =") + ")");
     	
     }
     
