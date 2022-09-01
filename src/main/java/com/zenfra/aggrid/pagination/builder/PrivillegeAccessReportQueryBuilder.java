@@ -782,6 +782,9 @@ public class PrivillegeAccessReportQueryBuilder {
         				if(reportBy.equalsIgnoreCase("Summary")) {
         					column_name = s.getActualColId();
         				}
+        				if(reportBy.equalsIgnoreCase("thirdPartyData") && s.getActualColId().equalsIgnoreCase("User Summary~user_id")) {
+        					column_name = "usr.user_id";
+						}
         				System.out.println("!!!!! column_name: " + column_name);
         				if(column_name.equalsIgnoreCase("servers_count")) {
         					orderBy = " order by (case when servers_count is null or servers_count = '' then 0 else " + column_name + "::int end)" + s.getSort();
