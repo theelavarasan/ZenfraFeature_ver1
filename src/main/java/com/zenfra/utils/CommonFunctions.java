@@ -840,7 +840,7 @@ public class CommonFunctions {
     					if(!keys.get(i).equalsIgnoreCase("row_count")) {
     						
     						if(keys.get(i).equalsIgnoreCase("servers_count")) {
-    							String value = row.get(keys.get(i)).toString();
+    							String value = row.get(keys.get(i)) == null ? "0" : row.get(keys.get(i)).toString();
     							if(value.contains("~")) {
     								value = value.substring(value.indexOf("~") + 1, value.length());
     							}
