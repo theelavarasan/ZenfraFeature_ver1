@@ -744,7 +744,7 @@ public class ValidationRuleService {
 						+ "where site_key = '" + siteKey + "'";
 			} else {
 				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
-						" and data::json ->> '" + columnName + "' is not null";
+						" and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct user_name from privillege_data_details where site_key = '" + siteKey + "')";
 			}
 
 			/*String query = "select keys, json_agg(column_values) as column_values from (\r\n"
@@ -1248,7 +1248,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 						+ "where site_key = '" + siteKey + "'";
 			} else {
 				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
-						" and data::json ->> '" + columnName + "' is not null";
+						" and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct user_name from USER_SUMMARY_REPORT_DETAILS where site_key = '" + siteKey + "')";
 			}
 					
 			System.out.println("!!!!! query: " + query);
@@ -1287,7 +1287,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 						+ "where site_key = '" + siteKey + "'";
 			} else {
 				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
-						" and data::json ->> '" + columnName + "' is not null";
+						" and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct user_name from privillege_data_details where site_key = '" + siteKey + "')";
 			}
 					
 			System.out.println("!!!!! query: " + query);
@@ -1328,7 +1328,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 						+ "where site_key = '" + siteKey + "'";
 			} else {
 				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
-						" and data::json ->> '" + columnName + "' is not null";
+						" and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct user_name from user_sudoers_summary_details where site_key = '" + siteKey + "') ";
 			}
 					
 			System.out.println("!!!!! query: " + query);
@@ -1420,7 +1420,8 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 				query = "select json_agg(distinct " + columnName.replace("AD Master~", "") + ") as column_values from ad_master "
 						+ "where site_key = '" + siteKey + "'";
 			} else {
-				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' and data::json ->> '" + columnName + "' is not null";
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' "
+						+ "and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct samaccountname from ad_master where site_key = '" + siteKey + "')";
 			}
 					
 			System.out.println("!!!!! query: " + query);
