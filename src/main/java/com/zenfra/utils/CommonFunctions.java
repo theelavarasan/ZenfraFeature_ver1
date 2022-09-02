@@ -817,7 +817,12 @@ public class CommonFunctions {
     						List<String> dataKeys = new ArrayList<>(dataObject == null ? new HashSet<>() : dataObject.keySet());
         					for(int j = 0; j < dataObject.size(); j++) {
         						
-        						resultObject.put(prefix + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
+        						if(reportBy.equalsIgnoreCase("Summary")) {
+        							resultObject.put(dataKeys.get(j), dataObject.get(dataKeys.get(j)));
+        						} else {
+        							resultObject.put(prefix + dataKeys.get(j), dataObject.get(dataKeys.get(j)));
+        						}
+        						
         						
         					}
     					}
@@ -835,9 +840,23 @@ public class CommonFunctions {
     					if(!keys.get(i).equalsIgnoreCase("row_count")) {
     						
     						if(keys.get(i).equalsIgnoreCase("servers_count")) {
-    							resultObject.put(prefix + keys.get(i), Integer.parseInt(row.get(keys.get(i)) == null ? "0" : row.get(keys.get(i)).toString()));
+    							String value = row.get(keys.get(i)) == null ? "0" : row.get(keys.get(i)).toString();
+    							if(value.contains("~")) {
+    								value = value.substring(value.indexOf("~") + 1, value.length());
+    							}
+    							if(reportBy.equalsIgnoreCase("Summary")) {
+    								resultObject.put(keys.get(i), Integer.parseInt(row.get(keys.get(i)) == null ? "0" : value));
+    							} else {
+    								resultObject.put(prefix + keys.get(i), Integer.parseInt(row.get(keys.get(i)) == null ? "0" : value));
+    							}
+    							
     						} else {
-    							resultObject.put(prefix + keys.get(i), row.get(keys.get(i)));
+    							if(reportBy.equalsIgnoreCase("Summary")) {
+    								resultObject.put(keys.get(i), row.get(keys.get(i)));
+    							} else {
+    								resultObject.put(prefix + keys.get(i), row.get(keys.get(i)));
+    							}
+    							
     						}
     						
     						

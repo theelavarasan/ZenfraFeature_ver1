@@ -37,7 +37,7 @@ public class ValidationRuleController {
 		if(!model.getAnalyticsType().equalsIgnoreCase("Custom Excel Data")) {
 			if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") && !model.getReportBy().equalsIgnoreCase("Group Info")
 					&& !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") && !model.getReportBy().equalsIgnoreCase("Sudoers")
-					&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
+					&& !model.getDeviceType().equalsIgnoreCase("Tanium") && !model.getDeviceType().equalsIgnoreCase("activedirectory") && model.getReportBy().equalsIgnoreCase("Server")) {
 				resultData = validationRuleService.getDiscoveryReportValues(model.getSiteKey(), model.getReportBy(),
 					   	model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportList(), model.getAnalyticsType());
 			} else if(model.getAnalyticsType().equalsIgnoreCase("Compatibility")) {
@@ -50,7 +50,7 @@ public class ValidationRuleController {
 				//resultArray = validationRuleService.getCloudCostReportValues(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
 				resultArray = validationRuleService.getCloudCostReportValuesPostgres(model.getSiteKey(), model.getColumnName(), model.getCategory(), model.getDeviceType(), model.getReportBy());
 			} else if (model.getAnalyticsType().equalsIgnoreCase("onpremises-cost") && !model.getReportBy().equalsIgnoreCase("Privileged Access") 
-					&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User")) {
+					&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") && !model.getReportBy().equalsIgnoreCase("Summary")) {
 				resultArray = validationRuleService.getOnpremisesCostFieldType(model.getSiteKey(), model.getColumnName(), model.getOsType());
 			} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Group Info")) {
 				resultArray = validationRuleService.getVR_VanguardGroupInfo(model.getSiteKey(), model.getColumnName());
@@ -64,6 +64,8 @@ public class ValidationRuleController {
 				resultArray = validationRuleService.getVR_TaniumServer(model.getSiteKey(), model.getColumnName());
 			} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("sudoers") && model.getDeviceType().equalsIgnoreCase("tanium")) {
 				resultArray = validationRuleService.getVR_TaniumSudoers(model.getSiteKey(), model.getColumnName());
+			} else if (model.getAnalyticsType().equalsIgnoreCase("Discovery") && model.getReportBy().equalsIgnoreCase("Summary") && model.getDeviceType().equalsIgnoreCase("activedirectory")) {
+				resultArray = validationRuleService.getVR_ADUserSummaryReport(model.getSiteKey(), model.getColumnName());
 			}
 		} else {
 			resultArray = validationRuleService.getVR_CEDUniqueData(model.getSiteKey(), model.getColumnName(), model.getReportBy());
@@ -79,7 +81,8 @@ public class ValidationRuleController {
 		if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && !model.getReportBy().equalsIgnoreCase("Privileged Access") 
 				&& !model.getReportBy().equalsIgnoreCase("Group Info") && !model.getReportBy().equalsIgnoreCase("Group") && !model.getReportBy().equalsIgnoreCase("User") 
 				&& !model.getReportBy().equalsIgnoreCase("Sudoers")
-		&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) {
+		&& !(model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server")) 
+		&& !(model.getDeviceType().equalsIgnoreCase("activedirectory") && model.getReportBy().equalsIgnoreCase("Summary"))) {
 					
 			if(resultData.containsKey(colName)) {	
 				List<Object> datas = resultData.get(colName);
@@ -96,7 +99,8 @@ public class ValidationRuleController {
 			return ResponseEntity.ok(resultArray);
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Discovery") && (model.getReportBy().equalsIgnoreCase("Privileged Access") || model.getReportBy().equalsIgnoreCase("Group Info")
 				|| model.getReportBy().equalsIgnoreCase("Group") || model.getReportBy().equalsIgnoreCase("User") || model.getReportBy().equalsIgnoreCase("Sudoers")
-				|| (model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) || (model.getAnalyticsType().equalsIgnoreCase("Custom Excel Data"))) {
+				|| (model.getDeviceType().equalsIgnoreCase("Tanium") && model.getReportBy().equalsIgnoreCase("Server"))) || (model.getAnalyticsType().equalsIgnoreCase("Custom Excel Data")) 
+				|| (model.getDeviceType().equalsIgnoreCase("activedirectory") && model.getReportBy().equalsIgnoreCase("Summary"))) {
 			//System.out.println("!!!!! Privileged Access access result: " + resultArray);
 			return ResponseEntity.ok(resultArray);
 		} else if(model.getAnalyticsType().equalsIgnoreCase("Project")) {

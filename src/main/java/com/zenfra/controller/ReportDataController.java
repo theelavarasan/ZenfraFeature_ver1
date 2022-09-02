@@ -169,8 +169,8 @@ public class ReportDataController {
 					}
 				}*/
 				
-				if((request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium")) || 
-						request.getCategory().equalsIgnoreCase("Third Party Data")) {
+				if((request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && (request.getOstype().equalsIgnoreCase("tanium") 
+						|| request.getOstype().equalsIgnoreCase("activedirectory"))) || request.getCategory().equalsIgnoreCase("Third Party Data")) {
 					
 					return new ResponseEntity<>(privillegeAccessReportDAO.getData(request), HttpStatus.OK);
 					

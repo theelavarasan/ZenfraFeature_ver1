@@ -84,13 +84,13 @@ public class ReportDao {
 			
 			List<Map<String, Object>> result; 
 			String headerQuery = "";
-			if(reportBy.equalsIgnoreCase("Privileged Access")) {
+			if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Privileged Access")) {
 				headerQuery = reportQueries.getTaniumHeader();
-			} else if(reportBy.equalsIgnoreCase("User")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("User")) {
 				headerQuery = reportQueries.getUserSummaryHeader();
-			} else if(reportBy.equalsIgnoreCase("Server")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Server")) {
 				headerQuery = reportQueries.getServerSummaryHeader();
-			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Sudoers")) {
 				headerQuery = reportQueries.getSudoersSummaryHeader();
 			} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
 				
@@ -100,8 +100,10 @@ public class ReportDao {
 					headerQuery = reportQueries.getCedOtherHeader();
 				}
 				
-			} else if(reportBy.equalsIgnoreCase("Sudoers Detail")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Sudoers Detail")) {
 				headerQuery = reportQueries.getSudoersDetailHeader();
+			} else if(deviceType.equalsIgnoreCase("activedirectory") && reportBy.equalsIgnoreCase("Summary")) {
+				headerQuery = reportQueries.getAdUserSummaryReportHeader();
 			}
 			System.out.println("!!!!! headerQuery1: " + headerQuery);
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
@@ -173,26 +175,30 @@ public class ReportDao {
 			
 			String query = "";
 			
-			if(reportBy.equalsIgnoreCase("User")) {
+			if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("User")) {
 				query = reportQueries.getTaniumUserSummaryGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium users summary group query: " + query);
-			} else if(reportBy.equalsIgnoreCase("Server")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Server")) {
 				query = reportQueries.getTaniumServerSummaryGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium users summary group query: " + query);
-			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Sudoers")) {
 				query = reportQueries.getTaniumSudoersSummaryGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium sudoers summary group query: " + query);
-			} else if(reportBy.equalsIgnoreCase("Privileged Access")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Privileged Access")) {
 				query = reportQueries.getTaniumGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! Privileged Access Group query: " + query);
-			} else if(reportBy.equalsIgnoreCase("Sudoers Detail")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Sudoers Detail")) {
 				query = reportQueries.getTaniumSudoersDetailGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium sudoers Detail group query: " + query);
+			} else if(deviceType.equalsIgnoreCase("activedirectory") && reportBy.equalsIgnoreCase("Summary")) {
+				query = reportQueries.getAdUserSummaryReportGroup();
+				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
+				System.out.println("!!!!! activedirectory users summary group query: " + query);
 			} else {
 				String[] source_name = sourceId.split("~");
 				if(sourceId.startsWith("true~")) {

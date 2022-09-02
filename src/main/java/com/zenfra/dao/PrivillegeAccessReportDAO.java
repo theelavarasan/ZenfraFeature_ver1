@@ -59,7 +59,7 @@ public class PrivillegeAccessReportDAO {
         
         String validationFilter = "";
         if(request.getHealthCheckId() != null && !request.getHealthCheckId().isEmpty()) {
-        	String validationFilterQuery = getValidationRuleCondition(request.getSiteKey(), request.getHealthCheckId(), request.getRuleList(), request.getReportBy());
+        	String validationFilterQuery = getValidationRuleCondition(request.getSiteKey(), request.getHealthCheckId(), request.getRuleList(), request.getReportBy(), request.getOstype());
             List<Map<String, Object>> validationRows = utilities.getDBDatafromJdbcTemplate(validationFilterQuery);
             validationFilter = getValidationFilter(validationRows);
         }
@@ -113,7 +113,7 @@ public class PrivillegeAccessReportDAO {
 		return value;
 	}
     
-    private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList, String reportBy) {
+    private String  getValidationRuleCondition(String siteKey, String healthCheckId, List<String> ruleList, String reportBy, String deviceType) {
     	
     	JSONArray ruleArray = new JSONArray();
 		if(!ruleList.isEmpty()) {
@@ -132,6 +132,13 @@ public class PrivillegeAccessReportDAO {
 			column1 = "coalesce(coalesce(sd.data, ''{}'')::json ->> '''";
 		}
 		
+		if(deviceType.equalsIgnoreCase("activedirectory")) {
+			if(reportBy.equalsIgnoreCase("Summary")) {
+				column1 = " coalesce(coalesce(source_data1,''{}'')::jsonb || coalesce(source_data2,''{}'')::jsonb ->> '''";
+			}
+			
+		}
+		
 		
 		String validationRuleQuery = "select concat('(', string_agg(concat('(', condition_value, ')'), ' or '), ')') as condition_value from ( \r\n"
 				+ "select string_agg(condition_value, (case when con_operator is null or trim(con_operator) = '' then ' AND ' else concat(' ', con_operator, ' ') \r\n"
@@ -147,8 +154,8 @@ public class PrivillegeAccessReportDAO {
 				+ "row_number() over(partition by rule_id, con_operator) as rule_row from (\r\n"
 				+ "select report_by, rule_id, con_field_id, con_id, con_operator,\r\n"
 				+ " con_field_id as condition_field,\r\n"
-				+ "concat((case when op_row = 1 then null else con_operator end), ' ', (case when con_field_id ilike '" + prefix + "%' then ' ' else '" + column1 + " end),  "
-				+ "(case when con_field_id ilike '" + prefix + "%' then replace(substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), 'servers_count', 'servers_count::numeric')  else concat(con_field_id,''','''')') end), ' ',\r\n"
+				+ "concat((case when op_row = 1 then null else con_operator end), ' ', (case when con_field_id ilike '" + prefix + "%' or con_field_id ilike 'Local Users~%' then ' ' else '" + column1 + " end),  "
+				+ "(case when con_field_id ilike 'AD Master~%' or con_field_id ilike 'Local Users~%' then replace(concat('\"', con_field_id, '\"'),'servers_count\"','servers_count\"::numeric') else (case when con_field_id ilike '" + prefix + "%' then replace(substring(con_field_id, position('~' in con_field_id) + 1, length(con_field_id)), 'servers_count', 'servers_count::numeric')  else concat(con_field_id,''','''')') end)end), ' ',\r\n"
 				+ "(select con_value from tasklist_validation_conditions where con_name = con_condition),\r\n"
 				+ "(case when con_condition = 'startsWith' then concat(' ''',con_value, '%''') else (case when con_condition = 'endsWith' then concat(' ''%',con_value, '''')\r\n"
 				+ "else (case when con_condition = 'notBlank' then concat('''',con_value,'''') else (case when con_condition = 'blank' then concat(' ''',con_value,'''')\r\n"
@@ -262,7 +269,7 @@ public class PrivillegeAccessReportDAO {
     		e.printStackTrace();
     	}
     	
-    	return validationFilterQuery.isEmpty() ? "" : (" and (" + validationFilterQuery.trim() + ")");
+    	return validationFilterQuery.isEmpty() ? "" : (" and (" + validationFilterQuery.trim().replace("servers_count::numeric similar to", "servers_count::numeric =") + ")");
     	
     }
     
