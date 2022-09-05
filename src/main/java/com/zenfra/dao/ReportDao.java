@@ -2,6 +2,7 @@ package com.zenfra.dao;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -66,29 +67,50 @@ public class ReportDao {
 		return reportHeaders;
 	} 
 	
-	public JSONArray getPrivillegeReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+	public JSONArray getPrivillegeReportHeader(String reportName, String deviceType, String reportBy, String siteKey, String userId, String sourceId) {
 		JSONArray reportHeaders = new JSONArray();
 		try {
+			
+			String[] source_name = sourceId.split("~");
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("site_key", siteKey);
 			params.put("user_id", userId);
+			if(source_name.length > 1) {
+				params.put("sourceId", source_name[2]);
+			}
+			
 			System.out.println("------params--------- " + params);
-			System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
+			//System.out.println("------tanium header query--------- " + reportQueries.getTaniumHeader());
 			
 			List<Map<String, Object>> result; 
 			String headerQuery = "";
-			if(reportBy.equalsIgnoreCase("Privileged Access")) {
+			if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Privileged Access")) {
 				headerQuery = reportQueries.getTaniumHeader();
-			} else if(reportBy.equalsIgnoreCase("User")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("User")) {
 				headerQuery = reportQueries.getUserSummaryHeader();
-			} else if(reportBy.equalsIgnoreCase("Server")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Server")) {
 				headerQuery = reportQueries.getServerSummaryHeader();
-			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Sudoers")) {
 				headerQuery = reportQueries.getSudoersSummaryHeader();
+			} else if(reportBy.equalsIgnoreCase("thirdPartyData")) {
+				
+				if(sourceId.startsWith("true~")) {
+					headerQuery = reportQueries.getCedHeader();
+				} else {
+					headerQuery = reportQueries.getCedOtherHeader();
+				}
+				
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Sudoers Detail")) {
+				headerQuery = reportQueries.getSudoersDetailHeader();
+			} else if(deviceType.equalsIgnoreCase("activedirectory") && reportBy.equalsIgnoreCase("Summary")) {
+				headerQuery = reportQueries.getAdUserSummaryReportHeader();
 			}
-			
+			System.out.println("!!!!! headerQuery1: " + headerQuery);
 			headerQuery = headerQuery.replace(":site_key", siteKey).replace(":user_id", userId);
-			System.out.println("!!!!! headerQuery: " + headerQuery);
+			if(headerQuery.contains(":sourceId")) {
+				headerQuery = headerQuery.replace(":sourceId", source_name[2]);
+			}
+			System.out.println("!!!!! headerQuery2: " + headerQuery);
 			result = jdbc.queryForList(headerQuery);
 			
 			System.out.println("!!!!! result: " + result);
@@ -130,7 +152,7 @@ public class ReportDao {
 		return reportHeaders;
 	}
 	
-	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId) {
+	public JSONObject getReportGroup(String reportName, String deviceType, String reportBy, String siteKey, String userId, String sourceId) {
 		JSONObject reportGroup = new JSONObject();
 		try {
 			
@@ -150,27 +172,51 @@ public class ReportDao {
 			params = new HashMap<String, Object>();
 			params.put("site_key", siteKey);
 			params.put("user_id", userId);
-			String query = reportQueries.getTaniumGroup();
-			query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 			
-			System.out.println("!!!!! tanium group query: " + query);
-			if(reportBy.equalsIgnoreCase("User")) {
+			String query = "";
+			
+			if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("User")) {
 				query = reportQueries.getTaniumUserSummaryGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium users summary group query: " + query);
-			} else if(reportBy.equalsIgnoreCase("Server")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Server")) {
 				query = reportQueries.getTaniumServerSummaryGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium users summary group query: " + query);
-			} else if(reportBy.equalsIgnoreCase("Sudoers")) {
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Sudoers")) {
 				query = reportQueries.getTaniumSudoersSummaryGroup();
 				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
 				System.out.println("!!!!! tanium sudoers summary group query: " + query);
-			}
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Privileged Access")) {
+				query = reportQueries.getTaniumGroup();
+				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
+				System.out.println("!!!!! Privileged Access Group query: " + query);
+			} else if(deviceType.equalsIgnoreCase("tanium") && reportBy.equalsIgnoreCase("Sudoers Detail")) {
+				query = reportQueries.getTaniumSudoersDetailGroup();
+				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
+				System.out.println("!!!!! tanium sudoers Detail group query: " + query);
+			} else if(deviceType.equalsIgnoreCase("activedirectory") && reportBy.equalsIgnoreCase("Summary")) {
+				query = reportQueries.getAdUserSummaryReportGroup();
+				query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", deviceType).replace(":report_name", reportName).replace(":report_by", reportBy);
+				System.out.println("!!!!! activedirectory users summary group query: " + query);
+			} else {
+				String[] source_name = sourceId.split("~");
+				if(sourceId.startsWith("true~")) {
+					query = reportQueries.getCedHeaderGroup();
+					query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", source_name[2]);
+					System.out.println("!!!!! CED Header Group query: " + query);
+				} else {
+					query = reportQueries.getCedOtherHeaderGroup();
+					query = query.replace(":site_key", siteKey).replace(":user_id", userId).replace(":device_type", "Tanium").replace(":report_name", "End-To-End-Basic").replace(":report_by", "User").replace(":sourceId", source_name[2]);
+					System.out.println("!!!!! CED Header Group query: " + query);
+				}
+				
+				
+			} 
 			result = jdbc.queryForList(query);
 			
 			
-			System.out.println("!!!!! result: " + result);
+			//System.out.println("!!!!! result: " + result);
 			reportGroup = parseResultSetForHeaderGroup(result);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -169,7 +169,8 @@ public class ReportDataController {
 					}
 				}*/
 				
-				if(request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && request.getOstype().equalsIgnoreCase("tanium")) {
+				if((request.getReportType().equalsIgnoreCase("discovery") && request.getCategory().equalsIgnoreCase("user") && (request.getOstype().equalsIgnoreCase("tanium") 
+						|| request.getOstype().equalsIgnoreCase("activedirectory"))) || request.getCategory().equalsIgnoreCase("Third Party Data")) {
 					
 					return new ResponseEntity<>(privillegeAccessReportDAO.getData(request), HttpStatus.OK);
 					
@@ -233,38 +234,42 @@ public class ReportDataController {
 				+ siteKey + " : " + userId);
 		
 		sourceType = sourceType.toLowerCase();
+		
 		try {		
-
+			
+			
 			try { // remove orient db dataframe
-
-				String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
-						+ File.separator + siteKey + File.separator; // +
-																											// sourceType
-																											// +
-																											// File.separator;
-				File[] directories = new File(dataframePath).listFiles(File::isDirectory);
-				if(directories != null)  {
-					for (File dir : directories) {
-						if (dir.getName().equalsIgnoreCase(sourceType)) {
-							FileSystemUtils.deleteRecursively(dir);
+				if(!sourceType.equalsIgnoreCase("tanium") && !sourceType.equalsIgnoreCase("activedirectory")) {
+					String dataframePath = File.separator + "opt" + File.separator + "ZENfra" + File.separator + "Dataframe"
+							+ File.separator + siteKey + File.separator; // +
+																												// sourceType
+																												// +
+																												// File.separator;
+					File[] directories = new File(dataframePath).listFiles(File::isDirectory);
+					if(directories != null)  {
+						for (File dir : directories) {
+							if (dir.getName().equalsIgnoreCase(sourceType)) {
+								FileSystemUtils.deleteRecursively(dir);
+							}
 						}
 					}
+					
+					try { // delete end to end df file for all log folders
+						Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
+
+					    List<Path> fileWithName = Files.walk(configFilePath)
+					            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());  
+
+					    for (Path name : fileWithName) { 
+					    	FileSystemUtils.deleteRecursively(name);
+					    }
+					
+					} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+					} 
 				}
 				
-				try { // delete end to end df file for all log folders
-					Path  configFilePath = FileSystems.getDefault().getPath(dataframePath);
-
-				    List<Path> fileWithName = Files.walk(configFilePath)
-				            .filter(s -> s.toFile().getAbsolutePath().toLowerCase().contains("end-to-end")).collect(Collectors.toList());  
-
-				    for (Path name : fileWithName) { 
-				    	FileSystemUtils.deleteRecursively(name);
-				    }
-				
-				} catch (Exception e) {
-					// TODO: handle exception
-					e.printStackTrace();
-				} 
 				
 
 			} catch (Exception e) {
@@ -278,9 +283,8 @@ public class ReportDataController {
 			sourceType = sourceType.toLowerCase();
 			
 			//recreate Reports after completed parsing			
-			if(sourceType != null && sourceType.equalsIgnoreCase("Tanium")) {
-				 //dataframeService.recreateTaniumReportForDataframe(siteKey, sourceType, userId);			 
-			} else {
+			if(sourceType != null && !sourceType.equalsIgnoreCase("Tanium") && !sourceType.equalsIgnoreCase("activedirectory")) {
+				 
 				 dataframeService.recreateReportForDataframe(siteKey, sourceType, userId);
 			}
 			
@@ -318,13 +322,20 @@ public class ReportDataController {
 			String siteKey = "";
 			String reportList = "";
 
-			/*if (request.getReportType().equalsIgnoreCase("discovery")) {
-				reportName = request.getReportType();
-				deviceType = request.getOstype();
-				reportBy = request.getReportBy();
-				siteKey = request.getSiteKey();
-				reportList = request.getReportList();
-			} else*/ 
+			if(request.getCategory().equalsIgnoreCase("Third Party Data")) {
+				if(request.getThirdPartyId().startsWith("true~")) {
+					request.setReportList("End-To-End-Basic");
+					request.setReportBy("thirdPartyData");
+					request.setAnalyticstype("discovery");
+				} else {
+					request.setReportList("Local");
+					request.setReportBy("Server");
+					request.setAnalyticstype("discovery");
+				}
+			}
+			
+			System.out.println("!!!!! reportType: " + request.getReportType());
+			System.out.println("!!!!! reportType: " + request.getCategory());
 			if (request.getReportType().equalsIgnoreCase("optimization")) {
 				reportName = request.getReportType();
 				deviceType = "All";
@@ -358,6 +369,7 @@ public class ReportDataController {
 			} else {
 			
 				String componentName = "";
+				System.out.println("!!!!! thirdPartyId: " + request.getThirdPartyId());
 				if(request.getOstype() != null && !request.getOstype().isEmpty()) { //server
 					componentName = request.getOstype();
 				} else if(request.getSwitchtype() != null && !request.getSwitchtype().isEmpty()) { //switch
@@ -383,6 +395,10 @@ public class ReportDataController {
 				siteKey = request.getSiteKey();
 				reportList = request.getReportList();	
 				
+			}
+			
+			if(request.getCategory().equalsIgnoreCase("Third Party Data")) {
+				deviceType = "tanium";
 			}
 			
 		
@@ -908,6 +924,24 @@ public class ReportDataController {
 		
 
 		return resultJSONObject;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@PostMapping("getprivillegedAccessCount")
+	public JSONObject privillegedAccessCount(
+			@RequestParam String deviceType, @RequestParam String reportBy, @RequestParam String siteKey,
+			HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ParseException, SQLException {
+
+		System.out.println("deviceType : " + deviceType);
+		System.out.println("reportBy : " + reportBy);
+		System.out.println("siteKey : " + siteKey);
+		
+		JSONObject resultObject = new JSONObject();
+		Integer countValue = dataframeService.privillegedAccessCount(deviceType, reportBy, siteKey);
+		System.out.println("countValue : " + countValue);
+
+		resultObject.put("rowCount", countValue);
+		return resultObject;
 	}
 
 }

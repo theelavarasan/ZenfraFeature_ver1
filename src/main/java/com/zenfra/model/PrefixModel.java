@@ -13,6 +13,10 @@ public class PrefixModel {
 		prefix.put("User", "User Summary~");
 		prefix.put("Server", "Server Summary~");
 		prefix.put("Sudoers", "Sudoers Summary~");
+		prefix.put("thirdPartyData", "User Summary~");
+		prefix.put("Sudoers Detail", "Sudoers Detail~");
+		prefix.put("Summary", "AD Master~");
+		prefix.put("Summary-User", "User Summary~");
 	}
 	
 	public static String getPrefix(String key) {

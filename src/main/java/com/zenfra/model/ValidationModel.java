@@ -26,6 +26,8 @@ public class ValidationModel {
 	private String projectId;
 	
 	private String osType;
+	
+	private String thirdPartyId;
 
 	public String getAuthUserId() {
 		return authUserId;
@@ -116,8 +118,14 @@ public class ValidationModel {
 	public void setOsType(String osType) {
 		this.osType = osType;
 	}
-
 	
+	public String getThirdPartyId() {
+		return thirdPartyId;
+	}
+
+	public void setThirdPartyId(String thirdPartyId) {
+		this.thirdPartyId = thirdPartyId;
+	}
 
 	public ValidationModel() {
 		super();

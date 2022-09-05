@@ -412,7 +412,7 @@ public class ValidationRuleService {
 			System.out.println("!!!! compatibility validation query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -622,7 +622,7 @@ public class ValidationRuleService {
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -668,7 +668,7 @@ public class ValidationRuleService {
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_name").toString());
 			}
@@ -744,7 +744,7 @@ public class ValidationRuleService {
 						+ "where site_key = '" + siteKey + "'";
 			} else {
 				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
-						" and data::json ->> '" + columnName + "' is not null";
+						" and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct user_name from privillege_data_details where site_key = '" + siteKey + "')";
 			}
 
 			/*String query = "select keys, json_agg(column_values) as column_values from (\r\n"
@@ -999,7 +999,7 @@ public class ValidationRuleService {
 			System.out.println("!!!!! uniqueFilterQuery: " + uniqueFilterQuery);
 			List<Map<String,Object>> valueArray = getObjectFromQuery(uniqueFilterQuery); 
 			//JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for(Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("data").toString());
 			}
@@ -1035,7 +1035,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			
 			System.out.println("!!!!! query: " + query);
 			List<Map<String,Object>> valueArray= getObjectFromQuery(query); 
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for(Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 		}	
@@ -1055,7 +1055,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 				
 				System.out.println("!!!!! query: " + query);
 				List<Map<String,Object>> valueArray1 = getObjectFromQuery(query); 
-				System.out.println("!!!!! valueArray: " + valueArray1);
+				//System.out.println("!!!!! valueArray: " + valueArray1);
 				for(Map<String, Object> list : valueArray1) {
 					resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 		        }
@@ -1099,7 +1099,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		System.out.println("!!!!! query: " + query);
 		List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 		// JSONParser parser = new JSONParser();
-		System.out.println("!!!!! valueArray: " + valueArray);
+		//System.out.println("!!!!! valueArray: " + valueArray);
 		for (Map<String, Object> list : valueArray) {
 			resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 		}
@@ -1151,7 +1151,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -1217,7 +1217,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -1239,33 +1239,22 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		JSONArray resultArray = new JSONArray();
 
 		try {
-			columnName = columnName.startsWith("User Summary~") ? columnName.substring(columnName.indexOf("~") + 1, columnName.length()) : ("source_json_data::json ->> '" + columnName + "'");
-			String query = "select json_agg(distinct " + columnName + ") as column_values FROM (\r\n"
-					+ "WITH SDDATA AS\r\n"
-					+ "    (SELECT PRIMARY_KEY_VALUE, JSON_collect(DATA::JSON) AS SDJSONDATA FROM SOURCE_DATA AS SD\r\n"
-					+ "        INNER JOIN SOURCE AS SR ON SD.SOURCE_ID = SR.SOURCE_ID\r\n"
-					+ "        WHERE SD.SITE_KEY = '" + siteKey + "' AND SR.IS_ACTIVE = true\r\n"
-					+ "            AND (SR.LINK_TO = 'All' OR SR.LINK_TO = 'None') GROUP BY SD.PRIMARY_KEY_VALUE)\r\n"
-					+ "SELECT count(1) over() as row_count, USRD.USER_NAME,\r\n"
-					+ "    USRD.USER_ID,\r\n"
-					+ "    USRD.GROUP_ID,\r\n"
-					+ "    USRD.SERVERS_COUNT,\r\n"
-					+ "    USRD.PRIMARY_GROUP_NAME,\r\n"
-					+ "    USRD.SECONDARY_GROUP_NAME,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_USER,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_PRIMARY_GROUP,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_SECONDARY_GROUP,\r\n"
-					+ "    USRD.MEMBER_OF_USER_ALIAS,\r\n"
-					+ "    USRD.SUDO_PRIVILEGES_BY_USER_ALIAS, COALESCE(SDT.SDJSONDATA::TEXT, '{}') AS SOURCE_JSON_DATA\r\n"
-					+ "FROM USER_SUMMARY_REPORT_DETAILS AS USRD\r\n"
-					+ "LEFT JOIN SDDATA AS SDT ON USRD.USER_NAME = SDT.PRIMARY_KEY_VALUE\r\n"
-					+ "WHERE SITE_KEY = '" + siteKey + "'    \r\n"
-					+ ") A";
+			
+			String query = "";
+			
+			if(columnName.startsWith("User Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("User Summary~", "") + ") as column_values from USER_SUMMARY_REPORT_DETAILS "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
+						" and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct user_name from USER_SUMMARY_REPORT_DETAILS where site_key = '" + siteKey + "')";
+			}
 					
 			System.out.println("!!!!! query: " + query);
 			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
 			// JSONParser parser = new JSONParser();
-			System.out.println("!!!!! valueArray: " + valueArray);
+			//System.out.println("!!!!! valueArray: " + valueArray);
 			for (Map<String, Object> list : valueArray) {
 				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
 			}
@@ -1298,7 +1287,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 						+ "where site_key = '" + siteKey + "'";
 			} else {
 				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
-						" and data::json ->> '" + columnName + "' is not null";
+						" and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct user_name from privillege_data_details where site_key = '" + siteKey + "')";
 			}
 					
 			System.out.println("!!!!! query: " + query);
@@ -1339,7 +1328,7 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 						+ "where site_key = '" + siteKey + "'";
 			} else {
 				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' \r\n" +
-						" and data::json ->> '" + columnName + "' is not null";
+						" and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct user_name from user_sudoers_summary_details where site_key = '" + siteKey + "') ";
 			}
 					
 			System.out.println("!!!!! query: " + query);
@@ -1360,6 +1349,97 @@ public JSONArray getOnpremisesCostFieldType(String siteKey, String columnName, S
 		}
 		
 		//System.out.println("!!!!! resultArray2: " + resultArray);
+		return resultArray;
+
+	}
+	
+	public JSONArray getVR_CEDUniqueData(String siteKey, String columnName, String thirdPartyId) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+			
+			String query = "";
+			
+			String[] sourceId = thirdPartyId.split("~"); 
+			if(columnName.startsWith("User Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("User Summary~", "") + ") as column_values from USER_SUMMARY_REPORT_DETAILS "
+						+ "where site_key = '" + siteKey + "'";
+			} else if(columnName.startsWith("Server Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("Server Summary~", "") + ") as column_values from privillege_data_details "
+						+ "where site_key = '" + siteKey + "'";
+			} else if(columnName.startsWith("Server Data~")) {
+				
+				query = "select json_agg(distinct data::json ->> '" + columnName.substring(columnName.indexOf("~") + 1, columnName.length()) + "') as column_values from local_discovery "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' and source_id = '" + sourceId[2] + "' \r\n" +
+						" and data::json ->> '" + columnName + "' is not null";
+			}
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			//System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
+		return resultArray;
+
+	} 
+	
+	public JSONArray getVR_ADUserSummaryReport(String siteKey, String columnName) {
+
+		JSONArray resultArray = new JSONArray();
+
+		try {
+			
+			String query = "";
+			
+			if(columnName.startsWith("User Summary~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("User Summary~", "") + ") as column_values from USER_SUMMARY_REPORT_DETAILS "
+						+ "where site_key = '" + siteKey + "'";
+			} else if(columnName.startsWith("AD Group~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("AD Group~", "") + ") as column_values from ad_groupmember "
+						+ "where site_key = '" + siteKey + "'";
+			} else if(columnName.startsWith("AD Master~")) {
+				
+				query = "select json_agg(distinct " + columnName.replace("AD Master~", "") + ") as column_values from ad_master "
+						+ "where site_key = '" + siteKey + "'";
+			} else {
+				query = "select json_agg(distinct data::json ->> '" + columnName + "') as column_values from source_data where site_key = '" + siteKey + "' "
+						+ "and data::json ->> '" + columnName + "' is not null and primary_key_value in (select distinct samaccountname from ad_master where site_key = '" + siteKey + "')";
+			}
+					
+			System.out.println("!!!!! query: " + query);
+			List<Map<String, Object>> valueArray = getObjectFromQuery(query);
+			// JSONParser parser = new JSONParser();
+			//System.out.println("!!!!! valueArray: " + valueArray);
+			for (Map<String, Object> list : valueArray) {
+				resultArray = (JSONArray) parser.parse(list.get("column_values").toString());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+		}
+
 		return resultArray;
 
 	}

@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -600,11 +601,10 @@ public class FavouriteController_v2 {
 	@PostMapping("/healthCheckValidate")
 	public boolean getHealthCheckNames(@RequestParam("siteKey") String siteKey, @RequestParam("healthCheckName") String healthCheckName) {
 
-		boolean responseArray;
+		boolean result = false;
 		try {
-			responseArray = healthCheckService.getHealthCheckNames(siteKey, healthCheckName);
+			result = healthCheckService.getHealthCheckNames(siteKey, healthCheckName);
 		} catch (Exception e) {
-			responseArray = false;
 			e.printStackTrace();
 			StringWriter errors = new StringWriter();
 			e.printStackTrace(new PrintWriter(errors));
@@ -612,7 +612,7 @@ public class FavouriteController_v2 {
 			ExceptionHandlerMail.errorTriggerMail(ex);
 
 		}
-		return responseArray;
+		return result;
 
 	}
 
@@ -716,6 +716,61 @@ public class FavouriteController_v2 {
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@GetMapping("/getHealthCheckByFilters")
+	public ResponseEntity<?> getHealthCheckByFilters(@RequestParam("siteKey") String siteKey,
+			@RequestParam(name = "authUserId", required = false) String userId, HttpServletRequest request,
+			HttpServletResponse respone, @RequestParam(name="reportBy", required = false) String reportBy, 
+			@RequestParam(name="componentType", required = false) String componentType,
+			@RequestParam(name="analyticsType", required = false) String analyticsType,
+			@RequestParam(name="reportName", required = false) String reportName) {
+
+		
+		ResponseModel_v2 responseModel = new ResponseModel_v2();
+		try {
+
+			String token = request.getHeader("Authorization");
+			
+			if(analyticsType.equalsIgnoreCase("Custom Excel Data")) {
+				componentType = "CED";
+				reportName = "Custom Excel Data";
+			}
+
+			GridDataFormat gridDataFormat = healthCheckService.getHealthCheckDataByFilters(siteKey, userId, reportBy, componentType, analyticsType, reportName);
+
+			String siteOrder = ZKConstants.HEALTHCHECK_COLUMN_ORDER;
+			responseModel.setColumnOrder(Arrays.asList(siteOrder.split(",")));
+
+			if (com.zenfra.model.ZKModel.getZkData().containsKey(ZKConstants.HEADER_LABEL)) {
+				responseModel.setHeaderInfo(healthCheckService.getHeaderListFromV2(siteKey, userId, token));
+			}
+
+			if (!gridDataFormat.getData().isEmpty()) {
+				responseModel.setjData(gridDataFormat.getData());
+				responseModel.setHeaderInfo(gridDataFormat.getHeaderInfo());
+				responseModel.setResponseDescription("HealthCheck Successfully retrieved by the filters ");
+				responseModel.setResponseCode(HttpStatus.OK);
+			} else {
+				responseModel.setResponseDescription("No data found ");
+				List<com.zenfra.model.GridHeader> gridHeaderList = new ArrayList<>();
+				responseModel.setHeaderInfo(gridHeaderList);
+				responseModel.setResponseCode(HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String ex = errors.toString();
+			ExceptionHandlerMail.errorTriggerMail(ex);
+			responseModel.setResponseMessage("Failed");
+			responseModel.setResponseCode(HttpStatus.EXPECTATION_FAILED);
+			responseModel.setResponseDescription(e.getMessage());
+
+		} finally {
+			return ResponseEntity.ok(responseModel);
+		}
+
 	}
 
 }

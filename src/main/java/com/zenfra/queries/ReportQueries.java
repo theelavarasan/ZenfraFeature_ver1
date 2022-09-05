@@ -41,6 +41,18 @@ public class ReportQueries {
 	
 	private String taniumSudoersSummaryGroup;
 	
+	private String cedHeader;
+	private String cedHeaderGroup;
+	
+	private String cedOtherHeader;
+	private String cedOtherHeaderGroup;
+	
+	private String sudoersDetailHeader;
+	private String taniumSudoersDetailGroup;
+	
+	private String adUserSummaryReportHeader;
+	private String adUserSummaryReportGroup;
+	
 	public String getHeader() {
 		return header;
 	}
@@ -169,5 +181,71 @@ public class ReportQueries {
 	public void setTaniumSudoersSummaryGroup(String taniumSudoersSummaryGroup) {
 		this.taniumSudoersSummaryGroup = taniumSudoersSummaryGroup;
 	}
+
+	public String getCedHeader() {
+		return cedHeader;
+	}
+
+	public void setCedHeader(String cedHeader) {
+		this.cedHeader = cedHeader;
+	}
+
+	public String getCedHeaderGroup() {
+		return cedHeaderGroup;
+	}
+
+	public void setCedHeaderGroup(String cedHeaderGroup) {
+		this.cedHeaderGroup = cedHeaderGroup;
+	}
+
+	public String getCedOtherHeader() {
+		return cedOtherHeader;
+	}
+
+	public void setCedOtherHeader(String cedOtherHeader) {
+		this.cedOtherHeader = cedOtherHeader;
+	}
+
+	public String getCedOtherHeaderGroup() {
+		return cedOtherHeaderGroup;
+	}
+
+	public void setCedOtherHeaderGroup(String cedOtherHeaderGroup) {
+		this.cedOtherHeaderGroup = cedOtherHeaderGroup;
+	}
+
+	public String getSudoersDetailHeader() {
+		return sudoersDetailHeader;
+	}
+
+	public void setSudoersDetailHeader(String sudoersDetailHeader) {
+		this.sudoersDetailHeader = sudoersDetailHeader;
+	}
+
+	public String getTaniumSudoersDetailGroup() {
+		return taniumSudoersDetailGroup;
+	}
+
+	public void setTaniumSudoersDetailGroup(String taniumSudoersDetailGroup) {
+		this.taniumSudoersDetailGroup = taniumSudoersDetailGroup;
+	}
+
+	public String getAdUserSummaryReportHeader() {
+		return adUserSummaryReportHeader;
+	}
+
+	public void setAdUserSummaryReportHeader(String adUserSummaryReportHeader) {
+		this.adUserSummaryReportHeader = adUserSummaryReportHeader;
+	}
+
+	public String getAdUserSummaryReportGroup() {
+		return adUserSummaryReportGroup;
+	}
+
+	public void setAdUserSummaryReportGroup(String adUserSummaryReportGroup) {
+		this.adUserSummaryReportGroup = adUserSummaryReportGroup;
+	}
+	
+	
 	
 }
